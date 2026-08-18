@@ -38,5 +38,5 @@ export const EMERGENCY_CONTACTS = [
   { name: "St John Ambulance", number: "0721 225 285" },
   { name: "Kenya Red Cross (E-Plus)", number: "1199" },
   { name: "NTSA Hotline", number: "0709 932 000" },
-  { name: "KeNHA Highway Помощь", number: "0800 950 000" },
+  { name: "KeNHA Highway Assistance", number: "0800 950 000" },
 ];
