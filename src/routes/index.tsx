@@ -46,7 +46,7 @@ function Index() {
     queryKey: ["home-news"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("news_articles")
+        .from("news")
         .select("*")
         .order("published_at", { ascending: false })
         .limit(3);
