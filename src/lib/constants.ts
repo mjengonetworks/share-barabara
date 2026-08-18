@@ -1,0 +1,42 @@
+export const KENYA_COUNTIES = [
+  "Baringo", "Bomet", "Bungoma", "Busia", "Elgeyo-Marakwet", "Embu", "Garissa",
+  "Homa Bay", "Isiolo", "Kajiado", "Kakamega", "Kericho", "Kiambu", "Kilifi",
+  "Kirinyaga", "Kisii", "Kisumu", "Kitui", "Kwale", "Laikipia", "Lamu",
+  "Machakos", "Makueni", "Mandera", "Marsabit", "Meru", "Migori", "Mombasa",
+  "Murang'a", "Nairobi", "Nakuru", "Nandi", "Narok", "Nyamira", "Nyandarua",
+  "Nyeri", "Samburu", "Siaya", "Taita-Taveta", "Tana River", "Tharaka-Nithi",
+  "Trans Nzoia", "Turkana", "Uasin Gishu", "Vihiga", "Wajir", "West Pokot",
+] as const;
+
+export const HAZARD_TYPES = [
+  { value: "crash", label: "Crash / collision" },
+  { value: "road_damage", label: "Potholes or road damage" },
+  { value: "flooding", label: "Flooding" },
+  { value: "obstruction", label: "Obstruction or stalled vehicle" },
+  { value: "poor_visibility", label: "Fog or poor visibility" },
+  { value: "reckless_driving", label: "Reckless driving" },
+  { value: "roadworks", label: "Roadworks" },
+  { value: "other", label: "Other hazard" },
+] as const;
+
+export const SEVERITIES = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "critical", label: "Critical" },
+] as const;
+
+export const REPORT_SEVERITIES = [
+  { value: "minor", label: "Minor" },
+  { value: "moderate", label: "Moderate" },
+  { value: "serious", label: "Serious" },
+  { value: "fatal", label: "Fatal" },
+] as const;
+
+export const EMERGENCY_CONTACTS = [
+  { name: "Police / Emergency", number: "999 or 112" },
+  { name: "St John Ambulance", number: "0721 225 285" },
+  { name: "Kenya Red Cross (E-Plus)", number: "1199" },
+  { name: "NTSA Hotline", number: "0709 932 000" },
+  { name: "KeNHA Highway Assistance", number: "0800 950 000" },
+];
