@@ -59,6 +59,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-hi-vis: var(--hi-vis);
+  --color-caution: var(--caution);
+  --color-safe: var(--safe);
+  --color-surface-dark: var(--surface-dark);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
 }
 
 :root {
@@ -152,5 +158,31 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
   }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+@utility asphalt {
+  background-image: var(--gradient-asphalt);
+}
+
+@utility card-elevated {
+  box-shadow: var(--shadow-card);
+}
+
+@utility hazard-stripe {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--hi-vis) 0 12px,
+    oklch(0.2 0.02 60) 12px 24px
+  );
 }
