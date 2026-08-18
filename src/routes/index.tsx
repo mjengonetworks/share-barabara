@@ -161,7 +161,7 @@ function Index() {
                   {n.category}
                 </span>
                 <h3 className="mt-2 font-bold leading-snug">{n.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.excerpt}</p>
+                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.summary}</p>
               </Link>
             ))}
           </div>
