@@ -18,7 +18,7 @@ import { num } from "@/lib/format";
 export const Route = createFileRoute("/statistics")({
   head: () => ({
     meta: [
-      { title: "Kenya Road Crash Statistics — Barabara Salama" },
+      { title: "Kenya Road Crash Statistics — Share Barabara" },
       {
         name: "description",
         content:

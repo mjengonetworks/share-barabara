@@ -6,7 +6,7 @@ import { longDate } from "@/lib/format";
 export const Route = createFileRoute("/news/")({
   head: () => ({
     meta: [
-      { title: "Road Safety News in Kenya — Barabara Salama" },
+      { title: "Road Safety News in Kenya — Share Barabara" },
       {
         name: "description",
         content:

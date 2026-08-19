@@ -22,7 +22,7 @@ import { CommentSection } from "@/components/site/comment-section";
 export const Route = createFileRoute("/alerts")({
   head: () => ({
     meta: [
-      { title: "Live Road Hazard Alerts in Kenya — Barabara Salama" },
+      { title: "Live Road Hazard Alerts in Kenya — Share Barabara" },
       {
         name: "description",
         content:

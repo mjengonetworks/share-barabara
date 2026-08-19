@@ -11,13 +11,13 @@ import { SeverityBadge } from "@/components/site/severity-badge";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Barabara Salama — Road Safety in Kenya" },
+      { title: "Share Barabara — Road Safety in Kenya" },
       {
         name: "description",
         content:
           "Live road hazard alerts, crash statistics, news and safety guidance for Kenya's roads. Report hazards, file accident reports and join the conversation.",
       },
-      { property: "og:title", content: "Barabara Salama — Road Safety in Kenya" },
+      { property: "og:title", content: "Share Barabara — Road Safety in Kenya" },
       {
         property: "og:description",
         content:
@@ -84,7 +84,7 @@ function Index() {
             Every journey home should end at home.
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-            Barabara Salama brings together live hazard alerts, crash data and road
+            Share Barabara brings together live hazard alerts, crash data and road
             safety news from across Kenya's 47 counties — reported by the people who
             use these roads every day.
           </p>
