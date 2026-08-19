@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoAsset from "@/assets/share-barabara-logo.png.asset.json";
+import iconAsset from "@/assets/share-barabara-icon.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -32,14 +32,18 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-        <Link to="/" className="flex items-center" aria-label="Share Barabara home">
+        <Link to="/" className="flex items-center gap-2" aria-label="Share Barabara home">
           <img
-            src={logoAsset.url}
+            src={iconAsset.url}
             alt="Share Barabara"
-            className="h-11 w-auto"
-            width={160}
-            height={44}
+            className="size-10"
+            width={40}
+            height={40}
           />
+          <span className="font-display text-lg font-extrabold leading-none tracking-tight">
+            <span className="text-primary">Share</span>{" "}
+            <span className="text-accent">Barabara</span>
+          </span>
         </Link>
 
         <nav className="ml-auto hidden items-center gap-1 md:flex">
