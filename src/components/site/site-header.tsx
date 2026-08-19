@@ -38,7 +38,6 @@ export function SiteHeader() {
             alt="Share Barabara"
             className="h-10 w-auto sm:h-11"
           />
-          </span>
         </Link>
 
         <nav className="ml-auto hidden items-center gap-1 md:flex">
