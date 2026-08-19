@@ -7,7 +7,11 @@ export function SiteFooter() {
     <footer className="mt-12 asphalt text-secondary">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <img src={logoAsset.url} alt="Share Barabara" className="h-12 w-auto" />
+          <img
+            src={logoAsset.url}
+            alt="Share Barabara"
+            className="h-12 w-auto [filter:drop-shadow(0_0_1px_rgba(255,255,255,0.9))_drop-shadow(0_0_3px_rgba(255,255,255,0.6))]"
+          />
           <p className="mt-3 text-sm text-secondary/70">
             A community road safety platform for Kenya: verified news, open crash
             statistics and hazard alerts from the people who use the roads daily.
