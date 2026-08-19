@@ -5,7 +5,7 @@ import { EMERGENCY_CONTACTS } from "@/lib/constants";
 export const Route = createFileRoute("/safety")({
   head: () => ({
     meta: [
-      { title: "Road Safety Guidance & Emergency Numbers in Kenya — Barabara Salama" },
+      { title: "Road Safety Guidance & Emergency Numbers in Kenya — Share Barabara" },
       {
         name: "description",
         content:

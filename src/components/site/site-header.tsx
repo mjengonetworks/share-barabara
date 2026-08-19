@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Menu, ShieldAlert, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import iconAsset from "@/assets/share-barabara-icon.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -31,12 +32,17 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded bg-accent text-accent-foreground">
-            <ShieldAlert className="size-5" />
-          </span>
-          <span className="font-display text-lg font-extrabold uppercase tracking-tight">
-            Barabara<span className="text-muted-foreground">Salama</span>
+        <Link to="/" className="flex items-center gap-2" aria-label="Share Barabara home">
+          <img
+            src={iconAsset.url}
+            alt="Share Barabara"
+            className="size-10"
+            width={40}
+            height={40}
+          />
+          <span className="font-display text-lg font-extrabold leading-none tracking-tight">
+            <span className="text-primary">Share</span>{" "}
+            <span className="text-accent">Barabara</span>
           </span>
         </Link>
 
