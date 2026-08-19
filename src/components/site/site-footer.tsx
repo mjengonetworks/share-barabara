@@ -1,17 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
-import iconAsset from "@/assets/share-barabara-icon.png.asset.json";
+import logoAsset from "@/assets/share-barabara-logo.png.asset.json";
 
 export function SiteFooter() {
   return (
     <footer className="mt-20 asphalt text-secondary">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2">
-            <img src={iconAsset.url} alt="" className="size-9" width={36} height={36} />
-            <p className="font-display text-lg font-extrabold uppercase text-background">
-              Share Barabara
-            </p>
+          <div className="inline-flex rounded-md bg-background px-3 py-2">
+            <img src={logoAsset.url} alt="Share Barabara" className="h-9 w-auto" />
           </div>
           <p className="mt-3 text-sm text-secondary/70">
             A community road safety platform for Kenya: verified news, open crash
