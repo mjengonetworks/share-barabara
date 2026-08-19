@@ -5,11 +5,9 @@ import logoAsset from "@/assets/share-barabara-logo.png.asset.json";
 export function SiteFooter() {
   return (
     <footer className="mt-20 asphalt text-secondary">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <div className="inline-flex rounded-md bg-background px-3 py-2">
-            <img src={logoAsset.url} alt="Share Barabara" className="h-9 w-auto" />
-          </div>
+          <img src={logoAsset.url} alt="Share Barabara" className="h-12 w-auto" />
           <p className="mt-3 text-sm text-secondary/70">
             A community road safety platform for Kenya: verified news, open crash
             statistics and hazard alerts from the people who use the roads daily.
