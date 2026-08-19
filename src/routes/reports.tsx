@@ -60,7 +60,7 @@ function ReportsPage() {
   const visible = reports.filter((r) => county === "all" || r.county === county);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14">
+    <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Crash record
       </p>

@@ -31,12 +31,12 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
+      <div className="mx-auto flex h-20 max-w-6xl items-center gap-4 px-4">
         <Link to="/" className="flex items-center" aria-label="Share Barabara home">
           <img
             src={logoAsset.url}
             alt="Share Barabara"
-            className="h-10 w-auto sm:h-11"
+            className="h-12 w-auto sm:h-14"
           />
         </Link>
 
