@@ -78,7 +78,7 @@ function Index() {
           className="absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
-        <div className="relative mx-auto max-w-6xl px-4 py-28">
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-20">
           <div className="hazard-stripe h-1.5 w-24 rounded" />
           <h1 className="mt-6 max-w-3xl font-display text-5xl font-extrabold leading-tight sm:text-6xl">
             Every journey home should end at home.
@@ -99,7 +99,7 @@ function Index() {
             </Button>
           </div>
           {latest ? (
-            <div className="mt-12 grid max-w-2xl gap-4 sm:grid-cols-3">
+            <div className="mt-8 grid max-w-2xl gap-4 sm:grid-cols-3">
               <Stat value={num(latest.fatalities)} label={`deaths in ${latest.year}`} danger />
               <Stat value={num(latest.serious_injuries)} label="seriously injured" />
               <Stat value="~13" label="deaths every day" danger />
@@ -108,7 +108,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="flex items-end justify-between gap-4">
           <h2 className="text-3xl font-bold">Latest hazard alerts</h2>
           <Link to="/alerts" className="text-sm font-semibold text-accent-foreground underline">
@@ -142,7 +142,7 @@ function Index() {
       </section>
 
       <section className="border-y border-border bg-secondary/40">
-        <div className="mx-auto max-w-6xl px-4 py-16">
+        <div className="mx-auto max-w-6xl px-4 py-10">
           <div className="flex items-end justify-between gap-4">
             <h2 className="text-3xl font-bold">Road safety news</h2>
             <Link to="/news" className="text-sm font-semibold text-accent-foreground underline">
@@ -168,7 +168,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
             <h2 className="text-3xl font-bold">In an emergency</h2>

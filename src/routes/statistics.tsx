@@ -75,7 +75,7 @@ function StatisticsPage() {
   const totalVictims = victims.reduce((sum, v) => sum + v.fatalities, 0) || 1;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14">
+    <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Open data
       </p>

@@ -54,7 +54,7 @@ function NewsDetail() {
   }
 
   return (
-    <article className="mx-auto max-w-3xl px-4 py-14">
+    <article className="mx-auto max-w-3xl px-4 py-10">
       <Link to="/news" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="size-4" /> All news
       </Link>
