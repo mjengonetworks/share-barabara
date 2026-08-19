@@ -4,7 +4,7 @@ import logoAsset from "@/assets/share-barabara-logo.png.asset.json";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-20 asphalt text-secondary">
+    <footer className="mt-12 asphalt text-secondary">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <img src={logoAsset.url} alt="Share Barabara" className="h-12 w-auto" />
