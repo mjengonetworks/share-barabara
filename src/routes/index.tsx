@@ -80,15 +80,15 @@ function Index() {
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-20">
           <div className="hazard-stripe h-1.5 w-24 rounded" />
-          <h1 className="mt-6 max-w-3xl font-display text-5xl font-extrabold leading-tight sm:text-6xl">
+          <h1 className="mt-4 max-w-3xl font-display text-5xl font-extrabold leading-tight sm:text-6xl">
             Every journey home should end at home.
           </h1>
-          <p className="mt-5 max-w-xl text-lg text-muted-foreground">
+          <p className="mt-4 max-w-xl text-lg text-muted-foreground">
             Share Barabara brings together live hazard alerts, crash data and road
             safety news from across Kenya's 47 counties — reported by the people who
             use these roads every day.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg">
               <Link to="/alerts">
                 See live alerts <ArrowRight className="ml-2 size-4" />
@@ -120,7 +120,7 @@ function Index() {
             No alerts posted yet. Be the first to report a hazard on your route.
           </p>
         ) : (
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
             {alerts.map((a) => (
               <article key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
                 <div className="flex flex-wrap items-center gap-2">
@@ -149,7 +149,7 @@ function Index() {
               All news
             </Link>
           </div>
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
             {news.map((n) => (
               <Link
                 key={n.id}
@@ -169,7 +169,7 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10">
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2">
           <div>
             <h2 className="text-3xl font-bold">In an emergency</h2>
             <p className="mt-3 text-muted-foreground">
