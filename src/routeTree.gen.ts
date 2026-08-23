@@ -17,8 +17,10 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as StatisticsRouteImport } from './routes/statistics'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedModerateRouteImport } from './routes/_authenticated/moderate'
 import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
+import { Route as UUserIdRouteImport } from './routes/u.$userId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +61,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedModerateRoute = AuthenticatedModerateRouteImport.update({
+  id: '/moderate',
+  path: '/moderate',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const NewsIndexRoute = NewsIndexRouteImport.update({
   id: '/news/',
   path: '/news/',
@@ -67,6 +74,11 @@ const NewsIndexRoute = NewsIndexRouteImport.update({
 const NewsSlugRoute = NewsSlugRouteImport.update({
   id: '/news/$slug',
   path: '/news/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UUserIdRoute = UUserIdRouteImport.update({
+  id: '/u/$userId',
+  path: '/u/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -78,7 +90,9 @@ export interface FileRoutesByFullPath {
   '/safety': typeof SafetyRoute
   '/statistics': typeof StatisticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/moderate': typeof AuthenticatedModerateRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/u/$userId': typeof UUserIdRoute
   '/news/': typeof NewsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -89,7 +103,9 @@ export interface FileRoutesByTo {
   '/safety': typeof SafetyRoute
   '/statistics': typeof StatisticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/moderate': typeof AuthenticatedModerateRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/u/$userId': typeof UUserIdRoute
   '/news': typeof NewsIndexRoute
 }
 export interface FileRoutesById {
@@ -102,7 +118,9 @@ export interface FileRoutesById {
   '/safety': typeof SafetyRoute
   '/statistics': typeof StatisticsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/moderate': typeof AuthenticatedModerateRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/u/$userId': typeof UUserIdRoute
   '/news/': typeof NewsIndexRoute
 }
 export interface FileRouteTypes {
@@ -115,7 +133,9 @@ export interface FileRouteTypes {
     | '/safety'
     | '/statistics'
     | '/dashboard'
+    | '/moderate'
     | '/news/$slug'
+    | '/u/$userId'
     | '/news/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -126,7 +146,9 @@ export interface FileRouteTypes {
     | '/safety'
     | '/statistics'
     | '/dashboard'
+    | '/moderate'
     | '/news/$slug'
+    | '/u/$userId'
     | '/news'
   id:
     | '__root__'
@@ -138,7 +160,9 @@ export interface FileRouteTypes {
     | '/safety'
     | '/statistics'
     | '/_authenticated/dashboard'
+    | '/_authenticated/moderate'
     | '/news/$slug'
+    | '/u/$userId'
     | '/news/'
   fileRoutesById: FileRoutesById
 }
@@ -151,6 +175,7 @@ export interface RootRouteChildren {
   SafetyRoute: typeof SafetyRoute
   StatisticsRoute: typeof StatisticsRoute
   NewsSlugRoute: typeof NewsSlugRoute
+  UUserIdRoute: typeof UUserIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
 }
 
@@ -212,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/moderate': {
+      id: '/_authenticated/moderate'
+      path: '/moderate'
+      fullPath: '/moderate'
+      preLoaderRoute: typeof AuthenticatedModerateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/news/': {
       id: '/news/'
       path: '/news'
@@ -226,15 +258,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/u/$userId': {
+      id: '/u/$userId'
+      path: '/u/$userId'
+      fullPath: '/u/$userId'
+      preLoaderRoute: typeof UUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedModerateRoute: typeof AuthenticatedModerateRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedModerateRoute: AuthenticatedModerateRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -249,6 +290,7 @@ const rootRouteChildren: RootRouteChildren = {
   SafetyRoute: SafetyRoute,
   StatisticsRoute: StatisticsRoute,
   NewsSlugRoute: NewsSlugRoute,
+  UUserIdRoute: UUserIdRoute,
   NewsIndexRoute: NewsIndexRoute,
 }
 export const routeTree = rootRouteImport
