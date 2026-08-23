@@ -20,11 +20,16 @@ export type Database = {
           county: string
           created_at: string
           description: string
+          editor_note: string | null
           fatalities: number
           id: string
           occurred_at: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           road: string | null
           severity: string
+          status: string
           title: string
           updated_at: string
           user_id: string
@@ -35,11 +40,16 @@ export type Database = {
           county: string
           created_at?: string
           description: string
+          editor_note?: string | null
           fatalities?: number
           id?: string
           occurred_at?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           road?: string | null
           severity?: string
+          status?: string
           title: string
           updated_at?: string
           user_id: string
@@ -50,11 +60,16 @@ export type Database = {
           county?: string
           created_at?: string
           description?: string
+          editor_note?: string | null
           fatalities?: number
           id?: string
           occurred_at?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           road?: string | null
           severity?: string
+          status?: string
           title?: string
           updated_at?: string
           user_id?: string
@@ -110,6 +125,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cause_stats: {
+        Row: {
+          cause: string
+          fatalities: number
+          id: string
+          share: number
+          year: number
+        }
+        Insert: {
+          cause: string
+          fatalities: number
+          id?: string
+          share: number
+          year: number
+        }
+        Update: {
+          cause?: string
+          fatalities?: number
+          id?: string
+          share?: number
+          year?: number
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           body: string
@@ -146,6 +185,8 @@ export type Database = {
           crashes: number
           fatalities: number
           id: string
+          population: number | null
+          serious_injuries: number | null
           year: number
         }
         Insert: {
@@ -153,6 +194,8 @@ export type Database = {
           crashes: number
           fatalities: number
           id?: string
+          population?: number | null
+          serious_injuries?: number | null
           year: number
         }
         Update: {
@@ -160,6 +203,32 @@ export type Database = {
           crashes?: number
           fatalities?: number
           id?: string
+          population?: number | null
+          serious_injuries?: number | null
+          year?: number
+        }
+        Relationships: []
+      }
+      monthly_stats: {
+        Row: {
+          crashes: number
+          fatalities: number
+          id: string
+          month: number
+          year: number
+        }
+        Insert: {
+          crashes: number
+          fatalities: number
+          id?: string
+          month: number
+          year: number
+        }
+        Update: {
+          crashes?: number
+          fatalities?: number
+          id?: string
+          month?: number
           year?: number
         }
         Relationships: []
@@ -233,6 +302,54 @@ export type Database = {
         }
         Relationships: []
       }
+      road_class_stats: {
+        Row: {
+          crashes: number
+          fatalities: number
+          id: string
+          road_class: string
+          year: number
+        }
+        Insert: {
+          crashes: number
+          fatalities: number
+          id?: string
+          road_class: string
+          year: number
+        }
+        Update: {
+          crashes?: number
+          fatalities?: number
+          id?: string
+          road_class?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      time_of_day_stats: {
+        Row: {
+          band: string
+          fatalities: number
+          id: string
+          sort_order: number
+          year: number
+        }
+        Insert: {
+          band: string
+          fatalities: number
+          id?: string
+          sort_order: number
+          year: number
+        }
+        Update: {
+          band?: string
+          fatalities?: number
+          id?: string
+          sort_order?: number
+          year?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -248,6 +365,30 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_stats: {
+        Row: {
+          crashes: number
+          fatalities: number
+          id: string
+          vehicle_type: string
+          year: number
+        }
+        Insert: {
+          crashes: number
+          fatalities: number
+          id?: string
+          vehicle_type: string
+          year: number
+        }
+        Update: {
+          crashes?: number
+          fatalities?: number
+          id?: string
+          vehicle_type?: string
+          year?: number
         }
         Relationships: []
       }
@@ -275,21 +416,27 @@ export type Database = {
       yearly_stats: {
         Row: {
           crashes: number
+          deaths_per_100k: number | null
           fatalities: number
+          registered_vehicles: number | null
           serious_injuries: number
           slight_injuries: number
           year: number
         }
         Insert: {
           crashes: number
+          deaths_per_100k?: number | null
           fatalities: number
+          registered_vehicles?: number | null
           serious_injuries: number
           slight_injuries: number
           year: number
         }
         Update: {
           crashes?: number
+          deaths_per_100k?: number | null
           fatalities?: number
+          registered_vehicles?: number | null
           serious_injuries?: number
           slight_injuries?: number
           year?: number
