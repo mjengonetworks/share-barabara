@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoAsset from "@/assets/share-barabara-logo.png.asset.json";
+import logoUrl from "@/assets/share-barabara-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -34,7 +34,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-20 max-w-6xl items-center gap-4 px-4">
         <Link to="/" className="flex items-center" aria-label="Share Barabara home">
           <img
-            src={logoAsset.url}
+            src={logoUrl}
             alt="Share Barabara"
             className="h-12 w-auto sm:h-14"
           />

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
-import logoAsset from "@/assets/share-barabara-logo.png.asset.json";
+import logoUrl from "@/assets/share-barabara-logo.png";
 
 export function SiteFooter() {
   return (
@@ -8,7 +8,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <img
-            src={logoAsset.url}
+            src={logoUrl}
             alt="Share Barabara"
             className="h-12 w-auto [filter:drop-shadow(0_0_1px_rgba(255,255,255,0.9))_drop-shadow(0_0_3px_rgba(255,255,255,0.6))]"
           />
