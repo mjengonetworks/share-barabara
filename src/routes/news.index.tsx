@@ -29,7 +29,6 @@ function NewsIndex() {
       const { data, error } = await supabase
         .from("news")
         .select("id, slug, title, summary, category, source, published_at, featured")
-        .eq("status", "published")
         .order("published_at", { ascending: false });
       if (error) throw error;
       return data;
