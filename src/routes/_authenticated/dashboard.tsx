@@ -72,6 +72,20 @@ function DashboardPage() {
     },
   });
 
+  const { data: articles = [] } = useQuery({
+    enabled: !!userId,
+    queryKey: ["my-articles", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("*")
+        .eq("author_id", userId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: comments = [] } = useQuery({
     enabled: !!userId,
     queryKey: ["my-comments", userId],
@@ -100,10 +114,11 @@ function DashboardPage() {
         Kenyan roads safer.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Alerts posted", value: alerts.length },
           { label: "Reports filed", value: reports.length },
+          { label: "Articles written", value: articles.length },
           { label: "Comments", value: comments.length },
         ].map((s) => (
           <div key={s.label} className="rounded-lg border border-border bg-card p-6 card-elevated">
@@ -116,6 +131,7 @@ function DashboardPage() {
       <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild><Link to="/alerts">Report a hazard</Link></Button>
         <Button asChild variant="outline"><Link to="/reports">File an accident report</Link></Button>
+        <Button asChild variant="outline"><Link to="/news">Write an article</Link></Button>
         {canReview ? (
           <Button asChild variant="secondary"><Link to="/moderate">Review queue</Link></Button>
         ) : null}
@@ -172,6 +188,38 @@ function DashboardPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {r.county}{r.road ? ` · ${r.road}` : ""} · {r.fatalities} deaths, {r.casualties} injured
                 </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold">Your articles</h2>
+        {articles.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            You haven't written anything yet. <Link to="/news" className="underline">Submit a story</Link>.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {articles.map((a) => (
+              <li key={a.id} className="rounded-lg border border-border bg-card p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold">{a.title}</span>
+                  <span className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${
+                    a.status === "published"
+                      ? "bg-safe/15 text-safe"
+                      : a.status === "rejected"
+                        ? "bg-destructive/15 text-destructive"
+                        : "bg-caution/20 text-caution"
+                  }`}>
+                    {a.status === "pending_review" ? "awaiting review" : a.status}
+                  </span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {timeAgo(a.created_at)}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{a.category}</p>
               </li>
             ))}
           </ul>

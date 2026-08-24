@@ -19,7 +19,7 @@ import { useRoles } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { longDate } from "@/lib/format";
-import { KENYA_COUNTIES, REPORT_SEVERITIES } from "@/lib/constants";
+import { KENYA_COUNTIES, REPORT_SEVERITIES, NEWS_CATEGORIES } from "@/lib/constants";
 
 export const Route = createFileRoute("/_authenticated/moderate")({
   head: () => ({
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/_authenticated/moderate")({
   component: ModeratePage,
 });
 
-type Draft = {
+type ReportDraft = {
   title: string;
   description: string;
   county: string;
@@ -52,15 +52,71 @@ type Draft = {
   editor_note: string;
 };
 
+type ArticleDraft = {
+  title: string;
+  summary: string;
+  body: string;
+  category: string;
+};
+
 function ModeratePage() {
   const { user } = useAuth();
-  const { canReview, isLoading: rolesLoading } = useRoles();
+  const { canReview, canPublishArticles, isLoading: rolesLoading } = useRoles();
+  const [content, setContent] = useState<"reports" | "articles">("reports");
+
+  if (rolesLoading) return <div className="mx-auto max-w-5xl px-4 py-10">Checking access…</div>;
+
+  if (!canReview) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-10">
+        <h1 className="text-3xl font-extrabold">Review queue</h1>
+        <p className="mt-3 text-muted-foreground">
+          This area is for moderators, editors and admins. If you should have access,
+          ask an admin to grant you the moderator role.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-10">
+      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+        Editorial
+      </p>
+      <h1 className="mt-2 text-4xl font-extrabold">Review queue</h1>
+      <p className="mt-3 max-w-2xl text-muted-foreground">
+        Edit submissions for accuracy and clarity, then approve them. Published content
+        is a collaboration between the person who submitted it and you.
+      </p>
+
+      <div className="mt-6 flex gap-2">
+        {(["reports", "articles"] as const).map((c) => (
+          <Button
+            key={c}
+            variant={content === c ? "default" : "outline"}
+            onClick={() => setContent(c)}
+            className="capitalize"
+          >
+            {c}
+          </Button>
+        ))}
+      </div>
+
+      {content === "reports" ? (
+        <ReportsQueue userId={user?.id} />
+      ) : (
+        <ArticlesQueue userId={user?.id} canPublishArticles={canPublishArticles} />
+      )}
+    </div>
+  );
+}
+
+function ReportsQueue({ userId }: { userId: string | undefined }) {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"pending" | "approved" | "rejected">("pending");
-  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [drafts, setDrafts] = useState<Record<string, ReportDraft>>({});
 
   const { data: reports = [], isLoading } = useQuery({
-    enabled: canReview,
     queryKey: ["review-reports", tab],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -84,11 +140,11 @@ function ModeratePage() {
     }: {
       id: string;
       status: "approved" | "rejected" | "pending";
-      draft?: Draft;
+      draft?: ReportDraft;
     }) => {
       const patch = {
         status,
-        reviewed_by: user?.id ?? null,
+        reviewed_by: userId ?? null,
         reviewed_at: new Date().toISOString(),
         ...(draft ?? {}),
       };
@@ -103,31 +159,8 @@ function ModeratePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (rolesLoading) return <div className="mx-auto max-w-5xl px-4 py-10">Checking access…</div>;
-
-  if (!canReview) {
-    return (
-      <div className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="text-3xl font-extrabold">Review queue</h1>
-        <p className="mt-3 text-muted-foreground">
-          This area is for moderators, editors and admins. If you should have access,
-          ask an admin to grant you the moderator role.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Editorial
-      </p>
-      <h1 className="mt-2 text-4xl font-extrabold">Report review queue</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">
-        Edit submissions for accuracy and clarity, then approve them. Approved reports
-        are published as a collaboration between the person who filed it and you.
-      </p>
-
+    <>
       <div className="mt-6 flex gap-2">
         {(["pending", "approved", "rejected"] as const).map((t) => (
           <Button
@@ -151,7 +184,7 @@ function ModeratePage() {
 
       <ul className="mt-6 space-y-6">
         {reports.map((r) => {
-          const d: Draft = drafts[r.id] ?? {
+          const d: ReportDraft = drafts[r.id] ?? {
             title: r.title,
             description: r.description,
             county: r.county,
@@ -162,7 +195,7 @@ function ModeratePage() {
             fatalities: r.fatalities,
             editor_note: r.editor_note ?? "",
           };
-          const set = (patch: Partial<Draft>) =>
+          const set = (patch: Partial<ReportDraft>) =>
             setDrafts((prev) => ({ ...prev, [r.id]: { ...d, ...patch } }));
 
           return (
@@ -301,6 +334,203 @@ function ModeratePage() {
           );
         })}
       </ul>
-    </div>
+    </>
+  );
+}
+
+function ArticlesQueue({
+  userId,
+  canPublishArticles,
+}: {
+  userId: string | undefined;
+  canPublishArticles: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const [tab, setTab] = useState<"pending_review" | "published" | "rejected" | "draft">(
+    "pending_review",
+  );
+  const [drafts, setDrafts] = useState<Record<string, ArticleDraft>>({});
+
+  const { data: articles = [], isLoading } = useQuery({
+    queryKey: ["review-articles", tab],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("*")
+        .eq("status", tab)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: names = {} } = useProfileNames(
+    articles.map((a) => a.author_id).filter((id): id is string => !!id),
+  );
+
+  const save = useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      draft,
+    }: {
+      id: string;
+      status: "published" | "rejected" | "pending_review";
+      draft?: ArticleDraft;
+    }) => {
+      const patch = {
+        status,
+        reviewed_by: userId ?? null,
+        reviewed_at: new Date().toISOString(),
+        ...(status === "published" ? { published_at: new Date().toISOString() } : {}),
+        ...(draft ?? {}),
+      };
+      const { error } = await supabase.from("news").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Article updated");
+      queryClient.invalidateQueries({ queryKey: ["review-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <>
+      <div className="mt-6 flex gap-2">
+        {(["pending_review", "published", "rejected", "draft"] as const).map((t) => (
+          <Button
+            key={t}
+            size="sm"
+            variant={tab === t ? "default" : "outline"}
+            onClick={() => setTab(t)}
+            className="capitalize"
+          >
+            {t.replace("_", " ")}
+          </Button>
+        ))}
+      </div>
+
+      {!canPublishArticles ? (
+        <p className="mt-4 rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+          Moderators can see the article queue but only editors and admins can publish
+          or reject an article.
+        </p>
+      ) : null}
+
+      {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
+      {!isLoading && articles.length === 0 ? (
+        <p className="mt-8 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
+          Nothing here right now.
+        </p>
+      ) : null}
+
+      <ul className="mt-6 space-y-6">
+        {articles.map((a) => {
+          const d: ArticleDraft = drafts[a.id] ?? {
+            title: a.title,
+            summary: a.summary,
+            body: a.body,
+            category: a.category,
+          };
+          const set = (patch: Partial<ArticleDraft>) =>
+            setDrafts((prev) => ({ ...prev, [a.id]: { ...d, ...patch } }));
+
+          return (
+            <li key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
+              <p className="text-xs text-muted-foreground">
+                {a.author_id ? (
+                  <>Submitted by <UserLink userId={a.author_id} name={names[a.author_id]} /> · </>
+                ) : null}
+                {longDate(a.created_at)}
+              </p>
+
+              {canPublishArticles ? (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <Label htmlFor={`at-${a.id}`}>Headline</Label>
+                    <Input
+                      id={`at-${a.id}`}
+                      value={d.title}
+                      onChange={(e) => set({ title: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <Select value={d.category} onValueChange={(v) => set({ category: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {NEWS_CATEGORIES.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor={`as-${a.id}`}>Summary</Label>
+                    <Textarea
+                      id={`as-${a.id}`}
+                      rows={2}
+                      value={d.summary}
+                      onChange={(e) => set({ summary: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`ab-${a.id}`}>Article body</Label>
+                    <Textarea
+                      id={`ab-${a.id}`}
+                      rows={8}
+                      value={d.body}
+                      onChange={(e) => set({ body: e.target.value })}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <p className="font-semibold">{a.title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{a.summary}</p>
+                </div>
+              )}
+
+              {canPublishArticles ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    disabled={save.isPending}
+                    onClick={() => save.mutate({ id: a.id, status: "published", draft: d })}
+                  >
+                    Publish
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={save.isPending}
+                    onClick={() => save.mutate({ id: a.id, status: a.status as never, draft: d })}
+                  >
+                    Save edits
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    disabled={save.isPending}
+                    onClick={() => save.mutate({ id: a.id, status: "rejected", draft: d })}
+                  >
+                    Reject
+                  </Button>
+                  {a.status !== "pending_review" ? (
+                    <Button
+                      variant="ghost"
+                      disabled={save.isPending}
+                      onClick={() => save.mutate({ id: a.id, status: "pending_review" })}
+                    >
+                      Send back to review
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }

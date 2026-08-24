@@ -25,3 +25,12 @@ export function longDate(iso: string): string {
 export function num(value: number): string {
   return value.toLocaleString("en-KE");
 }
+
+/** Turns a title into a URL-safe slug with a short suffix to avoid collisions. */
+export function slugify(title: string): string {
+  const base = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `${base}-${Date.now().toString(36).slice(-5)}`;
+}

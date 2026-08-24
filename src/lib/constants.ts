@@ -8,6 +8,20 @@ export const KENYA_COUNTIES = [
   "Trans Nzoia", "Turkana", "Uasin Gishu", "Vihiga", "Wajir", "West Pokot",
 ] as const;
 
+export const NEWS_CATEGORIES = [
+  "News",
+  "Alerts",
+  "Awareness",
+  "Enforcement",
+  "Policy",
+  "History",
+  "Engineering",
+  "Opinion",
+  "Victims Focus",
+  "Infrastructure",
+  "Counties",
+] as const;
+
 export const HAZARD_TYPES = [
   { value: "crash", label: "Crash / collision" },
   { value: "road_damage", label: "Potholes or road damage" },

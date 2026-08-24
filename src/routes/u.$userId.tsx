@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CarFront, MessageSquare, TriangleAlert } from "lucide-react";
+import { CarFront, MessageSquare, Newspaper, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate, timeAgo } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
@@ -87,6 +87,21 @@ function ContributorPage() {
     },
   });
 
+  const { data: articles = [] } = useQuery({
+    queryKey: ["user-articles", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("id, slug, title, category, published_at")
+        .eq("author_id", userId)
+        .eq("status", "published")
+        .order("published_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: comments = [] } = useQuery({
     queryKey: ["user-comments", userId],
     queryFn: async () => {
@@ -115,11 +130,12 @@ function ContributorPage() {
         {profile?.created_at ? `Contributing since ${longDate(profile.created_at)}` : ""}
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {[
           { label: "Alerts", value: alerts.length },
           { label: "Reports filed", value: submitted.length },
           { label: "Reports approved", value: reviewed.length },
+          { label: "Articles", value: articles.length },
           { label: "Comments", value: comments.length },
         ].map((s) => (
           <div key={s.label} className="rounded-lg border border-border bg-card p-5 card-elevated">
@@ -149,6 +165,37 @@ function ContributorPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {r.county}{r.road ? ` · ${r.road}` : ""}
                 </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="flex items-center gap-2 text-2xl font-bold">
+          <Newspaper className="size-5 text-accent" /> Articles
+        </h2>
+        {articles.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No articles published yet.</p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {articles.map((a) => (
+              <li key={a.id} className="rounded-lg border border-border bg-card p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+                    {a.category}
+                  </span>
+                  <Link
+                    to="/news/$slug"
+                    params={{ slug: a.slug }}
+                    className="font-semibold hover:underline"
+                  >
+                    {a.title}
+                  </Link>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {longDate(a.published_at)}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>
