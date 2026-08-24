@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CarFront, MapPin } from "lucide-react";
+import { CarFront, MapPin, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,10 +12,12 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
 import { longDate } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
+import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
 import { CommentSection } from "@/components/site/comment-section";
 
@@ -26,12 +28,12 @@ export const Route = createFileRoute("/reports")({
       {
         name: "description",
         content:
-          "Community accident reports from across Kenya with location, vehicles involved, casualties and contributing factors.",
+          "Community accident reports from across Kenya, reviewed and edited by our moderators, with location, vehicles involved, casualties and contributing factors.",
       },
       { property: "og:title", content: "Accident Reports from Kenyan Roads" },
       {
         property: "og:description",
-        content: "Structured crash reports filed by Kenyan road users, open for discussion.",
+        content: "Verified crash reports filed by Kenyan road users, open for discussion.",
       },
     ],
   }),
@@ -49,6 +51,7 @@ function ReportsPage() {
       const { data, error } = await supabase
         .from("accident_reports")
         .select("*")
+        .eq("status", "approved")
         .order("occurred_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -56,7 +59,9 @@ function ReportsPage() {
     },
   });
 
-  const { data: names = {} } = useProfileNames(reports.map((r) => r.user_id));
+  const people = reports.flatMap((r) => [r.user_id, r.reviewed_by].filter(Boolean) as string[]);
+  const { data: names = {} } = useProfileNames(people);
+  const { data: roleMap = {} } = useRoleLabels(people);
   const visible = reports.filter((r) => county === "all" || r.county === county);
 
   return (
@@ -66,9 +71,9 @@ function ReportsPage() {
       </p>
       <h1 className="mt-2 text-4xl font-extrabold">Accident reports</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Detailed crash reports filed by the community. These records help identify
-        recurring black spots and dangerous stretches long before official data is
-        published.
+        Crash reports filed by the community and reviewed by our editors before
+        publication. Each report carries a shared byline: the road user who filed it
+        and the editor who verified it.
       </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -86,7 +91,7 @@ function ReportsPage() {
           {isLoading ? <p className="mt-8 text-muted-foreground">Loading reports…</p> : null}
           {!isLoading && visible.length === 0 ? (
             <p className="mt-8 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
-              No reports filed for this filter yet.
+              No published reports for this filter yet.
             </p>
           ) : null}
 
@@ -103,7 +108,20 @@ function ReportsPage() {
                 <h2 className="mt-3 text-lg font-bold">{r.title}</h2>
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="size-4" /> {r.county}
-                  {r.road ? ` · ${r.road}` : ""} · by {names[r.user_id] ?? "Road user"}
+                  {r.road ? ` · ${r.road}` : ""}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Reported by <UserLink userId={r.user_id} name={names[r.user_id]} />
+                  {r.reviewed_by ? (
+                    <>
+                      {" · verified & edited by "}
+                      <UserLink userId={r.reviewed_by} name={names[r.reviewed_by]} />
+                      <span className="ml-1 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
+                        <ShieldCheck className="size-3 text-accent" />
+                        {primaryRoleLabel(roleMap[r.reviewed_by])}
+                      </span>
+                    </>
+                  ) : null}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-4 text-sm">
                   <span><strong>{r.vehicles_involved}</strong> vehicles</span>
@@ -111,6 +129,12 @@ function ReportsPage() {
                   <span className="text-destructive"><strong>{r.fatalities}</strong> deaths</span>
                 </div>
                 <p className="mt-3 text-sm text-foreground/90">{r.description}</p>
+                {r.editor_note ? (
+                  <p className="mt-3 rounded border-l-4 border-accent bg-muted/50 p-3 text-sm">
+                    <span className="font-semibold">Editor's note: </span>
+                    {r.editor_note}
+                  </p>
+                ) : null}
                 <button
                   className="mt-3 text-sm font-semibold text-accent-foreground underline"
                   onClick={() => setOpenId(openId === r.id ? null : r.id)}
