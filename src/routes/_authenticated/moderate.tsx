@@ -24,13 +24,13 @@ import { KENYA_COUNTIES, REPORT_SEVERITIES, NEWS_CATEGORIES } from "@/lib/consta
 export const Route = createFileRoute("/_authenticated/moderate")({
   head: () => ({
     meta: [
-      { title: "Report Review Queue — Share Barabara" },
+      { title: "Report Review Queue: Share Barabara" },
       {
         name: "description",
         content:
           "Editorial queue where moderators and admins review, edit and approve accident reports submitted by Kenyan road users.",
       },
-      { property: "og:title", content: "Report Review Queue — Share Barabara" },
+      { property: "og:title", content: "Report Review Queue: Share Barabara" },
       {
         property: "og:description",
         content: "Approve, edit or reject community accident reports before publication.",

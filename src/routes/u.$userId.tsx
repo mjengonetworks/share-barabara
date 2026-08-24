@@ -13,13 +13,13 @@ import { useContributorScore } from "@/hooks/useContributorScore";
 export const Route = createFileRoute("/u/$userId")({
   head: () => ({
     meta: [
-      { title: "Contributor Profile — Share Barabara" },
+      { title: "Contributor Profile: Share Barabara" },
       {
         name: "description",
         content:
           "Everything a Share Barabara contributor has published: hazard alerts, accident reports and discussion comments.",
       },
-      { property: "og:title", content: "Contributor Profile — Share Barabara" },
+      { property: "og:title", content: "Contributor Profile: Share Barabara" },
       {
         property: "og:description",
         content: "Alerts, accident reports and comments contributed by this road user.",

@@ -8,7 +8,7 @@ import { SeverityBadge } from "@/components/site/severity-badge";
 export const Route = createFileRoute("/roads/$slug")({
   head: () => ({
     meta: [
-      { title: "Road Profile — Share Barabara" },
+      { title: "Road Profile: Share Barabara" },
       {
         name: "description",
         content: "Alerts, accident reports and safety statistics for a specific Kenyan road.",

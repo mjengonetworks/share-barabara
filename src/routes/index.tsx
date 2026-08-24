@@ -11,13 +11,13 @@ import { SeverityBadge } from "@/components/site/severity-badge";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Share Barabara — Road Safety in Kenya" },
+      { title: "Share Barabara: Road Safety in Kenya" },
       {
         name: "description",
         content:
           "Live road hazard alerts, crash statistics, news and safety guidance for Kenya's roads. Report hazards, file accident reports and join the conversation.",
       },
-      { property: "og:title", content: "Share Barabara — Road Safety in Kenya" },
+      { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
       {
         property: "og:description",
         content:
@@ -85,7 +85,7 @@ function Index() {
           </h1>
           <p className="mt-4 max-w-xl text-lg text-muted-foreground">
             Share Barabara brings together live hazard alerts, crash data and road
-            safety news from across Kenya's 47 counties — reported by the people who
+            safety news from across Kenya's 47 counties, reported by the people who
             use these roads every day.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -173,7 +173,7 @@ function Index() {
           <div>
             <h2 className="text-3xl font-bold">In an emergency</h2>
             <p className="mt-3 text-muted-foreground">
-              Save these numbers now. Minutes matter after a crash — the first hour
+              Save these numbers now. Minutes matter after a crash: the first hour
               decides whether an injury becomes a fatality.
             </p>
             <Button asChild className="mt-6" variant="outline">

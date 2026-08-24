@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "My Dashboard — Share Barabara" },
+      { title: "My Dashboard: Share Barabara" },
       {
         name: "description",
         content: "Your submitted road hazard alerts, accident reports and comments on Share Barabara.",
       },
-      { property: "og:title", content: "My Dashboard — Share Barabara" },
+      { property: "og:title", content: "My Dashboard: Share Barabara" },
       {
         property: "og:description",
         content: "Track the alerts and accident reports you have contributed.",

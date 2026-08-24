@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/subscribe")({
   head: () => ({
     meta: [
-      { title: "Subscribe — Share Barabara" },
+      { title: "Subscribe: Share Barabara" },
       {
         name: "description",
         content:

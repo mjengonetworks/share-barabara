@@ -44,7 +44,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
     onSuccess: (_data, status) => {
       toast.success(
         status === "pending_review"
-          ? "Article submitted — an editor will review it before it is published"
+          ? "Article submitted, an editor will review it before it is published"
           : "Draft saved. Find it on your dashboard when you're ready to submit it.",
       );
       setForm({ title: "", summary: "", body: "", category: "News" });

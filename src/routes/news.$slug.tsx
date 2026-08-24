@@ -8,12 +8,12 @@ import { CommentSection } from "@/components/site/comment-section";
 export const Route = createFileRoute("/news/$slug")({
   head: () => ({
     meta: [
-      { title: "News story — Share Barabara Kenya" },
+      { title: "News story: Share Barabara Kenya" },
       {
         name: "description",
         content: "Read the full road safety story and join the community discussion.",
       },
-      { property: "og:title", content: "Road safety story — Share Barabara Kenya" },
+      { property: "og:title", content: "Road safety story: Share Barabara Kenya" },
       {
         property: "og:description",
         content: "Read the full road safety story and join the community discussion.",

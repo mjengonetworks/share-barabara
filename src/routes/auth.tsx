@@ -11,13 +11,13 @@ import { useAuth } from "@/hooks/useAuth";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Share Barabara Kenya" },
+      { title: "Sign in: Share Barabara Kenya" },
       {
         name: "description",
         content:
           "Sign in or create an account to post road hazard alerts, file accident reports and comment on Kenyan road safety news.",
       },
-      { property: "og:title", content: "Sign in — Share Barabara Kenya" },
+      { property: "og:title", content: "Sign in: Share Barabara Kenya" },
       {
         property: "og:description",
         content: "Join the Kenyan road safety community: post alerts, report crashes, discuss news.",

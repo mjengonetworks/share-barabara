@@ -5,7 +5,7 @@ import { EMERGENCY_CONTACTS } from "@/lib/constants";
 export const Route = createFileRoute("/safety")({
   head: () => ({
     meta: [
-      { title: "Road Safety Guidance & Emergency Numbers in Kenya — Share Barabara" },
+      { title: "Road Safety Guidance & Emergency Numbers in Kenya: Share Barabara" },
       {
         name: "description",
         content:
@@ -28,7 +28,7 @@ const GUIDES = [
     points: [
       "Keep to 50km/h in built-up areas and 30km/h near schools and markets.",
       "Never overtake on a blind bend, bridge or hill crest.",
-      "Zero alcohol before driving — the legal limit is low and enforcement is active at night.",
+      "Zero alcohol before driving: the legal limit is low and enforcement is active at night.",
       "Rest every two hours on long trips; fatigue is a leading cause of highway crashes.",
     ],
   },
@@ -48,7 +48,7 @@ const GUIDES = [
     points: [
       "Use footbridges and zebra crossings even when they cost you a few extra minutes.",
       "Wear something light or reflective when walking at night.",
-      "Look right, left and right again — and never step out from behind a parked matatu.",
+      "Look right, left and right again, and never step out from behind a parked matatu.",
       "Keep children on the inside of the pavement, holding your hand.",
     ],
   },

@@ -27,7 +27,7 @@ import { CommentSection } from "@/components/site/comment-section";
 export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
-      { title: "Accident Reports from Kenyan Roads — Share Barabara" },
+      { title: "Accident Reports from Kenyan Roads: Share Barabara" },
       {
         name: "description",
         content:

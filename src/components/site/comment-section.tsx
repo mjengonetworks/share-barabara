@@ -162,7 +162,7 @@ export function CommentSection({ entityType, entityId }: Props) {
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={3}
-            placeholder="Share what you know — road conditions, what you witnessed, or advice for other road users."
+            placeholder="Share what you know: road conditions, what you witnessed, or advice for other road users."
           />
           <Button
             className="mt-2"

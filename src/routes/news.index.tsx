@@ -9,7 +9,7 @@ import { ArticleForm } from "@/components/site/article-form";
 export const Route = createFileRoute("/news/")({
   head: () => ({
     meta: [
-      { title: "Road Safety News in Kenya — Share Barabara" },
+      { title: "Road Safety News in Kenya: Share Barabara" },
       {
         name: "description",
         content:

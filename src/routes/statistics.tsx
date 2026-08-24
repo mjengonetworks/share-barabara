@@ -23,7 +23,7 @@ import { num } from "@/lib/format";
 export const Route = createFileRoute("/statistics")({
   head: () => ({
     meta: [
-      { title: "Kenya Road Crash Statistics — Share Barabara" },
+      { title: "Kenya Road Crash Statistics: Share Barabara" },
       {
         name: "description",
         content:
@@ -179,12 +179,12 @@ function StatisticsPage() {
             { label: "Recorded crashes", value: num(latest.crashes), tone: "text-foreground" },
             {
               label: "Deaths per 100,000 people",
-              value: latest.deaths_per_100k ?? "—",
+              value: latest.deaths_per_100k ?? "N/A",
               tone: "text-foreground",
             },
             {
               label: "Registered vehicles",
-              value: latest.registered_vehicles ? num(latest.registered_vehicles) : "—",
+              value: latest.registered_vehicles ? num(latest.registered_vehicles) : "N/A",
               tone: "text-foreground",
             },
             { label: "Slight injuries", value: num(latest.slight_injuries), tone: "text-foreground" },
@@ -195,7 +195,7 @@ function StatisticsPage() {
             },
             {
               label: "Change vs previous year",
-              value: yoy === null ? "—" : `${yoy > 0 ? "+" : ""}${yoy}%`,
+              value: yoy === null ? "N/A" : `${yoy > 0 ? "+" : ""}${yoy}%`,
               tone: yoy !== null && yoy > 0 ? "text-destructive" : "text-safe",
             },
           ].map((s) => (
@@ -375,8 +375,8 @@ function StatisticsPage() {
             })}
           </ul>
           <p className="mt-6 text-sm text-muted-foreground">
-            Vulnerable road users — pedestrians, motorcyclists and their pillion
-            passengers — make up the large majority of deaths. Speed management,
+            Vulnerable road users (pedestrians, motorcyclists and their pillion
+            passengers) make up the large majority of deaths. Speed management,
             helmets, footpaths and lighting are the interventions that shift these
             numbers.
           </p>

@@ -80,13 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Share Barabara — Road Safety in Kenya" },
+      { title: "Share Barabara: Road Safety in Kenya" },
       {
         name: "description",
         content:
           "Road safety for Kenya: live hazard alerts, crash statistics, news and guidance.",
       },
-      { property: "og:title", content: "Share Barabara — Road Safety in Kenya" },
+      { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
       {
         property: "og:description",
         content: "Live hazard alerts, crash statistics, news and guidance for Kenyan roads.",

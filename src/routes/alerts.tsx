@@ -25,7 +25,7 @@ import { CommentSection } from "@/components/site/comment-section";
 export const Route = createFileRoute("/alerts")({
   head: () => ({
     meta: [
-      { title: "Live Road Hazard Alerts in Kenya — Share Barabara" },
+      { title: "Live Road Hazard Alerts in Kenya: Share Barabara" },
       {
         name: "description",
         content:
@@ -180,7 +180,7 @@ function AlertsPage() {
           ) : (
             <>
               <p className="mt-3 text-sm text-muted-foreground">
-                Sign in to publish an alert. Never use your phone while driving —
+                Sign in to publish an alert. Never use your phone while driving:
                 stop safely first, or ask a passenger to report.
               </p>
               <Button asChild className="mt-4 w-full">

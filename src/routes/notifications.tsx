@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/switch";
 export const Route = createFileRoute("/notifications")({
   head: () => ({
     meta: [
-      { title: "Notifications — Share Barabara" },
+      { title: "Notifications: Share Barabara" },
       {
         name: "description",
         content:

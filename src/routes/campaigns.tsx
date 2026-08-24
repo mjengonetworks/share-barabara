@@ -4,7 +4,7 @@ import { HandHeart, Megaphone, Route as RouteIcon } from "lucide-react";
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
     meta: [
-      { title: "Campaigns — Share Barabara" },
+      { title: "Campaigns: Share Barabara" },
       {
         name: "description",
         content:
