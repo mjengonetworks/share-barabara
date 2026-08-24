@@ -235,6 +235,7 @@ export type Database = {
       }
       news: {
         Row: {
+          author_id: string | null
           body: string
           category: string
           created_at: string
@@ -242,13 +243,17 @@ export type Database = {
           id: string
           image_url: string | null
           published_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           slug: string
           source: string | null
+          status: string
           summary: string
           title: string
           updated_at: string
         }
         Insert: {
+          author_id?: string | null
           body: string
           category?: string
           created_at?: string
@@ -256,13 +261,17 @@ export type Database = {
           id?: string
           image_url?: string | null
           published_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           slug: string
           source?: string | null
+          status?: string
           summary: string
           title: string
           updated_at?: string
         }
         Update: {
+          author_id?: string | null
           body?: string
           category?: string
           created_at?: string
@@ -270,8 +279,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           published_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           slug?: string
           source?: string | null
+          status?: string
           summary?: string
           title?: string
           updated_at?: string
@@ -448,6 +460,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_min_role: {
+        Args: {
+          _min_role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -455,9 +474,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      role_rank: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: number
+      }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "member"
+      app_role: "admin" | "moderator" | "member" | "guest_author" | "author" | "editor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -585,7 +610,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "member"],
+      app_role: ["admin", "moderator", "member", "guest_author", "author", "editor"],
     },
   },
 } as const

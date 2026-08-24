@@ -2,7 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export type AppRole = "admin" | "moderator" | "member";
+export type AppRole = "admin" | "moderator" | "editor" | "author" | "guest_author" | "member";
+
+/** Mirrors public.role_rank(): each tier inherits everything below it. */
+const ROLE_RANK: Record<AppRole, number> = {
+  member: 0,
+  guest_author: 1,
+  author: 2,
+  moderator: 3,
+  editor: 4,
+  admin: 5,
+};
+
+export function roleRank(roles: AppRole[]): number {
+  return roles.reduce((max, r) => Math.max(max, ROLE_RANK[r]), ROLE_RANK.member);
+}
 
 export function useRoles() {
   const { user } = useAuth();
@@ -21,9 +35,32 @@ export function useRoles() {
     },
   });
 
+  const rank = roleRank(roles);
   const isAdmin = roles.includes("admin");
+  const isEditor = roles.includes("editor");
   const isModerator = roles.includes("moderator");
-  return { roles, isAdmin, isModerator, canReview: isAdmin || isModerator, isLoading };
+  const isAuthor = roles.includes("author");
+  const isGuestAuthor = roles.includes("guest_author");
+  /** Report approval, comment moderation, statistics management: moderator and above. */
+  const canReview = rank >= ROLE_RANK.moderator;
+  /** Publish/reject articles, manage banner ads, set the quote of the day: editor and above. */
+  const canPublishArticles = rank >= ROLE_RANK.editor;
+  /** Keep edit/delete rights on an article after it is published: author and above. */
+  const keepsArticleRightsAfterPublish = rank >= ROLE_RANK.author;
+
+  return {
+    roles,
+    rank,
+    isAdmin,
+    isEditor,
+    isModerator,
+    isAuthor,
+    isGuestAuthor,
+    canReview,
+    canPublishArticles,
+    keepsArticleRightsAfterPublish,
+    isLoading,
+  };
 }
 
 /** Public roles for a set of users, used for bylines (Editor, Moderator, Admin). */
@@ -50,6 +87,9 @@ export function useRoleLabels(ids: string[]) {
 export function primaryRoleLabel(roles: AppRole[] | undefined): string {
   if (!roles) return "Contributor";
   if (roles.includes("admin")) return "Admin";
+  if (roles.includes("editor")) return "Editor";
   if (roles.includes("moderator")) return "Moderator";
+  if (roles.includes("author")) return "Author";
+  if (roles.includes("guest_author")) return "Guest author";
   return "Contributor";
 }
