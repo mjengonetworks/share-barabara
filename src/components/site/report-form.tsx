@@ -42,7 +42,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Report filed — thank you");
+      toast.success("Report submitted for review — an editor will verify it before it is published");
       setForm({ ...form, title: "", description: "", road: "" });
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       onDone?.();
