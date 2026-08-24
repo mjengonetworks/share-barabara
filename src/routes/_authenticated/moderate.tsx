@@ -86,12 +86,12 @@ function ModeratePage() {
       status: "approved" | "rejected" | "pending";
       draft?: Draft;
     }) => {
-      const patch: Record<string, unknown> = {
+      const patch = {
         status,
         reviewed_by: user?.id ?? null,
         reviewed_at: new Date().toISOString(),
+        ...(draft ?? {}),
       };
-      if (draft) Object.assign(patch, draft);
       const { error } = await supabase.from("accident_reports").update(patch).eq("id", id);
       if (error) throw error;
     },
