@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfileNames } from "@/lib/profiles";
+import { UserLink } from "@/components/site/user-link";
 import { timeAgo } from "@/lib/format";
 
 type Props = { entityType: "news" | "alert" | "report"; entityId: string };
@@ -100,7 +101,7 @@ export function CommentSection({ entityType, entityId }: Props) {
         {comments.map((c) => (
           <li key={c.id} className="rounded border border-border bg-card p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold">{names[c.user_id] ?? "Road user"}</p>
+              <p className="text-sm"><UserLink userId={c.user_id} name={names[c.user_id]} /></p>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">{timeAgo(c.created_at)}</span>
                 {user?.id === c.user_id ? (

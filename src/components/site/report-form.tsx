@@ -42,7 +42,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Report filed — thank you");
+      toast.success("Report submitted for review — an editor will verify it before it is published");
       setForm({ ...form, title: "", description: "", road: "" });
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       onDone?.();
@@ -153,8 +153,12 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
           placeholder="Weather, road conditions, contributing factors and the response by emergency services."
         />
       </div>
+      <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+        Reports are reviewed and may be edited for accuracy by a moderator or editor
+        before they appear publicly. Published reports credit both of you.
+      </p>
       <Button type="submit" disabled={submit.isPending}>
-        {submit.isPending ? "Filing…" : "File report"}
+        {submit.isPending ? "Submitting…" : "Submit report for review"}
       </Button>
     </form>
   );

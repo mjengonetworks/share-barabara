@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoles } from "@/hooks/useRoles";
 import { timeAgo, longDate } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const { user } = useAuth();
+  const { canReview } = useRoles();
   const userId = user?.id;
 
   const { data: profile } = useQuery({
@@ -114,6 +116,9 @@ function DashboardPage() {
       <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild><Link to="/alerts">Report a hazard</Link></Button>
         <Button asChild variant="outline"><Link to="/reports">File an accident report</Link></Button>
+        {canReview ? (
+          <Button asChild variant="secondary"><Link to="/moderate">Review queue</Link></Button>
+        ) : null}
       </div>
 
       <section className="mt-12">
@@ -151,6 +156,15 @@ function DashboardPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={r.severity} />
                   <span className="font-semibold">{r.title}</span>
+                  <span className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${
+                    r.status === "approved"
+                      ? "bg-safe/15 text-safe"
+                      : r.status === "rejected"
+                        ? "bg-destructive/15 text-destructive"
+                        : "bg-caution/20 text-caution"
+                  }`}>
+                    {r.status === "pending" ? "awaiting review" : r.status}
+                  </span>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {longDate(r.occurred_at)}
                   </span>
