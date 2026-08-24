@@ -23,11 +23,14 @@ export type Database = {
           editor_note: string | null
           fatalities: number
           id: string
+          latitude: number | null
+          longitude: number | null
           occurred_at: string
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           road: string | null
+          road_id: string | null
           severity: string
           status: string
           title: string
@@ -43,11 +46,14 @@ export type Database = {
           editor_note?: string | null
           fatalities?: number
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           occurred_at?: string
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           road?: string | null
+          road_id?: string | null
           severity?: string
           status?: string
           title: string
@@ -63,11 +69,14 @@ export type Database = {
           editor_note?: string | null
           fatalities?: number
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           occurred_at?: string
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           road?: string | null
+          road_id?: string | null
           severity?: string
           status?: string
           title?: string
@@ -87,6 +96,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           road: string | null
+          road_id: string | null
           severity: string
           status: string
           title: string
@@ -102,6 +112,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           road?: string | null
+          road_id?: string | null
           severity?: string
           status?: string
           title: string
@@ -117,6 +128,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           road?: string | null
+          road_id?: string | null
           severity?: string
           status?: string
           title?: string
@@ -156,6 +168,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
+          parent_comment_id: string | null
           updated_at: string
           user_id: string
         }
@@ -165,6 +178,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id?: string
+          parent_comment_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -174,6 +188,7 @@ export type Database = {
           entity_id?: string
           entity_type?: string
           id?: string
+          parent_comment_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -290,6 +305,75 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          alerts: boolean
+          articles: boolean
+          interactions: boolean
+          latitude: number | null
+          longitude: number | null
+          radius_km: number
+          reports: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerts?: boolean
+          articles?: boolean
+          interactions?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          radius_km?: number
+          reports?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerts?: boolean
+          articles?: boolean
+          interactions?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          radius_km?: number
+          reports?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -338,6 +422,63 @@ export type Database = {
         }
         Relationships: []
       }
+      roads: {
+        Row: {
+          authority: string | null
+          county: string | null
+          created_at: string
+          id: string
+          name: string
+          road_class: string | null
+          slug: string
+          surface: string | null
+        }
+        Insert: {
+          authority?: string | null
+          county?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          road_class?: string | null
+          slug: string
+          surface?: string | null
+        }
+        Update: {
+          authority?: string | null
+          county?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          road_class?: string | null
+          slug?: string
+          surface?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          active: boolean
+          expires_at: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          expires_at?: string | null
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          expires_at?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       time_of_day_stats: {
         Row: {
           band: string
@@ -359,6 +500,30 @@ export type Database = {
           id?: string
           sort_order?: number
           year?: number
+        }
+        Relationships: []
+      }
+      user_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          rated_user_id: string
+          rater_id: string
+          stars: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rated_user_id: string
+          rater_id: string
+          stars: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rated_user_id?: string
+          rater_id?: string
+          stars?: number
         }
         Relationships: []
       }
@@ -425,6 +590,33 @@ export type Database = {
         }
         Relationships: []
       }
+      votes: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       yearly_stats: {
         Row: {
           crashes: number
@@ -460,6 +652,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_active_subscription: {
+        Args: {
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_min_role: {
         Args: {
           _min_role: Database["public"]["Enums"]["app_role"]

@@ -14,6 +14,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
+import { useVotes } from "@/hooks/useVotes";
+import { useRoadsByIds } from "@/hooks/useRoadsByIds";
+import { VoteButtons } from "@/components/site/vote-buttons";
 import { longDate } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
@@ -62,6 +65,11 @@ function ReportsPage() {
   const people = reports.flatMap((r) => [r.user_id, r.reviewed_by].filter(Boolean) as string[]);
   const { data: names = {} } = useProfileNames(people);
   const { data: roleMap = {} } = useRoleLabels(people);
+  const { data: roadMap = {} } = useRoadsByIds(reports.map((r) => r.road_id));
+  const { scores, vote } = useVotes(
+    "report",
+    reports.map((r) => r.id),
+  );
   const visible = reports.filter((r) => county === "all" || r.county === county);
 
   return (
@@ -108,7 +116,21 @@ function ReportsPage() {
                 <h2 className="mt-3 text-lg font-bold">{r.title}</h2>
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="size-4" /> {r.county}
-                  {r.road ? ` · ${r.road}` : ""}
+                  {r.road ? (
+                    <>
+                      {" · "}
+                      {(() => {
+                        const linked = roadMap[r.road_id ?? ""];
+                        return linked ? (
+                          <Link to="/roads/$slug" params={{ slug: linked.slug }} className="underline">
+                            {r.road}
+                          </Link>
+                        ) : (
+                          r.road
+                        );
+                      })()}
+                    </>
+                  ) : null}
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Reported by <UserLink userId={r.user_id} name={names[r.user_id]} />
@@ -135,12 +157,19 @@ function ReportsPage() {
                     {r.editor_note}
                   </p>
                 ) : null}
-                <button
-                  className="mt-3 text-sm font-semibold text-accent-foreground underline"
-                  onClick={() => setOpenId(openId === r.id ? null : r.id)}
-                >
-                  {openId === r.id ? "Hide discussion" : "Discussion"}
-                </button>
+                <div className="mt-3 flex items-center gap-4">
+                  <VoteButtons
+                    net={scores[r.id]?.net ?? 0}
+                    mine={scores[r.id]?.mine ?? 0}
+                    onVote={(v) => vote(r.id, v)}
+                  />
+                  <button
+                    className="text-sm font-semibold text-accent-foreground underline"
+                    onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                  >
+                    {openId === r.id ? "Hide discussion" : "Discussion"}
+                  </button>
+                </div>
                 {openId === r.id ? <CommentSection entityType="report" entityId={r.id} /> : null}
               </li>
             ))}

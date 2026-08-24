@@ -13,9 +13,12 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfileNames } from "@/lib/profiles";
+import { useVotes } from "@/hooks/useVotes";
+import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { timeAgo } from "@/lib/format";
 import { HAZARD_TYPES, KENYA_COUNTIES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
+import { VoteButtons } from "@/components/site/vote-buttons";
 import { AlertForm } from "@/components/site/alert-form";
 import { CommentSection } from "@/components/site/comment-section";
 
@@ -58,6 +61,11 @@ function AlertsPage() {
   });
 
   const { data: names = {} } = useProfileNames(alerts.map((a) => a.user_id));
+  const { data: roadMap = {} } = useRoadsByIds(alerts.map((a) => a.road_id));
+  const { scores, vote } = useVotes(
+    "alert",
+    alerts.map((a) => a.id),
+  );
 
   const visible = alerts.filter(
     (a) =>
@@ -126,15 +134,37 @@ function AlertsPage() {
                 <h2 className="mt-3 text-lg font-bold">{a.title}</h2>
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="size-4" /> {a.county}
-                  {a.road ? ` · ${a.road}` : ""} · by {names[a.user_id] ?? "Road user"}
+                  {a.road ? (
+                    <>
+                      {" · "}
+                      {(() => {
+                        const linked = roadMap[a.road_id ?? ""];
+                        return linked ? (
+                          <Link to="/roads/$slug" params={{ slug: linked.slug }} className="underline">
+                            {a.road}
+                          </Link>
+                        ) : (
+                          a.road
+                        );
+                      })()}
+                    </>
+                  ) : null}
+                  {" · by "}{names[a.user_id] ?? "Road user"}
                 </p>
                 <p className="mt-3 text-sm text-foreground/90">{a.description}</p>
-                <button
-                  className="mt-3 text-sm font-semibold text-accent-foreground underline"
-                  onClick={() => setOpenId(openId === a.id ? null : a.id)}
-                >
-                  {openId === a.id ? "Hide discussion" : "Discussion"}
-                </button>
+                <div className="mt-3 flex items-center gap-4">
+                  <VoteButtons
+                    net={scores[a.id]?.net ?? 0}
+                    mine={scores[a.id]?.mine ?? 0}
+                    onVote={(v) => vote(a.id, v)}
+                  />
+                  <button
+                    className="text-sm font-semibold text-accent-foreground underline"
+                    onClick={() => setOpenId(openId === a.id ? null : a.id)}
+                  >
+                    {openId === a.id ? "Hide discussion" : "Discussion"}
+                  </button>
+                </div>
                 {openId === a.id ? <CommentSection entityType="alert" entityId={a.id} /> : null}
               </li>
             ))}

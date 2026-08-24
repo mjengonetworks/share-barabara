@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import logoUrl from "@/assets/share-barabara-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationBell } from "@/components/site/notification-bell";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -57,6 +58,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           {user ? (
             <>
+              <NotificationBell />
               <Button asChild variant="secondary" size="sm" className="hidden sm:inline-flex">
                 <Link to="/dashboard">My activity</Link>
               </Button>

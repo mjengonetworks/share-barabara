@@ -1,10 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CarFront, MessageSquare, Newspaper, TriangleAlert } from "lucide-react";
+import { BadgeCheck, CarFront, MessageSquare, Newspaper, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate, timeAgo } from "@/lib/format";
+import { levelForStars, badgeForPoints } from "@/lib/gamification";
 import { SeverityBadge } from "@/components/site/severity-badge";
+import { StarRatingWidget } from "@/components/site/star-rating";
 import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
+import { useAuth } from "@/hooks/useAuth";
+import { useContributorScore } from "@/hooks/useContributorScore";
 
 export const Route = createFileRoute("/u/$userId")({
   head: () => ({
@@ -29,6 +33,44 @@ export const Route = createFileRoute("/u/$userId")({
 
 function ContributorPage() {
   const { userId } = Route.useParams();
+  const { user: viewer } = useAuth();
+
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("active, expires_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const isVerified = !!subscription?.active && (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
+
+  const { data: viewerSubscription } = useQuery({
+    queryKey: ["subscription", viewer?.id],
+    enabled: !!viewer,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("active, expires_at")
+        .eq("user_id", viewer!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const viewerCanRate =
+    !!viewer &&
+    viewer.id !== userId &&
+    !!viewerSubscription?.active &&
+    (!viewerSubscription.expires_at || new Date(viewerSubscription.expires_at) > new Date());
+
+  const { data: score } = useContributorScore(userId);
+  const level = levelForStars(score?.totalStars ?? 0);
+  const badge = badgeForPoints(score?.points ?? 0);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", userId],
@@ -124,11 +166,49 @@ function ContributorPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         {role}
       </p>
-      <h1 className="mt-2 text-4xl font-extrabold">{name}</h1>
+      <h1 className="mt-2 flex items-center gap-2 text-4xl font-extrabold">
+        {name}
+        {isVerified ? <BadgeCheck className="size-7 text-accent" aria-label="Subscribed member" /> : null}
+      </h1>
       <p className="mt-2 text-muted-foreground">
         {profile?.county ? `${profile.county} · ` : ""}
         {profile?.created_at ? `Contributing since ${longDate(profile.created_at)}` : ""}
       </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <span
+          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold ${
+            level.level >= 8
+              ? "bg-caution/20 text-caution"
+              : level.level >= 5
+                ? "bg-accent/20 text-accent-foreground"
+                : "bg-muted text-muted-foreground"
+          }`}
+        >
+          {level.icon} Level {level.level}
+        </span>
+        <span className="text-sm text-muted-foreground">
+          {score?.totalStars ?? 0} stars from {score?.ratingCount ?? 0} ratings
+        </span>
+        {badge ? (
+          <span className="rounded-full bg-safe/15 px-3 py-1 text-xs font-semibold text-safe">
+            {badge.label} · {score?.points ?? 0} pts
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">{score?.points ?? 0} points</span>
+        )}
+      </div>
+
+      {viewerCanRate ? (
+        <div className="mt-4 flex items-center gap-3">
+          <p className="text-sm text-muted-foreground">Rate this contributor:</p>
+          <StarRatingWidget ratedUserId={userId} />
+        </div>
+      ) : viewer && viewer.id !== userId ? (
+        <p className="mt-4 text-xs text-muted-foreground">
+          <Link to="/subscribe" className="underline">Subscribe</Link> to rate other contributors.
+        </p>
+      ) : null}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {[

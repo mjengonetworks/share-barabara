@@ -15,6 +15,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { HAZARD_TYPES, KENYA_COUNTIES, SEVERITIES } from "@/lib/constants";
+import { matchOrCreateRoad } from "@/lib/roads";
+import { RoadInput } from "@/components/site/road-input";
+import { LocationButton } from "@/components/site/location-button";
 
 export function AlertForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
@@ -26,17 +29,22 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
     road: "",
     hazard_type: "crash",
     severity: "medium",
+    latitude: null as number | null,
+    longitude: null as number | null,
   });
 
   const submit = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
-      const { error } = await supabase.from("alerts").insert({ ...form, user_id: user.id });
+      const road_id = await matchOrCreateRoad(form.road, form.county);
+      const { error } = await supabase
+        .from("alerts")
+        .insert({ ...form, road_id, user_id: user.id });
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Alert published — thank you");
-      setForm({ ...form, title: "", description: "", road: "" });
+      toast.success("Alert published, thank you");
+      setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
       onDone?.();
     },
@@ -74,13 +82,12 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label htmlFor="a-road">Road or landmark</Label>
-          <Input
-            id="a-road"
-            value={form.road}
-            onChange={(e) => setForm({ ...form, road: e.target.value })}
-            placeholder="e.g. A104 near Salgaa"
+        <RoadInput value={form.road} onChange={(v) => setForm({ ...form, road: v })} id="a-road" />
+        <div className="sm:col-span-2">
+          <LocationButton
+            latitude={form.latitude}
+            longitude={form.longitude}
+            onLocate={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
           />
         </div>
         <div>

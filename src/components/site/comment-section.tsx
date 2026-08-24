@@ -7,16 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useVotes } from "@/hooks/useVotes";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
+import { VoteButtons } from "@/components/site/vote-buttons";
 import { timeAgo } from "@/lib/format";
 
 type Props = { entityType: "news" | "alert" | "report"; entityId: string };
+
+type CommentRow = {
+  id: string;
+  body: string;
+  created_at: string;
+  user_id: string;
+  parent_comment_id: string | null;
+};
 
 export function CommentSection({ entityType, entityId }: Props) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [body, setBody] = useState("");
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState("");
   const key = ["comments", entityType, entityId];
 
   const { data: comments = [], isLoading } = useQuery({
@@ -24,30 +36,40 @@ export function CommentSection({ entityType, entityId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("comments")
-        .select("id, body, created_at, user_id")
+        .select("id, body, created_at, user_id, parent_comment_id")
         .eq("entity_type", entityType)
         .eq("entity_id", entityId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
       if (error) throw error;
-      return data;
+      return data as CommentRow[];
     },
   });
 
   const { data: names = {} } = useProfileNames(comments.map((c) => c.user_id));
+  const { scores, vote } = useVotes(
+    "comment",
+    comments.map((c) => c.id),
+  );
 
   const post = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ text, parentId }: { text: string; parentId: string | null }) => {
       if (!user) throw new Error("Sign in first");
       const { error } = await supabase.from("comments").insert({
         entity_type: entityType,
         entity_id: entityId,
-        body: body.trim(),
+        body: text.trim(),
         user_id: user.id,
+        parent_comment_id: parentId,
       });
       if (error) throw error;
     },
-    onSuccess: () => {
-      setBody("");
+    onSuccess: (_data, vars) => {
+      if (vars.parentId) {
+        setReplyBody("");
+        setReplyTo(null);
+      } else {
+        setBody("");
+      }
       toast.success("Comment posted");
       queryClient.invalidateQueries({ queryKey: key });
     },
@@ -62,6 +84,69 @@ export function CommentSection({ entityType, entityId }: Props) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const topLevel = comments.filter((c) => !c.parent_comment_id);
+  const repliesOf = (parentId: string) => comments.filter((c) => c.parent_comment_id === parentId);
+
+  function renderComment(c: CommentRow, depth: number) {
+    const s = scores[c.id] ?? { net: 0, mine: 0 };
+    return (
+      <li key={c.id} className={depth > 0 ? "ml-6 mt-3 border-l border-border pl-4" : ""}>
+        <div className="rounded border border-border bg-card p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm">
+              <UserLink userId={c.user_id} name={names[c.user_id]} />
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{timeAgo(c.created_at)}</span>
+              {user?.id === c.user_id ? (
+                <button
+                  aria-label="Delete comment"
+                  onClick={() => remove.mutate(c.id)}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <p className="mt-2 whitespace-pre-wrap text-sm text-foreground/90">{c.body}</p>
+          <div className="mt-2 flex items-center gap-4">
+            <VoteButtons net={s.net} mine={s.mine} onVote={(v) => vote(c.id, v)} />
+            {user ? (
+              <button
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+                onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}
+              >
+                Reply
+              </button>
+            ) : null}
+          </div>
+          {replyTo === c.id ? (
+            <div className="mt-3">
+              <Textarea
+                value={replyBody}
+                onChange={(e) => setReplyBody(e.target.value)}
+                rows={2}
+                placeholder={`Reply to ${names[c.user_id] ?? "this comment"}`}
+              />
+              <Button
+                size="sm"
+                className="mt-2"
+                disabled={replyBody.trim().length < 2 || post.isPending}
+                onClick={() => post.mutate({ text: replyBody, parentId: c.id })}
+              >
+                {post.isPending ? "Posting…" : "Post reply"}
+              </Button>
+            </div>
+          ) : null}
+        </div>
+        {repliesOf(c.id).length > 0 ? (
+          <ul>{repliesOf(c.id).map((r) => renderComment(r, depth + 1))}</ul>
+        ) : null}
+      </li>
+    );
+  }
 
   return (
     <section className="mt-10">
@@ -82,7 +167,7 @@ export function CommentSection({ entityType, entityId }: Props) {
           <Button
             className="mt-2"
             disabled={body.trim().length < 3 || post.isPending}
-            onClick={() => post.mutate()}
+            onClick={() => post.mutate({ text: body, parentId: null })}
           >
             {post.isPending ? "Posting…" : "Post comment"}
           </Button>
@@ -98,26 +183,7 @@ export function CommentSection({ entityType, entityId }: Props) {
 
       <ul className="mt-6 space-y-4">
         {isLoading ? <li className="text-sm text-muted-foreground">Loading comments…</li> : null}
-        {comments.map((c) => (
-          <li key={c.id} className="rounded border border-border bg-card p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm"><UserLink userId={c.user_id} name={names[c.user_id]} /></p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">{timeAgo(c.created_at)}</span>
-                {user?.id === c.user_id ? (
-                  <button
-                    aria-label="Delete comment"
-                    onClick={() => remove.mutate(c.id)}
-                    className="text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                ) : null}
-              </div>
-            </div>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground/90">{c.body}</p>
-          </li>
-        ))}
+        {topLevel.map((c) => renderComment(c, 0))}
         {!isLoading && comments.length === 0 ? (
           <li className="text-sm text-muted-foreground">No comments yet. Be the first.</li>
         ) : null}
