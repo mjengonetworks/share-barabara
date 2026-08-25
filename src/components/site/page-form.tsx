@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { KENYA_COUNTIES, PAGE_CATEGORIES } from "@/lib/constants";
+import { usePageCategories } from "@/hooks/usePageCategories";
+import { KENYA_COUNTIES } from "@/lib/constants";
 import { slugify } from "@/lib/format";
 
 type ExistingPage = {
@@ -33,9 +34,10 @@ export function PageForm({ existing, onDone }: { existing?: ExistingPage; onDone
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: categories = [] } = usePageCategories();
   const [form, setForm] = useState({
     name: existing?.name ?? "",
-    category: (existing?.category as (typeof PAGE_CATEGORIES)[number]) ?? "Other",
+    category: existing?.category ?? "Other",
     description: existing?.description ?? "",
     county: existing?.county ?? "",
     website_url: existing?.website_url ?? "",
@@ -96,19 +98,14 @@ export function PageForm({ existing, onDone }: { existing?: ExistingPage; onDone
       </div>
       <div>
         <Label>Category</Label>
-        <Select
-          value={form.category}
-          onValueChange={(v) =>
-            setForm({ ...form, category: v as (typeof PAGE_CATEGORIES)[number] })
-          }
-        >
+        <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {PAGE_CATEGORIES.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.name}>
+                {c.name}
               </SelectItem>
             ))}
           </SelectContent>

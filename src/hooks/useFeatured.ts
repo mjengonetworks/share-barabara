@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-/** Deterministic per-day pick so it looks random but is stable for the whole day, and a
- *  different index on a paired slot (home vs campaigns) so the two never coincide. */
-function dayPick<T>(items: T[], offset: number): T | null {
+/** Deterministic per-period pick so it looks random but is stable for the whole day/week, and
+ *  a different index on a paired slot (home vs campaigns) so the two never coincide. */
+function periodPick<T>(items: T[], period: "day" | "week", offset: number): T | null {
   if (items.length === 0) return null;
-  const dayIndex = Math.floor(Date.now() / 86400000);
-  return items[(dayIndex + offset) % items.length] ?? null;
+  const ms = period === "week" ? 7 * 86400000 : 86400000;
+  const index = Math.floor(Date.now() / ms);
+  return items[(index + offset) % items.length] ?? null;
 }
 
 type FeaturedSlot = "home_profile" | "campaigns_profile";
@@ -32,7 +33,7 @@ export function useFeaturedProfile(slot: FeaturedSlot) {
           .filter((s) => !s.expires_at || new Date(s.expires_at) > new Date())
           .map((s) => s.user_id)
           .sort();
-        userId = dayPick(eligible, slot === "campaigns_profile" ? 1 : 0);
+        userId = periodPick(eligible, "day", slot === "campaigns_profile" ? 1 : 0);
       }
       if (!userId) return null;
 
@@ -47,8 +48,9 @@ export function useFeaturedProfile(slot: FeaturedSlot) {
   });
 }
 
-type FeaturedPageSlot = "home_page" | "campaigns_page";
+type FeaturedPageSlot = "home_page" | "campaigns_page" | "pages_of_day" | "pages_of_week";
 
+/** Random fallback only ever draws from verified (premium subscribed) pages. */
 export function useFeaturedPage(slot: FeaturedPageSlot) {
   return useQuery({
     queryKey: ["featured-page", slot],
@@ -67,7 +69,9 @@ export function useFeaturedPage(slot: FeaturedPageSlot) {
           .select("id")
           .eq("verified", true);
         const eligible = (verifiedPages ?? []).map((p) => p.id).sort();
-        pageId = dayPick(eligible, slot === "campaigns_page" ? 1 : 0);
+        const period = slot === "pages_of_week" ? "week" : "day";
+        const offset = slot === "campaigns_page" ? 1 : 0;
+        pageId = periodPick(eligible, period, offset);
       }
       if (!pageId) return null;
 

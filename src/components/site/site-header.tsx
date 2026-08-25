@@ -36,7 +36,6 @@ const NAV = [
   { to: "/reports", label: "Reports" },
   { to: "/statistics", label: "Statistics" },
   { to: "/campaigns", label: "Campaigns" },
-  { to: "/pages", label: "Pages" },
   { to: "/videos", label: "Videos" },
   { to: "/merch", label: "Merch" },
   { to: "/partner-with-us", label: "Partner With Us" },

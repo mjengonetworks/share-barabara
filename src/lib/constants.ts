@@ -87,17 +87,6 @@ export const REPORT_SEVERITIES = [
   { value: "fatal", label: "Fatal" },
 ] as const;
 
-export const PAGE_CATEGORIES = [
-  "Driving school",
-  "Garage / mechanic",
-  "Insurance",
-  "Transport sacco",
-  "NGO / advocacy",
-  "Government agency",
-  "Media",
-  "Other",
-] as const;
-
 export const EMERGENCY_CONTACTS = [
   { name: "Police / Emergency", number: "999 or 112" },
   { name: "St John Ambulance", number: "0721 225 285" },

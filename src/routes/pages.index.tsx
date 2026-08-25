@@ -3,9 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { PAGE_CATEGORIES } from "@/lib/constants";
+import { usePageCategories } from "@/hooks/usePageCategories";
 import { Button } from "@/components/ui/button";
 import { PageForm } from "@/components/site/page-form";
+import { FeaturedPageCard } from "@/components/site/featured-cards";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/pages/")({
 function PagesIndex() {
   const { user } = useAuth();
   const { category } = Route.useSearch();
+  const { data: categories = [] } = usePageCategories();
 
   const { data: pages = [], isLoading } = useQuery({
     queryKey: ["pages", category],
@@ -65,7 +67,12 @@ function PagesIndex() {
         <CreatePageButton signedIn={!!user} />
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <FeaturedPageCard slot="pages_of_day" />
+        <FeaturedPageCard slot="pages_of_week" />
+      </div>
+
+      <div className="mt-10 flex flex-wrap gap-2">
         <Link
           to="/pages"
           className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
@@ -76,18 +83,18 @@ function PagesIndex() {
         >
           All categories
         </Link>
-        {PAGE_CATEGORIES.map((c) => (
+        {categories.map((c) => (
           <Link
-            key={c}
+            key={c.id}
             to="/pages"
-            search={{ category: c }}
+            search={{ category: c.name }}
             className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-              category === c
+              category === c.name
                 ? "border-accent bg-accent/15 text-accent-foreground"
                 : "border-border bg-card hover:border-accent hover:text-accent-foreground"
             }`}
           >
-            {c}
+            {c.name}
           </Link>
         ))}
       </div>
