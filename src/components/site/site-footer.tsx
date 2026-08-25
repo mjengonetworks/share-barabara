@@ -84,6 +84,8 @@ export function SiteFooter() {
             <li><Link to="/about">About</Link></li>
             <li><Link to="/campaigns">Support Share Barabara</Link></li>
             <li><Link to="/partner-with-us">Partner with us</Link></li>
+            <li><a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer">Mjengo Hub</a></li>
+            <li><a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer">Mjengo Networks</a></li>
             <li><Link to="/privacy">Privacy policy</Link></li>
             <li><Link to="/terms">Terms of use</Link></li>
             <li><Link to="/sitemap">Site map</Link></li>
