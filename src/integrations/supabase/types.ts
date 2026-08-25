@@ -340,6 +340,33 @@ export type Database = {
           },
         ];
       };
+      hub_stats: {
+        Row: {
+          id: string;
+          label: string;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+          value: string;
+        };
+        Insert: {
+          id?: string;
+          label: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: string;
+        };
+        Update: {
+          id?: string;
+          label?: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: string;
+        };
+        Relationships: [];
+      };
       merch_items: {
         Row: {
           active: boolean;

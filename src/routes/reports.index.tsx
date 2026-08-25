@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CarFront, MapPin, ShieldCheck } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
 import { useVotes } from "@/hooks/useVotes";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
@@ -24,10 +23,9 @@ import { KENYA_COUNTIES, REPORT_SEVERITIES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
-import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 
-export const Route = createFileRoute("/reports")({
+export const Route = createFileRoute("/reports/")({
   head: () => ({
     meta: [
       { title: "Accident Reports from Kenyan Roads: Share Barabara" },
@@ -50,7 +48,6 @@ function ReportsPage() {
   const { user } = useAuth();
   const [county, setCounty] = useState("all");
   const [severity, setSeverity] = useState("all");
-  const [openId, setOpenId] = useState<string | null>(null);
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports"],
@@ -70,7 +67,6 @@ function ReportsPage() {
   const { data: names = {} } = useProfileNames(people);
   const { data: verified = {} } = useSubscriptionStatuses(people);
   const { data: pages = {} } = usePagesByIds(reports.map((r) => r.page_id));
-  const { data: roleMap = {} } = useRoleLabels(people);
   const { data: roadMap = {} } = useRoadsByIds(reports.map((r) => r.road_id));
   const { scores, vote } = useVotes(
     "report",
@@ -108,20 +104,23 @@ function ReportsPage() {
               </div>
               <ul className="mt-5 grid gap-4 sm:grid-cols-3">
                 {latest.map((r) => (
-                  <li
-                    key={r.id}
-                    className="rounded-lg border border-border bg-card p-4 card-elevated"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <SeverityBadge value={r.severity} />
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {timeAgo(r.occurred_at)}
-                      </span>
-                    </div>
-                    <p className="mt-2 font-semibold">{r.title}</p>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="size-3" /> {r.county}
-                    </p>
+                  <li key={r.id}>
+                    <Link
+                      to="/reports/$reportId"
+                      params={{ reportId: r.id }}
+                      className="block rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <SeverityBadge value={r.severity} />
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {timeAgo(r.occurred_at)}
+                        </span>
+                      </div>
+                      <p className="mt-2 font-semibold hover:underline">{r.title}</p>
+                      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="size-3" /> {r.county}
+                      </p>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -193,13 +192,14 @@ function ReportsPage() {
                 ) : null}
                 <li className="rounded-lg border border-border bg-card p-5 card-elevated">
                   <div className="flex flex-wrap items-center gap-2">
-                    <CarFront className="size-4 text-muted-foreground" />
                     <SeverityBadge value={r.severity} />
                     <span className="ml-auto text-xs text-muted-foreground">
                       {longDate(r.occurred_at)}
                     </span>
                   </div>
-                  <h2 className="mt-3 text-lg font-bold">{r.title}</h2>
+                  <Link to="/reports/$reportId" params={{ reportId: r.id }} className="group">
+                    <h2 className="mt-3 text-lg font-bold group-hover:underline">{r.title}</h2>
+                  </Link>
                   <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="size-4" /> {r.county}
                     {r.road ? (
@@ -232,20 +232,6 @@ function ReportsPage() {
                       pageSlug={r.page_id ? pages[r.page_id]?.slug : undefined}
                       pageName={r.page_id ? pages[r.page_id]?.name : undefined}
                     />
-                    {r.reviewed_by ? (
-                      <>
-                        {" · verified & edited by "}
-                        <UserLink
-                          userId={r.reviewed_by}
-                          name={names[r.reviewed_by]}
-                          verified={!!verified[r.reviewed_by]}
-                        />
-                        <span className="ml-1 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
-                          <ShieldCheck className="size-3 text-accent" />
-                          {primaryRoleLabel(roleMap[r.reviewed_by])}
-                        </span>
-                      </>
-                    ) : null}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-4 text-sm">
                     <span>
@@ -258,27 +244,21 @@ function ReportsPage() {
                       <strong>{r.fatalities}</strong> deaths
                     </span>
                   </div>
-                  <p className="mt-3 text-sm text-foreground/90">{r.description}</p>
-                  {r.editor_note ? (
-                    <p className="mt-3 rounded border-l-4 border-accent bg-muted/50 p-3 text-sm">
-                      <span className="font-semibold">Editor's note: </span>
-                      {r.editor_note}
-                    </p>
-                  ) : null}
+                  <p className="mt-3 line-clamp-2 text-sm text-foreground/90">{r.description}</p>
                   <div className="mt-3 flex items-center gap-4">
                     <VoteButtons
                       net={scores[r.id]?.net ?? 0}
                       mine={scores[r.id]?.mine ?? 0}
                       onVote={(v) => vote(r.id, v)}
                     />
-                    <button
+                    <Link
+                      to="/reports/$reportId"
+                      params={{ reportId: r.id }}
                       className="text-sm font-semibold text-accent-foreground underline"
-                      onClick={() => setOpenId(openId === r.id ? null : r.id)}
                     >
-                      {openId === r.id ? "Hide discussion" : "Discussion"}
-                    </button>
+                      Read more
+                    </Link>
                   </div>
-                  {openId === r.id ? <CommentSection entityType="report" entityId={r.id} /> : null}
                 </li>
               </Fragment>
             ))}

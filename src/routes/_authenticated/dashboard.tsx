@@ -220,7 +220,13 @@ function DashboardPage() {
               <li key={r.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={r.severity} />
-                  <span className="font-semibold">{r.title}</span>
+                  <Link
+                    to="/reports/$reportId"
+                    params={{ reportId: r.id }}
+                    className="font-semibold hover:underline"
+                  >
+                    {r.title}
+                  </Link>
                   <span
                     className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${
                       r.status === "approved"

@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { num } from "@/lib/format";
+import { useHubStats } from "@/hooks/useHubStats";
 import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/statistics")({
@@ -41,7 +42,7 @@ export const Route = createFileRoute("/statistics")({
   component: StatisticsPage,
 });
 
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const PIE_COLORS = [
   "var(--destructive)",
   "var(--caution)",
@@ -52,6 +53,19 @@ const PIE_COLORS = [
   "var(--brand-blue)",
   "var(--border)",
 ];
+
+function useLiveCount(key: string, table: string, filter?: [string, string]) {
+  return useQuery({
+    queryKey: ["live-count", key],
+    queryFn: async () => {
+      let query = supabase.from(table as never).select("*", { count: "exact", head: true });
+      if (filter) query = query.eq(filter[0], filter[1]);
+      const { count, error } = await query;
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
 
 function useStat<T>(table: string, order: string, asc = true) {
   return useQuery({
@@ -151,6 +165,15 @@ function StatisticsPage() {
     crashes: number;
   }>("road_class_stats", "fatalities", false);
 
+  const { data: hubStats = [] } = useHubStats();
+  const { data: alertsCount } = useLiveCount("alerts", "alerts");
+  const { data: reportsFiledCount } = useLiveCount("reports-filed", "accident_reports");
+  const { data: reportsApprovedCount } = useLiveCount("reports-approved", "accident_reports", [
+    "status",
+    "approved",
+  ]);
+  const { data: commentsCount } = useLiveCount("comments", "comments");
+
   const latest = yearly[yearly.length - 1];
   const prev = yearly[yearly.length - 2];
   const totalVictims = victims.reduce((sum, v) => sum + v.fatalities, 0) || 1;
@@ -163,20 +186,76 @@ function StatisticsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Open data
+        Share Barabara
       </p>
-      <h1 className="mt-2 text-4xl font-extrabold">Kenya road crash statistics</h1>
+      <h1 className="mt-2 text-4xl font-extrabold">Live statistics</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Indicative national figures compiled for public awareness. Roughly thirteen
-        people die on Kenyan roads every single day, and most of them are outside a
-        car when it happens.
+        Mjengo Hub's own numbers and what the Share Barabara community has reported so far, updated
+        as it happens.
       </p>
+
+      {hubStats.length > 0 ? (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {hubStats.map((s) => (
+            <div key={s.id} className="rounded-lg border border-border bg-card p-6 card-elevated">
+              <p className="font-display text-3xl font-extrabold">{s.value}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <p className="font-display text-3xl font-extrabold text-caution">
+            {alertsCount === undefined ? "…" : num(alertsCount)}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Hazard alerts reported</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <p className="font-display text-3xl font-extrabold">
+            {reportsFiledCount === undefined ? "…" : num(reportsFiledCount)}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Accident reports filed</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <p className="font-display text-3xl font-extrabold text-safe">
+            {reportsApprovedCount === undefined ? "…" : num(reportsApprovedCount)}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Reports verified & published</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <p className="font-display text-3xl font-extrabold">
+            {commentsCount === undefined ? "…" : num(commentsCount)}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Community comments</p>
+        </div>
+      </div>
+
+      <div className="mt-14 border-t border-border pt-10">
+        <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+          Open data
+        </p>
+        <h2 className="mt-2 text-4xl font-extrabold">Kenya road crash statistics</h2>
+        <p className="mt-3 max-w-2xl text-muted-foreground">
+          Indicative national figures compiled for public awareness. Roughly thirteen people die on
+          Kenyan roads every single day, and most of them are outside a car when it happens.
+        </p>
+      </div>
 
       {latest ? (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: `Deaths in ${latest.year}`, value: num(latest.fatalities), tone: "text-destructive" },
-            { label: "Serious injuries", value: num(latest.serious_injuries), tone: "text-caution" },
+            {
+              label: `Deaths in ${latest.year}`,
+              value: num(latest.fatalities),
+              tone: "text-destructive",
+            },
+            {
+              label: "Serious injuries",
+              value: num(latest.serious_injuries),
+              tone: "text-caution",
+            },
             { label: "Recorded crashes", value: num(latest.crashes), tone: "text-foreground" },
             {
               label: "Deaths per 100,000 people",
@@ -188,7 +267,11 @@ function StatisticsPage() {
               value: latest.registered_vehicles ? num(latest.registered_vehicles) : "N/A",
               tone: "text-foreground",
             },
-            { label: "Slight injuries", value: num(latest.slight_injuries), tone: "text-foreground" },
+            {
+              label: "Slight injuries",
+              value: num(latest.slight_injuries),
+              tone: "text-foreground",
+            },
             {
               label: "Deaths per day",
               value: Math.round(latest.fatalities / 365),
@@ -200,7 +283,10 @@ function StatisticsPage() {
               tone: yoy !== null && yoy > 0 ? "text-destructive" : "text-safe",
             },
           ].map((s) => (
-            <div key={s.label} className="rounded-lg border border-border bg-card p-6 card-elevated">
+            <div
+              key={s.label}
+              className="rounded-lg border border-border bg-card p-6 card-elevated"
+            >
               <p className={`font-display text-3xl font-extrabold ${s.tone}`}>{s.value}</p>
               <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
             </div>
@@ -219,9 +305,30 @@ function StatisticsPage() {
           <YAxis stroke="var(--muted-foreground)" fontSize={12} />
           <Tooltip contentStyle={tooltipStyle} />
           <Legend />
-          <Line type="monotone" dataKey="fatalities" name="Fatalities" stroke="var(--destructive)" strokeWidth={3} dot={false} />
-          <Line type="monotone" dataKey="serious_injuries" name="Serious injuries" stroke="var(--caution)" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="slight_injuries" name="Slight injuries" stroke="var(--muted-foreground)" strokeWidth={2} dot={false} />
+          <Line
+            type="monotone"
+            dataKey="fatalities"
+            name="Fatalities"
+            stroke="var(--destructive)"
+            strokeWidth={3}
+            dot={false}
+          />
+          <Line
+            type="monotone"
+            dataKey="serious_injuries"
+            name="Serious injuries"
+            stroke="var(--caution)"
+            strokeWidth={2}
+            dot={false}
+          />
+          <Line
+            type="monotone"
+            dataKey="slight_injuries"
+            name="Slight injuries"
+            stroke="var(--muted-foreground)"
+            strokeWidth={2}
+            dot={false}
+          />
         </LineChart>
       </ChartCard>
 
@@ -233,11 +340,32 @@ function StatisticsPage() {
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis dataKey="year" stroke="var(--muted-foreground)" fontSize={12} />
           <YAxis yAxisId="left" stroke="var(--muted-foreground)" fontSize={12} />
-          <YAxis yAxisId="right" orientation="right" stroke="var(--muted-foreground)" fontSize={12} />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            stroke="var(--muted-foreground)"
+            fontSize={12}
+          />
           <Tooltip contentStyle={tooltipStyle} />
           <Legend />
-          <Area yAxisId="left" type="monotone" dataKey="registered_vehicles" name="Registered vehicles" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.15} />
-          <Area yAxisId="right" type="monotone" dataKey="deaths_per_100k" name="Deaths per 100k" stroke="var(--destructive)" fill="var(--destructive)" fillOpacity={0.2} />
+          <Area
+            yAxisId="left"
+            type="monotone"
+            dataKey="registered_vehicles"
+            name="Registered vehicles"
+            stroke="var(--primary)"
+            fill="var(--primary)"
+            fillOpacity={0.15}
+          />
+          <Area
+            yAxisId="right"
+            type="monotone"
+            dataKey="deaths_per_100k"
+            name="Deaths per 100k"
+            stroke="var(--destructive)"
+            fill="var(--destructive)"
+            fillOpacity={0.2}
+          />
         </AreaChart>
       </ChartCard>
 
@@ -250,7 +378,12 @@ function StatisticsPage() {
           <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
           <YAxis stroke="var(--muted-foreground)" fontSize={12} />
           <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-          <Bar dataKey="fatalities" name="Fatalities" fill="var(--destructive)" radius={[4, 4, 0, 0]} />
+          <Bar
+            dataKey="fatalities"
+            name="Fatalities"
+            fill="var(--destructive)"
+            radius={[4, 4, 0, 0]}
+          />
         </BarChart>
       </ChartCard>
 
@@ -286,10 +419,21 @@ function StatisticsPage() {
               <BarChart data={vehicles} layout="vertical" margin={{ left: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
-                <YAxis type="category" dataKey="vehicle_type" width={140} stroke="var(--muted-foreground)" fontSize={11} />
+                <YAxis
+                  type="category"
+                  dataKey="vehicle_type"
+                  width={140}
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                />
                 <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
                 <Legend />
-                <Bar dataKey="fatalities" name="Fatalities" fill="var(--destructive)" radius={[0, 4, 4, 0]} />
+                <Bar
+                  dataKey="fatalities"
+                  name="Fatalities"
+                  fill="var(--destructive)"
+                  radius={[0, 4, 4, 0]}
+                />
                 <Bar dataKey="crashes" name="Crashes" fill="var(--caution)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -312,7 +456,10 @@ function StatisticsPage() {
                 <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
                 <Bar dataKey="fatalities" name="Fatalities" radius={[4, 4, 0, 0]}>
                   {bands.map((b) => (
-                    <Cell key={b.id} fill={b.fatalities > 900 ? "var(--destructive)" : "var(--caution)"} />
+                    <Cell
+                      key={b.id}
+                      fill={b.fatalities > 900 ? "var(--destructive)" : "var(--caution)"}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -330,9 +477,20 @@ function StatisticsPage() {
               <BarChart data={roadClasses} layout="vertical" margin={{ left: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
-                <YAxis type="category" dataKey="road_class" width={150} stroke="var(--muted-foreground)" fontSize={11} />
+                <YAxis
+                  type="category"
+                  dataKey="road_class"
+                  width={150}
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                />
                 <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-                <Bar dataKey="fatalities" name="Fatalities" fill="var(--primary)" radius={[0, 4, 4, 0]} />
+                <Bar
+                  dataKey="fatalities"
+                  name="Fatalities"
+                  fill="var(--primary)"
+                  radius={[0, 4, 4, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -347,7 +505,13 @@ function StatisticsPage() {
               <BarChart data={counties} layout="vertical" margin={{ left: 24 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
-                <YAxis type="category" dataKey="county" width={90} stroke="var(--muted-foreground)" fontSize={12} />
+                <YAxis
+                  type="category"
+                  dataKey="county"
+                  width={90}
+                  stroke="var(--muted-foreground)"
+                  fontSize={12}
+                />
                 <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
                 <Bar dataKey="fatalities" name="Fatalities" radius={[0, 4, 4, 0]}>
                   {counties.map((c, i) => (
@@ -380,10 +544,9 @@ function StatisticsPage() {
             })}
           </ul>
           <p className="mt-6 text-sm text-muted-foreground">
-            Vulnerable road users (pedestrians, motorcyclists and their pillion
-            passengers) make up the large majority of deaths. Speed management,
-            helmets, footpaths and lighting are the interventions that shift these
-            numbers.
+            Vulnerable road users (pedestrians, motorcyclists and their pillion passengers) make up
+            the large majority of deaths. Speed management, helmets, footpaths and lighting are the
+            interventions that shift these numbers.
           </p>
         </div>
       </section>

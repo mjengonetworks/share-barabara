@@ -59,12 +59,21 @@ type ArticleDraft = {
   category: string;
 };
 
+const TAB_LABELS: Record<"reports" | "articles" | "featured" | "categories" | "hubstats", string> =
+  {
+    reports: "Reports",
+    articles: "Articles",
+    featured: "Featured",
+    categories: "Categories",
+    hubstats: "Hub stats",
+  };
+
 function ModeratePage() {
   const { user } = useAuth();
   const { canReview, canPublishArticles, isAdmin, isLoading: rolesLoading } = useRoles();
-  const [content, setContent] = useState<"reports" | "articles" | "featured" | "categories">(
-    "reports",
-  );
+  const [content, setContent] = useState<
+    "reports" | "articles" | "featured" | "categories" | "hubstats"
+  >("reports");
 
   if (rolesLoading) return <div className="mx-auto max-w-5xl px-4 py-10">Checking access…</div>;
 
@@ -93,16 +102,15 @@ function ModeratePage() {
 
       <div className="mt-6 flex gap-2">
         {(isAdmin
-          ? (["reports", "articles", "featured", "categories"] as const)
+          ? (["reports", "articles", "featured", "categories", "hubstats"] as const)
           : (["reports", "articles"] as const)
         ).map((c) => (
           <Button
             key={c}
             variant={content === c ? "default" : "outline"}
             onClick={() => setContent(c)}
-            className="capitalize"
           >
-            {c}
+            {TAB_LABELS[c]}
           </Button>
         ))}
       </div>
@@ -113,6 +121,8 @@ function ModeratePage() {
         <ArticlesQueue userId={user?.id} canPublishArticles={canPublishArticles} />
       ) : content === "featured" ? (
         <FeaturedPicksAdmin />
+      ) : content === "hubstats" ? (
+        <HubStatsAdmin />
       ) : (
         <PageCategoriesAdmin />
       )}
@@ -800,6 +810,133 @@ function PageCategoriesAdmin() {
               className="ml-auto text-destructive"
               disabled={remove.isPending}
               onClick={() => remove.mutate(c.id)}
+            >
+              Remove
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function HubStatsAdmin() {
+  const queryClient = useQueryClient();
+  const [label, setLabel] = useState("");
+  const [value, setValue] = useState("");
+
+  const { data: stats = [], isLoading } = useQuery({
+    queryKey: ["hub-stats-admin"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("hub_stats")
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["hub-stats-admin"] });
+    queryClient.invalidateQueries({ queryKey: ["hub-stats"] });
+  };
+
+  const add = useMutation({
+    mutationFn: async () => {
+      const nextOrder = stats.reduce((m, s) => Math.max(m, s.sort_order), 0) + 1;
+      const { error } = await supabase
+        .from("hub_stats")
+        .insert({ label: label.trim(), value: value.trim() || "0", sort_order: nextOrder });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Stat added");
+      setLabel("");
+      setValue("");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const update = useMutation({
+    mutationFn: async ({
+      id,
+      patch,
+    }: {
+      id: string;
+      patch: { label?: string; value?: string };
+    }) => {
+      const { error } = await supabase.from("hub_stats").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: refresh,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("hub_stats").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Stat removed");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="mt-8 space-y-6">
+      <p className="max-w-2xl text-sm text-muted-foreground">
+        Shown as the "Live statistics" tiles at the top of the Statistics page. Free text, so
+        "12,400+" or "38 of 47 counties" both work.
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        <Input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="Label, e.g. Registered members"
+          className="max-w-xs"
+        />
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Value, e.g. 12,400+"
+          className="max-w-xs"
+        />
+        <Button disabled={label.trim().length < 2 || add.isPending} onClick={() => add.mutate()}>
+          Add stat
+        </Button>
+      </div>
+
+      {isLoading ? <p className="text-muted-foreground">Loading…</p> : null}
+      <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+        {stats.map((s) => (
+          <li key={s.id} className="flex flex-wrap items-center gap-3 p-3">
+            <Input
+              defaultValue={s.label}
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v && v !== s.label) update.mutate({ id: s.id, patch: { label: v } });
+              }}
+              className="max-w-xs"
+            />
+            <Input
+              defaultValue={s.value}
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v && v !== s.value) update.mutate({ id: s.id, patch: { value: v } });
+              }}
+              className="max-w-xs"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto text-destructive"
+              disabled={remove.isPending}
+              onClick={() => remove.mutate(s.id)}
             >
               Remove
             </Button>

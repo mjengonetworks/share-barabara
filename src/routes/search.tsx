@@ -67,7 +67,9 @@ function SearchPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Search</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+        Search
+      </p>
       <h1 className="mt-2 flex items-center gap-2 text-3xl font-extrabold">
         <SearchIcon className="size-7 text-accent" />
         {term ? `Results for "${term}"` : "Search Share Barabara"}
@@ -87,7 +89,11 @@ function SearchPage() {
           <ul className="mt-3 space-y-2">
             {news.map((n) => (
               <li key={n.id}>
-                <Link to="/news/$slug" params={{ slug: n.slug }} className="block rounded border border-border bg-card p-4 hover:border-accent">
+                <Link
+                  to="/news/$slug"
+                  params={{ slug: n.slug }}
+                  className="block rounded border border-border bg-card p-4 hover:border-accent"
+                >
                   <p className="font-semibold">{n.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{longDate(n.published_at)}</p>
                 </Link>
@@ -103,7 +109,10 @@ function SearchPage() {
           <ul className="mt-3 space-y-2">
             {alerts.map((a) => (
               <li key={a.id}>
-                <Link to="/alerts" className="block rounded border border-border bg-card p-4 hover:border-accent">
+                <Link
+                  to="/alerts"
+                  className="block rounded border border-border bg-card p-4 hover:border-accent"
+                >
                   <p className="font-semibold">{a.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{a.county}</p>
                 </Link>
@@ -119,7 +128,11 @@ function SearchPage() {
           <ul className="mt-3 space-y-2">
             {reports.map((r) => (
               <li key={r.id}>
-                <Link to="/reports" className="block rounded border border-border bg-card p-4 hover:border-accent">
+                <Link
+                  to="/reports/$reportId"
+                  params={{ reportId: r.id }}
+                  className="block rounded border border-border bg-card p-4 hover:border-accent"
+                >
                   <p className="font-semibold">{r.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{r.county}</p>
                 </Link>

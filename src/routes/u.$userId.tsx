@@ -283,7 +283,11 @@ function ContributorPage() {
               <li key={r.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={r.severity} />
-                  <Link to="/reports" className="font-semibold hover:underline">
+                  <Link
+                    to="/reports/$reportId"
+                    params={{ reportId: r.id }}
+                    className="font-semibold hover:underline"
+                  >
                     {r.title}
                   </Link>
                   <span className="ml-auto text-xs text-muted-foreground">
