@@ -401,6 +401,24 @@ export type Database = {
         }
         Relationships: []
       }
+      news_views: {
+        Row: {
+          created_at: string
+          id: number
+          news_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          news_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          news_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           alerts: boolean
@@ -870,6 +888,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      trending_news: {
+        Args: {
+          hours_back?: number
+          result_limit?: number
+        }
+        Returns: Database["public"]["Tables"]["news"]["Row"][]
       }
       has_min_role: {
         Args: {

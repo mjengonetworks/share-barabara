@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CarFront, MapPin, ShieldCheck } from "lucide-react";
@@ -85,10 +85,6 @@ function ReportsPage() {
         and the editor who verified it.
       </p>
 
-      <div className="mt-6">
-        <BannerAd />
-      </div>
-
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
           <Select value={county} onValueChange={setCounty}>
@@ -109,8 +105,14 @@ function ReportsPage() {
           ) : null}
 
           <ul className="mt-6 space-y-4">
-            {visible.map((r) => (
-              <li key={r.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
+            {visible.map((r, i) => (
+              <Fragment key={r.id}>
+                {i === 2 ? (
+                  <li key="ad">
+                    <BannerAd />
+                  </li>
+                ) : null}
+                <li className="rounded-lg border border-border bg-card p-5 card-elevated">
                 <div className="flex flex-wrap items-center gap-2">
                   <CarFront className="size-4 text-muted-foreground" />
                   <SeverityBadge value={r.severity} />
@@ -176,7 +178,8 @@ function ReportsPage() {
                   </button>
                 </div>
                 {openId === r.id ? <CommentSection entityType="report" entityId={r.id} /> : null}
-              </li>
+                </li>
+              </Fragment>
             ))}
           </ul>
         </div>

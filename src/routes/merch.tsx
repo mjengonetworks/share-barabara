@@ -54,10 +54,6 @@ function MerchPage() {
         should end at home. Proceeds support Share Barabara campaigns.
       </p>
 
-      <div className="mt-6">
-        <BannerAd />
-      </div>
-
       {isLoading ? <p className="mt-10 text-muted-foreground">Loading merch…</p> : null}
       {!isLoading && items.length === 0 ? (
         <p className="mt-10 rounded border border-dashed border-border p-10 text-center text-muted-foreground">
@@ -84,6 +80,12 @@ function MerchPage() {
           </div>
         ))}
       </div>
+
+      {items.length > 0 ? (
+        <div className="mt-10">
+          <BannerAd />
+        </div>
+      ) : null}
 
       <div className="mt-10 rounded-lg border border-dashed border-border bg-muted/40 p-6">
         <h2 className="font-bold">How to order</h2>

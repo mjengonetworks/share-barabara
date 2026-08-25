@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
@@ -39,6 +40,13 @@ function NewsDetail() {
     },
   });
 
+  const recordedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!article || recordedFor.current === article.id) return;
+    recordedFor.current = article.id;
+    void supabase.from("news_views").insert({ news_id: article.id });
+  }, [article]);
+
   if (isLoading) {
     return <p className="mx-auto max-w-3xl px-4 py-20 text-muted-foreground">Loading story…</p>;
   }
@@ -59,9 +67,13 @@ function NewsDetail() {
       <Link to="/news" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
         <ArrowLeft className="size-4" /> All news
       </Link>
-      <span className="mt-6 inline-block rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+      <Link
+        to="/news"
+        search={{ category: article.category }}
+        className="mt-6 inline-block rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground hover:bg-accent/30"
+      >
         {article.category}
-      </span>
+      </Link>
       <h1 className="mt-3 text-4xl font-extrabold leading-tight">{article.title}</h1>
       <p className="mt-3 text-sm text-muted-foreground">
         {longDate(article.published_at)} {article.source ? `· ${article.source}` : ""}

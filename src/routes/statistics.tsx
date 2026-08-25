@@ -172,10 +172,6 @@ function StatisticsPage() {
         car when it happens.
       </p>
 
-      <div className="mt-6">
-        <BannerAd />
-      </div>
-
       {latest ? (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
@@ -211,6 +207,10 @@ function StatisticsPage() {
           ))}
         </div>
       ) : null}
+
+      <div className="mt-8">
+        <BannerAd />
+      </div>
 
       <ChartCard title="Deaths and injuries by year">
         <LineChart data={yearly}>

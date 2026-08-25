@@ -70,10 +70,6 @@ function VideosPage() {
         Videos promoting road safety and the Share Barabara culture, curated from the community.
       </p>
 
-      <div className="mt-6">
-        <BannerAd />
-      </div>
-
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
           {isLoading ? <p className="text-muted-foreground">Loading videos…</p> : null}
@@ -116,6 +112,11 @@ function VideosPage() {
               );
             })}
           </div>
+          {videos.length > 0 ? (
+            <div className="mt-8">
+              <BannerAd />
+            </div>
+          ) : null}
         </div>
 
         <aside className="h-fit rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24">

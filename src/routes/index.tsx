@@ -285,7 +285,8 @@ function Index() {
           <PreviewCard
             title="Victims corner"
             body={victimsArticles[0]?.title ?? "Profiles and stories of those affected by road crashes."}
-            to="/victims-focus"
+            to="/news"
+            search={{ category: "Victims Focus" }}
             cta="View more"
             icon={HeartHandshake}
           />
@@ -367,12 +368,14 @@ function PreviewCard({
   title,
   body,
   to,
+  search,
   cta,
   icon: Icon,
 }: {
   title: string;
   body: string;
   to: string;
+  search?: Record<string, string>;
   cta: string;
   icon?: typeof Megaphone;
 }) {
@@ -381,7 +384,11 @@ function PreviewCard({
       {Icon ? <Icon className="size-6 text-accent" /> : null}
       <h3 className="mt-2 font-bold">{title}</h3>
       <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{body}</p>
-      <Link to={to} className="mt-3 inline-block text-sm font-semibold text-accent-foreground underline">
+      <Link
+        to={to}
+        {...(search ? { search } : {})}
+        className="mt-3 inline-block text-sm font-semibold text-accent-foreground underline"
+      >
         {cta}
       </Link>
     </div>

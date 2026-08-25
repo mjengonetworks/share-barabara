@@ -77,10 +77,6 @@ function SafetyPage() {
         of road user, and what to do when things go wrong.
       </p>
 
-      <div className="mt-6">
-        <BannerAd />
-      </div>
-
       <div className="mt-10 grid gap-6 md:grid-cols-2">
         {GUIDES.map((g) => (
           <section key={g.title} className="rounded-lg border border-border bg-card p-6 card-elevated">
@@ -100,6 +96,10 @@ function SafetyPage() {
             </ul>
           </section>
         ))}
+      </div>
+
+      <div className="mt-10">
+        <BannerAd />
       </div>
 
       <section className="mt-14 grid gap-8 lg:grid-cols-2">

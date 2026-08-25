@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, TriangleAlert } from "lucide-react";
@@ -89,10 +89,6 @@ function AlertsPage() {
         </div>
       </div>
 
-      <div className="mt-6">
-        <BannerAd />
-      </div>
-
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
           <div className="flex flex-wrap gap-3">
@@ -124,8 +120,14 @@ function AlertsPage() {
           ) : null}
 
           <ul className="mt-6 space-y-4">
-            {visible.map((a) => (
-              <li key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
+            {visible.map((a, i) => (
+              <Fragment key={a.id}>
+                {i === 2 ? (
+                  <li key="ad">
+                    <BannerAd />
+                  </li>
+                ) : null}
+                <li key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
                 <div className="flex flex-wrap items-center gap-2">
                   <TriangleAlert className="size-4 text-caution" />
                   <SeverityBadge value={a.severity} />
@@ -171,7 +173,8 @@ function AlertsPage() {
                   </button>
                 </div>
                 {openId === a.id ? <CommentSection entityType="alert" entityId={a.id} /> : null}
-              </li>
+                </li>
+              </Fragment>
             ))}
           </ul>
         </div>
