@@ -1,8 +1,23 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import {
+  CircleUserRound,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  ShieldCheck,
+  UserCog,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import logoUrl from "@/assets/share-barabara-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,11 +53,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-6xl items-center gap-4 px-4">
         <Link to="/" className="flex items-center" aria-label="Share Barabara home">
-          <img
-            src={logoUrl}
-            alt="Share Barabara"
-            className="h-14 w-auto sm:h-16"
-          />
+          <img src={logoUrl} alt="Share Barabara" className="h-14 w-auto sm:h-16" />
         </Link>
 
         <nav className="ml-auto hidden items-center gap-1 md:flex">
@@ -63,23 +74,49 @@ export function SiteHeader() {
           {user ? (
             <>
               <NotificationBell />
-              <Button asChild variant="secondary" size="sm" className="hidden sm:inline-flex">
-                <Link to="/dashboard">My activity</Link>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={signOut}>
-                Sign out
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label="Profile menu"
+                    className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-foreground"
+                  >
+                    <CircleUserRound className="size-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuItem asChild>
+                    <Link to="/u/$userId" params={{ userId: user.id }}>
+                      <CircleUserRound className="mr-2 size-4" /> My profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard">
+                      <LayoutDashboard className="mr-2 size-4" /> My activity
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings">
+                      <UserCog className="mr-2 size-4" /> Profile settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/subscribe">
+                      <ShieldCheck className="mr-2 size-4" /> Subscribe
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 size-4" /> Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Button asChild size="sm">
               <Link to="/auth">Sign in</Link>
             </Button>
           )}
-          <button
-            className="md:hidden"
-            aria-label="Toggle menu"
-            onClick={() => setOpen((v) => !v)}
-          >
+          <button className="md:hidden" aria-label="Toggle menu" onClick={() => setOpen((v) => !v)}>
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>

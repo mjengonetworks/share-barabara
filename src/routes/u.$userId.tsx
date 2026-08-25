@@ -6,6 +6,7 @@ import { longDate, timeAgo } from "@/lib/format";
 import { levelForStars, badgeForPoints } from "@/lib/gamification";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { StarRatingWidget } from "@/components/site/star-rating";
+import { Button } from "@/components/ui/button";
 import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
 import { useAuth } from "@/hooks/useAuth";
 import { useContributorScore } from "@/hooks/useContributorScore";
@@ -47,7 +48,9 @@ function ContributorPage() {
       return data;
     },
   });
-  const isVerified = !!subscription?.active && (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
+  const isVerified =
+    !!subscription?.active &&
+    (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
 
   const { data: viewerSubscription } = useQuery({
     queryKey: ["subscription", viewer?.id],
@@ -77,7 +80,9 @@ function ContributorPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, county, created_at")
+        .select(
+          "id, display_name, county, created_at, bio, occupation, road_safety_message, mjengo_networks_url, mjengo_hub_url",
+        )
         .eq("id", userId)
         .maybeSingle();
       if (error) throw error;
@@ -166,14 +171,54 @@ function ContributorPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         {role}
       </p>
-      <h1 className="mt-2 flex items-center gap-2 text-4xl font-extrabold">
-        {name}
-        {isVerified ? <BadgeCheck className="size-7 text-accent" aria-label="Subscribed member" /> : null}
-      </h1>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <h1 className="mt-2 flex items-center gap-2 text-4xl font-extrabold">
+          {name}
+          {isVerified ? (
+            <BadgeCheck className="size-7 text-accent" aria-label="Subscribed member" />
+          ) : null}
+        </h1>
+        {viewer?.id === userId ? (
+          <Button asChild variant="outline" size="sm">
+            <Link to="/settings">Edit profile</Link>
+          </Button>
+        ) : null}
+      </div>
       <p className="mt-2 text-muted-foreground">
+        {profile?.occupation ? `${profile.occupation} · ` : ""}
         {profile?.county ? `${profile.county} · ` : ""}
         {profile?.created_at ? `Contributing since ${longDate(profile.created_at)}` : ""}
       </p>
+      {profile?.bio ? <p className="mt-3 max-w-2xl text-foreground/90">{profile.bio}</p> : null}
+      {profile?.road_safety_message ? (
+        <p className="mt-3 max-w-2xl border-l-4 border-accent pl-4 italic text-muted-foreground">
+          "{profile.road_safety_message}"
+        </p>
+      ) : null}
+      {profile?.mjengo_networks_url || profile?.mjengo_hub_url ? (
+        <div className="mt-3 flex flex-wrap gap-3 text-sm">
+          {profile.mjengo_networks_url ? (
+            <a
+              href={profile.mjengo_networks_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Mjengo Networks profile
+            </a>
+          ) : null}
+          {profile.mjengo_hub_url ? (
+            <a
+              href={profile.mjengo_hub_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Mjengo Hub profile
+            </a>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <span
@@ -206,7 +251,10 @@ function ContributorPage() {
         </div>
       ) : viewer && viewer.id !== userId ? (
         <p className="mt-4 text-xs text-muted-foreground">
-          <Link to="/subscribe" className="underline">Subscribe</Link> to rate other contributors.
+          <Link to="/subscribe" className="underline">
+            Subscribe
+          </Link>{" "}
+          to rate other contributors.
         </p>
       ) : null}
 
@@ -237,13 +285,16 @@ function ContributorPage() {
               <li key={r.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={r.severity} />
-                  <Link to="/reports" className="font-semibold hover:underline">{r.title}</Link>
+                  <Link to="/reports" className="font-semibold hover:underline">
+                    {r.title}
+                  </Link>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {longDate(r.occurred_at)}
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {r.county}{r.road ? ` · ${r.road}` : ""}
+                  {r.county}
+                  {r.road ? ` · ${r.road}` : ""}
                 </p>
               </li>
             ))}
@@ -316,7 +367,8 @@ function ContributorPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {a.county}{a.road ? ` · ${a.road}` : ""}
+                  {a.county}
+                  {a.road ? ` · ${a.road}` : ""}
                 </p>
               </li>
             ))}

@@ -16,6 +16,7 @@ import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
 import { useVotes } from "@/hooks/useVotes";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
+import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { longDate } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/constants";
@@ -65,6 +66,7 @@ function ReportsPage() {
 
   const people = reports.flatMap((r) => [r.user_id, r.reviewed_by].filter(Boolean) as string[]);
   const { data: names = {} } = useProfileNames(people);
+  const { data: verified = {} } = useSubscriptionStatuses(people);
   const { data: roleMap = {} } = useRoleLabels(people);
   const { data: roadMap = {} } = useRoadsByIds(reports.map((r) => r.road_id));
   const { scores, vote } = useVotes(
@@ -80,19 +82,22 @@ function ReportsPage() {
       </p>
       <h1 className="mt-2 text-4xl font-extrabold">Accident reports</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Crash reports filed by the community and reviewed by our editors before
-        publication. Each report carries a shared byline: the road user who filed it
-        and the editor who verified it.
+        Crash reports filed by the community and reviewed by our editors before publication. Each
+        report carries a shared byline: the road user who filed it and the editor who verified it.
       </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
           <Select value={county} onValueChange={setCounty}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent className="max-h-64">
               <SelectItem value="all">All counties</SelectItem>
               {KENYA_COUNTIES.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -113,71 +118,90 @@ function ReportsPage() {
                   </li>
                 ) : null}
                 <li className="rounded-lg border border-border bg-card p-5 card-elevated">
-                <div className="flex flex-wrap items-center gap-2">
-                  <CarFront className="size-4 text-muted-foreground" />
-                  <SeverityBadge value={r.severity} />
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {longDate(r.occurred_at)}
-                  </span>
-                </div>
-                <h2 className="mt-3 text-lg font-bold">{r.title}</h2>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="size-4" /> {r.county}
-                  {r.road ? (
-                    <>
-                      {" · "}
-                      {(() => {
-                        const linked = roadMap[r.road_id ?? ""];
-                        return linked ? (
-                          <Link to="/roads/$slug" params={{ slug: linked.slug }} className="underline">
-                            {r.road}
-                          </Link>
-                        ) : (
-                          r.road
-                        );
-                      })()}
-                    </>
-                  ) : null}
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Reported by <UserLink userId={r.user_id} name={names[r.user_id]} />
-                  {r.reviewed_by ? (
-                    <>
-                      {" · verified & edited by "}
-                      <UserLink userId={r.reviewed_by} name={names[r.reviewed_by]} />
-                      <span className="ml-1 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
-                        <ShieldCheck className="size-3 text-accent" />
-                        {primaryRoleLabel(roleMap[r.reviewed_by])}
-                      </span>
-                    </>
-                  ) : null}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                  <span><strong>{r.vehicles_involved}</strong> vehicles</span>
-                  <span><strong>{r.casualties}</strong> injured</span>
-                  <span className="text-destructive"><strong>{r.fatalities}</strong> deaths</span>
-                </div>
-                <p className="mt-3 text-sm text-foreground/90">{r.description}</p>
-                {r.editor_note ? (
-                  <p className="mt-3 rounded border-l-4 border-accent bg-muted/50 p-3 text-sm">
-                    <span className="font-semibold">Editor's note: </span>
-                    {r.editor_note}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CarFront className="size-4 text-muted-foreground" />
+                    <SeverityBadge value={r.severity} />
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {longDate(r.occurred_at)}
+                    </span>
+                  </div>
+                  <h2 className="mt-3 text-lg font-bold">{r.title}</h2>
+                  <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                    <MapPin className="size-4" /> {r.county}
+                    {r.road ? (
+                      <>
+                        {" · "}
+                        {(() => {
+                          const linked = roadMap[r.road_id ?? ""];
+                          return linked ? (
+                            <Link
+                              to="/roads/$slug"
+                              params={{ slug: linked.slug }}
+                              className="underline"
+                            >
+                              {r.road}
+                            </Link>
+                          ) : (
+                            r.road
+                          );
+                        })()}
+                      </>
+                    ) : null}
                   </p>
-                ) : null}
-                <div className="mt-3 flex items-center gap-4">
-                  <VoteButtons
-                    net={scores[r.id]?.net ?? 0}
-                    mine={scores[r.id]?.mine ?? 0}
-                    onVote={(v) => vote(r.id, v)}
-                  />
-                  <button
-                    className="text-sm font-semibold text-accent-foreground underline"
-                    onClick={() => setOpenId(openId === r.id ? null : r.id)}
-                  >
-                    {openId === r.id ? "Hide discussion" : "Discussion"}
-                  </button>
-                </div>
-                {openId === r.id ? <CommentSection entityType="report" entityId={r.id} /> : null}
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Reported by{" "}
+                    <UserLink
+                      userId={r.user_id}
+                      name={names[r.user_id]}
+                      verified={!!verified[r.user_id]}
+                    />
+                    {r.reviewed_by ? (
+                      <>
+                        {" · verified & edited by "}
+                        <UserLink
+                          userId={r.reviewed_by}
+                          name={names[r.reviewed_by]}
+                          verified={!!verified[r.reviewed_by]}
+                        />
+                        <span className="ml-1 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
+                          <ShieldCheck className="size-3 text-accent" />
+                          {primaryRoleLabel(roleMap[r.reviewed_by])}
+                        </span>
+                      </>
+                    ) : null}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                    <span>
+                      <strong>{r.vehicles_involved}</strong> vehicles
+                    </span>
+                    <span>
+                      <strong>{r.casualties}</strong> injured
+                    </span>
+                    <span className="text-destructive">
+                      <strong>{r.fatalities}</strong> deaths
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm text-foreground/90">{r.description}</p>
+                  {r.editor_note ? (
+                    <p className="mt-3 rounded border-l-4 border-accent bg-muted/50 p-3 text-sm">
+                      <span className="font-semibold">Editor's note: </span>
+                      {r.editor_note}
+                    </p>
+                  ) : null}
+                  <div className="mt-3 flex items-center gap-4">
+                    <VoteButtons
+                      net={scores[r.id]?.net ?? 0}
+                      mine={scores[r.id]?.mine ?? 0}
+                      onVote={(v) => vote(r.id, v)}
+                    />
+                    <button
+                      className="text-sm font-semibold text-accent-foreground underline"
+                      onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                    >
+                      {openId === r.id ? "Hide discussion" : "Discussion"}
+                    </button>
+                  </div>
+                  {openId === r.id ? <CommentSection entityType="report" entityId={r.id} /> : null}
                 </li>
               </Fragment>
             ))}
@@ -193,8 +217,7 @@ function ReportsPage() {
           ) : (
             <>
               <p className="mt-3 text-sm text-muted-foreground">
-                Sign in to file an accident report. Call 999 or 112 first if anyone
-                is injured.
+                Sign in to file an accident report. Call 999 or 112 first if anyone is injured.
               </p>
               <Button asChild className="mt-4 w-full">
                 <Link to="/auth">Sign in to report</Link>

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useVotes } from "@/hooks/useVotes";
+import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { VoteButtons } from "@/components/site/vote-buttons";
@@ -46,6 +47,7 @@ export function CommentSection({ entityType, entityId }: Props) {
   });
 
   const { data: names = {} } = useProfileNames(comments.map((c) => c.user_id));
+  const { data: verified = {} } = useSubscriptionStatuses(comments.map((c) => c.user_id));
   const { scores, vote } = useVotes(
     "comment",
     comments.map((c) => c.id),
@@ -95,7 +97,11 @@ export function CommentSection({ entityType, entityId }: Props) {
         <div className="rounded border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm">
-              <UserLink userId={c.user_id} name={names[c.user_id]} />
+              <UserLink
+                userId={c.user_id}
+                name={names[c.user_id]}
+                verified={!!verified[c.user_id]}
+              />
             </p>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">{timeAgo(c.created_at)}</span>

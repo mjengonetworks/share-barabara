@@ -524,24 +524,39 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           county: string | null
           created_at: string
           display_name: string
           id: string
+          mjengo_hub_url: string | null
+          mjengo_networks_url: string | null
+          occupation: string | null
+          road_safety_message: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           county?: string | null
           created_at?: string
           display_name?: string
           id: string
+          mjengo_hub_url?: string | null
+          mjengo_networks_url?: string | null
+          occupation?: string | null
+          road_safety_message?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           county?: string | null
           created_at?: string
           display_name?: string
           id?: string
+          mjengo_hub_url?: string | null
+          mjengo_networks_url?: string | null
+          occupation?: string | null
+          road_safety_message?: string | null
         }
         Relationships: []
       }

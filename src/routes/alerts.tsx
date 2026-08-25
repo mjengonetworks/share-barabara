@@ -15,10 +15,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfileNames } from "@/lib/profiles";
 import { useVotes } from "@/hooks/useVotes";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
+import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { timeAgo } from "@/lib/format";
 import { HAZARD_TYPES, KENYA_COUNTIES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { VoteButtons } from "@/components/site/vote-buttons";
+import { UserLink } from "@/components/site/user-link";
 import { AlertForm } from "@/components/site/alert-form";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
@@ -35,7 +37,8 @@ export const Route = createFileRoute("/alerts")({
       { property: "og:title", content: "Live Road Hazard Alerts in Kenya" },
       {
         property: "og:description",
-        content: "See what Kenyan drivers, riders and passengers are reporting on the road right now.",
+        content:
+          "See what Kenyan drivers, riders and passengers are reporting on the road right now.",
       },
     ],
   }),
@@ -62,6 +65,7 @@ function AlertsPage() {
   });
 
   const { data: names = {} } = useProfileNames(alerts.map((a) => a.user_id));
+  const { data: verified = {} } = useSubscriptionStatuses(alerts.map((a) => a.user_id));
   const { data: roadMap = {} } = useRoadsByIds(alerts.map((a) => a.road_id));
   const { scores, vote } = useVotes(
     "alert",
@@ -70,8 +74,7 @@ function AlertsPage() {
 
   const visible = alerts.filter(
     (a) =>
-      (county === "all" || a.county === county) &&
-      (hazard === "all" || a.hazard_type === hazard),
+      (county === "all" || a.county === county) && (hazard === "all" || a.hazard_type === hazard),
   );
 
   return (
@@ -83,8 +86,8 @@ function AlertsPage() {
           </p>
           <h1 className="mt-2 text-4xl font-extrabold">Road hazard alerts</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Hazards reported by road users across the 47 counties. Check before you
-            travel, and add what you see on your route.
+            Hazards reported by road users across the 47 counties. Check before you travel, and add
+            what you see on your route.
           </p>
         </div>
       </div>
@@ -93,20 +96,28 @@ function AlertsPage() {
         <div>
           <div className="flex flex-wrap gap-3">
             <Select value={county} onValueChange={setCounty}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent className="max-h-64">
                 <SelectItem value="all">All counties</SelectItem>
                 {KENYA_COUNTIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={hazard} onValueChange={setHazard}>
-              <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-56">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All hazard types</SelectItem>
                 {HAZARD_TYPES.map((h) => (
-                  <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                  <SelectItem key={h.value} value={h.value}>
+                    {h.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -127,52 +138,64 @@ function AlertsPage() {
                     <BannerAd />
                   </li>
                 ) : null}
-                <li key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
-                <div className="flex flex-wrap items-center gap-2">
-                  <TriangleAlert className="size-4 text-caution" />
-                  <SeverityBadge value={a.severity} />
-                  <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                    {HAZARD_TYPES.find((h) => h.value === a.hazard_type)?.label ?? a.hazard_type}
-                  </span>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {timeAgo(a.created_at)}
-                  </span>
-                </div>
-                <h2 className="mt-3 text-lg font-bold">{a.title}</h2>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="size-4" /> {a.county}
-                  {a.road ? (
-                    <>
-                      {" · "}
-                      {(() => {
-                        const linked = roadMap[a.road_id ?? ""];
-                        return linked ? (
-                          <Link to="/roads/$slug" params={{ slug: linked.slug }} className="underline">
-                            {a.road}
-                          </Link>
-                        ) : (
-                          a.road
-                        );
-                      })()}
-                    </>
-                  ) : null}
-                  {" · by "}{names[a.user_id] ?? "Road user"}
-                </p>
-                <p className="mt-3 text-sm text-foreground/90">{a.description}</p>
-                <div className="mt-3 flex items-center gap-4">
-                  <VoteButtons
-                    net={scores[a.id]?.net ?? 0}
-                    mine={scores[a.id]?.mine ?? 0}
-                    onVote={(v) => vote(a.id, v)}
-                  />
-                  <button
-                    className="text-sm font-semibold text-accent-foreground underline"
-                    onClick={() => setOpenId(openId === a.id ? null : a.id)}
-                  >
-                    {openId === a.id ? "Hide discussion" : "Discussion"}
-                  </button>
-                </div>
-                {openId === a.id ? <CommentSection entityType="alert" entityId={a.id} /> : null}
+                <li
+                  key={a.id}
+                  className="rounded-lg border border-border bg-card p-5 card-elevated"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <TriangleAlert className="size-4 text-caution" />
+                    <SeverityBadge value={a.severity} />
+                    <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                      {HAZARD_TYPES.find((h) => h.value === a.hazard_type)?.label ?? a.hazard_type}
+                    </span>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {timeAgo(a.created_at)}
+                    </span>
+                  </div>
+                  <h2 className="mt-3 text-lg font-bold">{a.title}</h2>
+                  <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                    <MapPin className="size-4" /> {a.county}
+                    {a.road ? (
+                      <>
+                        {" · "}
+                        {(() => {
+                          const linked = roadMap[a.road_id ?? ""];
+                          return linked ? (
+                            <Link
+                              to="/roads/$slug"
+                              params={{ slug: linked.slug }}
+                              className="underline"
+                            >
+                              {a.road}
+                            </Link>
+                          ) : (
+                            a.road
+                          );
+                        })()}
+                      </>
+                    ) : null}
+                    {" · by "}
+                    <UserLink
+                      userId={a.user_id}
+                      name={names[a.user_id]}
+                      verified={!!verified[a.user_id]}
+                    />
+                  </p>
+                  <p className="mt-3 text-sm text-foreground/90">{a.description}</p>
+                  <div className="mt-3 flex items-center gap-4">
+                    <VoteButtons
+                      net={scores[a.id]?.net ?? 0}
+                      mine={scores[a.id]?.mine ?? 0}
+                      onVote={(v) => vote(a.id, v)}
+                    />
+                    <button
+                      className="text-sm font-semibold text-accent-foreground underline"
+                      onClick={() => setOpenId(openId === a.id ? null : a.id)}
+                    >
+                      {openId === a.id ? "Hide discussion" : "Discussion"}
+                    </button>
+                  </div>
+                  {openId === a.id ? <CommentSection entityType="alert" entityId={a.id} /> : null}
                 </li>
               </Fragment>
             ))}
@@ -188,8 +211,8 @@ function AlertsPage() {
           ) : (
             <>
               <p className="mt-3 text-sm text-muted-foreground">
-                Sign in to publish an alert. Never use your phone while driving:
-                stop safely first, or ask a passenger to report.
+                Sign in to publish an alert. Never use your phone while driving: stop safely first,
+                or ask a passenger to report.
               </p>
               <Button asChild className="mt-4 w-full">
                 <Link to="/auth">Sign in to report</Link>
