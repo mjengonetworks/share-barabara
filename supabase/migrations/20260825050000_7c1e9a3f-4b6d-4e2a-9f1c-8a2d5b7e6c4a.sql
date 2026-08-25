@@ -65,7 +65,16 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "notifications_read_own" ON public.notifications FOR SELECT TO authenticated USING (auth.uid() = user_id);
 CREATE POLICY "notifications_update_own" ON public.notifications FOR UPDATE TO authenticated
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+-- Wrapped defensively: a bare ALTER PUBLICATION would abort this whole script
+-- (run as one implicit transaction) if the publication is named differently,
+-- missing, or already includes this table on whatever project applies it.
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+  WHEN undefined_object THEN NULL;
+END $$;
 
 CREATE TABLE public.notification_preferences (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
