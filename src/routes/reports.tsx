@@ -23,6 +23,7 @@ import { SeverityBadge } from "@/components/site/severity-badge";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
 import { CommentSection } from "@/components/site/comment-section";
+import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/reports")({
   head: () => ({
@@ -83,6 +84,10 @@ function ReportsPage() {
         publication. Each report carries a shared byline: the road user who filed it
         and the editor who verified it.
       </p>
+
+      <div className="mt-6">
+        <BannerAd />
+      </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>

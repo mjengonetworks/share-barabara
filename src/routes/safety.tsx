@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Bike, CircleGauge, FootprintsIcon, PhoneCall, ShieldCheck } from "lucide-react";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
+import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/safety")({
   head: () => ({
@@ -75,6 +76,10 @@ function SafetyPage() {
         Simple habits prevent most crashes. Here is what matters most for each kind
         of road user, and what to do when things go wrong.
       </p>
+
+      <div className="mt-6">
+        <BannerAd />
+      </div>
 
       <div className="mt-10 grid gap-6 md:grid-cols-2">
         {GUIDES.map((g) => (

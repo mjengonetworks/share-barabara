@@ -21,6 +21,7 @@ import { SeverityBadge } from "@/components/site/severity-badge";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { AlertForm } from "@/components/site/alert-form";
 import { CommentSection } from "@/components/site/comment-section";
+import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/alerts")({
   head: () => ({
@@ -86,6 +87,10 @@ function AlertsPage() {
             travel, and add what you see on your route.
           </p>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <BannerAd />
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">

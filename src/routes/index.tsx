@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { num, timeAgo } from "@/lib/format";
 import { EMERGENCY_CONTACTS, HAZARD_TYPES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
+import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -166,6 +167,10 @@ function Index() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-6">
+        <BannerAd />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10">

@@ -137,6 +137,36 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_ads: {
+        Row: {
+          active: boolean
+          advertiser: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          link_url: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          advertiser?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          link_url: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          advertiser?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          link_url?: string
+          title?: string
+        }
+        Relationships: []
+      }
       cause_stats: {
         Row: {
           cause: string
@@ -371,6 +401,39 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      partner_enquiries: {
+        Row: {
+          budget: string | null
+          company: string
+          contact_email: string
+          created_at: string
+          goals: string
+          id: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          budget?: string | null
+          company: string
+          contact_email: string
+          created_at?: string
+          goals: string
+          id?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          budget?: string | null
+          company?: string
+          contact_email?: string
+          created_at?: string
+          goals?: string
+          id?: string
+          status?: string
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { num } from "@/lib/format";
+import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/statistics")({
   head: () => ({
@@ -170,6 +171,10 @@ function StatisticsPage() {
         people die on Kenyan roads every single day, and most of them are outside a
         car when it happens.
       </p>
+
+      <div className="mt-6">
+        <BannerAd />
+      </div>
 
       {latest ? (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate } from "@/lib/format";
 import { CommentSection } from "@/components/site/comment-section";
+import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/news/$slug")({
   head: () => ({
@@ -72,6 +73,9 @@ function NewsDetail() {
         {article.body.split("\n\n").map((para, i) => (
           <p key={i}>{para}</p>
         ))}
+      </div>
+      <div className="mt-8">
+        <BannerAd />
       </div>
       <CommentSection entityType="news" entityId={article.id} />
     </article>

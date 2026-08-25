@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { longDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/site/article-form";
+import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/news/")({
   head: () => ({
@@ -49,6 +50,10 @@ function NewsIndex() {
         Enforcement operations, policy shifts, infrastructure works and campaigns
         affecting how Kenyans travel. Every story is open for discussion.
       </p>
+
+      <div className="mt-6">
+        <BannerAd />
+      </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
