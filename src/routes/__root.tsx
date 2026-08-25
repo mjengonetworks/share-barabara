@@ -17,6 +17,7 @@ import { Toaster } from "../components/ui/sonner";
 import { CookieConsent } from "../components/site/cookie-consent";
 import { NotificationPermissionPrompt } from "../components/site/notification-permission-prompt";
 import { InstallAppPrompt } from "../components/site/install-app-prompt";
+import { MockApiBadge } from "../components/site/mock-api-badge";
 
 function NotFoundComponent() {
   return (
@@ -152,6 +153,7 @@ function RootComponent() {
       <NotificationPermissionPrompt />
       <InstallAppPrompt />
       <CookieConsent />
+      <MockApiBadge />
     </QueryClientProvider>
   );
 }
