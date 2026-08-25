@@ -16,6 +16,7 @@ import { SiteFooter } from "../components/site/site-footer";
 import { Toaster } from "../components/ui/sonner";
 import { CookieConsent } from "../components/site/cookie-consent";
 import { NotificationPermissionPrompt } from "../components/site/notification-permission-prompt";
+import { InstallAppPrompt } from "../components/site/install-app-prompt";
 
 function NotFoundComponent() {
   return (
@@ -96,6 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Share Barabara" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#000837" },
     ],
     links: [
       {
@@ -103,6 +105,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -146,6 +150,7 @@ function RootComponent() {
       </div>
       <Toaster />
       <NotificationPermissionPrompt />
+      <InstallAppPrompt />
       <CookieConsent />
     </QueryClientProvider>
   );
