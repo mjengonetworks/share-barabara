@@ -290,14 +290,6 @@ function WriteButton({ signedIn, canWrite }: { signedIn: boolean; canWrite: bool
     );
   }
 
-  if (!canWrite) {
-    return (
-      <Button asChild variant="outline">
-        <Link to="/subscribe">Subscribe to write articles</Link>
-      </Button>
-    );
-  }
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -307,10 +299,24 @@ function WriteButton({ signedIn, canWrite }: { signedIn: boolean; canWrite: bool
         <DialogHeader>
           <DialogTitle>Write for Share Barabara</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-muted-foreground">
-          Editors review every submission before it is published.
-        </p>
-        <ArticleForm />
+        {canWrite ? (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Editors review every submission before it is published.
+            </p>
+            <ArticleForm />
+          </>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border bg-muted/40 p-5 text-center">
+            <p className="font-semibold">Writing articles is a subscriber perk</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Subscribe to submit articles for our editors to review and publish.
+            </p>
+            <Button asChild className="mt-4">
+              <Link to="/subscribe">Subscribe</Link>
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

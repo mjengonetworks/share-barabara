@@ -109,13 +109,13 @@ function AuthPage() {
         </span>
         <h1 className="mt-5 text-4xl font-extrabold">Your report can save a life</h1>
         <p className="mt-4 max-w-md text-muted-foreground">
-          Sign in to post hazard alerts, file accident reports and join the discussion. Reading the
-          site is always free.
+          Sign in to post hazard alerts, file accident reports, write articles and join the
+          discussion. Reading the site is always free.
         </p>
         <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
           <li>• Post hazard alerts and file accident reports</li>
+          <li>• Write articles for Share Barabara</li>
           <li>• Comment on news, alerts and reports</li>
-          <li>• Subscribers can also write articles for review</li>
         </ul>
       </div>
 

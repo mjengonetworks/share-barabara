@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BadgeCheck, ShieldOff, Star } from "lucide-react";
+import { BadgeCheck, PenLine, ShieldOff, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +22,11 @@ const BENEFITS = [
     icon: BadgeCheck,
     title: "A blue checkmark",
     body: "Shown on your profile, comments, alerts and report bylines.",
+  },
+  {
+    icon: PenLine,
+    title: "Write articles",
+    body: "Submit articles for our editors to review and publish under your byline.",
   },
   {
     icon: ShieldOff,
@@ -49,7 +54,7 @@ function SubscribePage() {
         USD per year, billed separately per app.
       </p>
 
-      <div className="mt-10 grid gap-6 text-left sm:grid-cols-3">
+      <div className="mt-10 grid gap-6 text-left sm:grid-cols-2 lg:grid-cols-4">
         {BENEFITS.map((b) => (
           <div key={b.title} className="rounded-lg border border-border bg-card p-5 card-elevated">
             <b.icon className="size-6 text-accent" />

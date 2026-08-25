@@ -1,7 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Apple, Facebook, Instagram, Send, Smartphone, Youtube } from "lucide-react";
+import { Apple, BadgeCheck, Facebook, Instagram, Send, Smartphone, Youtube } from "lucide-react";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
 import { NewsletterForm } from "@/components/site/newsletter-form";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import logoUrl from "@/assets/share-barabara-logo.png";
 
 function XLogo({ className }: { className?: string }) {
@@ -34,6 +37,10 @@ const SOCIALS = [
 ];
 
 export function SiteFooter() {
+  const { user } = useAuth();
+  const { data: subStatus = {} } = useSubscriptionStatuses(user ? [user.id] : []);
+  const alreadySubscribed = !!user && !!subStatus[user.id];
+
   return (
     <footer className="mt-12 asphalt text-secondary">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-4 border-b border-secondary/10 px-4 py-5">
@@ -74,6 +81,13 @@ export function SiteFooter() {
             Newsletter
           </p>
           <NewsletterForm className="mt-3" />
+          {!alreadySubscribed ? (
+            <Button asChild size="sm" className="mt-5">
+              <Link to="/subscribe">
+                <BadgeCheck className="mr-1.5 size-4" /> Subscribe to Premium
+              </Link>
+            </Button>
+          ) : null}
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Explore</p>
