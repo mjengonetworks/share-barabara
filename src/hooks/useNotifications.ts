@@ -34,7 +34,13 @@ export function useNotifications() {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        () => queryClient.invalidateQueries({ queryKey: ["notifications", user.id] }),
+        (payload) => {
+          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
+          if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+            const row = payload.new as { title?: string; body?: string };
+            if (row.title) new Notification(row.title, row.body ? { body: row.body } : {});
+          }
+        },
       )
       .subscribe();
     return () => {

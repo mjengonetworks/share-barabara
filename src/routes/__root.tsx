@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "../components/site/site-header";
 import { SiteFooter } from "../components/site/site-footer";
 import { Toaster } from "../components/ui/sonner";
+import { CookieConsent } from "../components/site/cookie-consent";
+import { NotificationPermissionPrompt } from "../components/site/notification-permission-prompt";
 
 function NotFoundComponent() {
   return (
@@ -143,6 +145,8 @@ function RootComponent() {
         <SiteFooter />
       </div>
       <Toaster />
+      <NotificationPermissionPrompt />
+      <CookieConsent />
     </QueryClientProvider>
   );
 }
