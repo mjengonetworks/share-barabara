@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Flame, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
 import { longDate } from "@/lib/format";
 import { NEWS_CATEGORIES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
 
 function NewsIndex() {
   const { user } = useAuth();
+  const canWrite = useCanWriteArticles();
   const { category } = Route.useSearch();
 
   const { data: filtered = [], isLoading: filteredLoading } = useQuery({
@@ -172,7 +174,7 @@ function NewsIndex() {
             Kenyans travel. Every story is open for discussion.
           </p>
         </div>
-        <WriteButton signedIn={!!user} />
+        <WriteButton signedIn={!!user} canWrite={canWrite} />
       </div>
 
       <div className="mt-10">
@@ -279,11 +281,19 @@ function NewsIndex() {
   );
 }
 
-function WriteButton({ signedIn }: { signedIn: boolean }) {
+function WriteButton({ signedIn, canWrite }: { signedIn: boolean; canWrite: boolean }) {
   if (!signedIn) {
     return (
       <Button asChild variant="outline">
         <Link to="/auth">Sign in to write</Link>
+      </Button>
+    );
+  }
+
+  if (!canWrite) {
+    return (
+      <Button asChild variant="outline">
+        <Link to="/subscribe">Subscribe to write articles</Link>
       </Button>
     );
   }
