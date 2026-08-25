@@ -123,8 +123,26 @@ function ModeratePage() {
 const FEATURED_SLOTS = [
   { slot: "home_profile", label: "Home: featured profile", kind: "profile" as const },
   { slot: "home_page", label: "Home: featured page", kind: "page" as const },
-  { slot: "campaigns_profile", label: "Campaigns: featured profile", kind: "profile" as const },
-  { slot: "campaigns_page", label: "Campaigns: featured page", kind: "page" as const },
+  {
+    slot: "campaigns_profile_of_day",
+    label: "Campaigns: featured profile of the day",
+    kind: "profile" as const,
+  },
+  {
+    slot: "campaigns_page_of_day",
+    label: "Campaigns: featured page of the day",
+    kind: "page" as const,
+  },
+  {
+    slot: "campaigns_profile_of_week",
+    label: "Campaigns: featured profile of the week",
+    kind: "profile" as const,
+  },
+  {
+    slot: "campaigns_page_of_week",
+    label: "Campaigns: featured page of the week",
+    kind: "page" as const,
+  },
   {
     slot: "pages_of_day",
     label: "Pages directory: featured page of the day",

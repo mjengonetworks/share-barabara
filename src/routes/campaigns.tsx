@@ -53,8 +53,8 @@ function CampaignsPage() {
       </section>
 
       <section className="mt-10 grid gap-6 lg:grid-cols-2">
-        <FeaturedProfileCard slot="campaigns_profile" />
-        <FeaturedPageCard slot="campaigns_page" />
+        <FeaturedProfileCard slot="campaigns_profile_of_day" />
+        <FeaturedPageCard slot="campaigns_page_of_day" />
       </section>
 
       <section id="emergency" className="mt-14 grid scroll-mt-24 gap-8 lg:grid-cols-2">
@@ -82,6 +82,11 @@ function CampaignsPage() {
             ))}
           </ul>
         </div>
+      </section>
+
+      <section className="mt-14 grid gap-6 lg:grid-cols-2">
+        <FeaturedProfileCard slot="campaigns_profile_of_week" />
+        <FeaturedPageCard slot="campaigns_page_of_week" />
       </section>
 
       <section className="mt-14">

@@ -84,7 +84,22 @@ export type Database = {
           user_id?: string;
           vehicles_involved?: number;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "accident_reports_page_id_fkey";
+            columns: ["page_id"];
+            isOneToOne: false;
+            referencedRelation: "pages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "accident_reports_road_id_fkey";
+            columns: ["road_id"];
+            isOneToOne: false;
+            referencedRelation: "roads";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       alerts: {
         Row: {
@@ -141,7 +156,22 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "alerts_page_id_fkey";
+            columns: ["page_id"];
+            isOneToOne: false;
+            referencedRelation: "pages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alerts_road_id_fkey";
+            columns: ["road_id"];
+            isOneToOne: false;
+            referencedRelation: "roads";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       banner_ads: {
         Row: {
@@ -231,7 +261,22 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "comments_page_id_fkey";
+            columns: ["page_id"];
+            isOneToOne: false;
+            referencedRelation: "pages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey";
+            columns: ["parent_comment_id"];
+            isOneToOne: false;
+            referencedRelation: "comments";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       county_stats: {
         Row: {
@@ -285,7 +330,15 @@ export type Database = {
           updated_by?: string | null;
           user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "featured_picks_page_id_fkey";
+            columns: ["page_id"];
+            isOneToOne: false;
+            referencedRelation: "pages";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       merch_items: {
         Row: {
@@ -351,7 +404,15 @@ export type Database = {
           status?: string;
           user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "merch_orders_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "merch_items";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       monthly_stats: {
         Row: {
@@ -435,7 +496,15 @@ export type Database = {
           title?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "news_page_id_fkey";
+            columns: ["page_id"];
+            isOneToOne: false;
+            referencedRelation: "pages";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       news_views: {
         Row: {
@@ -453,7 +522,15 @@ export type Database = {
           id?: number;
           news_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "news_views_news_id_fkey";
+            columns: ["news_id"];
+            isOneToOne: false;
+            referencedRelation: "news";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       notification_preferences: {
         Row: {
@@ -524,36 +601,24 @@ export type Database = {
         };
         Relationships: [];
       };
-      partner_enquiries: {
+      page_categories: {
         Row: {
-          budget: string | null;
-          company: string;
-          contact_email: string;
           created_at: string;
-          goals: string;
           id: string;
-          status: string;
-          user_id: string | null;
+          name: string;
+          sort_order: number;
         };
         Insert: {
-          budget?: string | null;
-          company: string;
-          contact_email: string;
           created_at?: string;
-          goals: string;
           id?: string;
-          status?: string;
-          user_id?: string | null;
+          name: string;
+          sort_order?: number;
         };
         Update: {
-          budget?: string | null;
-          company?: string;
-          contact_email?: string;
           created_at?: string;
-          goals?: string;
           id?: string;
-          status?: string;
-          user_id?: string | null;
+          name?: string;
+          sort_order?: number;
         };
         Relationships: [];
       };
@@ -605,24 +670,36 @@ export type Database = {
         };
         Relationships: [];
       };
-      page_categories: {
+      partner_enquiries: {
         Row: {
+          budget: string | null;
+          company: string;
+          contact_email: string;
           created_at: string;
+          goals: string;
           id: string;
-          name: string;
-          sort_order: number;
+          status: string;
+          user_id: string | null;
         };
         Insert: {
+          budget?: string | null;
+          company: string;
+          contact_email: string;
           created_at?: string;
+          goals: string;
           id?: string;
-          name: string;
-          sort_order?: number;
+          status?: string;
+          user_id?: string | null;
         };
         Update: {
+          budget?: string | null;
+          company?: string;
+          contact_email?: string;
           created_at?: string;
+          goals?: string;
           id?: string;
-          name?: string;
-          sort_order?: number;
+          status?: string;
+          user_id?: string | null;
         };
         Relationships: [];
       };
@@ -665,30 +742,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      road_class_stats: {
-        Row: {
-          crashes: number;
-          fatalities: number;
-          id: string;
-          road_class: string;
-          year: number;
-        };
-        Insert: {
-          crashes: number;
-          fatalities: number;
-          id?: string;
-          road_class: string;
-          year: number;
-        };
-        Update: {
-          crashes?: number;
-          fatalities?: number;
-          id?: string;
-          road_class?: string;
-          year?: number;
-        };
-        Relationships: [];
-      };
       quote_submissions: {
         Row: {
           author: string | null;
@@ -713,6 +766,30 @@ export type Database = {
           quote?: string;
           status?: string;
           user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      road_class_stats: {
+        Row: {
+          crashes: number;
+          fatalities: number;
+          id: string;
+          road_class: string;
+          year: number;
+        };
+        Insert: {
+          crashes: number;
+          fatalities: number;
+          id?: string;
+          road_class: string;
+          year: number;
+        };
+        Update: {
+          crashes?: number;
+          fatalities?: number;
+          id?: string;
+          road_class?: string;
+          year?: number;
         };
         Relationships: [];
       };
@@ -908,33 +985,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      votes: {
-        Row: {
-          created_at: string;
-          entity_id: string;
-          entity_type: string;
-          id: string;
-          user_id: string;
-          value: number;
-        };
-        Insert: {
-          created_at?: string;
-          entity_id: string;
-          entity_type: string;
-          id?: string;
-          user_id: string;
-          value: number;
-        };
-        Update: {
-          created_at?: string;
-          entity_id?: string;
-          entity_type?: string;
-          id?: string;
-          user_id?: string;
-          value?: number;
-        };
-        Relationships: [];
-      };
       videos: {
         Row: {
           created_at: string;
@@ -965,6 +1015,33 @@ export type Database = {
           title?: string;
           user_id?: string | null;
           video_url?: string;
+        };
+        Relationships: [];
+      };
+      votes: {
+        Row: {
+          created_at: string;
+          entity_id: string;
+          entity_type: string;
+          id: string;
+          user_id: string;
+          value: number;
+        };
+        Insert: {
+          created_at?: string;
+          entity_id: string;
+          entity_type: string;
+          id?: string;
+          user_id: string;
+          value: number;
+        };
+        Update: {
+          created_at?: string;
+          entity_id?: string;
+          entity_type?: string;
+          id?: string;
+          user_id?: string;
+          value?: number;
         };
         Relationships: [];
       };
@@ -1003,19 +1080,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      has_active_subscription: {
-        Args: {
-          _user_id: string;
-        };
-        Returns: boolean;
-      };
-      trending_news: {
-        Args: {
-          hours_back?: number;
-          result_limit?: number;
-        };
-        Returns: Database["public"]["Tables"]["news"]["Row"][];
-      };
+      has_active_subscription: { Args: { _user_id: string }; Returns: boolean };
       has_min_role: {
         Args: {
           _min_role: Database["public"]["Enums"]["app_role"];
@@ -1030,11 +1095,41 @@ export type Database = {
         };
         Returns: boolean;
       };
+      owns_page: {
+        Args: { _page_id: string; _user_id: string };
+        Returns: boolean;
+      };
       role_rank: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"];
-        };
+        Args: { _role: Database["public"]["Enums"]["app_role"] };
         Returns: number;
+      };
+      trending_news: {
+        Args: { hours_back?: number; result_limit?: number };
+        Returns: {
+          author_id: string | null;
+          body: string;
+          category: string;
+          created_at: string;
+          featured: boolean;
+          id: string;
+          image_url: string | null;
+          page_id: string | null;
+          published_at: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          slug: string;
+          source: string | null;
+          status: string;
+          summary: string;
+          title: string;
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "news";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
     };
     Enums: {

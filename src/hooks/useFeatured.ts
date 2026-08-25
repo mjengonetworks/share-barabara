@@ -10,9 +10,11 @@ function periodPick<T>(items: T[], period: "day" | "week", offset: number): T | 
   return items[(index + offset) % items.length] ?? null;
 }
 
-type FeaturedSlot = "home_profile" | "campaigns_profile";
+type FeaturedProfileSlot =
+  "home_profile" | "campaigns_profile_of_day" | "campaigns_profile_of_week";
 
-export function useFeaturedProfile(slot: FeaturedSlot) {
+/** Random fallback only ever draws from members with an active (paid) subscription. */
+export function useFeaturedProfile(slot: FeaturedProfileSlot) {
   return useQuery({
     queryKey: ["featured-profile", slot],
     queryFn: async () => {
@@ -33,7 +35,9 @@ export function useFeaturedProfile(slot: FeaturedSlot) {
           .filter((s) => !s.expires_at || new Date(s.expires_at) > new Date())
           .map((s) => s.user_id)
           .sort();
-        userId = periodPick(eligible, "day", slot === "campaigns_profile" ? 1 : 0);
+        const period = slot === "campaigns_profile_of_week" ? "week" : "day";
+        const offset = slot === "campaigns_profile_of_day" ? 1 : 0;
+        userId = periodPick(eligible, period, offset);
       }
       if (!userId) return null;
 
@@ -48,7 +52,12 @@ export function useFeaturedProfile(slot: FeaturedSlot) {
   });
 }
 
-type FeaturedPageSlot = "home_page" | "campaigns_page" | "pages_of_day" | "pages_of_week";
+type FeaturedPageSlot =
+  | "home_page"
+  | "campaigns_page_of_day"
+  | "campaigns_page_of_week"
+  | "pages_of_day"
+  | "pages_of_week";
 
 /** Random fallback only ever draws from verified (premium subscribed) pages. */
 export function useFeaturedPage(slot: FeaturedPageSlot) {
@@ -69,8 +78,9 @@ export function useFeaturedPage(slot: FeaturedPageSlot) {
           .select("id")
           .eq("verified", true);
         const eligible = (verifiedPages ?? []).map((p) => p.id).sort();
-        const period = slot === "pages_of_week" ? "week" : "day";
-        const offset = slot === "campaigns_page" ? 1 : 0;
+        const period =
+          slot === "pages_of_week" || slot === "campaigns_page_of_week" ? "week" : "day";
+        const offset = slot === "campaigns_page_of_day" ? 1 : 0;
         pageId = periodPick(eligible, period, offset);
       }
       if (!pageId) return null;
