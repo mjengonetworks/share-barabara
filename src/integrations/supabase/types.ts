@@ -254,6 +254,72 @@ export type Database = {
         }
         Relationships: []
       }
+      merch_items: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          price_kes: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          price_kes: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          price_kes?: number
+        }
+        Relationships: []
+      }
+      merch_orders: {
+        Row: {
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          delivery_notes: string | null
+          id: string
+          item_id: string | null
+          quantity: number
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          delivery_notes?: string | null
+          id?: string
+          item_id?: string | null
+          quantity?: number
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          delivery_notes?: string | null
+          id?: string
+          item_id?: string | null
+          quantity?: number
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       monthly_stats: {
         Row: {
           crashes: number
@@ -485,6 +551,33 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_submissions: {
+        Row: {
+          author: string | null
+          created_at: string
+          id: string
+          quote: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          id?: string
+          quote: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          id?: string
+          quote?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       roads: {
         Row: {
           authority: string | null
@@ -515,6 +608,30 @@ export type Database = {
           road_class?: string | null
           slug?: string
           surface?: string | null
+        }
+        Relationships: []
+      }
+      site_quote: {
+        Row: {
+          author: string | null
+          id: number
+          quote: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          author?: string | null
+          id?: number
+          quote: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          author?: string | null
+          id?: number
+          quote?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
