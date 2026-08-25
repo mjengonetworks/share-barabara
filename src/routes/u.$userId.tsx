@@ -80,9 +80,7 @@ function ContributorPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select(
-          "id, display_name, county, created_at, bio, occupation, road_safety_message, mjengo_networks_url, mjengo_hub_url",
-        )
+        .select("*")
         .eq("id", userId)
         .maybeSingle();
       if (error) throw error;
