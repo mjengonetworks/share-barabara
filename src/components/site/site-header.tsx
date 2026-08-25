@@ -1,15 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  CircleUserRound,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  ShieldCheck,
-  UserCog,
-  X,
-} from "lucide-react";
+import { CircleUserRound, LayoutDashboard, LogOut, Menu, UserCog, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,6 +14,7 @@ import logoUrl from "@/assets/share-barabara-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/site/notification-bell";
+import { SubscribeButton } from "@/components/site/subscribe-button";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -30,10 +23,10 @@ const NAV = [
   { to: "/reports", label: "Reports" },
   { to: "/statistics", label: "Statistics" },
   { to: "/campaigns", label: "Campaigns" },
+  { to: "/pages", label: "Pages" },
   { to: "/videos", label: "Videos" },
   { to: "/merch", label: "Merch" },
   { to: "/partner-with-us", label: "Partner With Us" },
-  { to: "/safety", label: "Safety" },
 ] as const;
 
 export function SiteHeader() {
@@ -73,6 +66,7 @@ export function SiteHeader() {
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           {user ? (
             <>
+              <SubscribeButton />
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -97,11 +91,6 @@ export function SiteHeader() {
                   <DropdownMenuItem asChild>
                     <Link to="/settings">
                       <UserCog className="mr-2 size-4" /> Profile settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/subscribe">
-                      <ShieldCheck className="mr-2 size-4" /> Subscribe
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

@@ -20,7 +20,8 @@ export const Route = createFileRoute("/auth")({
       { property: "og:title", content: "Sign in: Share Barabara Kenya" },
       {
         property: "og:description",
-        content: "Join the Kenyan road safety community: post alerts, report crashes, discuss news.",
+        content:
+          "Join the Kenyan road safety community: post alerts, report crashes, discuss news.",
       },
     ],
   }),
@@ -89,9 +90,9 @@ function AuthPage() {
         </span>
         <h1 className="mt-5 text-4xl font-extrabold">Your report can save a life</h1>
         <p className="mt-4 max-w-md text-muted-foreground">
-          An account lets you raise hazard alerts from the roadside, file accident
-          reports for your county and take part in the discussion under every news
-          story. Reading the site stays free and open to everyone.
+          An account lets you raise hazard alerts from the roadside, file accident reports for your
+          county and take part in the discussion under every news story. Reading the site stays free
+          and open to everyone.
         </p>
         <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
           <li>• Post live hazards: potholes, flooding, crashes, obstructions</li>
@@ -119,8 +120,8 @@ function AuthPage() {
 
         {sent ? (
           <p className="mt-6 rounded border border-safe/40 bg-safe/10 p-4 text-sm">
-            We sent a confirmation link to <strong>{email}</strong>. Click it to
-            activate your account, then sign in.
+            We sent a confirmation link to <strong>{email}</strong>. Click it to activate your
+            account, then sign in.
           </p>
         ) : null}
 
@@ -171,8 +172,11 @@ function AuthPage() {
         </Button>
 
         <p className="mt-5 text-xs text-muted-foreground">
-          By continuing you agree to keep reports factual. Emergencies always go to
-          999 or 112 first. <Link to="/safety" className="underline">Safety guidance</Link>
+          By continuing you agree to keep reports factual. Emergencies always go to 999 or 112
+          first.{" "}
+          <Link to="/campaigns" hash="emergency" className="underline">
+            Emergency numbers
+          </Link>
         </p>
       </div>
     </div>

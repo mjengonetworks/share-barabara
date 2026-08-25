@@ -13,7 +13,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { title: "My Dashboard: Share Barabara" },
       {
         name: "description",
-        content: "Your submitted road hazard alerts, accident reports and comments on Share Barabara.",
+        content:
+          "Your submitted road hazard alerts, accident reports and comments on Share Barabara.",
       },
       { property: "og:title", content: "My Dashboard: Share Barabara" },
       {
@@ -101,6 +102,20 @@ function DashboardPage() {
     },
   });
 
+  const { data: pages = [] } = useQuery({
+    enabled: !!userId,
+    queryKey: ["my-pages", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("*")
+        .eq("owner_id", userId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-14">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
@@ -110,8 +125,8 @@ function DashboardPage() {
         Habari, {profile?.display_name ?? "road user"}
       </h1>
       <p className="mt-3 text-muted-foreground">
-        {profile?.county ? `Based in ${profile.county}. ` : ""}Thanks for helping keep
-        Kenyan roads safer.
+        {profile?.county ? `Based in ${profile.county}. ` : ""}Thanks for helping keep Kenyan roads
+        safer.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -129,11 +144,22 @@ function DashboardPage() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <Button asChild><Link to="/alerts">Report a hazard</Link></Button>
-        <Button asChild variant="outline"><Link to="/reports">File an accident report</Link></Button>
-        <Button asChild variant="outline"><Link to="/news">Write an article</Link></Button>
+        <Button asChild>
+          <Link to="/alerts">Report a hazard</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/reports">File an accident report</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/news">Write an article</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/pages">Create a page</Link>
+        </Button>
         {canReview ? (
-          <Button asChild variant="secondary"><Link to="/moderate">Review queue</Link></Button>
+          <Button asChild variant="secondary">
+            <Link to="/moderate">Review queue</Link>
+          </Button>
         ) : null}
       </div>
 
@@ -153,7 +179,8 @@ function DashboardPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {a.county}{a.road ? ` · ${a.road}` : ""}
+                  {a.county}
+                  {a.road ? ` · ${a.road}` : ""}
                 </p>
               </li>
             ))}
@@ -172,13 +199,15 @@ function DashboardPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={r.severity} />
                   <span className="font-semibold">{r.title}</span>
-                  <span className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${
-                    r.status === "approved"
-                      ? "bg-safe/15 text-safe"
-                      : r.status === "rejected"
-                        ? "bg-destructive/15 text-destructive"
-                        : "bg-caution/20 text-caution"
-                  }`}>
+                  <span
+                    className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${
+                      r.status === "approved"
+                        ? "bg-safe/15 text-safe"
+                        : r.status === "rejected"
+                          ? "bg-destructive/15 text-destructive"
+                          : "bg-caution/20 text-caution"
+                    }`}
+                  >
                     {r.status === "pending" ? "awaiting review" : r.status}
                   </span>
                   <span className="ml-auto text-xs text-muted-foreground">
@@ -186,7 +215,8 @@ function DashboardPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {r.county}{r.road ? ` · ${r.road}` : ""} · {r.fatalities} deaths, {r.casualties} injured
+                  {r.county}
+                  {r.road ? ` · ${r.road}` : ""} · {r.fatalities} deaths, {r.casualties} injured
                 </p>
               </li>
             ))}
@@ -198,7 +228,11 @@ function DashboardPage() {
         <h2 className="text-2xl font-bold">Your articles</h2>
         {articles.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
-            You haven't written anything yet. <Link to="/news" className="underline">Submit a story</Link>.
+            You haven't written anything yet.{" "}
+            <Link to="/news" className="underline">
+              Submit a story
+            </Link>
+            .
           </p>
         ) : (
           <ul className="mt-4 space-y-3">
@@ -206,13 +240,15 @@ function DashboardPage() {
               <li key={a.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold">{a.title}</span>
-                  <span className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${
-                    a.status === "published"
-                      ? "bg-safe/15 text-safe"
-                      : a.status === "rejected"
-                        ? "bg-destructive/15 text-destructive"
-                        : "bg-caution/20 text-caution"
-                  }`}>
+                  <span
+                    className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${
+                      a.status === "published"
+                        ? "bg-safe/15 text-safe"
+                        : a.status === "rejected"
+                          ? "bg-destructive/15 text-destructive"
+                          : "bg-caution/20 text-caution"
+                    }`}
+                  >
                     {a.status === "pending_review" ? "awaiting review" : a.status}
                   </span>
                   <span className="ml-auto text-xs text-muted-foreground">
@@ -220,6 +256,43 @@ function DashboardPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{a.category}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold">Your pages</h2>
+        {pages.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            No organisation pages yet.{" "}
+            <Link to="/pages" className="underline">
+              Create one
+            </Link>
+            .
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {pages.map((p) => (
+              <li key={p.id} className="rounded-lg border border-border bg-card p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    to="/pages/$slug"
+                    params={{ slug: p.slug }}
+                    className="font-semibold hover:underline"
+                  >
+                    {p.name}
+                  </Link>
+                  <span
+                    className={`rounded px-2 py-0.5 text-xs font-semibold ${
+                      p.verified ? "bg-safe/15 text-safe" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {p.verified ? "verified" : "not verified"}
+                  </span>
+                  <span className="ml-auto text-xs text-muted-foreground">{p.category}</span>
+                </div>
               </li>
             ))}
           </ul>

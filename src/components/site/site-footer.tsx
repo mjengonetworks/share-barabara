@@ -20,7 +20,11 @@ function WhatsAppLogo({ className }: { className?: string }) {
 }
 
 const SOCIALS = [
-  { label: "WhatsApp", icon: WhatsAppLogo, href: "https://whatsapp.com/channel/0029VbDqTJ4DzgTBbXMtC13J" },
+  {
+    label: "WhatsApp",
+    icon: WhatsAppLogo,
+    href: "https://whatsapp.com/channel/0029VbDqTJ4DzgTBbXMtC13J",
+  },
   { label: "Telegram", icon: Send, href: "https://t.me/+XLH1nWU-LYk4M2Q0" },
   { label: "Facebook", icon: Facebook, href: "https://facebook.com/sharebaraba" },
   { label: "X", icon: XLogo, href: "https://x.com/sharebaraba" },
@@ -69,33 +73,74 @@ export function SiteFooter() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Explore</p>
           <ul className="mt-3 space-y-2 text-sm text-secondary/70">
-            <li><Link to="/news">News</Link></li>
-            <li><Link to="/alerts">Alerts</Link></li>
-            <li><Link to="/reports">Reports</Link></li>
-            <li><Link to="/statistics">Statistics</Link></li>
-            <li><Link to="/campaigns">Campaigns</Link></li>
-            <li><Link to="/videos">Videos</Link></li>
-            <li><Link to="/merch">Merch</Link></li>
+            <li>
+              <Link to="/news">News</Link>
+            </li>
+            <li>
+              <Link to="/alerts">Alerts</Link>
+            </li>
+            <li>
+              <Link to="/reports">Reports</Link>
+            </li>
+            <li>
+              <Link to="/statistics">Statistics</Link>
+            </li>
+            <li>
+              <Link to="/campaigns">Campaigns</Link>
+            </li>
+            <li>
+              <Link to="/pages">Pages</Link>
+            </li>
+            <li>
+              <Link to="/videos">Videos</Link>
+            </li>
+            <li>
+              <Link to="/merch">Merch</Link>
+            </li>
           </ul>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Company</p>
           <ul className="mt-3 space-y-2 text-sm text-secondary/70">
-            <li><Link to="/about">About</Link></li>
-            <li><Link to="/campaigns">Support Share Barabara</Link></li>
-            <li><Link to="/partner-with-us">Partner with us</Link></li>
-            <li><a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer">Mjengo Hub</a></li>
-            <li><a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer">Mjengo Networks</a></li>
-            <li><Link to="/privacy">Privacy policy</Link></li>
-            <li><Link to="/terms">Terms of use</Link></li>
-            <li><Link to="/sitemap">Site map</Link></li>
+            <li>
+              <Link to="/about">About</Link>
+            </li>
+            <li>
+              <Link to="/campaigns">Support Share Barabara</Link>
+            </li>
+            <li>
+              <Link to="/partner-with-us">Partner with us</Link>
+            </li>
+            <li>
+              <a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer">
+                Mjengo Hub
+              </a>
+            </li>
+            <li>
+              <a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer">
+                Mjengo Networks
+              </a>
+            </li>
+            <li>
+              <Link to="/privacy">Privacy policy</Link>
+            </li>
+            <li>
+              <Link to="/terms">Terms of use</Link>
+            </li>
+            <li>
+              <Link to="/sitemap">Site map</Link>
+            </li>
           </ul>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Contact</p>
           <ul className="mt-3 space-y-2 text-sm text-secondary/70">
-            <li><a href="mailto:info@sharebarabara.co.ke">info@sharebarabara.co.ke</a></li>
-            <li><a href="tel:+254701951682">0701 951 682</a></li>
+            <li>
+              <a href="mailto:info@sharebarabara.co.ke">info@sharebarabara.co.ke</a>
+            </li>
+            <li>
+              <a href="tel:+254701951682">0701 951 682</a>
+            </li>
           </ul>
           <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-accent">
             Emergency numbers

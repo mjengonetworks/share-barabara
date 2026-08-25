@@ -17,9 +17,9 @@ const SECTIONS = [
       { to: "/reports", label: "Reports" },
       { to: "/statistics", label: "Statistics" },
       { to: "/campaigns", label: "Campaigns" },
+      { to: "/pages", label: "Pages" },
       { to: "/videos", label: "Videos" },
       { to: "/merch", label: "Merch" },
-      { to: "/safety", label: "Safety guidance" },
       { to: "/search", label: "Search" },
     ],
   },
@@ -46,16 +46,22 @@ const SECTIONS = [
 function SitemapPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Navigate</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+        Navigate
+      </p>
       <h1 className="mt-2 text-4xl font-extrabold">Site map</h1>
       <div className="mt-8 grid gap-8 sm:grid-cols-3">
         {SECTIONS.map((s) => (
           <div key={s.title}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{s.title}</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {s.title}
+            </p>
             <ul className="mt-3 space-y-2 text-sm">
               {s.links.map((l) => (
                 <li key={l.to}>
-                  <Link to={l.to} className="hover:underline">{l.label}</Link>
+                  <Link to={l.to} className="hover:underline">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>

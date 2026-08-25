@@ -1,6 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, CarFront, Film, HandHeart, HeartHandshake, MapPin, Megaphone, TriangleAlert } from "lucide-react";
+import {
+  ArrowRight,
+  CarFront,
+  Film,
+  HandHeart,
+  HeartHandshake,
+  MapPin,
+  Megaphone,
+  TriangleAlert,
+} from "lucide-react";
 import heroRoad from "@/assets/hero-road.jpg";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,8 +32,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
       {
         property: "og:description",
-        content:
-          "Live hazard alerts, crash data and safety guidance for every Kenyan road user.",
+        content: "Live hazard alerts, crash data and safety guidance for every Kenyan road user.",
       },
     ],
   }),
@@ -130,9 +138,8 @@ function Index() {
             Every journey home should end at home.
           </h1>
           <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-            Share Barabara brings together live hazard alerts, crash data and road
-            safety news from across Kenya's 47 counties, reported by the people who
-            use these roads every day.
+            Share Barabara brings together live hazard alerts, crash data and road safety news from
+            across Kenya's 47 counties, reported by the people who use these roads every day.
           </p>
           <SearchBar className="mt-6 max-w-md" />
           <div className="mt-6 flex flex-wrap gap-3">
@@ -162,7 +169,10 @@ function Index() {
             <Button asChild size="sm">
               <Link to="/alerts">Submit alert</Link>
             </Button>
-            <Link to="/alerts" className="self-center text-sm font-semibold text-accent-foreground underline">
+            <Link
+              to="/alerts"
+              className="self-center text-sm font-semibold text-accent-foreground underline"
+            >
               Read more
             </Link>
           </div>
@@ -174,18 +184,24 @@ function Index() {
         ) : (
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             {alerts.map((a) => (
-              <article key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
+              <article
+                key={a.id}
+                className="rounded-lg border border-border bg-card p-5 card-elevated"
+              >
                 <div className="flex flex-wrap items-center gap-2">
                   <TriangleAlert className="size-4 text-caution" />
                   <SeverityBadge value={a.severity} />
                   <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                     {HAZARD_TYPES.find((h) => h.value === a.hazard_type)?.label ?? a.hazard_type}
                   </span>
-                  <span className="ml-auto text-xs text-muted-foreground">{timeAgo(a.created_at)}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {timeAgo(a.created_at)}
+                  </span>
                 </div>
                 <h3 className="mt-3 font-bold">{a.title}</h3>
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="size-4" /> {a.county}{a.road ? ` · ${a.road}` : ""}
+                  <MapPin className="size-4" /> {a.county}
+                  {a.road ? ` · ${a.road}` : ""}
                 </p>
               </article>
             ))}
@@ -233,7 +249,10 @@ function Index() {
             <Button asChild size="sm" variant="outline">
               <Link to="/reports">Submit report for review</Link>
             </Button>
-            <Link to="/reports" className="self-center text-sm font-semibold text-accent-foreground underline">
+            <Link
+              to="/reports"
+              className="self-center text-sm font-semibold text-accent-foreground underline"
+            >
               Read more
             </Link>
           </div>
@@ -245,14 +264,20 @@ function Index() {
         ) : (
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             {reports.map((r) => (
-              <article key={r.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
+              <article
+                key={r.id}
+                className="rounded-lg border border-border bg-card p-5 card-elevated"
+              >
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={r.severity} />
-                  <span className="ml-auto text-xs text-muted-foreground">{longDate(r.occurred_at)}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {longDate(r.occurred_at)}
+                  </span>
                 </div>
                 <h3 className="mt-3 font-bold">{r.title}</h3>
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="size-4" /> {r.county}{r.road ? ` · ${r.road}` : ""}
+                  <MapPin className="size-4" /> {r.county}
+                  {r.road ? ` · ${r.road}` : ""}
                 </p>
               </article>
             ))}
@@ -277,14 +302,20 @@ function Index() {
           />
           <PreviewCard
             title="Videos"
-            body={videos.length > 0 ? `${videos.length}+ featured clips promoting road safety.` : "Road safety videos from the community."}
+            body={
+              videos.length > 0
+                ? `${videos.length}+ featured clips promoting road safety.`
+                : "Road safety videos from the community."
+            }
             to="/videos"
             cta="View more"
             icon={Film}
           />
           <PreviewCard
             title="Victims corner"
-            body={victimsArticles[0]?.title ?? "Profiles and stories of those affected by road crashes."}
+            body={
+              victimsArticles[0]?.title ?? "Profiles and stories of those affected by road crashes."
+            }
             to="/news"
             search={{ category: "Victims Focus" }}
             cta="View more"
@@ -332,11 +363,13 @@ function Index() {
           <div>
             <h2 className="text-3xl font-bold">In an emergency</h2>
             <p className="mt-3 text-muted-foreground">
-              Save these numbers now. Minutes matter after a crash: the first hour
-              decides whether an injury becomes a fatality.
+              Save these numbers now. Minutes matter after a crash: the first hour decides whether
+              an injury becomes a fatality.
             </p>
             <Button asChild className="mt-6" variant="outline">
-              <Link to="/safety">Read the safety guide</Link>
+              <Link to="/campaigns" hash="emergency">
+                What to do at a crash scene
+              </Link>
             </Button>
           </div>
           <ul className="divide-y divide-border rounded-lg border border-border bg-card px-6">

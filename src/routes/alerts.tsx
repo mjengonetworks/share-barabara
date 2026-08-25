@@ -76,6 +76,7 @@ function AlertsPage() {
     (a) =>
       (county === "all" || a.county === county) && (hazard === "all" || a.hazard_type === hazard),
   );
+  const latest = alerts.slice(0, 3);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -94,7 +95,72 @@ function AlertsPage() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
-          <div className="flex flex-wrap gap-3">
+          {latest.length > 0 ? (
+            <div>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-2xl font-bold">Latest alerts</h2>
+                <a
+                  href="#all-alerts"
+                  className="text-sm font-semibold text-accent-foreground underline"
+                >
+                  See all
+                </a>
+              </div>
+              <ul className="mt-5 grid gap-4 sm:grid-cols-3">
+                {latest.map((a) => (
+                  <li
+                    key={a.id}
+                    className="rounded-lg border border-border bg-card p-4 card-elevated"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <SeverityBadge value={a.severity} />
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {timeAgo(a.created_at)}
+                      </span>
+                    </div>
+                    <p className="mt-2 font-semibold">{a.title}</p>
+                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="size-3" /> {a.county}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <div className="mt-12">
+            <h2 className="text-lg font-bold text-muted-foreground">Browse by type</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => setHazard("all")}
+                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                  hazard === "all"
+                    ? "border-accent bg-accent/15 text-accent-foreground"
+                    : "border-border bg-card hover:border-accent hover:text-accent-foreground"
+                }`}
+              >
+                All hazards
+              </button>
+              {HAZARD_TYPES.map((h) => (
+                <button
+                  key={h.value}
+                  onClick={() => setHazard(h.value)}
+                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    hazard === h.value
+                      ? "border-accent bg-accent/15 text-accent-foreground"
+                      : "border-border bg-card hover:border-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  {h.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div id="all-alerts" className="mt-12 scroll-mt-24">
+            <h2 className="text-2xl font-bold">All alerts</h2>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
             <Select value={county} onValueChange={setCounty}>
               <SelectTrigger className="w-48">
                 <SelectValue />
@@ -104,19 +170,6 @@ function AlertsPage() {
                 {KENYA_COUNTIES.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={hazard} onValueChange={setHazard}>
-              <SelectTrigger className="w-56">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All hazard types</SelectItem>
-                {HAZARD_TYPES.map((h) => (
-                  <SelectItem key={h.value} value={h.value}>
-                    {h.label}
                   </SelectItem>
                 ))}
               </SelectContent>
