@@ -8,6 +8,7 @@ import {
   MapPinned,
   Megaphone,
   Newspaper,
+  Share2,
   ShieldCheck,
   TrendingUp,
   Users,
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/partner-with-us")({
       {
         name: "description",
         content:
-          "Advertise your road-safety-related business to Share Barabara's community of Kenyan road users, and stand with the country's leading road safety platform.",
+          "Advertise to Share Barabara's community of Kenyan road users: banner ads, sponsored article features and social media collaborations, backed by Mjengo Networks and Mjengo Hub.",
       },
     ],
   }),
@@ -54,13 +55,28 @@ const AUDIENCE = [
     title: "Built to grow",
     text: "As the community-sourced alert and reporting network expands county by county, so does the audience your brand reaches alongside it.",
   },
+  {
+    icon: ShieldCheck,
+    title: "Backed by Mjengo Networks",
+    text: "Share Barabara is part of Mjengo Networks, which connects people across Kenya's construction industry and runs Mjengo Hub, the country's (and East Africa's) number one construction news platform. Partnering with us can open the door to that wider audience too.",
+  },
 ];
 
 const FORMATS = [
   {
     icon: ImageIcon,
     title: "Banner placements",
-    text: "Rotating banner ads across news, alerts, reports, statistics and more, shown as GIFs with a clear \"Visit advertiser\" call to action.",
+    text: 'Rotating banner ads across news, alerts, reports, statistics and more, shown as GIFs with a clear "Visit advertiser" call to action.',
+  },
+  {
+    icon: Newspaper,
+    title: "Article features",
+    text: "A sponsored or co-authored article in our newsroom, reaching readers who come back daily for road safety news.",
+  },
+  {
+    icon: Share2,
+    title: "Social media collaborations",
+    text: "Joint posts, takeovers or campaign tie-ins across our social channels alongside our own content.",
   },
   {
     icon: Megaphone,
@@ -99,10 +115,10 @@ function PartnerPage() {
       </h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
         Share Barabara, part of Mjengo Networks Limited, is Kenya's community-driven road safety
-        platform: live hazard alerts, verified crash reports and open statistics built by the
-        people who use these roads every day. Partnering with us puts your brand in front of an
-        audience that already trusts us to help them get home safely, and associates it with the
-        niche authority we have built in road safety.
+        platform: live hazard alerts, verified crash reports and open statistics built by the people
+        who use these roads every day. Partnering with us puts your brand in front of an audience
+        that already trusts us to help them get home safely, and associates it with the niche
+        authority we have built in road safety.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild size="lg">
@@ -117,7 +133,10 @@ function PartnerPage() {
         <h2 className="text-2xl font-bold">Why advertise with us</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {AUDIENCE.map((a) => (
-            <div key={a.title} className="rounded-lg border border-border bg-card p-6 card-elevated">
+            <div
+              key={a.title}
+              className="rounded-lg border border-border bg-card p-6 card-elevated"
+            >
               <a.icon className="size-7 text-accent" />
               <h3 className="mt-3 font-bold">{a.title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{a.text}</p>
@@ -130,7 +149,10 @@ function PartnerPage() {
         <h2 className="text-2xl font-bold">Ad formats</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {FORMATS.map((f) => (
-            <div key={f.title} className="rounded-lg border border-border bg-card p-6 card-elevated">
+            <div
+              key={f.title}
+              className="rounded-lg border border-border bg-card p-6 card-elevated"
+            >
               <f.icon className="size-7 text-accent" />
               <h3 className="mt-3 font-bold">{f.title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
@@ -143,23 +165,26 @@ function PartnerPage() {
         <div className="flex items-start gap-3">
           <ShieldCheck className="size-7 shrink-0 text-accent" />
           <div>
-            <h2 className="text-xl font-bold text-background">Every advert relates to road safety</h2>
+            <h2 className="text-xl font-bold text-background">Good companies of every kind</h2>
             <p className="mt-2 text-sm text-secondary/80">
-              We keep the platform focused, so every advertiser is a natural fit for our audience:
-              insurance providers, vehicle hire and dealership brands, long-distance transport and
-              logistics operators, safety equipment and reflective gear, driving schools, and
-              similar road-safety-adjacent businesses. This keeps trust high for readers and keeps
-              your brand in genuinely relevant company.
+              Most of our advertisers are naturally road-safety-adjacent: insurance providers,
+              vehicle hire and dealership brands, transport and logistics operators, safety
+              equipment and driving schools. But we don't lock good companies out just because their
+              product isn't a road-safety one — we review every enquiry and welcome reputable brands
+              from any industry who want to reach our audience.
             </p>
           </div>
         </div>
       </section>
 
-      <section id="enquiry" className="mt-14 scroll-mt-24 rounded-lg border border-border bg-card p-6 card-elevated">
+      <section
+        id="enquiry"
+        className="mt-14 scroll-mt-24 rounded-lg border border-border bg-card p-6 card-elevated"
+      >
         <h2 className="text-lg font-bold">Tell us about your campaign</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Share your company, what you would like to advertise, your goals and your budget. We
-          will follow up to discuss placement, creative (banner GIFs) and pricing.
+          Share your company, what you would like to advertise, your goals and your budget. We will
+          follow up to discuss placement, creative (banner GIFs) and pricing.
         </p>
         {sent ? (
           <p className="mt-4 flex items-center gap-2 text-sm text-safe">

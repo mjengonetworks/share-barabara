@@ -4,7 +4,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15";
+    PostgrestVersion: "14.17";
   };
   public: {
     Tables: {
@@ -17,11 +17,13 @@ export type Database = {
           editor_note: string | null;
           fatalities: number;
           id: string;
+          image_url: string | null;
           is_anonymous: boolean;
           latitude: number | null;
           longitude: number | null;
           occurred_at: string;
           page_id: string | null;
+          parties_involved: string[];
           rejection_reason: string | null;
           reviewed_at: string | null;
           reviewed_by: string | null;
@@ -42,11 +44,13 @@ export type Database = {
           editor_note?: string | null;
           fatalities?: number;
           id?: string;
+          image_url?: string | null;
           is_anonymous?: boolean;
           latitude?: number | null;
           longitude?: number | null;
           occurred_at?: string;
           page_id?: string | null;
+          parties_involved?: string[];
           rejection_reason?: string | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
@@ -67,11 +71,13 @@ export type Database = {
           editor_note?: string | null;
           fatalities?: number;
           id?: string;
+          image_url?: string | null;
           is_anonymous?: boolean;
           latitude?: number | null;
           longitude?: number | null;
           occurred_at?: string;
           page_id?: string | null;
+          parties_involved?: string[];
           rejection_reason?: string | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
@@ -112,6 +118,7 @@ export type Database = {
           latitude: number | null;
           longitude: number | null;
           page_id: string | null;
+          parties_involved: string[];
           road: string | null;
           road_id: string | null;
           severity: string;
@@ -130,6 +137,7 @@ export type Database = {
           latitude?: number | null;
           longitude?: number | null;
           page_id?: string | null;
+          parties_involved?: string[];
           road?: string | null;
           road_id?: string | null;
           severity?: string;
@@ -148,6 +156,7 @@ export type Database = {
           latitude?: number | null;
           longitude?: number | null;
           page_id?: string | null;
+          parties_involved?: string[];
           road?: string | null;
           road_id?: string | null;
           severity?: string;
@@ -278,6 +287,45 @@ export type Database = {
           },
         ];
       };
+      content_requests: {
+        Row: {
+          created_at: string;
+          entity_id: string;
+          entity_type: string;
+          id: string;
+          message: string;
+          request_type: string;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          status: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          entity_id: string;
+          entity_type: string;
+          id?: string;
+          message: string;
+          request_type: string;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          entity_id?: string;
+          entity_type?: string;
+          id?: string;
+          message?: string;
+          request_type?: string;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       county_stats: {
         Row: {
           county: string;
@@ -344,6 +392,7 @@ export type Database = {
         Row: {
           id: string;
           label: string;
+          link_url: string | null;
           sort_order: number;
           updated_at: string;
           updated_by: string | null;
@@ -352,6 +401,7 @@ export type Database = {
         Insert: {
           id?: string;
           label: string;
+          link_url?: string | null;
           sort_order?: number;
           updated_at?: string;
           updated_by?: string | null;
@@ -360,6 +410,7 @@ export type Database = {
         Update: {
           id?: string;
           label?: string;
+          link_url?: string | null;
           sort_order?: number;
           updated_at?: string;
           updated_by?: string | null;
@@ -559,6 +610,30 @@ export type Database = {
           },
         ];
       };
+      newsletter_subscribers: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          email: string;
+          id: string;
+          user_id: string | null;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          email: string;
+          id?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          email?: string;
+          id?: string;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
       notification_preferences: {
         Row: {
           alerts: boolean;
@@ -742,6 +817,7 @@ export type Database = {
           mjengo_networks_url: string | null;
           occupation: string | null;
           road_safety_message: string | null;
+          username: string | null;
         };
         Insert: {
           avatar_url?: string | null;
@@ -754,6 +830,7 @@ export type Database = {
           mjengo_networks_url?: string | null;
           occupation?: string | null;
           road_safety_message?: string | null;
+          username?: string | null;
         };
         Update: {
           avatar_url?: string | null;
@@ -766,6 +843,7 @@ export type Database = {
           mjengo_networks_url?: string | null;
           occupation?: string | null;
           road_safety_message?: string | null;
+          username?: string | null;
         };
         Relationships: [];
       };

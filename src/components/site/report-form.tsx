@@ -16,7 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
-import { KENYA_COUNTIES, REPORT_SEVERITIES } from "@/lib/constants";
+import { KENYA_COUNTIES, PARTIES_INVOLVED, REPORT_SEVERITIES } from "@/lib/constants";
 import { matchOrCreateRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
@@ -38,7 +38,9 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
     fatalities: 0,
     latitude: null as number | null,
     longitude: null as number | null,
+    image_url: "",
   });
+  const [partiesInvolved, setPartiesInvolved] = useState<string[]>([]);
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -46,7 +48,9 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       const road_id = await matchOrCreateRoad(form.road, form.county);
       const { error } = await supabase.from("accident_reports").insert({
         ...form,
+        image_url: form.image_url.trim() || null,
         road_id,
+        parties_involved: partiesInvolved,
         occurred_at: new Date(form.occurred_at).toISOString(),
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
@@ -56,7 +60,16 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
     },
     onSuccess: () => {
       toast.success("Report submitted for review, an editor will verify it before it is published");
-      setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
+      setForm({
+        ...form,
+        title: "",
+        description: "",
+        road: "",
+        latitude: null,
+        longitude: null,
+        image_url: "",
+      });
+      setPartiesInvolved([]);
       setAnonymous(false);
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       onDone?.();
@@ -168,6 +181,34 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
             onChange={(e) => setForm({ ...form, fatalities: Number(e.target.value) })}
           />
         </div>
+      </div>
+      <div>
+        <Label>Who was involved (optional)</Label>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+          {PARTIES_INVOLVED.map((p) => (
+            <label key={p.value} className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={partiesInvolved.includes(p.value)}
+                onCheckedChange={(v) =>
+                  setPartiesInvolved((prev) =>
+                    v === true ? [...prev, p.value] : prev.filter((x) => x !== p.value),
+                  )
+                }
+              />
+              {p.label}
+            </label>
+          ))}
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="r-img">Photo URL (optional)</Label>
+        <Input
+          id="r-img"
+          type="url"
+          value={form.image_url}
+          onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+          placeholder="https://..."
+        />
       </div>
       <div>
         <Label htmlFor="r-desc">What happened?</Label>

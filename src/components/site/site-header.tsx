@@ -25,6 +25,7 @@ import logoUrl from "@/assets/share-barabara-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
+import { useProfileUsernames } from "@/lib/profiles";
 import { NotificationBell } from "@/components/site/notification-bell";
 import { SubscribeButton } from "@/components/site/subscribe-button";
 import { HeaderSearch } from "@/components/site/header-search";
@@ -47,6 +48,7 @@ export function SiteHeader() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const { identity, setIdentity, myPages, activePage } = useActiveIdentity();
+  const { data: ownUsername = {} } = useProfileUsernames(user ? [user.id] : []);
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -119,7 +121,7 @@ export function SiteHeader() {
                   </DropdownMenuRadioGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/u/$userId" params={{ userId: user.id }}>
+                    <Link to="/u/$userId" params={{ userId: ownUsername[user.id] ?? user.id }}>
                       <CircleUserRound className="mr-2 size-4" /> My profile
                     </Link>
                   </DropdownMenuItem>

@@ -4,6 +4,7 @@ import { BadgeCheck } from "lucide-react";
 export function UserLink({
   userId,
   name,
+  username,
   verified = false,
   anonymous = false,
   pageSlug,
@@ -12,6 +13,8 @@ export function UserLink({
 }: {
   userId: string | null | undefined;
   name?: string | undefined;
+  /** Preferred link target: the user's username, falling back to their id if unset. */
+  username?: string | null | undefined;
   verified?: boolean;
   /** Row was posted anonymously: hides the real identity even if one is known. */
   anonymous?: boolean;
@@ -44,7 +47,7 @@ export function UserLink({
   return (
     <Link
       to="/u/$userId"
-      params={{ userId }}
+      params={{ userId: username ?? userId }}
       className={`inline-flex items-center gap-1 font-semibold text-foreground underline-offset-2 hover:underline ${className}`}
     >
       {label}

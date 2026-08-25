@@ -60,6 +60,7 @@ export const NEWS_CATEGORIES = [
   "Victims Focus",
   "Infrastructure",
   "Counties",
+  "Partner Content",
 ] as const;
 
 export const HAZARD_TYPES = [
@@ -85,6 +86,18 @@ export const REPORT_SEVERITIES = [
   { value: "moderate", label: "Moderate" },
   { value: "serious", label: "Serious" },
   { value: "fatal", label: "Fatal" },
+] as const;
+
+/** Who was involved, for both alerts and accident reports. A crash can have more than one. */
+export const PARTIES_INVOLVED = [
+  { value: "pedestrian", label: "Pedestrian" },
+  { value: "cyclist", label: "Cyclist" },
+  { value: "motorcycle", label: "Motorcycle / boda boda" },
+  { value: "car", label: "Car" },
+  { value: "matatu_bus", label: "Matatu / bus" },
+  { value: "truck_lorry", label: "Truck / lorry" },
+  { value: "animal", label: "Animal" },
+  { value: "other", label: "Other" },
 ] as const;
 
 export const EMERGENCY_CONTACTS = [

@@ -45,7 +45,7 @@ export function FeaturedProfileCard({
       ) : null}
       <Link
         to="/u/$userId"
-        params={{ userId: profile.id }}
+        params={{ userId: profile.username ?? profile.id }}
         className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
       >
         View full profile

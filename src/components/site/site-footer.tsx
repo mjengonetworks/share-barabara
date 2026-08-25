@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Apple, Facebook, Instagram, Send, Smartphone, Youtube } from "lucide-react";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
+import { NewsletterForm } from "@/components/site/newsletter-form";
 import logoUrl from "@/assets/share-barabara-logo.png";
 
 function XLogo({ className }: { className?: string }) {
@@ -69,6 +70,10 @@ export function SiteFooter() {
               <Smartphone className="size-4" /> Google Play: coming soon
             </span>
           </div>
+          <p className="mt-5 text-xs font-semibold uppercase tracking-widest text-accent">
+            Newsletter
+          </p>
+          <NewsletterForm className="mt-3" />
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Explore</p>

@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
+  BarChart3,
   CarFront,
   Film,
   HandHeart,
-  HeartHandshake,
+  Mail,
   MapPin,
   Megaphone,
   TriangleAlert,
@@ -20,6 +21,7 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { SearchBar } from "@/components/site/search-bar";
 import { QuoteOfTheDay } from "@/components/site/quote-of-the-day";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
+import { NewsletterForm } from "@/components/site/newsletter-form";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -90,21 +92,6 @@ function Index() {
         .eq("status", "featured")
         .order("created_at", { ascending: false })
         .limit(3);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: victimsArticles = [] } = useQuery({
-    queryKey: ["home-victims"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("news")
-        .select("id, slug, title")
-        .eq("category", "Victims Focus")
-        .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .limit(2);
       if (error) throw error;
       return data;
     },
@@ -214,13 +201,25 @@ function Index() {
         )}
       </section>
 
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <FeaturedProfileCard slot="home_profile" />
+      </section>
+
       <section className="border-y border-border bg-secondary/40">
         <div className="mx-auto max-w-6xl px-4 py-10">
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-3xl font-bold">Road safety news</h2>
-            <Link to="/news" className="text-sm font-semibold text-brand-blue underline">
-              Read more
-            </Link>
+            <div className="flex gap-3">
+              <Button asChild size="sm">
+                <Link to="/news">Write article</Link>
+              </Button>
+              <Link
+                to="/news"
+                className="self-center text-sm font-semibold text-brand-blue underline"
+              >
+                Read more
+              </Link>
+            </div>
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             {news.map((n) => (
@@ -291,42 +290,39 @@ function Index() {
       </section>
 
       <section className="border-y border-border bg-secondary/40">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
-          <PreviewCard
-            title="Crash statistics"
-            body="Open, indicative crash data for Kenya, broken down by county, cause, vehicle type and time of day."
-            to="/statistics"
-            cta="View more"
-          />
-          <PreviewCard
-            title="Campaigns"
-            body="Share Barabara, our continuous road safety campaign, plus upcoming events and how to support them."
-            to="/campaigns"
-            cta="More"
-            icon={Megaphone}
-          />
-          <PreviewCard
-            title="Videos"
-            body={
-              videos.length > 0
-                ? `${videos.length}+ featured clips promoting road safety.`
-                : "Road safety videos from the community."
-            }
-            to="/videos"
-            cta="View more"
-            icon={Film}
-          />
-          <PreviewCard
-            title="Victims corner"
-            body={
-              victimsArticles[0]?.title ?? "Profiles and stories of those affected by road crashes."
-            }
-            to="/news"
-            search={{ category: "Victims Focus" }}
-            cta="View more"
-            icon={HeartHandshake}
-          />
+        <div className="mx-auto max-w-6xl px-4 py-10">
+          <div className="grid gap-6 sm:grid-cols-3">
+            <PreviewCard
+              title="Crash statistics"
+              body="Open, indicative crash data for Kenya, by county, cause, vehicle type and time of day."
+              to="/statistics"
+              cta="View statistics"
+              icon={BarChart3}
+              stat={latest ? num(latest.fatalities) : undefined}
+              statLabel={latest ? `deaths in ${latest.year}` : undefined}
+            />
+            <PreviewCard
+              title="Campaigns"
+              body="Share Barabara, our continuous road safety campaign, plus upcoming events and how to support them."
+              to="/campaigns"
+              cta="See campaigns"
+              icon={Megaphone}
+            />
+            <PreviewCard
+              title="Videos"
+              body="Short clips on defensive driving, first aid and road safety from the community."
+              to="/videos"
+              cta="Watch videos"
+              icon={Film}
+              stat={videos.length > 0 ? `${videos.length}+` : undefined}
+              statLabel={videos.length > 0 ? "featured clips" : undefined}
+            />
+          </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <FeaturedPageCard slot="home_page" />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10">
@@ -349,23 +345,33 @@ function Index() {
 
       <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid gap-6 lg:grid-cols-2">
-          <FeaturedProfileCard slot="home_profile" />
-          <FeaturedPageCard slot="home_page" />
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-10">
-        <div className="grid gap-6 lg:grid-cols-2">
           <QuoteOfTheDay />
           <div className="flex flex-col justify-center rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
             <Megaphone className="mx-auto size-7 text-accent" />
             <p className="mt-2 font-bold">Reach Kenyan road users</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Advertise your road-safety-related business on Share Barabara.
+              Partner with Share Barabara: banner ads, sponsored article features and social media
+              collaborations, not limited to road-safety brands.
             </p>
             <Button asChild variant="outline" className="mt-4 self-center">
               <Link to="/partner-with-us">Advertise on the platform</Link>
             </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-accent/15">
+        <div className="mx-auto max-w-6xl px-4 py-10">
+          <div className="flex flex-wrap items-center justify-between gap-6 rounded-lg border border-accent/30 bg-background p-6 card-elevated">
+            <div>
+              <p className="flex items-center gap-2 font-bold">
+                <Mail className="size-5 text-accent" /> Get the Share Barabara newsletter
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Hazard trends, new campaigns and top stories, straight to your inbox.
+              </p>
+            </div>
+            <NewsletterForm />
           </div>
         </div>
       </section>
@@ -416,6 +422,8 @@ function PreviewCard({
   search,
   cta,
   icon: Icon,
+  stat,
+  statLabel,
 }: {
   title: string;
   body: string;
@@ -423,19 +431,31 @@ function PreviewCard({
   search?: Record<string, string>;
   cta: string;
   icon?: typeof Megaphone;
+  stat?: string | undefined;
+  statLabel?: string | undefined;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-5 card-elevated">
-      {Icon ? <Icon className="size-6 text-accent" /> : null}
-      <h3 className="mt-2 font-bold">{title}</h3>
-      <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{body}</p>
-      <Link
-        to={to}
-        {...(search ? { search } : {})}
-        className="mt-3 inline-block text-sm font-semibold text-brand-blue underline"
-      >
-        {cta}
-      </Link>
-    </div>
+    <Link
+      to={to}
+      {...(search ? { search } : {})}
+      className="group flex flex-col rounded-lg border border-border bg-card p-6 transition-shadow card-elevated hover:border-accent"
+    >
+      {Icon ? (
+        <span className="flex size-11 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <Icon className="size-5" />
+        </span>
+      ) : null}
+      <h3 className="mt-3 text-lg font-bold">{title}</h3>
+      <p className="mt-1 line-clamp-3 flex-1 text-sm text-muted-foreground">{body}</p>
+      {stat ? (
+        <p className="mt-3">
+          <span className="font-display text-2xl font-extrabold">{stat}</span>{" "}
+          <span className="text-xs text-muted-foreground">{statLabel}</span>
+        </p>
+      ) : null}
+      <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-blue group-hover:underline">
+        {cta} <ArrowRight className="size-3.5" />
+      </span>
+    </Link>
   );
 }

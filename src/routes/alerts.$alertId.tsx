@@ -8,13 +8,14 @@ import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useVotes } from "@/hooks/useVotes";
 import { longDate } from "@/lib/format";
-import { HAZARD_TYPES } from "@/lib/constants";
+import { HAZARD_TYPES, PARTIES_INVOLVED } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
+import { ContentRequestActions } from "@/components/site/content-request-actions";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   head: () => ({
@@ -175,6 +176,16 @@ function AlertDetail() {
             <ShareButtons title={alert.title} />
           </div>
 
+          {alert.parties_involved.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {alert.parties_involved.map((p) => (
+                <span key={p} className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">
+                  {PARTIES_INVOLVED.find((x) => x.value === p)?.label ?? p}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
           <div className="mt-6 space-y-4 text-foreground/90">
             {alert.description.split("\n\n").map((para, i) => (
               <p key={i}>{para}</p>
@@ -188,6 +199,8 @@ function AlertDetail() {
               onVote={(v) => vote(alert.id, v)}
             />
           </div>
+
+          <ContentRequestActions entityType="alert" entityId={alert.id} ownerId={alert.user_id} />
 
           <div className="mt-8">
             <BannerAd />

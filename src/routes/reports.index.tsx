@@ -190,6 +190,13 @@ function ReportsPage() {
                   </li>
                 ) : null}
                 <li className="rounded-lg border border-border bg-card p-5 card-elevated">
+                  {r.image_url ? (
+                    <img
+                      src={r.image_url}
+                      alt={r.title}
+                      className="-mx-5 -mt-5 mb-4 aspect-video w-[calc(100%+2.5rem)] rounded-t-lg object-cover"
+                    />
+                  ) : null}
                   <div className="flex flex-wrap items-center gap-2">
                     <SeverityBadge value={r.severity} />
                     <span className="ml-auto text-xs text-muted-foreground">

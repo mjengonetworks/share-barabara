@@ -4,9 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate } from "@/lib/format";
+import { useProfileNames, useProfileUsernames } from "@/lib/profiles";
+import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
+import { UserLink } from "@/components/site/user-link";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
+import { ContentRequestActions } from "@/components/site/content-request-actions";
 
 export const Route = createFileRoute("/news/$slug")({
   head: () => ({
@@ -60,6 +64,11 @@ function NewsDetail() {
       return data;
     },
   });
+
+  const authorIds = article?.author_id ? [article.author_id] : [];
+  const { data: authorNames = {} } = useProfileNames(authorIds);
+  const { data: authorUsernames = {} } = useProfileUsernames(authorIds);
+  const { data: authorRoles = {} } = useRoleLabels(authorIds);
 
   const recordedFor = useRef<string | null>(null);
   useEffect(() => {
@@ -143,12 +152,34 @@ function NewsDetail() {
             {article.category}
           </Link>
           <h1 className="mt-3 text-4xl font-extrabold leading-tight">{article.title}</h1>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+            {article.author_id ? (
+              <>
+                By{" "}
+                <UserLink
+                  userId={article.author_id}
+                  name={authorNames[article.author_id]}
+                  username={authorUsernames[article.author_id]}
+                  className="text-foreground"
+                />
+                <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-xs">
+                  {primaryRoleLabel(authorRoles[article.author_id])}
+                </span>
+                {" · "}
+              </>
+            ) : null}
             {longDate(article.published_at)} {article.source ? `· ${article.source}` : ""}
           </p>
           <div className="mt-3">
             <ShareButtons title={article.title} />
           </div>
+          {article.image_url ? (
+            <img
+              src={article.image_url}
+              alt={article.title}
+              className="mt-6 aspect-video w-full rounded-lg border border-border object-cover"
+            />
+          ) : null}
           <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
             {article.summary}
           </p>
@@ -165,6 +196,12 @@ function NewsDetail() {
               </p>
             ) : null}
           </div>
+
+          <ContentRequestActions
+            entityType="news"
+            entityId={article.id}
+            ownerId={article.author_id}
+          />
 
           <div className="mt-8 flex flex-wrap gap-2">
             <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

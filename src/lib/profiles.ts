@@ -18,3 +18,21 @@ export function useProfileNames(ids: string[]) {
     },
   });
 }
+
+export function useProfileUsernames(ids: string[]) {
+  const unique = Array.from(new Set(ids)).sort();
+  return useQuery({
+    queryKey: ["profile-usernames", unique],
+    enabled: unique.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username")
+        .in("id", unique);
+      if (error) throw error;
+      const map: Record<string, string | null> = {};
+      for (const row of data ?? []) map[row.id] = row.username;
+      return map;
+    },
+  });
+}

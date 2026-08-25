@@ -16,7 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
-import { HAZARD_TYPES, KENYA_COUNTIES, SEVERITIES } from "@/lib/constants";
+import { HAZARD_TYPES, KENYA_COUNTIES, PARTIES_INVOLVED, SEVERITIES } from "@/lib/constants";
 import { matchOrCreateRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
@@ -36,6 +36,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
     latitude: null as number | null,
     longitude: null as number | null,
   });
+  const [partiesInvolved, setPartiesInvolved] = useState<string[]>([]);
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -44,6 +45,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
       const { error } = await supabase.from("alerts").insert({
         ...form,
         road_id,
+        parties_involved: partiesInvolved,
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
         is_anonymous: identity.type === "profile" && anonymous,
@@ -53,6 +55,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
     onSuccess: () => {
       toast.success("Alert published, thank you");
       setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
+      setPartiesInvolved([]);
       setAnonymous(false);
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
       onDone?.();
@@ -135,6 +138,24 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
               ))}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+      <div>
+        <Label>Who was involved (optional)</Label>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+          {PARTIES_INVOLVED.map((p) => (
+            <label key={p.value} className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={partiesInvolved.includes(p.value)}
+                onCheckedChange={(v) =>
+                  setPartiesInvolved((prev) =>
+                    v === true ? [...prev, p.value] : prev.filter((x) => x !== p.value),
+                  )
+                }
+              />
+              {p.label}
+            </label>
+          ))}
         </div>
       </div>
       <div>

@@ -1,4 +1,6 @@
-import { Facebook, Linkedin, Send, Star } from "lucide-react";
+import { Check, Copy, Facebook, Linkedin, Send, Star } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 function XLogo({ className }: { className?: string }) {
   return (
@@ -21,21 +23,55 @@ function TelegramLogo({ className }: { className?: string }) {
 }
 
 export function ShareButtons({ title }: { title: string }) {
+  const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.href : "";
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
 
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(`${title}\n${url}`);
+      setCopied(true);
+      toast.success("Link copied");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy the link");
+    }
+  }
+
   const links = [
-    { label: "Facebook", icon: Facebook, href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
-    { label: "X", icon: XLogo, href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}` },
-    { label: "WhatsApp", icon: WhatsAppLogo, href: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}` },
-    { label: "Telegram", icon: TelegramLogo, href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}` },
-    { label: "LinkedIn", icon: Linkedin, href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}` },
+    {
+      label: "Facebook",
+      icon: Facebook,
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    },
+    {
+      label: "X",
+      icon: XLogo,
+      href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+    },
+    {
+      label: "WhatsApp",
+      icon: WhatsAppLogo,
+      href: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,
+    },
+    {
+      label: "Telegram",
+      icon: TelegramLogo,
+      href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`,
+    },
+    {
+      label: "LinkedIn",
+      icon: Linkedin,
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    },
   ];
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Share</span>
+      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        Share
+      </span>
       {links.map((l) => (
         <a
           key={l.label}
@@ -48,6 +84,15 @@ export function ShareButtons({ title }: { title: string }) {
           <l.icon className="size-4" />
         </a>
       ))}
+      <button
+        type="button"
+        onClick={copyLink}
+        aria-label="Copy link"
+        title="Copy link"
+        className="flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground"
+      >
+        {copied ? <Check className="size-4 text-safe" /> : <Copy className="size-4" />}
+      </button>
       <a
         href="https://www.google.com/search?q=Share+Barabara+Kenya+road+safety"
         target="_blank"

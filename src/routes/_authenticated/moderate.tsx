@@ -824,6 +824,7 @@ function HubStatsAdmin() {
   const queryClient = useQueryClient();
   const [label, setLabel] = useState("");
   const [value, setValue] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
 
   const { data: stats = [], isLoading } = useQuery({
     queryKey: ["hub-stats-admin"],
@@ -845,15 +846,19 @@ function HubStatsAdmin() {
   const add = useMutation({
     mutationFn: async () => {
       const nextOrder = stats.reduce((m, s) => Math.max(m, s.sort_order), 0) + 1;
-      const { error } = await supabase
-        .from("hub_stats")
-        .insert({ label: label.trim(), value: value.trim() || "0", sort_order: nextOrder });
+      const { error } = await supabase.from("hub_stats").insert({
+        label: label.trim(),
+        value: value.trim() || "0",
+        link_url: linkUrl.trim() || null,
+        sort_order: nextOrder,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Stat added");
       setLabel("");
       setValue("");
+      setLinkUrl("");
       refresh();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -865,7 +870,7 @@ function HubStatsAdmin() {
       patch,
     }: {
       id: string;
-      patch: { label?: string; value?: string };
+      patch: { label?: string; value?: string; link_url?: string | null };
     }) => {
       const { error } = await supabase.from("hub_stats").update(patch).eq("id", id);
       if (error) throw error;
@@ -906,6 +911,12 @@ function HubStatsAdmin() {
           placeholder="Value, e.g. 12,400+"
           className="max-w-xs"
         />
+        <Input
+          value={linkUrl}
+          onChange={(e) => setLinkUrl(e.target.value)}
+          placeholder="Link (optional), e.g. /alerts"
+          className="max-w-xs"
+        />
         <Button disabled={label.trim().length < 2 || add.isPending} onClick={() => add.mutate()}>
           Add stat
         </Button>
@@ -929,6 +940,16 @@ function HubStatsAdmin() {
                 const v = e.target.value.trim();
                 if (v && v !== s.value) update.mutate({ id: s.id, patch: { value: v } });
               }}
+              className="max-w-xs"
+            />
+            <Input
+              defaultValue={s.link_url ?? ""}
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v !== (s.link_url ?? ""))
+                  update.mutate({ id: s.id, patch: { link_url: v || null } });
+              }}
+              placeholder="Link (optional)"
               className="max-w-xs"
             />
             <Button

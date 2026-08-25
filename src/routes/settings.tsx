@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { UserCog } from "lucide-react";
+import { Check, Copy, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { KENYA_COUNTIES } from "@/lib/constants";
@@ -27,6 +27,7 @@ export const Route = createFileRoute("/settings")({
 
 type ProfileForm = {
   display_name: string;
+  username: string;
   county: string;
   bio: string;
   occupation: string;
@@ -37,6 +38,7 @@ type ProfileForm = {
 
 const EMPTY: ProfileForm = {
   display_name: "",
+  username: "",
   county: "",
   bio: "",
   occupation: "",
@@ -45,11 +47,14 @@ const EMPTY: ProfileForm = {
   mjengo_hub_url: "",
 };
 
+const USERNAME_RE = /^[a-z0-9](?:[a-z0-9-]{1,22}[a-z0-9])?$/;
+
 function SettingsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [form, setForm] = useState<ProfileForm>(EMPTY);
   const [loaded, setLoaded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const { data: profile } = useQuery({
     enabled: !!user,
@@ -69,6 +74,7 @@ function SettingsPage() {
     if (profile && !loaded) {
       setForm({
         display_name: profile.display_name ?? "",
+        username: profile.username ?? "",
         county: profile.county ?? "",
         bio: profile.bio ?? "",
         occupation: profile.occupation ?? "",
@@ -83,10 +89,17 @@ function SettingsPage() {
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
+      const username = form.username.trim().toLowerCase();
+      if (!USERNAME_RE.test(username)) {
+        throw new Error(
+          "Username must be 3-24 characters: lowercase letters, numbers and hyphens only.",
+        );
+      }
       const { error } = await supabase
         .from("profiles")
         .update({
           display_name: form.display_name || "Road user",
+          username,
           county: form.county || null,
           bio: form.bio || null,
           occupation: form.occupation || null,
@@ -95,7 +108,10 @@ function SettingsPage() {
           mjengo_hub_url: form.mjengo_hub_url || null,
         })
         .eq("id", user.id);
-      if (error) throw error;
+      if (error) {
+        if (error.code === "23505") throw new Error("That username is already taken.");
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Profile updated");
@@ -103,6 +119,23 @@ function SettingsPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const profileUrl =
+    typeof window !== "undefined" && form.username
+      ? `${window.location.origin}/u/${form.username}`
+      : "";
+
+  async function copyProfileUrl() {
+    if (!profileUrl) return;
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopied(true);
+      toast.success("Profile link copied");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy the link");
+    }
+  }
 
   if (!user) {
     return (
@@ -140,6 +173,40 @@ function SettingsPage() {
             value={form.display_name}
             onChange={(e) => set({ display_name: e.target.value })}
           />
+        </div>
+        <div>
+          <Label htmlFor="s-username">Username</Label>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">sharebarabara.co.ke/u/</span>
+            <Input
+              id="s-username"
+              value={form.username}
+              onChange={(e) =>
+                set({ username: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })
+              }
+              maxLength={24}
+              className="max-w-[14rem]"
+            />
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            3-24 characters: lowercase letters, numbers and hyphens. Used for your public profile
+            link.
+          </p>
+          {profileUrl ? (
+            <div className="mt-2 flex items-center gap-2">
+              <a href={profileUrl} className="text-sm text-brand-blue underline">
+                {profileUrl.replace(/^https?:\/\//, "")}
+              </a>
+              <button
+                type="button"
+                onClick={copyProfileUrl}
+                aria-label="Copy profile link"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                {copied ? <Check className="size-4 text-safe" /> : <Copy className="size-4" />}
+              </button>
+            </div>
+          ) : null}
         </div>
         <div>
           <Label>County</Label>

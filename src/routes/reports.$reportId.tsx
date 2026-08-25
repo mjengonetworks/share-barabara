@@ -8,11 +8,13 @@ import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { longDate } from "@/lib/format";
+import { PARTIES_INVOLVED } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { UserLink } from "@/components/site/user-link";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
+import { ContentRequestActions } from "@/components/site/content-request-actions";
 
 export const Route = createFileRoute("/reports/$reportId")({
   head: () => ({
@@ -181,6 +183,11 @@ function ReportDetail() {
               pageSlug={report.page_id ? pages[report.page_id]?.slug : undefined}
               pageName={report.page_id ? pages[report.page_id]?.name : undefined}
             />
+            {!report.is_anonymous ? (
+              <span className="ml-1 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
+                {primaryRoleLabel(roleMap[report.user_id])}
+              </span>
+            ) : null}
             {report.reviewed_by ? (
               <>
                 {" · verified & edited by "}
@@ -201,6 +208,14 @@ function ReportDetail() {
             <ShareButtons title={report.title} />
           </div>
 
+          {report.image_url ? (
+            <img
+              src={report.image_url}
+              alt={report.title}
+              className="mt-6 aspect-video w-full rounded-lg border border-border object-cover"
+            />
+          ) : null}
+
           <div className="mt-6 grid grid-cols-3 gap-4">
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
               <p className="font-display text-2xl font-extrabold">{report.vehicles_involved}</p>
@@ -220,6 +235,16 @@ function ReportDetail() {
             </div>
           </div>
 
+          {report.parties_involved.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {report.parties_involved.map((p) => (
+                <span key={p} className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">
+                  {PARTIES_INVOLVED.find((x) => x.value === p)?.label ?? p}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
           <div className="mt-6 space-y-4 text-foreground/90">
             {report.description.split("\n\n").map((para, i) => (
               <p key={i}>{para}</p>
@@ -232,6 +257,12 @@ function ReportDetail() {
               {report.editor_note}
             </p>
           ) : null}
+
+          <ContentRequestActions
+            entityType="report"
+            entityId={report.id}
+            ownerId={report.user_id}
+          />
 
           <div className="mt-8">
             <BannerAd />

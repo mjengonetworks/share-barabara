@@ -26,6 +26,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
     title: "",
     summary: "",
     body: "",
+    image_url: "",
     category: "News" as (typeof NEWS_CATEGORIES)[number],
   });
 
@@ -36,6 +37,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         title: form.title,
         summary: form.summary,
         body: form.body,
+        image_url: form.image_url.trim() || null,
         category: form.category,
         slug: slugify(form.title),
         author_id: user.id,
@@ -50,7 +52,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
           ? "Article submitted, an editor will review it before it is published"
           : "Draft saved. Find it on your dashboard when you're ready to submit it.",
       );
-      setForm({ title: "", summary: "", body: "", category: "News" });
+      setForm({ title: "", summary: "", body: "", image_url: "", category: "News" });
       queryClient.invalidateQueries({ queryKey: ["my-articles"] });
       onDone?.();
     },
@@ -95,6 +97,16 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
             ))}
           </SelectContent>
         </Select>
+      </div>
+      <div>
+        <Label htmlFor="a-img">Featured image URL (optional)</Label>
+        <Input
+          id="a-img"
+          type="url"
+          value={form.image_url}
+          onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+          placeholder="https://..."
+        />
       </div>
       <div>
         <Label htmlFor="a-summary">Summary</Label>

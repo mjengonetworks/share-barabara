@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, CarFront, MessageSquare, Newspaper, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,10 +7,13 @@ import { longDate, timeAgo } from "@/lib/format";
 import { levelForStars, badgeForPoints } from "@/lib/gamification";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { StarRatingWidget } from "@/components/site/star-rating";
+import { ShareButtons } from "@/components/site/share-buttons";
 import { Button } from "@/components/ui/button";
 import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
 import { useAuth } from "@/hooks/useAuth";
 import { useContributorScore } from "@/hooks/useContributorScore";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const Route = createFileRoute("/u/$userId")({
   head: () => ({
@@ -33,16 +37,41 @@ export const Route = createFileRoute("/u/$userId")({
 });
 
 function ContributorPage() {
-  const { userId } = Route.useParams();
+  const { userId: routeParam } = Route.useParams();
   const { user: viewer } = useAuth();
+  const navigate = useNavigate();
+
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile", routeParam],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq(UUID_RE.test(routeParam) ? "id" : "username", routeParam)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Canonicalise to the username URL once the profile has loaded, so the
+  // address bar (and therefore ShareButtons) always reflects the username.
+  useEffect(() => {
+    if (profile?.username && profile.username !== routeParam) {
+      navigate({ to: "/u/$userId", params: { userId: profile.username }, replace: true });
+    }
+  }, [profile, routeParam, navigate]);
+
+  const userId = profile?.id;
 
   const { data: subscription } = useQuery({
     queryKey: ["subscription", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("subscriptions")
         .select("active, expires_at")
-        .eq("user_id", userId)
+        .eq("user_id", userId!)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -67,6 +96,7 @@ function ContributorPage() {
   });
   const viewerCanRate =
     !!viewer &&
+    !!userId &&
     viewer.id !== userId &&
     !!viewerSubscription?.active &&
     (!viewerSubscription.expires_at || new Date(viewerSubscription.expires_at) > new Date());
@@ -75,28 +105,16 @@ function ContributorPage() {
   const level = levelForStars(score?.totalStars ?? 0);
   const badge = badgeForPoints(score?.points ?? 0);
 
-  const { data: profile } = useQuery({
-    queryKey: ["profile", userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: roleMap = {} } = useRoleLabels([userId]);
+  const { data: roleMap = {} } = useRoleLabels(userId ? [userId] : []);
 
   const { data: alerts = [] } = useQuery({
     queryKey: ["user-alerts", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", userId!)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -106,11 +124,12 @@ function ContributorPage() {
 
   const { data: submitted = [] } = useQuery({
     queryKey: ["user-reports", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", userId!)
         .order("occurred_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -120,11 +139,12 @@ function ContributorPage() {
 
   const { data: reviewed = [] } = useQuery({
     queryKey: ["user-reviewed", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
         .select("*")
-        .eq("reviewed_by", userId)
+        .eq("reviewed_by", userId!)
         .order("reviewed_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -134,11 +154,12 @@ function ContributorPage() {
 
   const { data: articles = [] } = useQuery({
     queryKey: ["user-articles", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
         .select("id, slug, title, category, published_at")
-        .eq("author_id", userId)
+        .eq("author_id", userId!)
         .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(50);
@@ -149,11 +170,12 @@ function ContributorPage() {
 
   const { data: comments = [] } = useQuery({
     queryKey: ["user-comments", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("comments")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", userId!)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -162,7 +184,18 @@ function ContributorPage() {
   });
 
   const name = profile?.display_name ?? "Road user";
-  const role = primaryRoleLabel(roleMap[userId]);
+  const role = userId ? primaryRoleLabel(roleMap[userId]) : "";
+
+  if (!profileLoading && !profile) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-20">
+        <h1 className="text-2xl font-bold">Profile not found</h1>
+        <Link to="/" className="mt-4 inline-block underline">
+          Back home
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -187,6 +220,9 @@ function ContributorPage() {
         {profile?.county ? `${profile.county} · ` : ""}
         {profile?.created_at ? `Contributing since ${longDate(profile.created_at)}` : ""}
       </p>
+      <div className="mt-3">
+        <ShareButtons title={`${name} on Share Barabara`} />
+      </div>
       {profile?.bio ? <p className="mt-3 max-w-2xl text-foreground/90">{profile.bio}</p> : null}
       {profile?.road_safety_message ? (
         <p className="mt-3 max-w-2xl border-l-4 border-accent pl-4 italic text-muted-foreground">
@@ -245,7 +281,7 @@ function ContributorPage() {
       {viewerCanRate ? (
         <div className="mt-4 flex items-center gap-3">
           <p className="text-sm text-muted-foreground">Rate this contributor:</p>
-          <StarRatingWidget ratedUserId={userId} />
+          <StarRatingWidget ratedUserId={userId!} />
         </div>
       ) : viewer && viewer.id !== userId ? (
         <p className="mt-4 text-xs text-muted-foreground">

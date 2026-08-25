@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export const Route = createFileRoute("/auth")({
+export const Route = createFileRoute("/auth/")({
   head: () => ({
     meta: [
       { title: "Sign in: Share Barabara Kenya" },
@@ -37,6 +37,7 @@ function AuthPage() {
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
     if (user) navigate({ to: "/dashboard", replace: true });
@@ -82,6 +83,24 @@ function AuthPage() {
     // once Supabase completes the exchange — nothing more to do here.
   }
 
+  async function forgotPassword() {
+    if (!email) {
+      toast.error("Enter your email above first");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setResetSent(true);
+    toast.success("Check your email for a password reset link.");
+  }
+
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 lg:grid-cols-2">
       <div>
@@ -90,15 +109,13 @@ function AuthPage() {
         </span>
         <h1 className="mt-5 text-4xl font-extrabold">Your report can save a life</h1>
         <p className="mt-4 max-w-md text-muted-foreground">
-          An account lets you raise hazard alerts from the roadside, file accident reports for your
-          county and take part in the discussion under every news story. Reading the site stays free
-          and open to everyone.
+          Sign in to post hazard alerts, file accident reports, write articles and join the
+          discussion. Reading the site is always free.
         </p>
         <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
-          <li>• Post live hazards: potholes, flooding, crashes, obstructions</li>
-          <li>• File structured accident reports with casualty details</li>
+          <li>• Post hazard alerts and file accident reports</li>
+          <li>• Submit articles for our editors to review</li>
           <li>• Comment on news, alerts and reports</li>
-          <li>• Track and manage everything you have submitted</li>
         </ul>
       </div>
 
@@ -125,7 +142,15 @@ function AuthPage() {
           </p>
         ) : null}
 
-        <form onSubmit={submit} className="mt-6 space-y-4">
+        <Button variant="outline" className="mt-6 w-full" onClick={google}>
+          Continue with Google
+        </Button>
+
+        <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground">
+          <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <form onSubmit={submit} className="space-y-4">
           {mode === "signup" ? (
             <div>
               <Label htmlFor="name">Display name</Label>
@@ -158,18 +183,23 @@ function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          {mode === "signin" ? (
+            resetSent ? (
+              <p className="text-xs text-safe">Reset link sent, check your email.</p>
+            ) : (
+              <button
+                type="button"
+                onClick={forgotPassword}
+                className="text-xs font-semibold text-brand-blue underline"
+              >
+                Forgot your password?
+              </button>
+            )
+          ) : null}
           <Button type="submit" className="w-full" disabled={busy}>
             {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
           </Button>
         </form>
-
-        <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground">
-          <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
-        </div>
-
-        <Button variant="outline" className="w-full" onClick={google}>
-          Continue with Google
-        </Button>
 
         <p className="mt-5 text-xs text-muted-foreground">
           By continuing you agree to keep reports factual. Emergencies always go to 999 or 112

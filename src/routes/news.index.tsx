@@ -49,6 +49,7 @@ type ArticleCard = {
   source: string | null;
   published_at: string;
   featured: boolean;
+  image_url?: string | null;
 };
 
 function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
@@ -59,19 +60,24 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
           key={a.id}
           to="/news/$slug"
           params={{ slug: a.slug }}
-          className="group flex flex-col rounded-lg border border-border bg-card p-6 transition-shadow card-elevated hover:border-accent"
+          className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent"
         >
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-            <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
-            {a.featured ? <span className="text-caution">Featured</span> : null}
+          {a.image_url ? (
+            <img src={a.image_url} alt={a.title} className="aspect-video w-full object-cover" />
+          ) : null}
+          <div className="flex flex-1 flex-col p-6">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+              <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
+              {a.featured ? <span className="text-caution">Featured</span> : null}
+            </div>
+            <h2 className="mt-3 text-xl font-bold text-brand-blue group-hover:underline">
+              {a.title}
+            </h2>
+            <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
+            <p className="mt-4 text-xs text-muted-foreground">
+              {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
+            </p>
           </div>
-          <h2 className="mt-3 text-xl font-bold text-brand-blue group-hover:underline">
-            {a.title}
-          </h2>
-          <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
-          <p className="mt-4 text-xs text-muted-foreground">
-            {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
-          </p>
         </Link>
       ))}
     </div>
@@ -88,7 +94,7 @@ function NewsIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, summary, category, source, published_at, featured")
+        .select("id, slug, title, summary, category, source, published_at, featured, image_url")
         .eq("category", category as string)
         .order("published_at", { ascending: false })
         .limit(50);
@@ -103,7 +109,7 @@ function NewsIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, summary, category, source, published_at, featured")
+        .select("id, slug, title, summary, category, source, published_at, featured, image_url")
         .order("published_at", { ascending: false })
         .limit(3);
       if (error) throw error;
@@ -117,7 +123,7 @@ function NewsIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, summary, category, source, published_at, featured")
+        .select("id, slug, title, summary, category, source, published_at, featured, image_url")
         .eq("featured", true)
         .order("published_at", { ascending: false })
         .limit(3);
@@ -145,7 +151,7 @@ function NewsIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, summary, category, source, published_at, featured")
+        .select("id, slug, title, summary, category, source, published_at, featured, image_url")
         .order("published_at", { ascending: false })
         .limit(50);
       if (error) throw error;

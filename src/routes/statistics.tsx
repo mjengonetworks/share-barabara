@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { HAZARD_TYPES, PARTIES_INVOLVED, REPORT_SEVERITIES } from "@/lib/constants";
 import {
   Area,
   AreaChart,
@@ -63,6 +64,43 @@ function useLiveCount(key: string, table: string, filter?: [string, string]) {
       const { count, error } = await query;
       if (error) throw error;
       return count ?? 0;
+    },
+  });
+}
+
+function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
+  return useQuery({
+    queryKey: ["group-counts", table, column],
+    queryFn: async () => {
+      const { data, error } = await supabase.from(table).select(column);
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as Record<string, string>[];
+      const counts: Record<string, number> = {};
+      for (const row of rows) {
+        const key = row[column];
+        if (key === undefined) continue;
+        counts[key] = (counts[key] ?? 0) + 1;
+      }
+      return counts;
+    },
+  });
+}
+
+function usePartiesCounts() {
+  return useQuery({
+    queryKey: ["group-counts-parties"],
+    queryFn: async () => {
+      const [{ data: alerts, error: e1 }, { data: reports, error: e2 }] = await Promise.all([
+        supabase.from("alerts").select("parties_involved"),
+        supabase.from("accident_reports").select("parties_involved"),
+      ]);
+      if (e1) throw e1;
+      if (e2) throw e2;
+      const counts: Record<string, number> = {};
+      for (const row of [...(alerts ?? []), ...(reports ?? [])]) {
+        for (const p of row.parties_involved ?? []) counts[p] = (counts[p] ?? 0) + 1;
+      }
+      return counts;
     },
   });
 }
@@ -173,6 +211,9 @@ function StatisticsPage() {
     "approved",
   ]);
   const { data: commentsCount } = useLiveCount("comments", "comments");
+  const { data: hazardCounts = {} } = useGroupCounts("alerts", "hazard_type");
+  const { data: reportSeverityCounts = {} } = useGroupCounts("accident_reports", "severity");
+  const { data: partiesCounts = {} } = usePartiesCounts();
 
   const latest = yearly[yearly.length - 1];
   const prev = yearly[yearly.length - 2];
@@ -196,39 +237,103 @@ function StatisticsPage() {
 
       {hubStats.length > 0 ? (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {hubStats.map((s) => (
-            <div key={s.id} className="rounded-lg border border-border bg-card p-6 card-elevated">
-              <p className="font-display text-3xl font-extrabold">{s.value}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
+          {hubStats.map((s) =>
+            s.link_url ? (
+              <a
+                key={s.id}
+                href={s.link_url}
+                target={s.link_url.startsWith("http") ? "_blank" : undefined}
+                rel={s.link_url.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"
+              >
+                <p className="font-display text-3xl font-extrabold">{s.value}</p>
+                <p className="mt-1 text-sm text-brand-blue underline">{s.label}</p>
+              </a>
+            ) : (
+              <div key={s.id} className="rounded-lg border border-border bg-card p-6 card-elevated">
+                <p className="font-display text-3xl font-extrabold">{s.value}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
+              </div>
+            ),
+          )}
         </div>
       ) : null}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+        <Link
+          to="/alerts"
+          className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"
+        >
           <p className="font-display text-3xl font-extrabold text-caution">
             {alertsCount === undefined ? "…" : num(alertsCount)}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">Hazard alerts reported</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <p className="mt-1 text-sm text-brand-blue underline">Hazard alerts reported</p>
+        </Link>
+        <Link
+          to="/reports"
+          className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"
+        >
           <p className="font-display text-3xl font-extrabold">
             {reportsFiledCount === undefined ? "…" : num(reportsFiledCount)}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">Accident reports filed</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <p className="mt-1 text-sm text-brand-blue underline">Accident reports filed</p>
+        </Link>
+        <Link
+          to="/reports"
+          className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"
+        >
           <p className="font-display text-3xl font-extrabold text-safe">
             {reportsApprovedCount === undefined ? "…" : num(reportsApprovedCount)}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">Reports verified & published</p>
-        </div>
+          <p className="mt-1 text-sm text-brand-blue underline">Reports verified &amp; published</p>
+        </Link>
         <div className="rounded-lg border border-border bg-card p-6 card-elevated">
           <p className="font-display text-3xl font-extrabold">
             {commentsCount === undefined ? "…" : num(commentsCount)}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">Community comments</p>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-6 sm:grid-cols-3">
+        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Alerts by hazard type
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {HAZARD_TYPES.map((h) => (
+              <li key={h.value} className="flex items-center justify-between text-sm">
+                <span>{h.label}</span>
+                <span className="font-semibold">{hazardCounts[h.value] ?? 0}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Reports by severity
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {REPORT_SEVERITIES.map((s) => (
+              <li key={s.value} className="flex items-center justify-between text-sm">
+                <span>{s.label}</span>
+                <span className="font-semibold">{reportSeverityCounts[s.value] ?? 0}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Who was involved
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {PARTIES_INVOLVED.map((p) => (
+              <li key={p.value} className="flex items-center justify-between text-sm">
+                <span>{p.label}</span>
+                <span className="font-semibold">{partiesCounts[p.value] ?? 0}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 

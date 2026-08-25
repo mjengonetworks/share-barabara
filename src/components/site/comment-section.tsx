@@ -11,7 +11,7 @@ import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { useVotes } from "@/hooks/useVotes";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
-import { useProfileNames } from "@/lib/profiles";
+import { useProfileNames, useProfileUsernames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { timeAgo } from "@/lib/format";
@@ -51,6 +51,7 @@ export function CommentSection({ entityType, entityId }: Props) {
   });
 
   const { data: names = {} } = useProfileNames(comments.map((c) => c.user_id));
+  const { data: usernames = {} } = useProfileUsernames(comments.map((c) => c.user_id));
   const { data: verified = {} } = useSubscriptionStatuses(comments.map((c) => c.user_id));
   const { data: pages = {} } = usePagesByIds(comments.map((c) => c.page_id));
   const { scores, vote } = useVotes(
@@ -106,6 +107,7 @@ export function CommentSection({ entityType, entityId }: Props) {
               <UserLink
                 userId={c.user_id}
                 name={names[c.user_id]}
+                username={usernames[c.user_id]}
                 verified={c.page_id ? !!pages[c.page_id]?.verified : !!verified[c.user_id]}
                 pageSlug={c.page_id ? pages[c.page_id]?.slug : undefined}
                 pageName={c.page_id ? pages[c.page_id]?.name : undefined}
