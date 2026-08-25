@@ -95,10 +95,7 @@ function ReportsPage() {
             <div>
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold">Latest reports</h2>
-                <a
-                  href="#all-reports"
-                  className="text-sm font-semibold text-accent-foreground underline"
-                >
+                <a href="#all-reports" className="text-sm font-semibold text-brand-blue underline">
                   See all
                 </a>
               </div>
@@ -116,7 +113,9 @@ function ReportsPage() {
                           {timeAgo(r.occurred_at)}
                         </span>
                       </div>
-                      <p className="mt-2 font-semibold hover:underline">{r.title}</p>
+                      <p className="mt-2 font-semibold text-brand-blue hover:underline">
+                        {r.title}
+                      </p>
                       <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                         <MapPin className="size-3" /> {r.county}
                       </p>
@@ -182,7 +181,7 @@ function ReportsPage() {
             </p>
           ) : null}
 
-          <ul className="mt-6 space-y-4">
+          <ul className="mt-6 space-y-6">
             {visible.map((r, i) => (
               <Fragment key={r.id}>
                 {i === 2 ? (
@@ -198,7 +197,9 @@ function ReportsPage() {
                     </span>
                   </div>
                   <Link to="/reports/$reportId" params={{ reportId: r.id }} className="group">
-                    <h2 className="mt-3 text-lg font-bold group-hover:underline">{r.title}</h2>
+                    <h2 className="mt-3 text-lg font-bold text-brand-blue group-hover:underline">
+                      {r.title}
+                    </h2>
                   </Link>
                   <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="size-4" /> {r.county}
@@ -254,7 +255,7 @@ function ReportsPage() {
                     <Link
                       to="/reports/$reportId"
                       params={{ reportId: r.id }}
-                      className="text-sm font-semibold text-accent-foreground underline"
+                      className="text-sm font-semibold text-brand-blue underline"
                     >
                       Read more
                     </Link>

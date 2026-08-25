@@ -286,7 +286,7 @@ function ContributorPage() {
                   <Link
                     to="/reports/$reportId"
                     params={{ reportId: r.id }}
-                    className="font-semibold hover:underline"
+                    className="font-semibold text-brand-blue hover:underline"
                   >
                     {r.title}
                   </Link>
@@ -321,7 +321,7 @@ function ContributorPage() {
                   <Link
                     to="/news/$slug"
                     params={{ slug: a.slug }}
-                    className="font-semibold hover:underline"
+                    className="font-semibold text-brand-blue hover:underline"
                   >
                     {a.title}
                   </Link>
@@ -363,7 +363,13 @@ function ContributorPage() {
               <li key={a.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={a.severity} />
-                  <span className="font-semibold">{a.title}</span>
+                  <Link
+                    to="/alerts/$alertId"
+                    params={{ alertId: a.id }}
+                    className="font-semibold text-brand-blue hover:underline"
+                  >
+                    {a.title}
+                  </Link>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {timeAgo(a.created_at)}
                   </span>

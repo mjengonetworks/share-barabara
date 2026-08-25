@@ -31,13 +31,13 @@ type RelatedReport = { id: string; title: string; severity: string; county: stri
 
 function ReportList({ reports }: { reports: RelatedReport[] }) {
   return (
-    <ul className="mt-3 space-y-2">
+    <ul className="mt-3 space-y-3">
       {reports.map((r) => (
         <li key={r.id}>
           <Link
             to="/reports/$reportId"
             params={{ reportId: r.id }}
-            className="text-sm hover:underline"
+            className="text-sm text-brand-blue hover:underline"
           >
             {r.title}
           </Link>
@@ -246,6 +246,12 @@ function ReportDetail() {
                 More from {report.county}
               </h2>
               <ReportList reports={related} />
+              <Link
+                to="/reports"
+                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
+              >
+                Read more
+              </Link>
             </div>
           ) : null}
           {latest.length > 0 ? (
@@ -254,6 +260,12 @@ function ReportDetail() {
                 Latest reports
               </h2>
               <ReportList reports={latest} />
+              <Link
+                to="/reports"
+                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
+              >
+                Read more
+              </Link>
             </div>
           ) : null}
         </aside>

@@ -65,7 +65,9 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
             <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
             {a.featured ? <span className="text-caution">Featured</span> : null}
           </div>
-          <h2 className="mt-3 text-xl font-bold group-hover:underline">{a.title}</h2>
+          <h2 className="mt-3 text-xl font-bold text-brand-blue group-hover:underline">
+            {a.title}
+          </h2>
           <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
           <p className="mt-4 text-xs text-muted-foreground">
             {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
@@ -172,7 +174,7 @@ function NewsIndex() {
           <>
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-2xl font-bold">{category}</h2>
-              <Link to="/news" className="text-sm font-semibold text-accent-foreground underline">
+              <Link to="/news" className="text-sm font-semibold text-brand-blue underline">
                 All news
               </Link>
             </div>
@@ -191,10 +193,7 @@ function NewsIndex() {
           <>
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-2xl font-bold">Latest news</h2>
-              <a
-                href="#all-articles"
-                className="text-sm font-semibold text-accent-foreground underline"
-              >
+              <a href="#all-articles" className="text-sm font-semibold text-brand-blue underline">
                 Read more
               </a>
             </div>
@@ -226,7 +225,7 @@ function NewsIndex() {
                   </h2>
                   <a
                     href="#all-articles"
-                    className="text-sm font-semibold text-accent-foreground underline"
+                    className="text-sm font-semibold text-brand-blue underline"
                   >
                     Read more
                   </a>
@@ -245,7 +244,7 @@ function NewsIndex() {
                   </h2>
                   <a
                     href="#all-articles"
-                    className="text-sm font-semibold text-accent-foreground underline"
+                    className="text-sm font-semibold text-brand-blue underline"
                   >
                     Read more
                   </a>

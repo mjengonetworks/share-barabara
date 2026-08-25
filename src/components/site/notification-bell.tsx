@@ -31,7 +31,7 @@ export function NotificationBell() {
             <p className="text-sm font-semibold">Notifications</p>
             <Link
               to="/notifications"
-              className="text-xs text-accent-foreground underline"
+              className="text-xs text-brand-blue underline"
               onClick={() => setOpen(false)}
             >
               See all

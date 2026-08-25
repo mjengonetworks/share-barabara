@@ -30,10 +30,14 @@ type RelatedArticle = { id: string; slug: string; title: string; category: strin
 
 function ArticleList({ articles }: { articles: RelatedArticle[] }) {
   return (
-    <ul className="mt-3 space-y-2">
+    <ul className="mt-3 space-y-3">
       {articles.map((a) => (
         <li key={a.id}>
-          <Link to="/news/$slug" params={{ slug: a.slug }} className="text-sm hover:underline">
+          <Link
+            to="/news/$slug"
+            params={{ slug: a.slug }}
+            className="text-sm text-brand-blue hover:underline"
+          >
             {a.title}
           </Link>
         </li>
@@ -100,7 +104,10 @@ function NewsDetail() {
     queryKey: ["news-trending-sidebar", article?.id],
     enabled: !!article,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("trending_news", { hours_back: 48, result_limit: 6 });
+      const { data, error } = await supabase.rpc("trending_news", {
+        hours_back: 48,
+        result_limit: 6,
+      });
       if (error) throw error;
       return (data ?? []).filter((n) => n.id !== article!.id).slice(0, 5);
     },
@@ -160,7 +167,9 @@ function NewsDetail() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tags</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Tags
+            </span>
             <Link
               to="/news"
               search={{ category: article.category }}
@@ -183,6 +192,13 @@ function NewsDetail() {
                 Related articles
               </h2>
               <ArticleList articles={related} />
+              <Link
+                to="/news"
+                search={{ category: article.category }}
+                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
+              >
+                Read more
+              </Link>
             </div>
           ) : null}
           {latest.length > 0 ? (
@@ -191,6 +207,12 @@ function NewsDetail() {
                 Latest articles
               </h2>
               <ArticleList articles={latest} />
+              <Link
+                to="/news"
+                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
+              >
+                Read more
+              </Link>
             </div>
           ) : null}
           {trending.length > 0 ? (
@@ -199,6 +221,12 @@ function NewsDetail() {
                 <Flame className="size-4 text-destructive" /> Trending
               </h2>
               <ArticleList articles={trending} />
+              <Link
+                to="/news"
+                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
+              >
+                Read more
+              </Link>
             </div>
           ) : null}
         </aside>

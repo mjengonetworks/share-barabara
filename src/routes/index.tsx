@@ -172,7 +172,7 @@ function Index() {
             </Button>
             <Link
               to="/alerts"
-              className="self-center text-sm font-semibold text-accent-foreground underline"
+              className="self-center text-sm font-semibold text-brand-blue underline"
             >
               Read more
             </Link>
@@ -199,7 +199,11 @@ function Index() {
                     {timeAgo(a.created_at)}
                   </span>
                 </div>
-                <h3 className="mt-3 font-bold">{a.title}</h3>
+                <Link to="/alerts/$alertId" params={{ alertId: a.id }} className="group">
+                  <h3 className="mt-3 font-bold text-brand-blue group-hover:underline">
+                    {a.title}
+                  </h3>
+                </Link>
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="size-4" /> {a.county}
                   {a.road ? ` · ${a.road}` : ""}
@@ -214,7 +218,7 @@ function Index() {
         <div className="mx-auto max-w-6xl px-4 py-10">
           <div className="flex items-end justify-between gap-4">
             <h2 className="text-3xl font-bold">Road safety news</h2>
-            <Link to="/news" className="text-sm font-semibold text-accent-foreground underline">
+            <Link to="/news" className="text-sm font-semibold text-brand-blue underline">
               Read more
             </Link>
           </div>
@@ -252,7 +256,7 @@ function Index() {
             </Button>
             <Link
               to="/reports"
-              className="self-center text-sm font-semibold text-accent-foreground underline"
+              className="self-center text-sm font-semibold text-brand-blue underline"
             >
               Read more
             </Link>
@@ -428,7 +432,7 @@ function PreviewCard({
       <Link
         to={to}
         {...(search ? { search } : {})}
-        className="mt-3 inline-block text-sm font-semibold text-accent-foreground underline"
+        className="mt-3 inline-block text-sm font-semibold text-brand-blue underline"
       >
         {cta}
       </Link>

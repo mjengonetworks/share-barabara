@@ -125,7 +125,11 @@ function RoadProfilePage() {
               <li key={a.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={a.severity} />
-                  <Link to="/alerts" className="font-semibold hover:underline">
+                  <Link
+                    to="/alerts/$alertId"
+                    params={{ alertId: a.id }}
+                    className="font-semibold text-brand-blue hover:underline"
+                  >
                     {a.title}
                   </Link>
                   <span className="ml-auto text-xs text-muted-foreground">
@@ -153,7 +157,7 @@ function RoadProfilePage() {
                   <Link
                     to="/reports/$reportId"
                     params={{ reportId: r.id }}
-                    className="font-semibold hover:underline"
+                    className="font-semibold text-brand-blue hover:underline"
                   >
                     {r.title}
                   </Link>

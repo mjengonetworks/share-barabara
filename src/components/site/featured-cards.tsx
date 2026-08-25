@@ -46,7 +46,7 @@ export function FeaturedProfileCard({
       <Link
         to="/u/$userId"
         params={{ userId: profile.id }}
-        className="mt-4 inline-block text-sm font-semibold text-accent-foreground underline"
+        className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
       >
         View full profile
       </Link>
@@ -105,7 +105,7 @@ export function FeaturedPageCard({
       <Link
         to="/pages/$slug"
         params={{ slug: page.slug }}
-        className="mt-4 inline-block text-sm font-semibold text-accent-foreground underline"
+        className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
       >
         View page
       </Link>

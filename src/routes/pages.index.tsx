@@ -119,7 +119,7 @@ function PagesIndex() {
                 <Building2 className="size-5" />
               </span>
               <div>
-                <p className="flex items-center gap-1 font-bold group-hover:underline">
+                <p className="flex items-center gap-1 font-bold text-brand-blue group-hover:underline">
                   {p.name}
                   {p.verified ? (
                     <BadgeCheck className="size-4 text-accent" aria-label="Verified page" />

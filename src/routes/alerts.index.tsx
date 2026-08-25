@@ -26,7 +26,7 @@ import { AlertForm } from "@/components/site/alert-form";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 
-export const Route = createFileRoute("/alerts")({
+export const Route = createFileRoute("/alerts/")({
   head: () => ({
     meta: [
       { title: "Live Road Hazard Alerts in Kenya: Share Barabara" },
@@ -101,29 +101,31 @@ function AlertsPage() {
             <div>
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold">Latest alerts</h2>
-                <a
-                  href="#all-alerts"
-                  className="text-sm font-semibold text-accent-foreground underline"
-                >
+                <a href="#all-alerts" className="text-sm font-semibold text-brand-blue underline">
                   See all
                 </a>
               </div>
               <ul className="mt-5 grid gap-4 sm:grid-cols-3">
                 {latest.map((a) => (
-                  <li
-                    key={a.id}
-                    className="rounded-lg border border-border bg-card p-4 card-elevated"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <SeverityBadge value={a.severity} />
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {timeAgo(a.created_at)}
-                      </span>
-                    </div>
-                    <p className="mt-2 font-semibold">{a.title}</p>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="size-3" /> {a.county}
-                    </p>
+                  <li key={a.id}>
+                    <Link
+                      to="/alerts/$alertId"
+                      params={{ alertId: a.id }}
+                      className="block rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <SeverityBadge value={a.severity} />
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {timeAgo(a.created_at)}
+                        </span>
+                      </div>
+                      <p className="mt-2 font-semibold text-brand-blue hover:underline">
+                        {a.title}
+                      </p>
+                      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="size-3" /> {a.county}
+                      </p>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -185,7 +187,7 @@ function AlertsPage() {
             </p>
           ) : null}
 
-          <ul className="mt-6 space-y-4">
+          <ul className="mt-6 space-y-6">
             {visible.map((a, i) => (
               <Fragment key={a.id}>
                 {i === 2 ? (
@@ -207,7 +209,11 @@ function AlertsPage() {
                       {timeAgo(a.created_at)}
                     </span>
                   </div>
-                  <h2 className="mt-3 text-lg font-bold">{a.title}</h2>
+                  <Link to="/alerts/$alertId" params={{ alertId: a.id }} className="group">
+                    <h2 className="mt-3 text-lg font-bold text-brand-blue group-hover:underline">
+                      {a.title}
+                    </h2>
+                  </Link>
                   <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="size-4" /> {a.county}
                     {a.road ? (
@@ -247,11 +253,18 @@ function AlertsPage() {
                       onVote={(v) => vote(a.id, v)}
                     />
                     <button
-                      className="text-sm font-semibold text-accent-foreground underline"
+                      className="text-sm font-semibold text-brand-blue underline"
                       onClick={() => setOpenId(openId === a.id ? null : a.id)}
                     >
                       {openId === a.id ? "Hide discussion" : "Discussion"}
                     </button>
+                    <Link
+                      to="/alerts/$alertId"
+                      params={{ alertId: a.id }}
+                      className="text-sm font-semibold text-brand-blue underline"
+                    >
+                      Read more
+                    </Link>
                   </div>
                   {openId === a.id ? <CommentSection entityType="alert" entityId={a.id} /> : null}
                 </li>

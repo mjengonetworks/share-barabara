@@ -195,7 +195,13 @@ function DashboardPage() {
               <li key={a.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <SeverityBadge value={a.severity} />
-                  <span className="font-semibold">{a.title}</span>
+                  <Link
+                    to="/alerts/$alertId"
+                    params={{ alertId: a.id }}
+                    className="font-semibold text-brand-blue hover:underline"
+                  >
+                    {a.title}
+                  </Link>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {timeAgo(a.created_at)}
                   </span>
@@ -223,7 +229,7 @@ function DashboardPage() {
                   <Link
                     to="/reports/$reportId"
                     params={{ reportId: r.id }}
-                    className="font-semibold hover:underline"
+                    className="font-semibold text-brand-blue hover:underline"
                   >
                     {r.title}
                   </Link>
@@ -308,7 +314,7 @@ function DashboardPage() {
                   <Link
                     to="/pages/$slug"
                     params={{ slug: p.slug }}
-                    className="font-semibold hover:underline"
+                    className="font-semibold text-brand-blue hover:underline"
                   >
                     {p.name}
                   </Link>
