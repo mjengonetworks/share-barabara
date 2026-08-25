@@ -61,8 +61,8 @@ type ArticleDraft = {
 
 function ModeratePage() {
   const { user } = useAuth();
-  const { canReview, canPublishArticles, isLoading: rolesLoading } = useRoles();
-  const [content, setContent] = useState<"reports" | "articles">("reports");
+  const { canReview, canPublishArticles, isAdmin, isLoading: rolesLoading } = useRoles();
+  const [content, setContent] = useState<"reports" | "articles" | "featured">("reports");
 
   if (rolesLoading) return <div className="mx-auto max-w-5xl px-4 py-10">Checking access…</div>;
 
@@ -71,8 +71,8 @@ function ModeratePage() {
       <div className="mx-auto max-w-5xl px-4 py-10">
         <h1 className="text-3xl font-extrabold">Review queue</h1>
         <p className="mt-3 text-muted-foreground">
-          This area is for moderators, editors and admins. If you should have access,
-          ask an admin to grant you the moderator role.
+          This area is for moderators, editors and admins. If you should have access, ask an admin
+          to grant you the moderator role.
         </p>
       </div>
     );
@@ -85,12 +85,15 @@ function ModeratePage() {
       </p>
       <h1 className="mt-2 text-4xl font-extrabold">Review queue</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Edit submissions for accuracy and clarity, then approve them. Published content
-        is a collaboration between the person who submitted it and you.
+        Edit submissions for accuracy and clarity, then approve them. Published content is a
+        collaboration between the person who submitted it and you.
       </p>
 
       <div className="mt-6 flex gap-2">
-        {(["reports", "articles"] as const).map((c) => (
+        {(isAdmin
+          ? (["reports", "articles", "featured"] as const)
+          : (["reports", "articles"] as const)
+        ).map((c) => (
           <Button
             key={c}
             variant={content === c ? "default" : "outline"}
@@ -104,9 +107,127 @@ function ModeratePage() {
 
       {content === "reports" ? (
         <ReportsQueue userId={user?.id} />
-      ) : (
+      ) : content === "articles" ? (
         <ArticlesQueue userId={user?.id} canPublishArticles={canPublishArticles} />
+      ) : (
+        <FeaturedPicksAdmin />
       )}
+    </div>
+  );
+}
+
+const FEATURED_SLOTS = [
+  { slot: "home_profile", label: "Home: featured profile", kind: "profile" as const },
+  { slot: "home_page", label: "Home: featured page", kind: "page" as const },
+  { slot: "campaigns_profile", label: "Campaigns: featured profile", kind: "profile" as const },
+  { slot: "campaigns_page", label: "Campaigns: featured page", kind: "page" as const },
+];
+
+function FeaturedPicksAdmin() {
+  const queryClient = useQueryClient();
+
+  const { data: picks = [], isLoading } = useQuery({
+    queryKey: ["featured-picks-admin"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("featured_picks").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: subscribers = [] } = useQuery({
+    queryKey: ["subscribers-brief"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("user_id")
+        .eq("active", true);
+      if (error) throw error;
+      return data.map((s) => s.user_id);
+    },
+  });
+  const { data: subscriberNames = {} } = useProfileNames(subscribers);
+
+  const { data: pages = [] } = useQuery({
+    queryKey: ["pages-brief"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("pages").select("id, name").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const set = useMutation({
+    mutationFn: async ({
+      slot,
+      userId,
+      pageId,
+    }: {
+      slot: string;
+      userId: string | null;
+      pageId: string | null;
+    }) => {
+      const { error } = await supabase
+        .from("featured_picks")
+        .update({ user_id: userId, page_id: pageId })
+        .eq("slot", slot);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Featured pick updated");
+      queryClient.invalidateQueries({ queryKey: ["featured-picks-admin"] });
+      queryClient.invalidateQueries({ queryKey: ["featured-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["featured-page"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) return <p className="mt-8 text-muted-foreground">Loading…</p>;
+
+  return (
+    <div className="mt-8 space-y-6">
+      <p className="max-w-2xl text-sm text-muted-foreground">
+        Pin a specific contributor or page to a slot. Leave it unset and the site picks randomly
+        (but stably for the day) from subscribed members and verified pages.
+      </p>
+      {FEATURED_SLOTS.map(({ slot, label, kind }) => {
+        const pick = picks.find((p) => p.slot === slot);
+        const value =
+          kind === "profile" ? (pick?.user_id ?? "random") : (pick?.page_id ?? "random");
+        return (
+          <div key={slot} className="rounded-lg border border-border bg-card p-4">
+            <Label>{label}</Label>
+            <Select
+              value={value}
+              onValueChange={(v) =>
+                set.mutate(
+                  kind === "profile"
+                    ? { slot, userId: v === "random" ? null : v, pageId: null }
+                    : { slot, userId: null, pageId: v === "random" ? null : v },
+                )
+              }
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="random">Random (default)</SelectItem>
+                {kind === "profile"
+                  ? subscribers.map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {subscriberNames[id] ?? id}
+                      </SelectItem>
+                    ))
+                  : pages.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -218,10 +339,14 @@ function ReportsQueue({ userId }: { userId: string | undefined }) {
                   <div>
                     <Label>County</Label>
                     <Select value={d.county} onValueChange={(v) => set({ county: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent className="max-h-64">
                         {KENYA_COUNTIES.map((c) => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -237,10 +362,14 @@ function ReportsQueue({ userId }: { userId: string | undefined }) {
                   <div>
                     <Label>Severity</Label>
                     <Select value={d.severity} onValueChange={(v) => set({ severity: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         {REPORT_SEVERITIES.map((s) => (
-                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          <SelectItem key={s.value} value={s.value}>
+                            {s.label}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -415,8 +544,8 @@ function ArticlesQueue({
 
       {!canPublishArticles ? (
         <p className="mt-4 rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          Moderators can see the article queue but only editors and admins can publish
-          or reject an article.
+          Moderators can see the article queue but only editors and admins can publish or reject an
+          article.
         </p>
       ) : null}
 
@@ -442,7 +571,9 @@ function ArticlesQueue({
             <li key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
               <p className="text-xs text-muted-foreground">
                 {a.author_id ? (
-                  <>Submitted by <UserLink userId={a.author_id} name={names[a.author_id]} /> · </>
+                  <>
+                    Submitted by <UserLink userId={a.author_id} name={names[a.author_id]} /> ·{" "}
+                  </>
                 ) : null}
                 {longDate(a.created_at)}
               </p>
@@ -460,10 +591,14 @@ function ArticlesQueue({
                   <div>
                     <Label>Category</Label>
                     <Select value={d.category} onValueChange={(v) => set({ category: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         {NEWS_CATEGORIES.map((c) => (
-                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

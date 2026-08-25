@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { KENYA_COUNTIES, REPORT_SEVERITIES } from "@/lib/constants";
 import { matchOrCreateRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
@@ -22,6 +24,8 @@ import { LocationButton } from "@/components/site/location-button";
 export function ReportForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { identity } = useActiveIdentity();
+  const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -45,12 +49,15 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         road_id,
         occurred_at: new Date(form.occurred_at).toISOString(),
         user_id: user.id,
+        page_id: identity.type === "page" ? identity.pageId : null,
+        is_anonymous: identity.type === "profile" && anonymous,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Report submitted for review, an editor will verify it before it is published");
       setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
+      setAnonymous(false);
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       onDone?.();
     },
@@ -80,10 +87,14 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         <div>
           <Label>County</Label>
           <Select value={form.county} onValueChange={(v) => setForm({ ...form, county: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent className="max-h-64">
               {KENYA_COUNTIES.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -113,10 +124,14 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         <div>
           <Label>Severity</Label>
           <Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {REPORT_SEVERITIES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -166,9 +181,15 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         />
       </div>
       <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-        Reports are reviewed and may be edited for accuracy by a moderator or editor
-        before they appear publicly. Published reports credit both of you.
+        Reports are reviewed and may be edited for accuracy by a moderator or editor before they
+        appear publicly. Published reports credit both of you.
       </p>
+      {identity.type === "profile" ? (
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Checkbox checked={anonymous} onCheckedChange={(v) => setAnonymous(v === true)} />
+          Submit anonymously
+        </label>
+      ) : null}
       <Button type="submit" disabled={submit.isPending}>
         {submit.isPending ? "Submitting…" : "Submit report for review"}
       </Button>

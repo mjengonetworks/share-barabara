@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { HAZARD_TYPES, KENYA_COUNTIES, SEVERITIES } from "@/lib/constants";
 import { matchOrCreateRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
@@ -22,6 +24,8 @@ import { LocationButton } from "@/components/site/location-button";
 export function AlertForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { identity } = useActiveIdentity();
+  const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -37,14 +41,19 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
       const road_id = await matchOrCreateRoad(form.road, form.county);
-      const { error } = await supabase
-        .from("alerts")
-        .insert({ ...form, road_id, user_id: user.id });
+      const { error } = await supabase.from("alerts").insert({
+        ...form,
+        road_id,
+        user_id: user.id,
+        page_id: identity.type === "page" ? identity.pageId : null,
+        is_anonymous: identity.type === "profile" && anonymous,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Alert published, thank you");
       setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
+      setAnonymous(false);
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
       onDone?.();
     },
@@ -74,10 +83,14 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         <div>
           <Label>County</Label>
           <Select value={form.county} onValueChange={(v) => setForm({ ...form, county: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent className="max-h-64">
               {KENYA_COUNTIES.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -96,10 +109,14 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
             value={form.hazard_type}
             onValueChange={(v) => setForm({ ...form, hazard_type: v })}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {HAZARD_TYPES.map((h) => (
-                <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>
+                <SelectItem key={h.value} value={h.value}>
+                  {h.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -107,10 +124,14 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         <div>
           <Label>Severity</Label>
           <Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {SEVERITIES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -127,6 +148,12 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
           placeholder="Direction of travel, how long the hazard has been there, whether emergency services are on scene."
         />
       </div>
+      {identity.type === "profile" ? (
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Checkbox checked={anonymous} onCheckedChange={(v) => setAnonymous(v === true)} />
+          Post anonymously
+        </label>
+      ) : null}
       <Button type="submit" disabled={submit.isPending}>
         {submit.isPending ? "Publishing…" : "Publish alert"}
       </Button>

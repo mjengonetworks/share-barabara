@@ -17,9 +17,10 @@ import { useProfileNames } from "@/lib/profiles";
 import { useVotes } from "@/hooks/useVotes";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
+import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { VoteButtons } from "@/components/site/vote-buttons";
-import { longDate } from "@/lib/format";
-import { KENYA_COUNTIES } from "@/lib/constants";
+import { longDate, timeAgo } from "@/lib/format";
+import { KENYA_COUNTIES, REPORT_SEVERITIES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/reports")({
 function ReportsPage() {
   const { user } = useAuth();
   const [county, setCounty] = useState("all");
+  const [severity, setSeverity] = useState("all");
   const [openId, setOpenId] = useState<string | null>(null);
 
   const { data: reports = [], isLoading } = useQuery({
@@ -67,13 +69,18 @@ function ReportsPage() {
   const people = reports.flatMap((r) => [r.user_id, r.reviewed_by].filter(Boolean) as string[]);
   const { data: names = {} } = useProfileNames(people);
   const { data: verified = {} } = useSubscriptionStatuses(people);
+  const { data: pages = {} } = usePagesByIds(reports.map((r) => r.page_id));
   const { data: roleMap = {} } = useRoleLabels(people);
   const { data: roadMap = {} } = useRoadsByIds(reports.map((r) => r.road_id));
   const { scores, vote } = useVotes(
     "report",
     reports.map((r) => r.id),
   );
-  const visible = reports.filter((r) => county === "all" || r.county === county);
+  const visible = reports.filter(
+    (r) =>
+      (county === "all" || r.county === county) && (severity === "all" || r.severity === severity),
+  );
+  const latest = reports.slice(0, 3);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -88,19 +95,86 @@ function ReportsPage() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
-          <Select value={county} onValueChange={setCounty}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-64">
-              <SelectItem value="all">All counties</SelectItem>
-              {KENYA_COUNTIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
+          {latest.length > 0 ? (
+            <div>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-2xl font-bold">Latest reports</h2>
+                <a
+                  href="#all-reports"
+                  className="text-sm font-semibold text-accent-foreground underline"
+                >
+                  See all
+                </a>
+              </div>
+              <ul className="mt-5 grid gap-4 sm:grid-cols-3">
+                {latest.map((r) => (
+                  <li
+                    key={r.id}
+                    className="rounded-lg border border-border bg-card p-4 card-elevated"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <SeverityBadge value={r.severity} />
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {timeAgo(r.occurred_at)}
+                      </span>
+                    </div>
+                    <p className="mt-2 font-semibold">{r.title}</p>
+                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="size-3" /> {r.county}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <div className="mt-12">
+            <h2 className="text-lg font-bold text-muted-foreground">Browse by severity</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => setSeverity("all")}
+                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                  severity === "all"
+                    ? "border-accent bg-accent/15 text-accent-foreground"
+                    : "border-border bg-card hover:border-accent hover:text-accent-foreground"
+                }`}
+              >
+                All severities
+              </button>
+              {REPORT_SEVERITIES.map((s) => (
+                <button
+                  key={s.value}
+                  onClick={() => setSeverity(s.value)}
+                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    severity === s.value
+                      ? "border-accent bg-accent/15 text-accent-foreground"
+                      : "border-border bg-card hover:border-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  {s.label}
+                </button>
               ))}
-            </SelectContent>
-          </Select>
+            </div>
+          </div>
+
+          <div id="all-reports" className="mt-12 scroll-mt-24">
+            <h2 className="text-2xl font-bold">All reports</h2>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Select value={county} onValueChange={setCounty}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="all">All counties</SelectItem>
+                {KENYA_COUNTIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {isLoading ? <p className="mt-8 text-muted-foreground">Loading reports…</p> : null}
           {!isLoading && visible.length === 0 ? (
@@ -153,7 +227,10 @@ function ReportsPage() {
                     <UserLink
                       userId={r.user_id}
                       name={names[r.user_id]}
-                      verified={!!verified[r.user_id]}
+                      anonymous={r.is_anonymous}
+                      verified={r.page_id ? !!pages[r.page_id]?.verified : !!verified[r.user_id]}
+                      pageSlug={r.page_id ? pages[r.page_id]?.slug : undefined}
+                      pageName={r.page_id ? pages[r.page_id]?.name : undefined}
                     />
                     {r.reviewed_by ? (
                       <>

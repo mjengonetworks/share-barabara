@@ -17,9 +17,11 @@ export type Database = {
           editor_note: string | null;
           fatalities: number;
           id: string;
+          is_anonymous: boolean;
           latitude: number | null;
           longitude: number | null;
           occurred_at: string;
+          page_id: string | null;
           rejection_reason: string | null;
           reviewed_at: string | null;
           reviewed_by: string | null;
@@ -40,9 +42,11 @@ export type Database = {
           editor_note?: string | null;
           fatalities?: number;
           id?: string;
+          is_anonymous?: boolean;
           latitude?: number | null;
           longitude?: number | null;
           occurred_at?: string;
+          page_id?: string | null;
           rejection_reason?: string | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
@@ -63,9 +67,11 @@ export type Database = {
           editor_note?: string | null;
           fatalities?: number;
           id?: string;
+          is_anonymous?: boolean;
           latitude?: number | null;
           longitude?: number | null;
           occurred_at?: string;
+          page_id?: string | null;
           rejection_reason?: string | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
@@ -87,8 +93,10 @@ export type Database = {
           description: string;
           hazard_type: string;
           id: string;
+          is_anonymous: boolean;
           latitude: number | null;
           longitude: number | null;
+          page_id: string | null;
           road: string | null;
           road_id: string | null;
           severity: string;
@@ -103,8 +111,10 @@ export type Database = {
           description: string;
           hazard_type?: string;
           id?: string;
+          is_anonymous?: boolean;
           latitude?: number | null;
           longitude?: number | null;
+          page_id?: string | null;
           road?: string | null;
           road_id?: string | null;
           severity?: string;
@@ -119,8 +129,10 @@ export type Database = {
           description?: string;
           hazard_type?: string;
           id?: string;
+          is_anonymous?: boolean;
           latitude?: number | null;
           longitude?: number | null;
+          page_id?: string | null;
           road?: string | null;
           road_id?: string | null;
           severity?: string;
@@ -192,6 +204,7 @@ export type Database = {
           entity_id: string;
           entity_type: string;
           id: string;
+          page_id: string | null;
           parent_comment_id: string | null;
           updated_at: string;
           user_id: string;
@@ -202,6 +215,7 @@ export type Database = {
           entity_id: string;
           entity_type: string;
           id?: string;
+          page_id?: string | null;
           parent_comment_id?: string | null;
           updated_at?: string;
           user_id: string;
@@ -212,6 +226,7 @@ export type Database = {
           entity_id?: string;
           entity_type?: string;
           id?: string;
+          page_id?: string | null;
           parent_comment_id?: string | null;
           updated_at?: string;
           user_id?: string;
@@ -245,6 +260,30 @@ export type Database = {
           population?: number | null;
           serious_injuries?: number | null;
           year?: number;
+        };
+        Relationships: [];
+      };
+      featured_picks: {
+        Row: {
+          page_id: string | null;
+          slot: string;
+          updated_at: string;
+          updated_by: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          page_id?: string | null;
+          slot: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          page_id?: string | null;
+          slot?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          user_id?: string | null;
         };
         Relationships: [];
       };
@@ -347,6 +386,7 @@ export type Database = {
           featured: boolean;
           id: string;
           image_url: string | null;
+          page_id: string | null;
           published_at: string;
           reviewed_at: string | null;
           reviewed_by: string | null;
@@ -365,6 +405,7 @@ export type Database = {
           featured?: boolean;
           id?: string;
           image_url?: string | null;
+          page_id?: string | null;
           published_at?: string;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
@@ -383,6 +424,7 @@ export type Database = {
           featured?: boolean;
           id?: string;
           image_url?: string | null;
+          page_id?: string | null;
           published_at?: string;
           reviewed_at?: string | null;
           reviewed_by?: string | null;

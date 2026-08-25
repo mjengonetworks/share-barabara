@@ -1,20 +1,33 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { CircleUserRound, LayoutDashboard, LogOut, Menu, UserCog, X } from "lucide-react";
+import {
+  Building2,
+  CircleUserRound,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  UserCog,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import logoUrl from "@/assets/share-barabara-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { NotificationBell } from "@/components/site/notification-bell";
 import { SubscribeButton } from "@/components/site/subscribe-button";
+import { HeaderSearch } from "@/components/site/header-search";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -34,6 +47,7 @@ export function SiteHeader() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const { identity, setIdentity, myPages, activePage } = useActiveIdentity();
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -49,13 +63,13 @@ export function SiteHeader() {
           <img src={logoUrl} alt="Share Barabara" className="h-14 w-auto sm:h-16" />
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-1 md:flex">
+        <nav className="ml-auto hidden items-center gap-1 overflow-x-auto md:flex">
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               activeOptions={{ exact: item.to === "/" }}
-              className="rounded px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="whitespace-nowrap rounded px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               activeProps={{ className: "text-foreground" }}
             >
               {item.label}
@@ -64,6 +78,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
+          <HeaderSearch />
           {user ? (
             <>
               <SubscribeButton />
@@ -72,12 +87,38 @@ export function SiteHeader() {
                 <DropdownMenuTrigger asChild>
                   <button
                     aria-label="Profile menu"
+                    title={
+                      activePage ? `Browsing as ${activePage.name}` : "Browsing as your profile"
+                    }
                     className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-foreground"
                   >
-                    <CircleUserRound className="size-5" />
+                    {activePage ? (
+                      <Building2 className="size-5" />
+                    ) : (
+                      <CircleUserRound className="size-5" />
+                    )}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Browsing as</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={identity.type === "page" ? identity.pageId : "profile"}
+                    onValueChange={(v) =>
+                      setIdentity(
+                        v === "profile" ? { type: "profile" } : { type: "page", pageId: v },
+                      )
+                    }
+                  >
+                    <DropdownMenuRadioItem value="profile">
+                      <CircleUserRound className="mr-2 size-4" /> Your profile
+                    </DropdownMenuRadioItem>
+                    {myPages.map((p) => (
+                      <DropdownMenuRadioItem key={p.id} value={p.id}>
+                        <Building2 className="mr-2 size-4" /> {p.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/u/$userId" params={{ userId: user.id }}>
                       <CircleUserRound className="mr-2 size-4" /> My profile

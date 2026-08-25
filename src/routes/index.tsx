@@ -19,6 +19,7 @@ import { SeverityBadge } from "@/components/site/severity-badge";
 import { BannerAd } from "@/components/site/banner-ad";
 import { SearchBar } from "@/components/site/search-bar";
 import { QuoteOfTheDay } from "@/components/site/quote-of-the-day";
+import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -137,7 +138,7 @@ function Index() {
           <h1 className="mt-4 max-w-3xl font-display text-5xl font-extrabold leading-tight sm:text-6xl">
             Every journey home should end at home.
           </h1>
-          <p className="mt-4 max-w-xl text-lg text-muted-foreground">
+          <p className="mt-4 max-w-xl text-[12.6px] text-muted-foreground lg:max-w-3xl">
             Share Barabara brings together live hazard alerts, crash data and road safety news from
             across Kenya's 47 counties, reported by the people who use these roads every day.
           </p>
@@ -340,6 +341,13 @@ function Index() {
 
       <section className="mx-auto max-w-6xl px-4 py-6">
         <BannerAd />
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <FeaturedProfileCard slot="home_profile" />
+          <FeaturedPageCard slot="home_page" />
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10">

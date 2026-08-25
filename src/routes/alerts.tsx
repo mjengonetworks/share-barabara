@@ -16,6 +16,7 @@ import { useProfileNames } from "@/lib/profiles";
 import { useVotes } from "@/hooks/useVotes";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
+import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { timeAgo } from "@/lib/format";
 import { HAZARD_TYPES, KENYA_COUNTIES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
@@ -66,6 +67,7 @@ function AlertsPage() {
 
   const { data: names = {} } = useProfileNames(alerts.map((a) => a.user_id));
   const { data: verified = {} } = useSubscriptionStatuses(alerts.map((a) => a.user_id));
+  const { data: pages = {} } = usePagesByIds(alerts.map((a) => a.page_id));
   const { data: roadMap = {} } = useRoadsByIds(alerts.map((a) => a.road_id));
   const { scores, vote } = useVotes(
     "alert",
@@ -231,7 +233,10 @@ function AlertsPage() {
                     <UserLink
                       userId={a.user_id}
                       name={names[a.user_id]}
-                      verified={!!verified[a.user_id]}
+                      anonymous={a.is_anonymous}
+                      verified={a.page_id ? !!pages[a.page_id]?.verified : !!verified[a.user_id]}
+                      pageSlug={a.page_id ? pages[a.page_id]?.slug : undefined}
+                      pageName={a.page_id ? pages[a.page_id]?.name : undefined}
                     />
                   </p>
                   <p className="mt-3 text-sm text-foreground/90">{a.description}</p>

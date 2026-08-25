@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HandHeart, Megaphone, PhoneCall, Route as RouteIcon } from "lucide-react";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
+import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -49,6 +50,11 @@ function CampaignsPage() {
           are being planned. Check back here for dates, or follow us on social media for
           announcements.
         </p>
+      </section>
+
+      <section className="mt-10 grid gap-6 lg:grid-cols-2">
+        <FeaturedProfileCard slot="campaigns_profile" />
+        <FeaturedPageCard slot="campaigns_page" />
       </section>
 
       <section id="emergency" className="mt-14 grid scroll-mt-24 gap-8 lg:grid-cols-2">

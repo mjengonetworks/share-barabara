@@ -57,8 +57,9 @@ function PagesIndex() {
           </p>
           <h1 className="mt-2 text-4xl font-extrabold">Pages</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Driving schools, garages, saccos, insurers and advocacy groups working on road safety in
-            Kenya.
+            Companies and organisations on Share Barabara — from driving schools and saccos to
+            brands of any kind. A page works like a profile: it shows up wherever it has contributed
+            alerts, reports, articles or comments.
           </p>
         </div>
         <CreatePageButton signedIn={!!user} />
@@ -150,7 +151,8 @@ function CreatePageButton({ signedIn }: { signedIn: boolean }) {
           <DialogTitle>Create a page</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          For organisations: driving schools, garages, saccos, insurers and advocacy groups.
+          For any organisation, big or small. Once created you can browse the site as your page from
+          the profile menu, so anything you post is credited to it.
         </p>
         <PageForm />
       </DialogContent>

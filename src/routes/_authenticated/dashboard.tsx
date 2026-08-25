@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +7,14 @@ import { useRoles } from "@/hooks/useRoles";
 import { timeAgo, longDate } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { Button } from "@/components/ui/button";
+import { PageForm } from "@/components/site/page-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -30,6 +39,7 @@ function DashboardPage() {
   const { user } = useAuth();
   const { canReview } = useRoles();
   const userId = user?.id;
+  const [creatingPage, setCreatingPage] = useState(false);
 
   const { data: profile } = useQuery({
     enabled: !!userId,
@@ -153,9 +163,21 @@ function DashboardPage() {
         <Button asChild variant="outline">
           <Link to="/news">Write an article</Link>
         </Button>
-        <Button asChild variant="outline">
-          <Link to="/pages">Create a page</Link>
-        </Button>
+        <Dialog open={creatingPage} onOpenChange={setCreatingPage}>
+          <DialogTrigger asChild>
+            <Button variant="outline">Create a page</Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Create a page</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              For any company or organisation. Once created, switch to it from the profile menu to
+              post, write and comment as it.
+            </p>
+            <PageForm onDone={() => setCreatingPage(false)} />
+          </DialogContent>
+        </Dialog>
         {canReview ? (
           <Button asChild variant="secondary">
             <Link to="/moderate">Review queue</Link>

@@ -14,11 +14,13 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { NEWS_CATEGORIES } from "@/lib/constants";
 import { slugify } from "@/lib/format";
 
 export function ArticleForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
+  const { identity } = useActiveIdentity();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     title: "",
@@ -37,6 +39,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         category: form.category,
         slug: slugify(form.title),
         author_id: user.id,
+        page_id: identity.type === "page" ? identity.pageId : null,
         status,
       });
       if (error) throw error;

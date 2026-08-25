@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { useVotes } from "@/hooks/useVotes";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
+import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { VoteButtons } from "@/components/site/vote-buttons";
@@ -21,11 +23,13 @@ type CommentRow = {
   body: string;
   created_at: string;
   user_id: string;
+  page_id: string | null;
   parent_comment_id: string | null;
 };
 
 export function CommentSection({ entityType, entityId }: Props) {
   const { user } = useAuth();
+  const { identity } = useActiveIdentity();
   const queryClient = useQueryClient();
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -37,7 +41,7 @@ export function CommentSection({ entityType, entityId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("comments")
-        .select("id, body, created_at, user_id, parent_comment_id")
+        .select("id, body, created_at, user_id, page_id, parent_comment_id")
         .eq("entity_type", entityType)
         .eq("entity_id", entityId)
         .order("created_at", { ascending: true });
@@ -48,6 +52,7 @@ export function CommentSection({ entityType, entityId }: Props) {
 
   const { data: names = {} } = useProfileNames(comments.map((c) => c.user_id));
   const { data: verified = {} } = useSubscriptionStatuses(comments.map((c) => c.user_id));
+  const { data: pages = {} } = usePagesByIds(comments.map((c) => c.page_id));
   const { scores, vote } = useVotes(
     "comment",
     comments.map((c) => c.id),
@@ -61,6 +66,7 @@ export function CommentSection({ entityType, entityId }: Props) {
         entity_id: entityId,
         body: text.trim(),
         user_id: user.id,
+        page_id: identity.type === "page" ? identity.pageId : null,
         parent_comment_id: parentId,
       });
       if (error) throw error;
@@ -100,7 +106,9 @@ export function CommentSection({ entityType, entityId }: Props) {
               <UserLink
                 userId={c.user_id}
                 name={names[c.user_id]}
-                verified={!!verified[c.user_id]}
+                verified={c.page_id ? !!pages[c.page_id]?.verified : !!verified[c.user_id]}
+                pageSlug={c.page_id ? pages[c.page_id]?.slug : undefined}
+                pageName={c.page_id ? pages[c.page_id]?.name : undefined}
               />
             </p>
             <div className="flex items-center gap-2">
