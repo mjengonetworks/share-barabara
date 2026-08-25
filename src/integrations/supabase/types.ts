@@ -680,6 +680,39 @@ export type Database = {
         }
         Relationships: []
       }
+      videos: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          reviewed_by: string | null
+          status: string
+          title: string
+          user_id: string | null
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          reviewed_by?: string | null
+          status?: string
+          title: string
+          user_id?: string | null
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          reviewed_by?: string | null
+          status?: string
+          title?: string
+          user_id?: string | null
+          video_url?: string
+        }
+        Relationships: []
+      }
       yearly_stats: {
         Row: {
           crashes: number
