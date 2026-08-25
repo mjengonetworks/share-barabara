@@ -8,10 +8,18 @@ import { NEWS_CATEGORIES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/site/article-form";
 import { BannerAd } from "@/components/site/banner-ad";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/news/")({
   validateSearch: (search: Record<string, unknown>): { category?: string } => {
-    const category = typeof search["category"] === "string" ? (search["category"] as string) : undefined;
+    const category =
+      typeof search["category"] === "string" ? (search["category"] as string) : undefined;
     return category ? { category } : {};
   },
   head: () => ({
@@ -120,7 +128,10 @@ function NewsIndex() {
     queryKey: ["news-trending"],
     enabled: !category,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("trending_news", { hours_back: 8, result_limit: 3 });
+      const { data, error } = await supabase.rpc("trending_news", {
+        hours_back: 8,
+        result_limit: 3,
+      });
       if (error) throw error;
       return data;
     },
@@ -142,130 +153,150 @@ function NewsIndex() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Newsroom
-      </p>
-      <h1 className="mt-2 text-4xl font-extrabold">Road safety news</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">
-        Enforcement operations, policy shifts, infrastructure works and campaigns
-        affecting how Kenyans travel. Every story is open for discussion.
-      </p>
-
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          {category ? (
-            <>
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold">{category}</h2>
-                <Link to="/news" className="text-sm font-semibold text-accent-foreground underline">
-                  All news
-                </Link>
-              </div>
-              {filteredLoading ? <p className="mt-6 text-muted-foreground">Loading…</p> : null}
-              {!filteredLoading && filtered.length === 0 ? (
-                <p className="mt-6 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
-                  No articles in this category yet.
-                </p>
-              ) : (
-                <div className="mt-6">
-                  <ArticleGrid articles={filtered} />
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold">Latest news</h2>
-                <a href="#all-articles" className="text-sm font-semibold text-accent-foreground underline">
-                  Read more
-                </a>
-              </div>
-              <div className="mt-5">
-                <ArticleGrid articles={latest} />
-              </div>
-
-              <div className="mt-12">
-                <h2 className="text-lg font-bold text-muted-foreground">Browse by category</h2>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {NEWS_CATEGORIES.map((c) => (
-                    <Link
-                      key={c}
-                      to="/news"
-                      search={{ category: c }}
-                      className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium transition-colors hover:border-accent hover:text-accent-foreground"
-                    >
-                      {c}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              {featured.length > 0 ? (
-                <div className="mt-12">
-                  <div className="flex items-center justify-between gap-4">
-                    <h2 className="flex items-center gap-2 text-2xl font-bold">
-                      <Sparkles className="size-6 text-caution" /> Featured
-                    </h2>
-                    <a href="#all-articles" className="text-sm font-semibold text-accent-foreground underline">
-                      Read more
-                    </a>
-                  </div>
-                  <div className="mt-5">
-                    <ArticleGrid articles={featured} />
-                  </div>
-                </div>
-              ) : null}
-
-              {trending.length > 0 ? (
-                <div className="mt-12">
-                  <div className="flex items-center justify-between gap-4">
-                    <h2 className="flex items-center gap-2 text-2xl font-bold">
-                      <Flame className="size-6 text-destructive" /> Trending
-                    </h2>
-                    <a href="#all-articles" className="text-sm font-semibold text-accent-foreground underline">
-                      Read more
-                    </a>
-                  </div>
-                  <div className="mt-5">
-                    <ArticleGrid articles={trending} />
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="mt-12">
-                <BannerAd />
-              </div>
-
-              <div id="all-articles" className="mt-12 scroll-mt-24">
-                <h2 className="text-2xl font-bold">More articles</h2>
-                {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
-                <div className="mt-5">
-                  <ArticleGrid articles={all} />
-                </div>
-              </div>
-            </>
-          )}
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+            Newsroom
+          </p>
+          <h1 className="mt-2 text-4xl font-extrabold">Road safety news</h1>
+          <p className="mt-3 max-w-2xl text-muted-foreground">
+            Enforcement operations, policy shifts, infrastructure works and campaigns affecting how
+            Kenyans travel. Every story is open for discussion.
+          </p>
         </div>
+        <WriteButton signedIn={!!user} />
+      </div>
 
-        <aside className="h-fit rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24">
-          <h2 className="text-lg font-bold">Write for Share Barabara</h2>
-          {user ? (
-            <div className="mt-4">
-              <ArticleForm />
+      <div className="mt-10">
+        {category ? (
+          <>
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-2xl font-bold">{category}</h2>
+              <Link to="/news" className="text-sm font-semibold text-accent-foreground underline">
+                All news
+              </Link>
             </div>
-          ) : (
-            <>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Sign in to submit a story. Editors review every submission before
-                it is published.
+            {filteredLoading ? <p className="mt-6 text-muted-foreground">Loading…</p> : null}
+            {!filteredLoading && filtered.length === 0 ? (
+              <p className="mt-6 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
+                No articles in this category yet.
               </p>
-              <Button asChild className="mt-4 w-full">
-                <Link to="/auth">Sign in to write</Link>
-              </Button>
-            </>
-          )}
-        </aside>
+            ) : (
+              <div className="mt-6">
+                <ArticleGrid articles={filtered} />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-2xl font-bold">Latest news</h2>
+              <a
+                href="#all-articles"
+                className="text-sm font-semibold text-accent-foreground underline"
+              >
+                Read more
+              </a>
+            </div>
+            <div className="mt-5">
+              <ArticleGrid articles={latest} />
+            </div>
+
+            <div className="mt-12">
+              <h2 className="text-lg font-bold text-muted-foreground">Browse by category</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {NEWS_CATEGORIES.map((c) => (
+                  <Link
+                    key={c}
+                    to="/news"
+                    search={{ category: c }}
+                    className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium transition-colors hover:border-accent hover:text-accent-foreground"
+                  >
+                    {c}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {featured.length > 0 ? (
+              <div className="mt-12">
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="flex items-center gap-2 text-2xl font-bold">
+                    <Sparkles className="size-6 text-caution" /> Featured
+                  </h2>
+                  <a
+                    href="#all-articles"
+                    className="text-sm font-semibold text-accent-foreground underline"
+                  >
+                    Read more
+                  </a>
+                </div>
+                <div className="mt-5">
+                  <ArticleGrid articles={featured} />
+                </div>
+              </div>
+            ) : null}
+
+            {trending.length > 0 ? (
+              <div className="mt-12">
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="flex items-center gap-2 text-2xl font-bold">
+                    <Flame className="size-6 text-destructive" /> Trending
+                  </h2>
+                  <a
+                    href="#all-articles"
+                    className="text-sm font-semibold text-accent-foreground underline"
+                  >
+                    Read more
+                  </a>
+                </div>
+                <div className="mt-5">
+                  <ArticleGrid articles={trending} />
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mt-12">
+              <BannerAd />
+            </div>
+
+            <div id="all-articles" className="mt-12 scroll-mt-24">
+              <h2 className="text-2xl font-bold">More articles</h2>
+              {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
+              <div className="mt-5">
+                <ArticleGrid articles={all} />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
+  );
+}
+
+function WriteButton({ signedIn }: { signedIn: boolean }) {
+  if (!signedIn) {
+    return (
+      <Button asChild variant="outline">
+        <Link to="/auth">Sign in to write</Link>
+      </Button>
+    );
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Write for Share Barabara</Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Write for Share Barabara</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Editors review every submission before it is published.
+        </p>
+        <ArticleForm />
+      </DialogContent>
+    </Dialog>
   );
 }
