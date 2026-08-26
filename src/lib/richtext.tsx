@@ -75,10 +75,13 @@ export function YouTubeEmbed({ url, className = "" }: { url: string; className?:
 }
 
 const VIDEO_BLOCK_RE = /^\{\{video:(.+)\}\}$/;
-const IMAGE_BLOCK_RE = /^!\[([^\]]*)\]\(([^)]+)\)$/;
+// Optional quoted title after the URL carries "caption::credit" (both
+// optional), a convention this app's own editor writes — plain
+// ![alt](url) with no title still renders exactly as before.
+const IMAGE_BLOCK_RE = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)$/;
 
 /** Renders rich-text-lite content as paragraphs, inline formatting, block
- *  images and embedded YouTube videos. */
+ *  images (with an optional caption/credit) and embedded YouTube videos. */
 export function renderRichText(content: string): ReactNode {
   const blocks = content.split(/\n\s*\n/).filter((b) => b.trim().length > 0);
   return blocks.map((block, i) => {
@@ -87,13 +90,22 @@ export function renderRichText(content: string): ReactNode {
     if (videoMatch) return <YouTubeEmbed key={i} url={videoMatch[1] ?? ""} className="my-4" />;
     const imageMatch = trimmed.match(IMAGE_BLOCK_RE);
     if (imageMatch) {
+      const [caption, credit] = (imageMatch[3] ?? "").split("::");
       return (
-        <img
-          key={i}
-          src={imageMatch[2]}
-          alt={imageMatch[1]}
-          className="my-4 w-full rounded-lg border border-border object-cover"
-        />
+        <figure key={i} className="my-4">
+          <img
+            src={imageMatch[2]}
+            alt={imageMatch[1]}
+            className="w-full rounded-lg border border-border object-cover"
+          />
+          {caption || credit ? (
+            <figcaption className="mt-1.5 text-xs text-muted-foreground">
+              {caption}
+              {caption && credit ? " · " : ""}
+              {credit ? `Credit: ${credit}` : ""}
+            </figcaption>
+          ) : null}
+        </figure>
       );
     }
     return <p key={i}>{parseInline(trimmed, String(i))}</p>;

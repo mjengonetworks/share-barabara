@@ -17,8 +17,8 @@ export function UserLink({
   /** Preferred link target: the user's username, falling back to their id if unset. */
   username?: string | null | undefined;
   verified?: boolean;
-  /** Moderator rank and above: a dark-blue checkmark instead of the gold subscriber one,
-   *  so staff don't need "Admin"/"Editor" spelled out separately next to their name. */
+  /** Moderator rank and above: a gold checkmark instead of the dark-blue subscriber
+   *  one, so staff don't need "Admin"/"Editor" spelled out separately next to their name. */
   staff?: boolean;
   /** Row was posted anonymously: hides the real identity even if one is known. */
   anonymous?: boolean;
@@ -40,16 +40,16 @@ export function UserLink({
       >
         {pageName ?? "Page"}
         {verified ? (
-          <BadgeCheck className="size-3.5 shrink-0 text-accent" aria-label="Verified page" />
+          <BadgeCheck className="size-3.5 shrink-0 text-brand-blue" aria-label="Verified page" />
         ) : null}
       </Link>
     );
   }
 
   const badge = staff ? (
-    <BadgeCheck className="size-3.5 shrink-0 text-brand-blue" aria-label="Staff member" />
+    <BadgeCheck className="size-3.5 shrink-0 text-accent" aria-label="Staff member" />
   ) : verified ? (
-    <BadgeCheck className="size-3.5 shrink-0 text-accent" aria-label="Subscribed member" />
+    <BadgeCheck className="size-3.5 shrink-0 text-brand-blue" aria-label="Subscribed member" />
   ) : null;
 
   const label = name ?? "Road user";

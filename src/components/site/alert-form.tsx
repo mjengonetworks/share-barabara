@@ -17,6 +17,7 @@ import {
   PartyCasualtyInputs,
   type CasualtyBreakdown,
 } from "@/components/site/party-casualty-inputs";
+import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
@@ -42,6 +43,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
   });
   const [partiesInvolved, setPartiesInvolved] = useState<string[]>([]);
   const [casualties, setCasualties] = useState<CasualtyBreakdown>({});
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -52,6 +54,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         road_id,
         parties_involved: partiesInvolved,
         casualty_breakdown: casualties,
+        attachments,
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
         is_anonymous: identity.type === "profile" && anonymous,
@@ -63,6 +66,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
       setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
       setPartiesInvolved([]);
       setCasualties({});
+      setAttachments([]);
       setAnonymous(false);
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
       onDone?.();
@@ -180,6 +184,12 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
           onChange={(v) => setForm({ ...form, description: v })}
           placeholder="Direction of travel, how long the hazard has been there, whether emergency services are on scene. Add photos or a video with the toolbar."
         />
+      </div>
+      <div>
+        <Label>Attach photos or video (optional)</Label>
+        <div className="mt-2">
+          <AttachmentsField value={attachments} onChange={setAttachments} />
+        </div>
       </div>
       {identity.type === "profile" ? (
         <label className="flex items-center gap-2 text-sm text-muted-foreground">

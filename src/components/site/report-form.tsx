@@ -17,6 +17,8 @@ import {
   PartyCasualtyInputs,
   type CasualtyBreakdown,
 } from "@/components/site/party-casualty-inputs";
+import { ImageUploadField } from "@/components/site/image-upload-field";
+import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
@@ -43,9 +45,12 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
     latitude: null as number | null,
     longitude: null as number | null,
     image_url: "",
+    image_caption: "",
+    image_credit: "",
   });
   const [partiesInvolved, setPartiesInvolved] = useState<string[]>([]);
   const [casualtyBreakdown, setCasualtyBreakdown] = useState<CasualtyBreakdown>({});
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -54,9 +59,12 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       const { error } = await supabase.from("accident_reports").insert({
         ...form,
         image_url: form.image_url.trim() || null,
+        image_caption: form.image_caption.trim() || null,
+        image_credit: form.image_credit.trim() || null,
         road_id,
         parties_involved: partiesInvolved,
         casualty_breakdown: casualtyBreakdown,
+        attachments,
         occurred_at: new Date(form.occurred_at).toISOString(),
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
@@ -74,9 +82,12 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         latitude: null,
         longitude: null,
         image_url: "",
+        image_caption: "",
+        image_credit: "",
       });
       setPartiesInvolved([]);
       setCasualtyBreakdown({});
+      setAttachments([]);
       setAnonymous(false);
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       onDone?.();
@@ -213,14 +224,27 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         />
       </div>
       <div>
-        <Label htmlFor="r-img">Featured image URL (optional)</Label>
-        <Input
-          id="r-img"
-          type="url"
-          value={form.image_url}
-          onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-          placeholder="https://..."
-        />
+        <Label>Featured image (optional)</Label>
+        <div className="mt-2">
+          <ImageUploadField
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+          />
+        </div>
+        {form.image_url ? (
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <Input
+              value={form.image_caption}
+              onChange={(e) => setForm({ ...form, image_caption: e.target.value })}
+              placeholder="Caption (optional)"
+            />
+            <Input
+              value={form.image_credit}
+              onChange={(e) => setForm({ ...form, image_credit: e.target.value })}
+              placeholder="Credit / source (optional)"
+            />
+          </div>
+        ) : null}
       </div>
       <div>
         <Label htmlFor="r-desc">What happened?</Label>
@@ -232,6 +256,16 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
           onChange={(v) => setForm({ ...form, description: v })}
           placeholder="Weather, road conditions, contributing factors and the response by emergency services. Use the toolbar to add photos or a video."
         />
+      </div>
+      <div>
+        <Label>More images or videos (optional)</Label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Shown as a gallery at the end of the report, separate from the featured image and any
+          images inside the write-up above.
+        </p>
+        <div className="mt-2">
+          <AttachmentsField value={attachments} onChange={setAttachments} />
+        </div>
       </div>
       <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
         Reports are reviewed and may be edited for accuracy by a moderator or editor before they

@@ -43,8 +43,10 @@ export function useRoles() {
   const isGuestAuthor = roles.includes("guest_author");
   /** Report approval, comment moderation, statistics management: moderator and above. */
   const canReview = rank >= ROLE_RANK.moderator;
-  /** Publish/reject articles, manage banner ads, set the quote of the day: editor and above. */
-  const canPublishArticles = rank >= ROLE_RANK.editor;
+  /** Publish/reject articles submitted by others: moderator and above (same bar as
+   *  report approval). A plain author/guest author can still edit their own work
+   *  per keepsArticleRightsAfterPublish, but can't touch anyone else's. */
+  const canPublishArticles = rank >= ROLE_RANK.moderator;
   /** Keep edit/delete rights on an article after it is published: author and above. */
   const keepsArticleRightsAfterPublish = rank >= ROLE_RANK.author;
 

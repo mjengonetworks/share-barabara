@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
+import { ImageUploadField } from "@/components/site/image-upload-field";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
@@ -28,6 +29,8 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
     summary: "",
     body: "",
     image_url: "",
+    image_caption: "",
+    image_credit: "",
     category: "News" as (typeof NEWS_CATEGORIES)[number],
   });
 
@@ -39,6 +42,8 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         summary: form.summary,
         body: form.body,
         image_url: form.image_url.trim() || null,
+        image_caption: form.image_caption.trim() || null,
+        image_credit: form.image_credit.trim() || null,
         category: form.category,
         slug: slugify(form.title),
         author_id: user.id,
@@ -53,7 +58,15 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
           ? "Article submitted, an editor will review it before it is published"
           : "Draft saved. Find it on your dashboard when you're ready to submit it.",
       );
-      setForm({ title: "", summary: "", body: "", image_url: "", category: "News" });
+      setForm({
+        title: "",
+        summary: "",
+        body: "",
+        image_url: "",
+        image_caption: "",
+        image_credit: "",
+        category: "News",
+      });
       queryClient.invalidateQueries({ queryKey: ["my-articles"] });
       onDone?.();
     },
@@ -100,14 +113,27 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         </Select>
       </div>
       <div>
-        <Label htmlFor="a-img">Featured image URL (optional)</Label>
-        <Input
-          id="a-img"
-          type="url"
-          value={form.image_url}
-          onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-          placeholder="https://..."
-        />
+        <Label>Featured image (optional)</Label>
+        <div className="mt-2">
+          <ImageUploadField
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+          />
+        </div>
+        {form.image_url ? (
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <Input
+              value={form.image_caption}
+              onChange={(e) => setForm({ ...form, image_caption: e.target.value })}
+              placeholder="Caption (optional)"
+            />
+            <Input
+              value={form.image_credit}
+              onChange={(e) => setForm({ ...form, image_credit: e.target.value })}
+              placeholder="Credit / source (optional)"
+            />
+          </div>
+        ) : null}
       </div>
       <div>
         <Label htmlFor="a-summary">Summary</Label>

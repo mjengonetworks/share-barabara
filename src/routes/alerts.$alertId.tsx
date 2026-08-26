@@ -18,6 +18,7 @@ import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
+import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   head: () => ({
@@ -198,6 +199,8 @@ function AlertDetail() {
           <div className="mt-6 space-y-4 text-foreground/90">
             {renderRichText(alert.description)}
           </div>
+
+          <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />
 
           <div className="mt-6">
             <VoteButtons

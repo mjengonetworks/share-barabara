@@ -17,7 +17,13 @@ export const Route = createFileRoute("/_authenticated/admin/footer")({
 function FooterPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ footer_tagline: "", contact_email: "", contact_phone: "" });
+  const [form, setForm] = useState({
+    footer_tagline: "",
+    contact_email: "",
+    contact_phone: "",
+    google_source_label: "",
+    google_source_url: "",
+  });
 
   const { data: settings } = useQuery({
     queryKey: ["site-settings"],
@@ -38,6 +44,8 @@ function FooterPage() {
         footer_tagline: settings.footer_tagline,
         contact_email: settings.contact_email,
         contact_phone: settings.contact_phone,
+        google_source_label: settings.google_source_label,
+        google_source_url: settings.google_source_url,
       });
     }
   }, [settings]);
@@ -92,6 +100,23 @@ function FooterPage() {
             id="phone"
             value={form.contact_phone}
             onChange={(e) => setForm({ ...form, contact_phone: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="gsl">"Add as preferred source on Google" link label</Label>
+          <Input
+            id="gsl"
+            value={form.google_source_label}
+            onChange={(e) => setForm({ ...form, google_source_label: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="gsu">Google preferred-source URL</Label>
+          <Input
+            id="gsu"
+            type="url"
+            value={form.google_source_url}
+            onChange={(e) => setForm({ ...form, google_source_url: e.target.value })}
           />
         </div>
         <Button disabled={save.isPending} onClick={() => save.mutate()}>

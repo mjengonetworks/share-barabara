@@ -234,13 +234,13 @@ function UsersAdminPage() {
                         onClick={() =>
                           toggleCheckmark.mutate({ userId: p.id, active: !subStatus[p.id] })
                         }
-                        className={subStatus[p.id] ? "text-accent" : ""}
+                        className={subStatus[p.id] ? "text-brand-blue" : ""}
                       >
                         <BadgeCheck className="mr-1 size-4" />
                         {subStatus[p.id] ? "Granted" : "Grant"}
                       </Button>
                     ) : subStatus[p.id] ? (
-                      <BadgeCheck className="size-4 text-accent" aria-label="Subscribed" />
+                      <BadgeCheck className="size-4 text-brand-blue" aria-label="Subscribed" />
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}

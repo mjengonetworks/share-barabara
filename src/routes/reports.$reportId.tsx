@@ -8,12 +8,15 @@ import { useRoleLabels, primaryRoleLabel, roleRank, ROLE_RANK } from "@/hooks/us
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
+import { useVotes } from "@/hooks/useVotes";
 import { longDate } from "@/lib/format";
 import { renderRichText } from "@/lib/richtext";
 import { PARTIES_INVOLVED } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
+import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
 import { UserAvatar } from "@/components/site/user-avatar";
+import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
@@ -100,6 +103,7 @@ function ReportDetail() {
   const { data: pages = {} } = usePagesByIds(report ? [report.page_id] : []);
   const { data: roleMap = {} } = useRoleLabels(people);
   const { data: roadMap = {} } = useRoadsByIds(report ? [report.road_id] : []);
+  const { scores, vote } = useVotes("report", report ? [report.id] : []);
 
   const { data: related = [] } = useQuery({
     queryKey: ["reports-related", report?.id, report?.county],
@@ -263,16 +267,31 @@ function ReportDetail() {
             </div>
           </div>
 
-          <div className="mt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <VoteButtons
+              size="md"
+              net={scores[report.id]?.net ?? 0}
+              mine={scores[report.id]?.mine ?? 0}
+              onVote={(v) => vote(report.id, v)}
+            />
             <ShareButtons title={report.title} />
           </div>
 
           {report.image_url ? (
-            <img
-              src={report.image_url}
-              alt={report.title}
-              className="mt-6 aspect-video w-full rounded-lg border border-border object-cover"
-            />
+            <figure className="mt-6">
+              <img
+                src={report.image_url}
+                alt={report.image_alt || report.title}
+                className="aspect-video w-full rounded-lg border border-border object-cover"
+              />
+              {report.image_caption || report.image_credit ? (
+                <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                  {report.image_caption}
+                  {report.image_caption && report.image_credit ? " · " : ""}
+                  {report.image_credit ? `Credit: ${report.image_credit}` : ""}
+                </figcaption>
+              ) : null}
+            </figure>
           ) : null}
 
           <div className="mt-6 grid grid-cols-3 gap-4">
@@ -307,6 +326,8 @@ function ReportDetail() {
           <div className="mt-6 space-y-4 text-foreground/90">
             {renderRichText(report.description)}
           </div>
+
+          <AttachmentGallery attachments={report.attachments as AttachmentRow[]} />
 
           {report.editor_note ? (
             <p className="mt-6 rounded border-l-4 border-accent bg-muted/50 p-4 text-sm">

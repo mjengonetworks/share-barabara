@@ -1,8 +1,20 @@
 import { useRef, useState } from "react";
-import { Bold, Eye, Image as ImageIcon, Italic, Link2, PencilLine, Video } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Bold,
+  Eye,
+  Image as ImageIcon,
+  Italic,
+  Link2,
+  Loader2,
+  PencilLine,
+  Video,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { renderRichText } from "@/lib/richtext";
+import { useAuth } from "@/hooks/useAuth";
+import { uploadMedia } from "@/lib/storage";
 
 type Props = {
   id?: string;
@@ -54,7 +66,28 @@ function insertBlock(
 
 export function RichTextEditor({ id, value, onChange, rows = 8, placeholder, required }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
+
+  async function handleImageFile(file: File | undefined) {
+    if (!file || !user || !ref.current) return;
+    setUploading(true);
+    try {
+      const url = await uploadMedia(file, user.id);
+      const alt = window.prompt("Image description (optional, for accessibility)") ?? "";
+      const caption = window.prompt("Caption shown under the image (optional)") ?? "";
+      const credit = window.prompt("Credit / source (optional)") ?? "";
+      const title = caption || credit ? ` "${caption}::${credit}"` : "";
+      insertBlock(ref.current, value, onChange, `![${alt}](${url}${title})`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   return (
     <div className="rounded-md border border-input">
@@ -106,18 +139,23 @@ export function RichTextEditor({ id, value, onChange, rows = 8, placeholder, req
           size="icon"
           variant="ghost"
           className="size-7"
-          title="Insert image"
-          disabled={preview}
-          onClick={() => {
-            if (!ref.current) return;
-            const url = window.prompt("Image URL");
-            if (!url) return;
-            const alt = window.prompt("Image description (optional)") ?? "";
-            insertBlock(ref.current, value, onChange, `![${alt}](${url})`);
-          }}
+          title="Upload image"
+          disabled={preview || uploading}
+          onClick={() => fileRef.current?.click()}
         >
-          <ImageIcon className="size-3.5" />
+          {uploading ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <ImageIcon className="size-3.5" />
+          )}
         </Button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleImageFile(e.target.files?.[0])}
+        />
         <Button
           type="button"
           size="icon"

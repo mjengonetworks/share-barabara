@@ -55,6 +55,9 @@ type ReportDraft = {
   casualties: number;
   fatalities: number;
   editor_note: string;
+  image_alt: string;
+  image_caption: string;
+  image_credit: string;
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
@@ -120,6 +123,9 @@ function ReportsQueuePage() {
         ...(draft
           ? {
               ...draft,
+              image_alt: draft.image_alt.trim() || null,
+              image_caption: draft.image_caption.trim() || null,
+              image_credit: draft.image_credit.trim() || null,
               seo_title: draft.seo_title.trim() || null,
               seo_description: draft.seo_description.trim() || null,
               seo_keywords: draft.seo_keywords.trim() || null,
@@ -239,6 +245,9 @@ function ReportsQueuePage() {
             casualties: r.casualties,
             fatalities: r.fatalities,
             editor_note: r.editor_note ?? "",
+            image_alt: r.image_alt ?? "",
+            image_caption: r.image_caption ?? "",
+            image_credit: r.image_credit ?? "",
             seo_title: r.seo_title ?? "",
             seo_description: r.seo_description ?? "",
             seo_keywords: r.seo_keywords ?? "",
@@ -433,6 +442,38 @@ function ReportsQueuePage() {
                         onChange={(e) => set({ editor_note: e.target.value })}
                         placeholder="Verification details, corrections or context added during review."
                       />
+                    </div>
+                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        Featured image details
+                      </p>
+                      <div>
+                        <Label htmlFor={`rimg-alt-${r.id}`}>Alt text</Label>
+                        <Input
+                          id={`rimg-alt-${r.id}`}
+                          value={d.image_alt}
+                          onChange={(e) => set({ image_alt: e.target.value })}
+                          placeholder="Describes the image for screen readers and search engines"
+                        />
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <Label htmlFor={`rimg-cap-${r.id}`}>Caption</Label>
+                          <Input
+                            id={`rimg-cap-${r.id}`}
+                            value={d.image_caption}
+                            onChange={(e) => set({ image_caption: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`rimg-cred-${r.id}`}>Credit / source</Label>
+                          <Input
+                            id={`rimg-cred-${r.id}`}
+                            value={d.image_credit}
+                            onChange={(e) => set({ image_credit: e.target.value })}
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

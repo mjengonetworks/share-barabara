@@ -11,8 +11,11 @@ export const LEVELS = [
   { level: 10, min: 100000, max: Infinity, icon: "♛" },
 ] as const;
 
-export function levelForStars(totalStars: number) {
-  return LEVELS.find((l) => totalStars >= l.min && totalStars <= l.max) ?? LEVELS[0];
+/** Account level now comes from points (net upvotes + referral points), not
+ *  stars — stars stay a separate, purely rating-derived figure shown next to
+ *  the level rather than driving it. Same thresholds as before. */
+export function levelForPoints(points: number) {
+  return LEVELS.find((l) => points >= l.min && points <= l.max) ?? LEVELS[0];
 }
 
 export const BADGE_THRESHOLDS = [

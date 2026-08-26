@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, TriangleAlert, Trophy } from "lucide-react";
+import { Flame, MapPin, TriangleAlert, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -52,6 +52,33 @@ export const Route = createFileRoute("/alerts/")({
   component: AlertsPage,
 });
 
+type AlertCard = {
+  id: string;
+  title: string;
+  severity: string;
+  county: string;
+  created_at: string;
+};
+
+function AlertMiniCard({ alert }: { alert: AlertCard }) {
+  return (
+    <Link
+      to="/alerts/$alertId"
+      params={{ alertId: alert.id }}
+      className="block rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <SeverityBadge value={alert.severity} />
+        <span className="ml-auto text-xs text-muted-foreground">{timeAgo(alert.created_at)}</span>
+      </div>
+      <p className="mt-2 font-semibold text-brand-blue hover:underline">{alert.title}</p>
+      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+        <MapPin className="size-3" /> {alert.county}
+      </p>
+    </Link>
+  );
+}
+
 function AlertsPage() {
   const { user } = useAuth();
   const searchParams = Route.useSearch();
@@ -87,6 +114,18 @@ function AlertsPage() {
   );
   const latest = alerts.slice(0, 3);
 
+  const { data: trending = [] } = useQuery({
+    queryKey: ["alerts-trending"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("trending_alerts", {
+        hours_back: 24,
+        result_limit: 3,
+      });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -118,24 +157,27 @@ function AlertsPage() {
               <ul className="mt-5 grid gap-4 sm:grid-cols-3">
                 {latest.map((a) => (
                   <li key={a.id}>
-                    <Link
-                      to="/alerts/$alertId"
-                      params={{ alertId: a.id }}
-                      className="block rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
-                    >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <SeverityBadge value={a.severity} />
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          {timeAgo(a.created_at)}
-                        </span>
-                      </div>
-                      <p className="mt-2 font-semibold text-brand-blue hover:underline">
-                        {a.title}
-                      </p>
-                      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                        <MapPin className="size-3" /> {a.county}
-                      </p>
-                    </Link>
+                    <AlertMiniCard alert={a} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {trending.length > 0 ? (
+            <div className="mt-12">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="flex items-center gap-2 text-2xl font-bold">
+                  <Flame className="size-6 text-destructive" /> Most viewed, last 24hrs
+                </h2>
+                <a href="#all-alerts" className="text-sm font-semibold text-brand-blue underline">
+                  See all
+                </a>
+              </div>
+              <ul className="mt-5 grid gap-4 sm:grid-cols-3">
+                {trending.map((a) => (
+                  <li key={a.id}>
+                    <AlertMiniCard alert={a} />
                   </li>
                 ))}
               </ul>

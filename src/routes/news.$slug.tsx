@@ -102,7 +102,17 @@ function NewsDetail() {
         .order("published_at", { ascending: false })
         .limit(5);
       if (error) throw error;
-      return data;
+      if (data.length > 0) return data;
+      // Nothing else in this category yet — fall back to other recent
+      // articles so "Related articles" is never empty.
+      const fallback = await supabase
+        .from("news")
+        .select("id, slug, title, category")
+        .neq("id", article!.id)
+        .order("published_at", { ascending: false })
+        .limit(5);
+      if (fallback.error) throw fallback.error;
+      return fallback.data;
     },
   });
 
@@ -201,11 +211,20 @@ function NewsDetail() {
             <ShareButtons title={article.title} />
           </div>
           {article.image_url ? (
-            <img
-              src={article.image_url}
-              alt={article.title}
-              className="mt-6 aspect-video w-full rounded-lg border border-border object-cover"
-            />
+            <figure className="mt-6">
+              <img
+                src={article.image_url}
+                alt={article.image_alt || article.title}
+                className="aspect-video w-full rounded-lg border border-border object-cover"
+              />
+              {article.image_caption || article.image_credit ? (
+                <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                  {article.image_caption}
+                  {article.image_caption && article.image_credit ? " · " : ""}
+                  {article.image_credit ? `Credit: ${article.image_credit}` : ""}
+                </figcaption>
+              ) : null}
+            </figure>
           ) : null}
           <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
             {article.summary}

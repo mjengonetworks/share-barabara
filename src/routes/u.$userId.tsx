@@ -5,12 +5,13 @@ import { toast } from "sonner";
 import { BadgeCheck, CarFront, MessageSquare, Newspaper, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate, timeAgo } from "@/lib/format";
-import { levelForStars, badgeForPoints } from "@/lib/gamification";
+import { levelForPoints, badgeForPoints } from "@/lib/gamification";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { StarRatingWidget } from "@/components/site/star-rating";
 import { ShareButtons } from "@/components/site/share-buttons";
+import { LevelInfoDialog } from "@/components/site/level-info-dialog";
 import { Button } from "@/components/ui/button";
-import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
+import { useRoleLabels, primaryRoleLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { useAuth } from "@/hooks/useAuth";
 import { useContributorScore } from "@/hooks/useContributorScore";
 
@@ -106,10 +107,12 @@ function ContributorPage() {
     (!viewerSubscription.expires_at || new Date(viewerSubscription.expires_at) > new Date());
 
   const { data: score } = useContributorScore(userId);
-  const level = levelForStars(score?.totalStars ?? 0);
-  const badge = badgeForPoints(score?.points ?? 0);
+  const totalPoints = (score?.votePoints ?? 0) + (profile?.referral_points ?? 0);
+  const level = levelForPoints(totalPoints);
+  const badge = badgeForPoints(totalPoints);
 
   const { data: roleMap = {} } = useRoleLabels(userId ? [userId] : []);
+  const isStaff = userId ? roleRank(roleMap[userId] ?? []) >= ROLE_RANK.moderator : false;
 
   const { data: alerts = [] } = useQuery({
     queryKey: ["user-alerts", userId],
@@ -210,8 +213,11 @@ function ContributorPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <h1 className="mt-2 flex items-center gap-2 text-4xl font-extrabold">
             {name}
+            {isStaff ? (
+              <BadgeCheck className="size-7 text-accent" aria-label="Staff member" />
+            ) : null}
             {isVerified ? (
-              <BadgeCheck className="size-7 text-accent" aria-label="Subscribed member" />
+              <BadgeCheck className="size-7 text-brand-blue" aria-label="Subscribed member" />
             ) : null}
           </h1>
           {!!userId && viewer?.id === userId ? (
@@ -280,26 +286,28 @@ function ContributorPage() {
         ) : null}
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold ${
-              level.level >= 8
-                ? "bg-caution/20 text-caution"
-                : level.level >= 5
-                  ? "bg-accent/20 text-accent-foreground"
-                  : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {level.icon} Level {level.level}
-          </span>
+          <LevelInfoDialog points={totalPoints}>
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold underline decoration-dotted underline-offset-4 ${
+                level.level >= 8
+                  ? "bg-caution/20 text-caution"
+                  : level.level >= 5
+                    ? "bg-accent/20 text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {level.icon} Level {level.level}
+            </span>
+          </LevelInfoDialog>
           <span className="text-sm text-muted-foreground">
             {score?.totalStars ?? 0} stars from {score?.ratingCount ?? 0} ratings
           </span>
           {badge ? (
             <span className="rounded-full bg-safe/15 px-3 py-1 text-xs font-semibold text-safe">
-              {badge.label} · {score?.points ?? 0} pts
+              {badge.label} · {totalPoints} pts
             </span>
           ) : (
-            <span className="text-xs text-muted-foreground">{score?.points ?? 0} points</span>
+            <span className="text-xs text-muted-foreground">{totalPoints} points</span>
           )}
           {profile?.referral_points ? (
             <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent-foreground">

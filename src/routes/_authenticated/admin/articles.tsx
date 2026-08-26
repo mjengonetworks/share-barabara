@@ -50,6 +50,9 @@ type ArticleDraft = {
   summary: string;
   body: string;
   category: string;
+  image_alt: string;
+  image_caption: string;
+  image_credit: string;
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
@@ -117,6 +120,9 @@ function ArticlesQueuePage() {
         ...(draft
           ? {
               ...draft,
+              image_alt: draft.image_alt.trim() || null,
+              image_caption: draft.image_caption.trim() || null,
+              image_credit: draft.image_credit.trim() || null,
               seo_title: draft.seo_title.trim() || null,
               seo_description: draft.seo_description.trim() || null,
               seo_keywords: draft.seo_keywords.trim() || null,
@@ -156,7 +162,7 @@ function ArticlesQueuePage() {
       </p>
       <h1 className="mt-1 text-3xl font-extrabold">Articles</h1>
       <p className="mt-2 text-muted-foreground">
-        Review submissions from contributors. Publishing or rejecting needs editor rank or above.
+        Review submissions from contributors. Publishing or rejecting needs moderator rank or above.
       </p>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
@@ -204,8 +210,8 @@ function ArticlesQueuePage() {
 
       {!canPublishArticles ? (
         <p className="mt-4 rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          Moderators can see the article queue but only editors and admins can publish or reject an
-          article.
+          Only moderators, editors and admins can publish or reject an article submitted by someone
+          else.
         </p>
       ) : null}
 
@@ -223,6 +229,9 @@ function ArticlesQueuePage() {
             summary: a.summary,
             body: a.body,
             category: a.category,
+            image_alt: a.image_alt ?? "",
+            image_caption: a.image_caption ?? "",
+            image_credit: a.image_credit ?? "",
             seo_title: a.seo_title ?? "",
             seo_description: a.seo_description ?? "",
             seo_keywords: a.seo_keywords ?? "",
@@ -362,6 +371,38 @@ function ArticlesQueuePage() {
                           value={d.body}
                           onChange={(v) => set({ body: v })}
                         />
+                      </div>
+                      <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          Featured image details
+                        </p>
+                        <div>
+                          <Label htmlFor={`aimg-alt-${a.id}`}>Alt text</Label>
+                          <Input
+                            id={`aimg-alt-${a.id}`}
+                            value={d.image_alt}
+                            onChange={(e) => set({ image_alt: e.target.value })}
+                            placeholder="Describes the image for screen readers and search engines"
+                          />
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <Label htmlFor={`aimg-cap-${a.id}`}>Caption</Label>
+                            <Input
+                              id={`aimg-cap-${a.id}`}
+                              value={d.image_caption}
+                              onChange={(e) => set({ image_caption: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`aimg-cred-${a.id}`}>Credit / source</Label>
+                            <Input
+                              id={`aimg-cred-${a.id}`}
+                              value={d.image_credit}
+                              onChange={(e) => set({ image_credit: e.target.value })}
+                            />
+                          </div>
+                        </div>
                       </div>
                       <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

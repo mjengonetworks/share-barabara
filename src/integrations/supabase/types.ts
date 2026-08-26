@@ -36,6 +36,7 @@ export type Database = {
       };
       accident_reports: {
         Row: {
+          attachments: Json;
           casualties: number;
           casualty_breakdown: Json;
           county: string;
@@ -44,6 +45,9 @@ export type Database = {
           editor_note: string | null;
           fatalities: number;
           id: string;
+          image_alt: string | null;
+          image_caption: string | null;
+          image_credit: string | null;
           image_url: string | null;
           is_anonymous: boolean;
           latitude: number | null;
@@ -67,6 +71,7 @@ export type Database = {
           vehicles_involved: number;
         };
         Insert: {
+          attachments?: Json;
           casualties?: number;
           casualty_breakdown?: Json;
           county: string;
@@ -75,6 +80,9 @@ export type Database = {
           editor_note?: string | null;
           fatalities?: number;
           id?: string;
+          image_alt?: string | null;
+          image_caption?: string | null;
+          image_credit?: string | null;
           image_url?: string | null;
           is_anonymous?: boolean;
           latitude?: number | null;
@@ -98,6 +106,7 @@ export type Database = {
           vehicles_involved?: number;
         };
         Update: {
+          attachments?: Json;
           casualties?: number;
           casualty_breakdown?: Json;
           county?: string;
@@ -106,6 +115,9 @@ export type Database = {
           editor_note?: string | null;
           fatalities?: number;
           id?: string;
+          image_alt?: string | null;
+          image_caption?: string | null;
+          image_credit?: string | null;
           image_url?: string | null;
           is_anonymous?: boolean;
           latitude?: number | null;
@@ -173,6 +185,7 @@ export type Database = {
       };
       alerts: {
         Row: {
+          attachments: Json;
           casualty_breakdown: Json;
           county: string;
           created_at: string;
@@ -194,6 +207,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          attachments?: Json;
           casualty_breakdown?: Json;
           county: string;
           created_at?: string;
@@ -215,6 +229,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          attachments?: Json;
           casualty_breakdown?: Json;
           county?: string;
           created_at?: string;
@@ -711,6 +726,9 @@ export type Database = {
           created_at: string;
           featured: boolean;
           id: string;
+          image_alt: string | null;
+          image_caption: string | null;
+          image_credit: string | null;
           image_url: string | null;
           page_id: string | null;
           published_at: string;
@@ -733,6 +751,9 @@ export type Database = {
           created_at?: string;
           featured?: boolean;
           id?: string;
+          image_alt?: string | null;
+          image_caption?: string | null;
+          image_credit?: string | null;
           image_url?: string | null;
           page_id?: string | null;
           published_at?: string;
@@ -755,6 +776,9 @@ export type Database = {
           created_at?: string;
           featured?: boolean;
           id?: string;
+          image_alt?: string | null;
+          image_caption?: string | null;
+          image_credit?: string | null;
           image_url?: string | null;
           page_id?: string | null;
           published_at?: string;
@@ -1222,6 +1246,8 @@ export type Database = {
           contact_email: string;
           contact_phone: string;
           footer_tagline: string;
+          google_source_label: string;
+          google_source_url: string;
           id: number;
           updated_at: string;
           updated_by: string | null;
@@ -1230,6 +1256,8 @@ export type Database = {
           contact_email?: string;
           contact_phone?: string;
           footer_tagline?: string;
+          google_source_label?: string;
+          google_source_url?: string;
           id?: number;
           updated_at?: string;
           updated_by?: string | null;
@@ -1238,6 +1266,8 @@ export type Database = {
           contact_email?: string;
           contact_phone?: string;
           footer_tagline?: string;
+          google_source_label?: string;
+          google_source_url?: string;
           id?: number;
           updated_at?: string;
           updated_by?: string | null;

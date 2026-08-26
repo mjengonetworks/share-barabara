@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -82,6 +83,7 @@ function ReportsPage() {
   const searchParams = Route.useSearch();
   const [county, setCounty] = useState(searchParams.county ?? "all");
   const [severity, setSeverity] = useState(searchParams.severity ?? "all");
+  const [search, setSearch] = useState("");
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports"],
@@ -106,10 +108,17 @@ function ReportsPage() {
     "report",
     reports.map((r) => r.id),
   );
-  const visible = reports.filter(
-    (r) =>
-      (county === "all" || r.county === county) && (severity === "all" || r.severity === severity),
-  );
+  const visible = reports.filter((r) => {
+    const q = search.trim().toLowerCase();
+    return (
+      (county === "all" || r.county === county) &&
+      (severity === "all" || r.severity === severity) &&
+      (!q ||
+        r.title.toLowerCase().includes(q) ||
+        r.description.toLowerCase().includes(q) ||
+        (r.road ?? "").toLowerCase().includes(q))
+    );
+  });
   const latest = reports.slice(0, 3);
 
   const { data: trending = [] } = useQuery({
@@ -126,14 +135,22 @@ function ReportsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Crash record
-      </p>
-      <h1 className="mt-2 text-4xl font-extrabold">Accident reports</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">
-        Crash reports filed by the community and reviewed by our editors before publication. Each
-        report carries a shared byline: the road user who filed it and the editor who verified it.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+            Crash record
+          </p>
+          <h1 className="mt-2 text-4xl font-extrabold">Accident reports</h1>
+          <p className="mt-3 max-w-2xl text-muted-foreground">
+            Crash reports filed by the community and reviewed by our editors before publication.
+            Each report carries a shared byline: the road user who filed it and the editor who
+            verified it.
+          </p>
+        </div>
+        <Button asChild>
+          <a href="#report-form">Submit a report</a>
+        </Button>
+      </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
@@ -221,6 +238,12 @@ function ReportsPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search title, road or description…"
+              className="w-64"
+            />
           </div>
 
           {isLoading ? <p className="mt-8 text-muted-foreground">Loading reports…</p> : null}
@@ -322,7 +345,10 @@ function ReportsPage() {
           </ul>
         </div>
 
-        <aside className="h-fit rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24">
+        <aside
+          id="report-form"
+          className="h-fit scroll-mt-24 rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24"
+        >
           <h2 className="text-lg font-bold">File a report</h2>
           {user ? (
             <div className="mt-4">

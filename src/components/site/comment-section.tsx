@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Trash2 } from "lucide-react";
+import { Flag, MessageSquare, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
@@ -34,6 +41,8 @@ export function CommentSection({ entityType, entityId }: Props) {
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
+  const [reportTarget, setReportTarget] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState("");
   const key = ["comments", entityType, entityId];
 
   const { data: comments = [], isLoading } = useQuery({
@@ -94,6 +103,26 @@ export function CommentSection({ entityType, entityId }: Props) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const report = useMutation({
+    mutationFn: async ({ commentId, reason }: { commentId: string; reason: string }) => {
+      if (!user) throw new Error("Sign in first");
+      const { error } = await supabase.from("content_requests").insert({
+        user_id: user.id,
+        entity_type: "comment",
+        entity_id: commentId,
+        request_type: "report",
+        message: reason.trim(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Reported to our moderators");
+      setReportTarget(null);
+      setReportReason("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const topLevel = comments.filter((c) => !c.parent_comment_id);
   const repliesOf = (parentId: string) => comments.filter((c) => c.parent_comment_id === parentId);
 
@@ -136,6 +165,36 @@ export function CommentSection({ entityType, entityId }: Props) {
               >
                 Reply
               </button>
+            ) : null}
+            {user && user.id !== c.user_id ? (
+              <Dialog
+                open={reportTarget === c.id}
+                onOpenChange={(open) => setReportTarget(open ? c.id : null)}
+              >
+                <DialogTrigger asChild>
+                  <button className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-destructive">
+                    <Flag className="size-3" /> Report
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Report this comment</DialogTitle>
+                  </DialogHeader>
+                  <Textarea
+                    rows={3}
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    placeholder="What's wrong with this comment?"
+                  />
+                  <Button
+                    variant="destructive"
+                    disabled={reportReason.trim().length < 3 || report.isPending}
+                    onClick={() => report.mutate({ commentId: c.id, reason: reportReason })}
+                  >
+                    {report.isPending ? "Sending…" : "Send report"}
+                  </Button>
+                </DialogContent>
+              </Dialog>
             ) : null}
           </div>
           {replyTo === c.id ? (

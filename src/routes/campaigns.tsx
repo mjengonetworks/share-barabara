@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   Construction,
   HandHeart,
+  Handshake,
   MapPin,
   Megaphone,
   PhoneCall,
@@ -28,6 +30,90 @@ export const Route = createFileRoute("/campaigns")({
   }),
   component: CampaignsPage,
 });
+
+type CampaignCard = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  image_url: string | null;
+  start_date: string;
+  end_date: string;
+};
+
+function CampaignListItem({
+  campaign: c,
+  dateLabel,
+}: {
+  campaign: CampaignCard;
+  dateLabel: string;
+}) {
+  return (
+    <Link
+      to="/campaigns/$slug"
+      params={{ slug: c.slug }}
+      className="group flex gap-4 overflow-hidden rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+    >
+      {c.image_url ? (
+        <img
+          src={c.image_url}
+          alt={c.title}
+          className="aspect-video w-28 shrink-0 rounded object-cover sm:w-36"
+        />
+      ) : null}
+      <div className="min-w-0">
+        <p className="font-bold text-brand-blue group-hover:underline">{c.title}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{dateLabel}</p>
+        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>
+      </div>
+    </Link>
+  );
+}
+
+function CampaignSection({
+  title,
+  icon: Icon,
+  campaigns,
+  dateLabel,
+  emptyText,
+}: {
+  title: string;
+  icon: typeof Megaphone;
+  campaigns: CampaignCard[];
+  dateLabel: (c: CampaignCard) => string;
+  emptyText?: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  if (campaigns.length === 0 && !emptyText) return null;
+  const shown = expanded ? campaigns : campaigns.slice(0, 3);
+
+  return (
+    <section className="mt-6 rounded-lg border border-border bg-card p-6 card-elevated">
+      <h2 className="flex items-center gap-2 text-xl font-bold">
+        <Icon className="size-5 text-accent" /> {title}
+      </h2>
+      {campaigns.length === 0 ? (
+        <p className="mt-2 text-sm text-muted-foreground">{emptyText}</p>
+      ) : (
+        <>
+          <div className="mt-4 space-y-3">
+            {shown.map((c) => (
+              <CampaignListItem key={c.id} campaign={c} dateLabel={dateLabel(c)} />
+            ))}
+          </div>
+          {!expanded && campaigns.length > 3 ? (
+            <button
+              onClick={() => setExpanded(true)}
+              className="mt-4 text-sm font-semibold text-brand-blue underline"
+            >
+              View more
+            </button>
+          ) : null}
+        </>
+      )}
+    </section>
+  );
+}
 
 function CampaignsPage() {
   const { data: campaigns = [] } = useQuery({
@@ -69,10 +155,7 @@ function CampaignsPage() {
       </p>
       <h1 className="mt-2 text-4xl font-extrabold">Share Barabara</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Share Barabara, part of Mjengo Networks Limited, is a platform dedicated to promoting safer
-        roads for all users. We welcome all partnerships and support as we work to transform how
-        drivers, riders, pedestrians and other road users approach road safety. Together, we can
-        build a culture where every road user understands that conscious daily choices save lives.
+        Our road safety campaigns, and how to get involved or support them.
       </p>
 
       <section className="mt-10 rounded-lg border border-border bg-card p-6 card-elevated">
@@ -85,47 +168,27 @@ function CampaignsPage() {
         </p>
       </section>
 
-      {ongoing.length > 0 ? (
-        <section className="mt-6 rounded-lg border border-accent/40 bg-accent/10 p-6">
-          <h2 className="flex items-center gap-2 text-xl font-bold">
-            <Megaphone className="size-5 text-accent" /> Ongoing campaigns
-          </h2>
-          <ul className="mt-4 space-y-4">
-            {ongoing.map((c) => (
-              <li key={c.id}>
-                <p className="font-bold">{c.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{c.description}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Until {longDate(c.end_date)}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <CampaignSection
+        title="Ongoing campaigns"
+        icon={Megaphone}
+        campaigns={ongoing}
+        dateLabel={(c) => `Until ${longDate(c.end_date)}`}
+      />
 
-      <section className="mt-6 rounded-lg border border-border bg-card p-6 card-elevated">
-        <h2 className="flex items-center gap-2 text-xl font-bold">
-          <Megaphone className="size-5 text-accent" /> Upcoming activities
-        </h2>
-        {upcoming.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            The Share Barabara Walk, hospital visits to road crash victims, and county safety drives
-            are being planned. Check back here for dates, or follow us on social media for
-            announcements.
-          </p>
-        ) : (
-          <ul className="mt-4 space-y-4">
-            {upcoming.map((c) => (
-              <li key={c.id}>
-                <p className="font-bold">{c.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{c.description}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {longDate(c.start_date)} – {longDate(c.end_date)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <CampaignSection
+        title="Upcoming activities"
+        icon={Megaphone}
+        campaigns={upcoming}
+        dateLabel={(c) => `${longDate(c.start_date)} – ${longDate(c.end_date)}`}
+        emptyText="The Share Barabara Walk, hospital visits to road crash victims, and county safety drives are being planned. Check back here for dates, or follow us on social media for announcements."
+      />
+
+      <CampaignSection
+        title="Previous campaigns"
+        icon={Megaphone}
+        campaigns={previous}
+        dateLabel={(c) => `${longDate(c.start_date)} – ${longDate(c.end_date)}`}
+      />
 
       <section className="mt-6 rounded-lg border border-border bg-card p-6 card-elevated">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -206,15 +269,15 @@ function CampaignsPage() {
         <FeaturedPageCard slot="campaigns_page_of_week" />
       </section>
 
-      <section className="mt-14">
+      <section className="mt-14 border-t border-border pt-10">
         <h2 className="flex items-center gap-2 text-2xl font-bold">
-          <HandHeart className="size-5 text-accent" /> Support Share Barabara
+          <HandHeart className="size-5 text-accent" /> Support &amp; partner with Share Barabara
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Donations fund campaigns like the Share Barabara Walk and hospital visits to crash
-          victims.
+          victims. Partnering with us includes involvement in these campaigns too.
         </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div id="donate" className="mt-4 grid scroll-mt-24 gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-border bg-card p-5 card-elevated">
             <p className="font-bold">M-Pesa</p>
             <p className="mt-1 text-lg font-semibold text-accent-foreground">0701 951 682</p>
@@ -225,41 +288,19 @@ function CampaignsPage() {
           </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">More payment options are coming soon.</p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Button asChild>
+            <a href="#donate">
+              <HandHeart className="mr-1.5 size-4" /> Support Share Barabara
+            </a>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/partner-with-us">
+              <Handshake className="mr-1.5 size-4" /> Partner with Share Barabara
+            </Link>
+          </Button>
+        </div>
       </section>
-
-      {previous.length > 0 ? (
-        <section className="mt-14 border-t border-border pt-10">
-          <h2 className="text-2xl font-bold">Previous campaigns</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            How past campaigns went, in the editors' own words.
-          </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {previous.map((c) => (
-              <Link
-                key={c.id}
-                to="/campaigns/$slug"
-                params={{ slug: c.slug }}
-                className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors card-elevated hover:border-accent"
-              >
-                {(c.report_image_url ?? c.image_url) ? (
-                  <img
-                    src={c.report_image_url ?? c.image_url ?? undefined}
-                    alt={c.title}
-                    className="aspect-video w-full object-cover"
-                  />
-                ) : null}
-                <div className="p-5">
-                  <p className="font-bold text-brand-blue group-hover:underline">{c.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {longDate(c.start_date)} – {longDate(c.end_date)}
-                  </p>
-                  <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }

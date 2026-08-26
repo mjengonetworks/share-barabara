@@ -1,6 +1,8 @@
 import { Check, Copy, Facebook, Linkedin, Send, Star } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 function XLogo({ className }: { className?: string }) {
   return (
@@ -25,6 +27,20 @@ function TelegramLogo({ className }: { className?: string }) {
 export function ShareButtons({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? window.location.href : "";
+
+  const { data: settings } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 60_000,
+  });
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
 
@@ -69,9 +85,6 @@ export function ShareButtons({ title }: { title: string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        Share
-      </span>
       {links.map((l) => (
         <a
           key={l.label}
@@ -94,13 +107,16 @@ export function ShareButtons({ title }: { title: string }) {
         {copied ? <Check className="size-4 text-safe" /> : <Copy className="size-4" />}
       </button>
       <a
-        href="https://www.google.com/search?q=Share+Barabara+Kenya+road+safety"
+        href={
+          settings?.google_source_url ??
+          "https://www.google.com/preferences/source/sharebarabara.co.ke"
+        }
         target="_blank"
         rel="noopener noreferrer"
-        title="Search for Share Barabara on Google, then tap the star next to our name to follow us as a preferred source"
         className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground"
       >
-        <Star className="size-3.5" /> Follow on Google
+        <Star className="size-3.5" />{" "}
+        {settings?.google_source_label ?? "Add as a preferred source on Google"}
       </a>
     </div>
   );
