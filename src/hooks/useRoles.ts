@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 export type AppRole = "admin" | "moderator" | "editor" | "author" | "guest_author" | "member";
 
 /** Mirrors public.role_rank(): each tier inherits everything below it. */
-const ROLE_RANK: Record<AppRole, number> = {
+export const ROLE_RANK: Record<AppRole, number> = {
   member: 0,
   guest_author: 1,
   author: 2,

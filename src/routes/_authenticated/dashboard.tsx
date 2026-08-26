@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useRoles } from "@/hooks/useRoles";
+import { ROLE_RANK, useRoles } from "@/hooks/useRoles";
 import { timeAgo, longDate } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const { user } = useAuth();
-  const { canReview } = useRoles();
+  const { rank } = useRoles();
   const userId = user?.id;
   const [creatingPage, setCreatingPage] = useState(false);
 
@@ -178,9 +178,9 @@ function DashboardPage() {
             <PageForm onDone={() => setCreatingPage(false)} />
           </DialogContent>
         </Dialog>
-        {canReview ? (
+        {rank >= ROLE_RANK.guest_author ? (
           <Button asChild variant="secondary">
-            <Link to="/moderate">Review queue</Link>
+            <Link to="/admin">Admin dashboard</Link>
           </Button>
         ) : null}
       </div>

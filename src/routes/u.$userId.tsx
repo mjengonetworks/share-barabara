@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, CarFront, MessageSquare, Newspaper, TriangleAlert } from "lucide-react";
@@ -40,6 +40,9 @@ function ContributorPage() {
   const { userId: routeParam } = Route.useParams();
   const { user: viewer } = useAuth();
   const navigate = useNavigate();
+  const [showAllReports, setShowAllReports] = useState(false);
+  const [showAllArticles, setShowAllArticles] = useState(false);
+  const [showAllAlerts, setShowAllAlerts] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", routeParam],
@@ -318,29 +321,41 @@ function ContributorPage() {
           {submitted.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">No reports published yet.</p>
           ) : (
-            <ul className="mt-4 space-y-3">
-              {submitted.map((r) => (
-                <li key={r.id} className="rounded-lg border border-border bg-card p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <SeverityBadge value={r.severity} />
-                    <Link
-                      to="/reports/$reportId"
-                      params={{ reportId: r.id }}
-                      className="font-semibold text-brand-blue hover:underline"
-                    >
-                      {r.title}
-                    </Link>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {longDate(r.occurred_at)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {r.county}
-                    {r.road ? ` · ${r.road}` : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="mt-4 space-y-3">
+                {(showAllReports ? submitted : submitted.slice(0, 5)).map((r) => (
+                  <li key={r.id} className="rounded-lg border border-border bg-card p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <SeverityBadge value={r.severity} />
+                      <Link
+                        to="/reports/$reportId"
+                        params={{ reportId: r.id }}
+                        className="font-semibold text-brand-blue hover:underline"
+                      >
+                        {r.title}
+                      </Link>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {longDate(r.occurred_at)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {r.county}
+                      {r.road ? ` · ${r.road}` : ""}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              {!showAllReports && submitted.length > 5 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => setShowAllReports(true)}
+                >
+                  Read more
+                </Button>
+              ) : null}
+            </>
           )}
         </section>
 
@@ -351,27 +366,39 @@ function ContributorPage() {
           {articles.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">No articles published yet.</p>
           ) : (
-            <ul className="mt-4 space-y-3">
-              {articles.map((a) => (
-                <li key={a.id} className="rounded-lg border border-border bg-card p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-                      {a.category}
-                    </span>
-                    <Link
-                      to="/news/$slug"
-                      params={{ slug: a.slug }}
-                      className="font-semibold text-brand-blue hover:underline"
-                    >
-                      {a.title}
-                    </Link>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {longDate(a.published_at)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="mt-4 space-y-3">
+                {(showAllArticles ? articles : articles.slice(0, 5)).map((a) => (
+                  <li key={a.id} className="rounded-lg border border-border bg-card p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+                        {a.category}
+                      </span>
+                      <Link
+                        to="/news/$slug"
+                        params={{ slug: a.slug }}
+                        className="font-semibold text-brand-blue hover:underline"
+                      >
+                        {a.title}
+                      </Link>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {longDate(a.published_at)}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {!showAllArticles && articles.length > 5 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => setShowAllArticles(true)}
+                >
+                  Read more
+                </Button>
+              ) : null}
+            </>
           )}
         </section>
 
@@ -398,29 +425,41 @@ function ContributorPage() {
           {alerts.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">No alerts posted yet.</p>
           ) : (
-            <ul className="mt-4 space-y-3">
-              {alerts.map((a) => (
-                <li key={a.id} className="rounded-lg border border-border bg-card p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <SeverityBadge value={a.severity} />
-                    <Link
-                      to="/alerts/$alertId"
-                      params={{ alertId: a.id }}
-                      className="font-semibold text-brand-blue hover:underline"
-                    >
-                      {a.title}
-                    </Link>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {timeAgo(a.created_at)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {a.county}
-                    {a.road ? ` · ${a.road}` : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="mt-4 space-y-3">
+                {(showAllAlerts ? alerts : alerts.slice(0, 5)).map((a) => (
+                  <li key={a.id} className="rounded-lg border border-border bg-card p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <SeverityBadge value={a.severity} />
+                      <Link
+                        to="/alerts/$alertId"
+                        params={{ alertId: a.id }}
+                        className="font-semibold text-brand-blue hover:underline"
+                      >
+                        {a.title}
+                      </Link>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {timeAgo(a.created_at)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {a.county}
+                      {a.road ? ` · ${a.road}` : ""}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              {!showAllAlerts && alerts.length > 5 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => setShowAllAlerts(true)}
+                >
+                  Read more
+                </Button>
+              ) : null}
+            </>
           )}
         </section>
 

@@ -8,6 +8,32 @@ export type Database = {
   };
   public: {
     Tables: {
+      accident_report_views: {
+        Row: {
+          created_at: string;
+          id: number;
+          report_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          report_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          report_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "accident_report_views_report_id_fkey";
+            columns: ["report_id"];
+            isOneToOne: false;
+            referencedRelation: "accident_reports";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       accident_reports: {
         Row: {
           casualties: number;
@@ -610,6 +636,33 @@ export type Database = {
           },
         ];
       };
+      newsletter_broadcasts: {
+        Row: {
+          body: string;
+          created_at: string;
+          id: string;
+          recipient_count: number;
+          sent_by: string | null;
+          subject: string;
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          id?: string;
+          recipient_count?: number;
+          sent_by?: string | null;
+          subject: string;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          id?: string;
+          recipient_count?: number;
+          sent_by?: string | null;
+          subject?: string;
+        };
+        Relationships: [];
+      };
       newsletter_subscribers: {
         Row: {
           active: boolean;
@@ -817,6 +870,7 @@ export type Database = {
           mjengo_networks_url: string | null;
           occupation: string | null;
           road_safety_message: string | null;
+          suspended: boolean;
           username: string | null;
         };
         Insert: {
@@ -830,6 +884,7 @@ export type Database = {
           mjengo_networks_url?: string | null;
           occupation?: string | null;
           road_safety_message?: string | null;
+          suspended?: boolean;
           username?: string | null;
         };
         Update: {
@@ -843,6 +898,7 @@ export type Database = {
           mjengo_networks_url?: string | null;
           occupation?: string | null;
           road_safety_message?: string | null;
+          suspended?: boolean;
           username?: string | null;
         };
         Relationships: [];
@@ -952,6 +1008,66 @@ export type Database = {
           quote?: string;
           updated_at?: string;
           updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      site_settings: {
+        Row: {
+          contact_email: string;
+          contact_phone: string;
+          footer_tagline: string;
+          id: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          contact_email?: string;
+          contact_phone?: string;
+          footer_tagline?: string;
+          id?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          contact_email?: string;
+          contact_phone?: string;
+          footer_tagline?: string;
+          id?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      social_links: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          href: string;
+          icon_key: string;
+          id: string;
+          label: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          href: string;
+          icon_key: string;
+          id?: string;
+          label: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          href?: string;
+          icon_key?: string;
+          id?: string;
+          label?: string;
+          sort_order?: number;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -1200,6 +1316,7 @@ export type Database = {
         };
         Returns: boolean;
       };
+      is_suspended: { Args: { _user_id: string }; Returns: boolean };
       owns_page: {
         Args: { _page_id: string; _user_id: string };
         Returns: boolean;
@@ -1232,6 +1349,42 @@ export type Database = {
         SetofOptions: {
           from: "*";
           to: "news";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      trending_reports: {
+        Args: { hours_back?: number; result_limit?: number };
+        Returns: {
+          casualties: number;
+          county: string;
+          created_at: string;
+          description: string;
+          editor_note: string | null;
+          fatalities: number;
+          id: string;
+          image_url: string | null;
+          is_anonymous: boolean;
+          latitude: number | null;
+          longitude: number | null;
+          occurred_at: string;
+          page_id: string | null;
+          parties_involved: string[];
+          rejection_reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          road: string | null;
+          road_id: string | null;
+          severity: string;
+          status: string;
+          title: string;
+          updated_at: string;
+          user_id: string;
+          vehicles_involved: number;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "accident_reports";
           isOneToOne: false;
           isSetofReturn: true;
         };

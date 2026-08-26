@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  ShieldCheck,
   UserCog,
   X,
 } from "lucide-react";
@@ -25,6 +26,7 @@ import logoUrl from "@/assets/share-barabara-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
+import { ROLE_RANK, useRoles } from "@/hooks/useRoles";
 import { useProfileUsernames } from "@/lib/profiles";
 import { NotificationBell } from "@/components/site/notification-bell";
 import { SubscribeButton } from "@/components/site/subscribe-button";
@@ -49,6 +51,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { identity, setIdentity, myPages, activePage } = useActiveIdentity();
   const { data: ownUsername = {} } = useProfileUsernames(user ? [user.id] : []);
+  const { rank } = useRoles();
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -135,6 +138,13 @@ export function SiteHeader() {
                       <UserCog className="mr-2 size-4" /> Profile settings
                     </Link>
                   </DropdownMenuItem>
+                  {rank >= ROLE_RANK.guest_author ? (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <ShieldCheck className="mr-2 size-4" /> Admin dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={signOut}>
                     <LogOut className="mr-2 size-4" /> Sign out

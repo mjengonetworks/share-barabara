@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, ShieldCheck } from "lucide-react";
@@ -64,6 +65,13 @@ function ReportDetail() {
       return data;
     },
   });
+
+  const recordedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!report || recordedFor.current === report.id) return;
+    recordedFor.current = report.id;
+    void supabase.from("accident_report_views").insert({ report_id: report.id });
+  }, [report]);
 
   const people = report ? ([report.user_id, report.reviewed_by].filter(Boolean) as string[]) : [];
   const { data: names = {} } = useProfileNames(people);
