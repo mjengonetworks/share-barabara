@@ -140,6 +140,7 @@ export type Database = {
           description: string;
           hazard_type: string;
           id: string;
+          image_url: string | null;
           is_anonymous: boolean;
           latitude: number | null;
           longitude: number | null;
@@ -159,6 +160,7 @@ export type Database = {
           description: string;
           hazard_type?: string;
           id?: string;
+          image_url?: string | null;
           is_anonymous?: boolean;
           latitude?: number | null;
           longitude?: number | null;
@@ -178,6 +180,7 @@ export type Database = {
           description?: string;
           hazard_type?: string;
           id?: string;
+          image_url?: string | null;
           is_anonymous?: boolean;
           latitude?: number | null;
           longitude?: number | null;
@@ -235,6 +238,51 @@ export type Database = {
           image_url?: string | null;
           link_url?: string;
           title?: string;
+        };
+        Relationships: [];
+      };
+      campaigns: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          description: string;
+          end_date: string;
+          id: string;
+          image_url: string | null;
+          report_content: string | null;
+          report_image_url: string | null;
+          slug: string;
+          start_date: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          description: string;
+          end_date: string;
+          id?: string;
+          image_url?: string | null;
+          report_content?: string | null;
+          report_image_url?: string | null;
+          slug: string;
+          start_date: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          description?: string;
+          end_date?: string;
+          id?: string;
+          image_url?: string | null;
+          report_content?: string | null;
+          report_image_url?: string | null;
+          slug?: string;
+          start_date?: string;
+          title?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -413,6 +461,72 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      infrastructure_issues: {
+        Row: {
+          authority: string | null;
+          content: string;
+          county: string | null;
+          created_at: string;
+          editor_note: string | null;
+          id: string;
+          image_url: string | null;
+          is_anonymous: boolean;
+          page_id: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          road_name: string;
+          road_scope: string;
+          status: string;
+          structure_type: string;
+          summary: string;
+          title: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          authority?: string | null;
+          content: string;
+          county?: string | null;
+          created_at?: string;
+          editor_note?: string | null;
+          id?: string;
+          image_url?: string | null;
+          is_anonymous?: boolean;
+          page_id?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          road_name: string;
+          road_scope?: string;
+          status?: string;
+          structure_type?: string;
+          summary: string;
+          title: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          authority?: string | null;
+          content?: string;
+          county?: string | null;
+          created_at?: string;
+          editor_note?: string | null;
+          id?: string;
+          image_url?: string | null;
+          is_anonymous?: boolean;
+          page_id?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          road_name?: string;
+          road_scope?: string;
+          status?: string;
+          structure_type?: string;
+          summary?: string;
+          title?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       hub_stats: {
         Row: {
@@ -875,6 +989,8 @@ export type Database = {
           mjengo_hub_url: string | null;
           mjengo_networks_url: string | null;
           occupation: string | null;
+          referral_code: string | null;
+          referral_points: number;
           road_safety_message: string | null;
           suspended: boolean;
           username: string | null;
@@ -889,6 +1005,8 @@ export type Database = {
           mjengo_hub_url?: string | null;
           mjengo_networks_url?: string | null;
           occupation?: string | null;
+          referral_code?: string | null;
+          referral_points?: number;
           road_safety_message?: string | null;
           suspended?: boolean;
           username?: string | null;
@@ -903,9 +1021,41 @@ export type Database = {
           mjengo_hub_url?: string | null;
           mjengo_networks_url?: string | null;
           occupation?: string | null;
+          referral_code?: string | null;
+          referral_points?: number;
           road_safety_message?: string | null;
           suspended?: boolean;
           username?: string | null;
+        };
+        Relationships: [];
+      };
+      referrals: {
+        Row: {
+          code_used: string;
+          created_at: string;
+          id: string;
+          referee_id: string;
+          referrer_id: string;
+          signup_awarded_at: string | null;
+          subscribe_awarded_at: string | null;
+        };
+        Insert: {
+          code_used: string;
+          created_at?: string;
+          id?: string;
+          referee_id: string;
+          referrer_id: string;
+          signup_awarded_at?: string | null;
+          subscribe_awarded_at?: string | null;
+        };
+        Update: {
+          code_used?: string;
+          created_at?: string;
+          id?: string;
+          referee_id?: string;
+          referrer_id?: string;
+          signup_awarded_at?: string | null;
+          subscribe_awarded_at?: string | null;
         };
         Relationships: [];
       };
@@ -1307,6 +1457,8 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      apply_referral_code: { Args: { _code: string }; Returns: boolean };
+      generate_referral_code: { Args: never; Returns: string };
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean };
       has_min_role: {
         Args: {

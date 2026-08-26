@@ -5,17 +5,15 @@ import { toast } from "sonner";
 import {
   ChevronDown,
   ChevronUp,
-  Eye,
+  Construction,
   ExternalLink,
   MoreVertical,
   Pencil,
-  ShieldAlert,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -30,49 +28,45 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfileNames } from "@/lib/profiles";
-import { useViewCounts } from "@/hooks/useViewCounts";
 import { UserLink } from "@/components/site/user-link";
-import { SeverityBadge } from "@/components/site/severity-badge";
-import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { dateTime } from "@/lib/format";
-import { KENYA_COUNTIES, REPORT_SEVERITIES } from "@/lib/constants";
+import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 
-export const Route = createFileRoute("/_authenticated/admin/reports")({
-  head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
-  component: ReportsQueuePage,
+export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
+  head: () => ({ meta: [{ title: "Infrastructure Issues: Share Barabara Admin" }] }),
+  component: InfrastructureIssuesAdminPage,
 });
 
-type ReportDraft = {
+type Draft = {
   title: string;
-  description: string;
+  road_name: string;
   county: string;
-  road: string;
-  severity: string;
-  vehicles_involved: number;
-  casualties: number;
-  fatalities: number;
+  authority: string;
+  structure_type: string;
+  summary: string;
+  content: string;
   editor_note: string;
 };
 type Status = "pending" | "approved" | "rejected";
 
-function ReportsQueuePage() {
+function InfrastructureIssuesAdminPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<Status | "all">("pending");
-  const [severityFilter, setSeverityFilter] = useState<string>("all");
-  const [countyFilter, setCountyFilter] = useState<string>("all");
+  const [countyFilter, setCountyFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [drafts, setDrafts] = useState<Record<string, ReportDraft>>({});
+  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { data: allReports = [], isLoading } = useQuery({
-    queryKey: ["admin-reports"],
+  const { data: allIssues = [], isLoading } = useQuery({
+    queryKey: ["admin-infrastructure-issues"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("accident_reports")
+        .from("infrastructure_issues")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(500);
@@ -81,63 +75,48 @@ function ReportsQueuePage() {
     },
   });
 
-  const reports = useMemo(() => {
+  const issues = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return allReports.filter((r) => {
-      if (statusFilter !== "all" && r.status !== statusFilter) return false;
-      if (severityFilter !== "all" && r.severity !== severityFilter) return false;
-      if (countyFilter !== "all" && r.county !== countyFilter) return false;
-      if (q && !r.title.toLowerCase().includes(q) && !r.description.toLowerCase().includes(q))
+    return allIssues.filter((i) => {
+      if (statusFilter !== "all" && i.status !== statusFilter) return false;
+      if (countyFilter !== "all" && i.county !== countyFilter) return false;
+      if (q && !i.title.toLowerCase().includes(q) && !i.road_name.toLowerCase().includes(q))
         return false;
       return true;
     });
-  }, [allReports, statusFilter, severityFilter, countyFilter, search]);
+  }, [allIssues, statusFilter, countyFilter, search]);
 
-  const { data: names = {} } = useProfileNames(reports.map((r) => r.user_id));
-  const { data: viewCounts = {} } = useViewCounts(
-    "accident_report_views",
-    "report_id",
-    reports.map((r) => r.id),
-  );
+  const { data: names = {} } = useProfileNames(issues.map((i) => i.user_id));
 
   const save = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-      draft,
-    }: {
-      id: string;
-      status: "approved" | "rejected" | "pending";
-      draft?: ReportDraft;
-    }) => {
+    mutationFn: async ({ id, status, draft }: { id: string; status: Status; draft?: Draft }) => {
       const patch = {
         status,
         reviewed_by: user?.id ?? null,
         reviewed_at: new Date().toISOString(),
         ...(draft ?? {}),
       };
-      const { error } = await supabase.from("accident_reports").update(patch).eq("id", id);
+      const { error } = await supabase.from("infrastructure_issues").update(patch).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Report updated");
+      toast.success("Issue updated");
       setExpandedId(null);
-      queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
-      queryClient.invalidateQueries({ queryKey: ["reports"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-infrastructure-issues"] });
+      queryClient.invalidateQueries({ queryKey: ["infrastructure-issues"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("accident_reports").delete().eq("id", id);
+      const { error } = await supabase.from("infrastructure_issues").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Report deleted");
+      toast.success("Issue deleted");
       setExpandedId(null);
-      queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
-      queryClient.invalidateQueries({ queryKey: ["reports"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-infrastructure-issues"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -147,9 +126,9 @@ function ReportsQueuePage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Moderation queue
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Accident reports</h1>
+      <h1 className="mt-1 text-3xl font-extrabold">Infrastructure issues</h1>
       <p className="mt-2 text-muted-foreground">
-        Edit submissions for accuracy and clarity, then approve them.
+        Roads, bridges, drainage and signage problems reported by the community.
       </p>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
@@ -164,22 +143,6 @@ function ReportsQueuePage() {
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Severity</Label>
-          <Select value={severityFilter} onValueChange={setSeverityFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All severities</SelectItem>
-              {REPORT_SEVERITIES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
             </SelectContent>
           </Select>
         </div>
@@ -200,72 +163,65 @@ function ReportsQueuePage() {
           </Select>
         </div>
         <div className="min-w-48 flex-1">
-          <Label htmlFor="report-search">Search</Label>
+          <Label htmlFor="infra-search">Search</Label>
           <Input
-            id="report-search"
+            id="infra-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search title or description…"
+            placeholder="Search title or road…"
           />
         </div>
       </div>
 
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
-      {!isLoading && reports.length === 0 ? (
+      {!isLoading && issues.length === 0 ? (
         <p className="mt-8 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
           Nothing matches these filters.
         </p>
       ) : null}
 
       <ul className="mt-6 space-y-3">
-        {reports.map((r) => {
-          const d: ReportDraft = drafts[r.id] ?? {
-            title: r.title,
-            description: r.description,
-            county: r.county,
-            road: r.road ?? "",
-            severity: r.severity,
-            vehicles_involved: r.vehicles_involved,
-            casualties: r.casualties,
-            fatalities: r.fatalities,
-            editor_note: r.editor_note ?? "",
+        {issues.map((i) => {
+          const d: Draft = drafts[i.id] ?? {
+            title: i.title,
+            road_name: i.road_name,
+            county: i.county ?? "",
+            authority: i.authority ?? "",
+            structure_type: i.structure_type,
+            summary: i.summary,
+            content: i.content,
+            editor_note: i.editor_note ?? "",
           };
-          const set = (patch: Partial<ReportDraft>) =>
-            setDrafts((prev) => ({ ...prev, [r.id]: { ...d, ...patch } }));
-          const expanded = expandedId === r.id;
+          const set = (patch: Partial<Draft>) =>
+            setDrafts((prev) => ({ ...prev, [i.id]: { ...d, ...patch } }));
+          const expanded = expandedId === i.id;
 
           return (
-            <li key={r.id} className="rounded-lg border border-border bg-card card-elevated">
+            <li key={i.id} className="rounded-lg border border-border bg-card card-elevated">
               <div className="flex items-center gap-3 p-4">
                 <button
                   type="button"
-                  onClick={() => setExpandedId(expanded ? null : r.id)}
+                  onClick={() => setExpandedId(expanded ? null : i.id)}
                   className="flex min-w-0 flex-1 items-center gap-3 text-left"
                 >
-                  {r.image_url ? (
+                  {i.image_url ? (
                     <img
-                      src={r.image_url}
+                      src={i.image_url}
                       alt=""
                       className="size-14 shrink-0 rounded object-cover"
                     />
                   ) : (
                     <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
-                      <ShieldAlert className="size-5 text-muted-foreground" />
+                      <Construction className="size-5 text-muted-foreground" />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <SeverityBadge value={r.severity} />
-                      <p className="truncate font-semibold">{r.title}</p>
-                    </div>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                      <span>
-                        Filed by <UserLink userId={r.user_id} name={names[r.user_id]} />
-                      </span>
-                      <span className="inline-flex items-center gap-0.5">
-                        · <Eye className="size-3" /> {viewCounts[r.id] ?? 0}
-                      </span>
-                      <span>· {dateTime(r.created_at)}</span>
+                    <p className="truncate font-semibold">{i.title}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {i.road_name}
+                      {i.county ? ` · ${i.county}` : ""} · by{" "}
+                      <UserLink userId={i.user_id} name={names[i.user_id]} /> ·{" "}
+                      {dateTime(i.created_at)}
                     </p>
                   </div>
                 </button>
@@ -277,24 +233,30 @@ function ReportsQueuePage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link to="/reports/$reportId" params={{ reportId: r.id }} target="_blank">
-                        <ExternalLink className="mr-2 size-4" /> View on website
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setExpandedId(r.id)}>
+                    {i.status === "approved" ? (
+                      <DropdownMenuItem asChild>
+                        <Link
+                          to="/infrastructure-issues/$issueId"
+                          params={{ issueId: i.id }}
+                          target="_blank"
+                        >
+                          <ExternalLink className="mr-2 size-4" /> View on website
+                        </Link>
+                      </DropdownMenuItem>
+                    ) : null}
+                    <DropdownMenuItem onClick={() => setExpandedId(i.id)}>
                       <Pencil className="mr-2 size-4" /> Edit
                     </DropdownMenuItem>
-                    {r.status !== "approved" ? (
+                    {i.status !== "approved" ? (
                       <DropdownMenuItem
-                        onClick={() => save.mutate({ id: r.id, status: "approved" })}
+                        onClick={() => save.mutate({ id: i.id, status: "approved" })}
                       >
                         Approve &amp; publish
                       </DropdownMenuItem>
                     ) : null}
-                    {r.status !== "rejected" ? (
+                    {i.status !== "rejected" ? (
                       <DropdownMenuItem
-                        onClick={() => save.mutate({ id: r.id, status: "rejected" })}
+                        onClick={() => save.mutate({ id: i.id, status: "rejected" })}
                       >
                         Reject
                       </DropdownMenuItem>
@@ -302,7 +264,7 @@ function ReportsQueuePage() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onClick={() => remove.mutate(r.id)}
+                      onClick={() => remove.mutate(i.id)}
                     >
                       <Trash2 className="mr-2 size-4" /> Delete
                     </DropdownMenuItem>
@@ -312,7 +274,7 @@ function ReportsQueuePage() {
                 <button
                   type="button"
                   aria-label={expanded ? "Collapse" : "Expand"}
-                  onClick={() => setExpandedId(expanded ? null : r.id)}
+                  onClick={() => setExpandedId(expanded ? null : i.id)}
                   className="shrink-0 text-muted-foreground"
                 >
                   {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
@@ -323,14 +285,22 @@ function ReportsQueuePage() {
                 <div className="border-t border-border p-5">
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor={`t-${r.id}`}>Summary</Label>
+                      <Label htmlFor={`t-${i.id}`}>Issue title</Label>
                       <Input
-                        id={`t-${r.id}`}
+                        id={`t-${i.id}`}
                         value={d.title}
                         onChange={(e) => set({ title: e.target.value })}
                       />
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <Label htmlFor={`r-${i.id}`}>Road name</Label>
+                        <Input
+                          id={`r-${i.id}`}
+                          value={d.road_name}
+                          onChange={(e) => set({ road_name: e.target.value })}
+                        />
+                      </div>
                       <div>
                         <Label>County</Label>
                         <Select value={d.county} onValueChange={(v) => set({ county: v })}>
@@ -347,21 +317,31 @@ function ReportsQueuePage() {
                         </Select>
                       </div>
                       <div>
-                        <Label htmlFor={`rd-${r.id}`}>Road or location</Label>
-                        <Input
-                          id={`rd-${r.id}`}
-                          value={d.road}
-                          onChange={(e) => set({ road: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <Label>Severity</Label>
-                        <Select value={d.severity} onValueChange={(v) => set({ severity: v })}>
+                        <Label>Authority</Label>
+                        <Select value={d.authority} onValueChange={(v) => set({ authority: v })}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {REPORT_SEVERITIES.map((s) => (
+                            {ROAD_AUTHORITIES.map((a) => (
+                              <SelectItem key={a.value} value={a.value}>
+                                {a.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Structure type</Label>
+                        <Select
+                          value={d.structure_type}
+                          onValueChange={(v) => set({ structure_type: v })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STRUCTURE_TYPES.map((s) => (
                               <SelectItem key={s.value} value={s.value}>
                                 {s.label}
                               </SelectItem>
@@ -369,56 +349,31 @@ function ReportsQueuePage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <Label htmlFor={`v-${r.id}`}>Vehicles</Label>
-                          <Input
-                            id={`v-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.vehicles_involved}
-                            onChange={(e) => set({ vehicles_involved: Number(e.target.value) })}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`i-${r.id}`}>Injured</Label>
-                          <Input
-                            id={`i-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.casualties}
-                            onChange={(e) => set({ casualties: Number(e.target.value) })}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`f-${r.id}`}>Deaths</Label>
-                          <Input
-                            id={`f-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.fatalities}
-                            onChange={(e) => set({ fatalities: Number(e.target.value) })}
-                          />
-                        </div>
-                      </div>
                     </div>
                     <div>
-                      <Label htmlFor={`d-${r.id}`}>Report body</Label>
+                      <Label htmlFor={`s-${i.id}`}>Summary</Label>
                       <RichTextEditor
-                        id={`d-${r.id}`}
-                        rows={5}
-                        value={d.description}
-                        onChange={(v) => set({ description: v })}
+                        id={`s-${i.id}`}
+                        rows={2}
+                        value={d.summary}
+                        onChange={(v) => set({ summary: v })}
                       />
                     </div>
                     <div>
-                      <Label htmlFor={`n-${r.id}`}>Editor's note (shown publicly)</Label>
-                      <Textarea
-                        id={`n-${r.id}`}
-                        rows={2}
+                      <Label htmlFor={`c-${i.id}`}>Content</Label>
+                      <RichTextEditor
+                        id={`c-${i.id}`}
+                        rows={6}
+                        value={d.content}
+                        onChange={(v) => set({ content: v })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`n-${i.id}`}>Moderator's note (shown publicly)</Label>
+                      <Input
+                        id={`n-${i.id}`}
                         value={d.editor_note}
                         onChange={(e) => set({ editor_note: e.target.value })}
-                        placeholder="Verification details, corrections or context added during review."
                       />
                     </div>
                   </div>
@@ -426,29 +381,31 @@ function ReportsQueuePage() {
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Button
                       disabled={save.isPending}
-                      onClick={() => save.mutate({ id: r.id, status: "approved", draft: d })}
+                      onClick={() => save.mutate({ id: i.id, status: "approved", draft: d })}
                     >
                       Approve &amp; publish
                     </Button>
                     <Button
                       variant="outline"
                       disabled={save.isPending}
-                      onClick={() => save.mutate({ id: r.id, status: r.status as never, draft: d })}
+                      onClick={() =>
+                        save.mutate({ id: i.id, status: i.status as Status, draft: d })
+                      }
                     >
                       Save edits
                     </Button>
                     <Button
                       variant="destructive"
                       disabled={save.isPending}
-                      onClick={() => save.mutate({ id: r.id, status: "rejected", draft: d })}
+                      onClick={() => save.mutate({ id: i.id, status: "rejected", draft: d })}
                     >
                       Reject
                     </Button>
-                    {r.status !== "pending" ? (
+                    {i.status !== "pending" ? (
                       <Button
                         variant="ghost"
                         disabled={save.isPending}
-                        onClick={() => save.mutate({ id: r.id, status: "pending" })}
+                        onClick={() => save.mutate({ id: i.id, status: "pending" })}
                       >
                         Send back to pending
                       </Button>

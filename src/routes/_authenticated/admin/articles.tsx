@@ -36,6 +36,7 @@ import { useRoles } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
 import { useViewCounts } from "@/hooks/useViewCounts";
 import { UserLink } from "@/components/site/user-link";
+import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { dateTime } from "@/lib/format";
 import { NEWS_CATEGORIES } from "@/lib/constants";
 
@@ -337,11 +338,11 @@ function ArticlesQueuePage() {
                       </div>
                       <div>
                         <Label htmlFor={`ab-${a.id}`}>Article body</Label>
-                        <Textarea
+                        <RichTextEditor
                           id={`ab-${a.id}`}
                           rows={8}
                           value={d.body}
-                          onChange={(e) => set({ body: e.target.value })}
+                          onChange={(v) => set({ body: v })}
                         />
                       </div>
                     </div>

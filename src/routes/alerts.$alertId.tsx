@@ -9,6 +9,7 @@ import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useVotes } from "@/hooks/useVotes";
 import { longDate } from "@/lib/format";
 import { HAZARD_TYPES, PARTIES_INVOLVED } from "@/lib/constants";
+import { renderRichText } from "@/lib/richtext";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
@@ -186,10 +187,16 @@ function AlertDetail() {
             </div>
           ) : null}
 
+          {alert.image_url ? (
+            <img
+              src={alert.image_url}
+              alt={alert.title}
+              className="mt-6 aspect-video w-full rounded-lg border border-border object-cover"
+            />
+          ) : null}
+
           <div className="mt-6 space-y-4 text-foreground/90">
-            {alert.description.split("\n\n").map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
+            {renderRichText(alert.description)}
           </div>
 
           <div className="mt-6">

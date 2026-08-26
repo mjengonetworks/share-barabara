@@ -8,7 +8,13 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+const PENDING_REFERRAL_KEY = "sb_pending_referral";
+
 export const Route = createFileRoute("/auth/")({
+  validateSearch: (search: Record<string, unknown>): { ref?: string } => {
+    const ref = typeof search["ref"] === "string" ? (search["ref"] as string) : undefined;
+    return ref ? { ref } : {};
+  },
   head: () => ({
     meta: [
       { title: "Sign in: Share Barabara Kenya" },
@@ -31,6 +37,7 @@ export const Route = createFileRoute("/auth/")({
 function AuthPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { ref } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,8 +46,20 @@ function AuthPage() {
   const [sent, setSent] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
+  // Stashed client-side so it survives a Google OAuth round trip, then
+  // applied (or manually entered later on Settings) once we have a session.
   useEffect(() => {
-    if (user) navigate({ to: "/dashboard", replace: true });
+    if (ref) localStorage.setItem(PENDING_REFERRAL_KEY, ref);
+  }, [ref]);
+
+  useEffect(() => {
+    if (!user) return;
+    const pending = localStorage.getItem(PENDING_REFERRAL_KEY);
+    if (pending) {
+      localStorage.removeItem(PENDING_REFERRAL_KEY);
+      void supabase.rpc("apply_referral_code", { _code: pending });
+    }
+    navigate({ to: "/dashboard", replace: true });
   }, [user, navigate]);
 
   async function submit(e: React.FormEvent) {

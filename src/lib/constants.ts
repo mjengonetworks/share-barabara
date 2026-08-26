@@ -100,6 +100,24 @@ export const PARTIES_INVOLVED = [
   { value: "other", label: "Other" },
 ] as const;
 
+export const STRUCTURE_TYPES = [
+  { value: "road", label: "Road surface" },
+  { value: "bridge", label: "Bridge" },
+  { value: "drainage", label: "Drainage" },
+  { value: "signage", label: "Signage" },
+  { value: "streetlight", label: "Street lighting" },
+  { value: "footbridge", label: "Footbridge / pedestrian crossing" },
+  { value: "other", label: "Other" },
+] as const;
+
+export const ROAD_AUTHORITIES = [
+  { value: "KeNHA", label: "KeNHA (national trunk roads)" },
+  { value: "KURA", label: "KURA (urban roads)" },
+  { value: "KeRRA", label: "KeRRA (rural roads)" },
+  { value: "County Government", label: "County Government" },
+  { value: "Other", label: "Other" },
+] as const;
+
 export const EMERGENCY_CONTACTS = [
   { name: "Police / Emergency", number: "999 or 112" },
   { name: "St John Ambulance", number: "0721 225 285" },

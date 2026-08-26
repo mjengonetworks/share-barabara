@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, Building2 } from "lucide-react";
+import { BadgeCheck, Building2, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePageCategories } from "@/hooks/usePageCategories";
+import { usePagesByIds } from "@/hooks/usePagesByIds";
+import { usePageLeaderboard } from "@/hooks/useContributionLeaderboards";
 import { Button } from "@/components/ui/button";
 import { PageForm } from "@/components/site/page-form";
 import { FeaturedPageCard } from "@/components/site/featured-cards";
@@ -106,35 +108,125 @@ function PagesIndex() {
         </p>
       ) : null}
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {pages.map((p) => (
-          <Link
-            key={p.id}
-            to="/pages/$slug"
-            params={{ slug: p.slug }}
-            className="group flex flex-col rounded-lg border border-border bg-card p-5 transition-shadow card-elevated hover:border-accent"
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex size-10 items-center justify-center rounded bg-accent/20 text-accent-foreground">
-                <Building2 className="size-5" />
-              </span>
-              <div>
-                <p className="flex items-center gap-1 font-bold text-brand-blue group-hover:underline">
-                  {p.name}
-                  {p.verified ? (
-                    <BadgeCheck className="size-4 text-accent" aria-label="Verified page" />
+      {category ? (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {pages.map((p) => (
+            <PageCard key={p.id} page={p} />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-6 space-y-10">
+          {categories.map((c) => {
+            const inCategory = pages.filter((p) => p.category === c.name);
+            if (inCategory.length === 0) return null;
+            return (
+              <div key={c.id}>
+                <div className="flex items-end justify-between gap-4">
+                  <h2 className="text-xl font-bold">{c.name}</h2>
+                  {inCategory.length > 5 ? (
+                    <Link
+                      to="/pages"
+                      search={{ category: c.name }}
+                      className="text-sm font-semibold text-brand-blue underline"
+                    >
+                      View more
+                    </Link>
                   ) : null}
-                </p>
-                <p className="text-xs text-muted-foreground">{p.category}</p>
+                </div>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {inCategory.slice(0, 5).map((p) => (
+                    <PageCard key={p.id} page={p} />
+                  ))}
+                </div>
               </div>
-            </div>
-            {p.description ? (
-              <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{p.description}</p>
-            ) : null}
-            {p.county ? <p className="mt-3 text-xs text-muted-foreground">{p.county}</p> : null}
-          </Link>
-        ))}
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mt-14 grid gap-8 border-t border-border pt-10 lg:grid-cols-2">
+        <PageLeaderboard title="Top contributing pages this week" days={7} />
+        <PageLeaderboard title="Top contributing pages this month" days={30} />
       </div>
+    </div>
+  );
+}
+
+type PageRow = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  description?: string | null;
+  county?: string | null;
+  verified: boolean;
+};
+
+function PageCard({ page: p }: { page: PageRow }) {
+  return (
+    <Link
+      to="/pages/$slug"
+      params={{ slug: p.slug }}
+      className="group flex flex-col rounded-lg border border-border bg-card p-5 transition-shadow card-elevated hover:border-accent"
+    >
+      <div className="flex items-center gap-2">
+        <span className="flex size-10 items-center justify-center rounded bg-accent/20 text-accent-foreground">
+          <Building2 className="size-5" />
+        </span>
+        <div>
+          <p className="flex items-center gap-1 font-bold text-brand-blue group-hover:underline">
+            {p.name}
+            {p.verified ? (
+              <BadgeCheck className="size-4 text-accent" aria-label="Verified page" />
+            ) : null}
+          </p>
+          <p className="text-xs text-muted-foreground">{p.category}</p>
+        </div>
+      </div>
+      {p.description ? (
+        <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{p.description}</p>
+      ) : null}
+      {p.county ? <p className="mt-3 text-xs text-muted-foreground">{p.county}</p> : null}
+    </Link>
+  );
+}
+
+function PageLeaderboard({ title, days }: { title: string; days: number }) {
+  const { data: ranked = [], isLoading } = usePageLeaderboard(days, 5);
+  const { data: pagesMap = {} } = usePagesByIds(ranked.map((r) => r.id));
+
+  return (
+    <div>
+      <h2 className="flex items-center gap-2 text-xl font-bold">
+        <Trophy className="size-5 text-accent" /> {title}
+      </h2>
+      {isLoading ? <p className="mt-3 text-sm text-muted-foreground">Loading…</p> : null}
+      {!isLoading && ranked.length === 0 ? (
+        <p className="mt-3 text-sm text-muted-foreground">No contributions in this period yet.</p>
+      ) : null}
+      <ol className="mt-4 space-y-2">
+        {ranked.map((r, i) => {
+          const page = pagesMap[r.id];
+          if (!page) return null;
+          return (
+            <li key={r.id} className="flex items-center justify-between gap-3 text-sm">
+              <span className="flex items-center gap-2">
+                <span className="flex size-6 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                  {i + 1}
+                </span>
+                <Link
+                  to="/pages/$slug"
+                  params={{ slug: page.slug }}
+                  className="font-semibold text-brand-blue hover:underline"
+                >
+                  {page.name}
+                </Link>
+              </span>
+              <span className="text-muted-foreground">{r.count} contributions</span>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

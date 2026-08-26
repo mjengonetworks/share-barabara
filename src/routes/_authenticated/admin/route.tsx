@@ -4,12 +4,14 @@ import {
   Bell,
   Building,
   Building2,
+  Construction,
   Facebook,
   FileText,
   Handshake,
   Inbox,
   LayoutGrid,
   Mail,
+  Megaphone,
   MessageSquare,
   Newspaper,
   Quote,
@@ -76,6 +78,12 @@ const SECTIONS: NavSection[] = [
         minRank: ROLE_RANK.moderator,
       },
       {
+        to: "/admin/infrastructure-issues",
+        label: "Infrastructure Issues",
+        icon: Construction,
+        minRank: ROLE_RANK.moderator,
+      },
+      {
         to: "/admin/comments",
         label: "Comments",
         icon: MessageSquare,
@@ -88,6 +96,12 @@ const SECTIONS: NavSection[] = [
   {
     label: "Site content",
     items: [
+      {
+        to: "/admin/campaigns",
+        label: "Campaigns",
+        icon: Megaphone,
+        minRank: ROLE_RANK.editor,
+      },
       { to: "/admin/quote", label: "Quote of the Day", icon: Quote, minRank: ROLE_RANK.editor },
       { to: "/admin/banner-ads", label: "Banner Ads", icon: Bell, minRank: ROLE_RANK.editor },
       {

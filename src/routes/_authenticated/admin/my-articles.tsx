@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/site/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -238,11 +239,11 @@ function MyArticlesPage() {
                   </div>
                   <div>
                     <Label htmlFor={`b-${a.id}`}>Body</Label>
-                    <Textarea
+                    <RichTextEditor
                       id={`b-${a.id}`}
                       rows={8}
                       value={d.body}
-                      onChange={(e) => set({ body: e.target.value })}
+                      onChange={(v) => set({ body: v })}
                     />
                   </div>
                   <div className="flex flex-wrap gap-2">

@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, TriangleAlert } from "lucide-react";
+import { MapPin, TriangleAlert, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfileNames } from "@/lib/profiles";
+import { useProfileNames, useProfileUsernames } from "@/lib/profiles";
 import { useVotes } from "@/hooks/useVotes";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
+import { useProfileLeaderboard } from "@/hooks/useContributionLeaderboards";
 import { timeAgo } from "@/lib/format";
 import { HAZARD_TYPES, KENYA_COUNTIES } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
@@ -99,6 +100,9 @@ function AlertsPage() {
             what you see on your route.
           </p>
         </div>
+        <Button asChild variant="outline">
+          <Link to="/infrastructure-issues">Report an infrastructure issue</Link>
+        </Button>
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -298,6 +302,48 @@ function AlertsPage() {
           )}
         </aside>
       </div>
+
+      <TopContributingProfiles />
+    </div>
+  );
+}
+
+function TopContributingProfiles() {
+  const { data: weekly = [], isLoading } = useProfileLeaderboard(7, 5);
+  const { data: names = {} } = useProfileNames(weekly.map((r) => r.id));
+  const { data: usernames = {} } = useProfileUsernames(weekly.map((r) => r.id));
+
+  if (!isLoading && weekly.length === 0) return null;
+
+  return (
+    <div className="mt-14 border-t border-border pt-10">
+      <h2 className="flex items-center gap-2 text-2xl font-bold">
+        <Trophy className="size-5 text-accent" /> Top contributors this week
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Ranked by alerts, reports and comments posted in the last 7 days.
+      </p>
+      <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {weekly.map((r, i) => (
+          <li
+            key={r.id}
+            className="flex items-center gap-3 rounded-lg border border-border bg-card p-4"
+          >
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent/20 text-sm font-bold text-accent-foreground">
+              {i + 1}
+            </span>
+            <div className="min-w-0">
+              <UserLink
+                userId={r.id}
+                name={names[r.id]}
+                username={usernames[r.id]}
+                className="truncate"
+              />
+              <p className="text-xs text-muted-foreground">{r.count} contributions</p>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

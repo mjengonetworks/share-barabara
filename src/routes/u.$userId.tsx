@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { BadgeCheck, CarFront, MessageSquare, Newspaper, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate, timeAgo } from "@/lib/format";
@@ -224,8 +225,28 @@ function ContributorPage() {
           {profile?.county ? `${profile.county} · ` : ""}
           {profile?.created_at ? `Contributing since ${longDate(profile.created_at)}` : ""}
         </p>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           <ShareButtons title={`${name} on Share Barabara`} />
+          {viewer?.id === userId && profile?.referral_code ? (
+            <span className="text-xs text-muted-foreground">
+              Refer friends and earn points (and, in future, a share of subscription revenue) —{" "}
+              <button
+                type="button"
+                className="font-semibold text-brand-blue underline"
+                onClick={async () => {
+                  const url = `${window.location.origin}/auth?ref=${profile.referral_code}`;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast.success("Referral link copied");
+                  } catch {
+                    toast.error("Couldn't copy the link");
+                  }
+                }}
+              >
+                copy your referral link
+              </button>
+            </span>
+          ) : null}
         </div>
         {profile?.bio ? <p className="mt-3 max-w-2xl text-foreground/90">{profile.bio}</p> : null}
         {profile?.road_safety_message ? (
@@ -280,6 +301,11 @@ function ContributorPage() {
           ) : (
             <span className="text-xs text-muted-foreground">{score?.points ?? 0} points</span>
           )}
+          {profile?.referral_points ? (
+            <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent-foreground">
+              {profile.referral_points} referral pts
+            </span>
+          ) : null}
         </div>
 
         {viewerCanRate ? (

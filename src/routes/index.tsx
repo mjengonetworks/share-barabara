@@ -2,8 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
+  BadgeCheck,
   BarChart3,
+  Building2,
   CarFront,
+  Construction,
   Film,
   HandHeart,
   Mail,
@@ -78,6 +81,20 @@ function Index() {
         .eq("status", "approved")
         .order("occurred_at", { ascending: false })
         .limit(3);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: pages = [] } = useQuery({
+    queryKey: ["home-pages"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("id, slug, name, category, verified")
+        .order("verified", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(6);
       if (error) throw error;
       return data;
     },
@@ -287,6 +304,62 @@ function Index() {
             ))}
           </div>
         )}
+      </section>
+
+      {pages.length > 0 ? (
+        <section className="mx-auto max-w-6xl px-4 py-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="flex items-center gap-2 text-3xl font-bold">
+              <Building2 className="size-7 text-accent" /> Pages
+            </h2>
+            <Link to="/pages" className="text-sm font-semibold text-brand-blue underline">
+              View all pages
+            </Link>
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {pages.map((p) => (
+              <Link
+                key={p.id}
+                to="/pages/$slug"
+                params={{ slug: p.slug }}
+                className="group flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded bg-accent/20 text-accent-foreground">
+                  <Building2 className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="flex items-center gap-1 truncate font-semibold text-brand-blue group-hover:underline">
+                    {p.name}
+                    {p.verified ? (
+                      <BadgeCheck
+                        className="size-4 shrink-0 text-accent"
+                        aria-label="Verified page"
+                      />
+                    ) : null}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{p.category}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="mx-auto max-w-6xl px-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-dashed border-border bg-muted/30 p-6">
+          <div className="flex items-center gap-3">
+            <Construction className="size-8 shrink-0 text-accent" />
+            <div>
+              <p className="font-bold">See a road, bridge or drainage problem?</p>
+              <p className="text-sm text-muted-foreground">
+                Report infrastructure issues even if they aren't an immediate hazard yet.
+              </p>
+            </div>
+          </div>
+          <Button asChild variant="outline">
+            <Link to="/infrastructure-issues">Report an infrastructure issue</Link>
+          </Button>
+        </div>
       </section>
 
       <section className="border-y border-border bg-secondary/40">

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { longDate } from "@/lib/format";
 import { useProfileNames, useProfileUsernames } from "@/lib/profiles";
 import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
+import { renderRichText } from "@/lib/richtext";
 import { UserLink } from "@/components/site/user-link";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
@@ -184,9 +185,7 @@ function NewsDetail() {
             {article.summary}
           </p>
           <div className="mt-6 space-y-4 text-foreground/90">
-            {article.body.split("\n\n").map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
+            {renderRichText(article.body)}
             {related[0] ? (
               <p className="rounded border-l-4 border-caution bg-caution/10 py-2 pl-4 text-sm">
                 <span className="font-semibold">Read also: </span>

@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
@@ -212,13 +212,13 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       </div>
       <div>
         <Label htmlFor="r-desc">What happened?</Label>
-        <Textarea
+        <RichTextEditor
           id="r-desc"
           required
           rows={4}
           value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          placeholder="Weather, road conditions, contributing factors and the response by emergency services."
+          onChange={(v) => setForm({ ...form, description: v })}
+          placeholder="Weather, road conditions, contributing factors and the response by emergency services. Use the toolbar to add photos or a video."
         />
       </div>
       <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">

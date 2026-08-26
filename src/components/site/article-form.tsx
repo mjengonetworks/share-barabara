@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
@@ -122,13 +123,13 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
       </div>
       <div>
         <Label htmlFor="a-body">Article body</Label>
-        <Textarea
+        <RichTextEditor
           id="a-body"
           required
           rows={8}
           value={form.body}
-          onChange={(e) => setForm({ ...form, body: e.target.value })}
-          placeholder="Separate paragraphs with a blank line."
+          onChange={(v) => setForm({ ...form, body: v })}
+          placeholder="Separate paragraphs with a blank line. Use the toolbar to add bold, italic, links, images or a YouTube video."
         />
       </div>
       <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">

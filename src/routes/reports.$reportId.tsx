@@ -9,6 +9,7 @@ import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { longDate } from "@/lib/format";
+import { renderRichText } from "@/lib/richtext";
 import { PARTIES_INVOLVED } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { UserLink } from "@/components/site/user-link";
@@ -254,9 +255,7 @@ function ReportDetail() {
           ) : null}
 
           <div className="mt-6 space-y-4 text-foreground/90">
-            {report.description.split("\n\n").map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
+            {renderRichText(report.description)}
           </div>
 
           {report.editor_note ? (

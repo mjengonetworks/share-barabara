@@ -31,6 +31,9 @@ import { Route as AlertsIndexRouteImport } from './routes/alerts.index'
 import { Route as AlertsAlertIdRouteImport } from './routes/alerts.$alertId'
 import { Route as AuthIndexRouteImport } from './routes/auth.index'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
+import { Route as CampaignsSlugRouteImport } from './routes/campaigns.$slug'
+import { Route as InfrastructureIssuesIndexRouteImport } from './routes/infrastructure-issues.index'
+import { Route as InfrastructureIssuesIssueIdRouteImport } from './routes/infrastructure-issues.$issueId'
 import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as PagesIndexRouteImport } from './routes/pages.index'
@@ -43,10 +46,12 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminAlertsRouteImport } from './routes/_authenticated/admin/alerts'
 import { Route as AuthenticatedAdminArticlesRouteImport } from './routes/_authenticated/admin/articles'
 import { Route as AuthenticatedAdminBannerAdsRouteImport } from './routes/_authenticated/admin/banner-ads'
+import { Route as AuthenticatedAdminCampaignsRouteImport } from './routes/_authenticated/admin/campaigns'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin/categories'
 import { Route as AuthenticatedAdminCommentsRouteImport } from './routes/_authenticated/admin/comments'
 import { Route as AuthenticatedAdminFeaturedRouteImport } from './routes/_authenticated/admin/featured'
 import { Route as AuthenticatedAdminFooterRouteImport } from './routes/_authenticated/admin/footer'
+import { Route as AuthenticatedAdminInfrastructureIssuesRouteImport } from './routes/_authenticated/admin/infrastructure-issues'
 import { Route as AuthenticatedAdminMerchItemsRouteImport } from './routes/_authenticated/admin/merch-items'
 import { Route as AuthenticatedAdminMerchOrdersRouteImport } from './routes/_authenticated/admin/merch-orders'
 import { Route as AuthenticatedAdminMyArticlesRouteImport } from './routes/_authenticated/admin/my-articles'
@@ -170,6 +175,23 @@ const AuthResetRoute = AuthResetRouteImport.update({
   path: '/auth/reset',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CampaignsSlugRoute = CampaignsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => CampaignsRoute,
+} as any)
+const InfrastructureIssuesIndexRoute =
+  InfrastructureIssuesIndexRouteImport.update({
+    id: '/infrastructure-issues/',
+    path: '/infrastructure-issues/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InfrastructureIssuesIssueIdRoute =
+  InfrastructureIssuesIssueIdRouteImport.update({
+    id: '/infrastructure-issues/$issueId',
+    path: '/infrastructure-issues/$issueId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const NewsIndexRoute = NewsIndexRouteImport.update({
   id: '/news/',
   path: '/news/',
@@ -233,6 +255,12 @@ const AuthenticatedAdminBannerAdsRoute =
     path: '/banner-ads',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminCampaignsRoute =
+  AuthenticatedAdminCampaignsRouteImport.update({
+    id: '/campaigns',
+    path: '/campaigns',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminCategoriesRoute =
   AuthenticatedAdminCategoriesRouteImport.update({
     id: '/categories',
@@ -255,6 +283,12 @@ const AuthenticatedAdminFooterRoute =
   AuthenticatedAdminFooterRouteImport.update({
     id: '/footer',
     path: '/footer',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminInfrastructureIssuesRoute =
+  AuthenticatedAdminInfrastructureIssuesRouteImport.update({
+    id: '/infrastructure-issues',
+    path: '/infrastructure-issues',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminMerchItemsRoute =
@@ -336,7 +370,7 @@ const AuthenticatedAdminVideosRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/campaigns': typeof CampaignsRoute
+  '/campaigns': typeof CampaignsRouteWithChildren
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -353,6 +387,8 @@ export interface FileRoutesByFullPath {
   '/moderate': typeof AuthenticatedModerateRoute
   '/alerts/$alertId': typeof AlertsAlertIdRoute
   '/auth/reset': typeof AuthResetRoute
+  '/campaigns/$slug': typeof CampaignsSlugRoute
+  '/infrastructure-issues/$issueId': typeof InfrastructureIssuesIssueIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/reports/$reportId': typeof ReportsReportIdRoute
@@ -360,16 +396,19 @@ export interface FileRoutesByFullPath {
   '/u/$userId': typeof UUserIdRoute
   '/alerts/': typeof AlertsIndexRoute
   '/auth/': typeof AuthIndexRoute
+  '/infrastructure-issues/': typeof InfrastructureIssuesIndexRoute
   '/news/': typeof NewsIndexRoute
   '/pages/': typeof PagesIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/admin/alerts': typeof AuthenticatedAdminAlertsRoute
   '/admin/articles': typeof AuthenticatedAdminArticlesRoute
   '/admin/banner-ads': typeof AuthenticatedAdminBannerAdsRoute
+  '/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
@@ -388,7 +427,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/campaigns': typeof CampaignsRoute
+  '/campaigns': typeof CampaignsRouteWithChildren
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -404,6 +443,8 @@ export interface FileRoutesByTo {
   '/moderate': typeof AuthenticatedModerateRoute
   '/alerts/$alertId': typeof AlertsAlertIdRoute
   '/auth/reset': typeof AuthResetRoute
+  '/campaigns/$slug': typeof CampaignsSlugRoute
+  '/infrastructure-issues/$issueId': typeof InfrastructureIssuesIssueIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/reports/$reportId': typeof ReportsReportIdRoute
@@ -411,16 +452,19 @@ export interface FileRoutesByTo {
   '/u/$userId': typeof UUserIdRoute
   '/alerts': typeof AlertsIndexRoute
   '/auth': typeof AuthIndexRoute
+  '/infrastructure-issues': typeof InfrastructureIssuesIndexRoute
   '/news': typeof NewsIndexRoute
   '/pages': typeof PagesIndexRoute
   '/reports': typeof ReportsIndexRoute
   '/admin/alerts': typeof AuthenticatedAdminAlertsRoute
   '/admin/articles': typeof AuthenticatedAdminArticlesRoute
   '/admin/banner-ads': typeof AuthenticatedAdminBannerAdsRoute
+  '/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
@@ -441,7 +485,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
-  '/campaigns': typeof CampaignsRoute
+  '/campaigns': typeof CampaignsRouteWithChildren
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -458,6 +502,8 @@ export interface FileRoutesById {
   '/_authenticated/moderate': typeof AuthenticatedModerateRoute
   '/alerts/$alertId': typeof AlertsAlertIdRoute
   '/auth/reset': typeof AuthResetRoute
+  '/campaigns/$slug': typeof CampaignsSlugRoute
+  '/infrastructure-issues/$issueId': typeof InfrastructureIssuesIssueIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/reports/$reportId': typeof ReportsReportIdRoute
@@ -465,16 +511,19 @@ export interface FileRoutesById {
   '/u/$userId': typeof UUserIdRoute
   '/alerts/': typeof AlertsIndexRoute
   '/auth/': typeof AuthIndexRoute
+  '/infrastructure-issues/': typeof InfrastructureIssuesIndexRoute
   '/news/': typeof NewsIndexRoute
   '/pages/': typeof PagesIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/_authenticated/admin/alerts': typeof AuthenticatedAdminAlertsRoute
   '/_authenticated/admin/articles': typeof AuthenticatedAdminArticlesRoute
   '/_authenticated/admin/banner-ads': typeof AuthenticatedAdminBannerAdsRoute
+  '/_authenticated/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/_authenticated/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/_authenticated/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/_authenticated/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/_authenticated/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/_authenticated/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/_authenticated/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
@@ -512,6 +561,8 @@ export interface FileRouteTypes {
     | '/moderate'
     | '/alerts/$alertId'
     | '/auth/reset'
+    | '/campaigns/$slug'
+    | '/infrastructure-issues/$issueId'
     | '/news/$slug'
     | '/pages/$slug'
     | '/reports/$reportId'
@@ -519,16 +570,19 @@ export interface FileRouteTypes {
     | '/u/$userId'
     | '/alerts/'
     | '/auth/'
+    | '/infrastructure-issues/'
     | '/news/'
     | '/pages/'
     | '/reports/'
     | '/admin/alerts'
     | '/admin/articles'
     | '/admin/banner-ads'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/comments'
     | '/admin/featured'
     | '/admin/footer'
+    | '/admin/infrastructure-issues'
     | '/admin/merch-items'
     | '/admin/merch-orders'
     | '/admin/my-articles'
@@ -563,6 +617,8 @@ export interface FileRouteTypes {
     | '/moderate'
     | '/alerts/$alertId'
     | '/auth/reset'
+    | '/campaigns/$slug'
+    | '/infrastructure-issues/$issueId'
     | '/news/$slug'
     | '/pages/$slug'
     | '/reports/$reportId'
@@ -570,16 +626,19 @@ export interface FileRouteTypes {
     | '/u/$userId'
     | '/alerts'
     | '/auth'
+    | '/infrastructure-issues'
     | '/news'
     | '/pages'
     | '/reports'
     | '/admin/alerts'
     | '/admin/articles'
     | '/admin/banner-ads'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/comments'
     | '/admin/featured'
     | '/admin/footer'
+    | '/admin/infrastructure-issues'
     | '/admin/merch-items'
     | '/admin/merch-orders'
     | '/admin/my-articles'
@@ -616,6 +675,8 @@ export interface FileRouteTypes {
     | '/_authenticated/moderate'
     | '/alerts/$alertId'
     | '/auth/reset'
+    | '/campaigns/$slug'
+    | '/infrastructure-issues/$issueId'
     | '/news/$slug'
     | '/pages/$slug'
     | '/reports/$reportId'
@@ -623,16 +684,19 @@ export interface FileRouteTypes {
     | '/u/$userId'
     | '/alerts/'
     | '/auth/'
+    | '/infrastructure-issues/'
     | '/news/'
     | '/pages/'
     | '/reports/'
     | '/_authenticated/admin/alerts'
     | '/_authenticated/admin/articles'
     | '/_authenticated/admin/banner-ads'
+    | '/_authenticated/admin/campaigns'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/comments'
     | '/_authenticated/admin/featured'
     | '/_authenticated/admin/footer'
+    | '/_authenticated/admin/infrastructure-issues'
     | '/_authenticated/admin/merch-items'
     | '/_authenticated/admin/merch-orders'
     | '/_authenticated/admin/my-articles'
@@ -653,7 +717,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
-  CampaignsRoute: typeof CampaignsRoute
+  CampaignsRoute: typeof CampaignsRouteWithChildren
   MerchRoute: typeof MerchRoute
   NotificationsRoute: typeof NotificationsRoute
   PartnerWithUsRoute: typeof PartnerWithUsRoute
@@ -667,6 +731,7 @@ export interface RootRouteChildren {
   VideosRoute: typeof VideosRoute
   AlertsAlertIdRoute: typeof AlertsAlertIdRoute
   AuthResetRoute: typeof AuthResetRoute
+  InfrastructureIssuesIssueIdRoute: typeof InfrastructureIssuesIssueIdRoute
   NewsSlugRoute: typeof NewsSlugRoute
   PagesSlugRoute: typeof PagesSlugRoute
   ReportsReportIdRoute: typeof ReportsReportIdRoute
@@ -674,6 +739,7 @@ export interface RootRouteChildren {
   UUserIdRoute: typeof UUserIdRoute
   AlertsIndexRoute: typeof AlertsIndexRoute
   AuthIndexRoute: typeof AuthIndexRoute
+  InfrastructureIssuesIndexRoute: typeof InfrastructureIssuesIndexRoute
   NewsIndexRoute: typeof NewsIndexRoute
   PagesIndexRoute: typeof PagesIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
@@ -835,6 +901,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campaigns/$slug': {
+      id: '/campaigns/$slug'
+      path: '/$slug'
+      fullPath: '/campaigns/$slug'
+      preLoaderRoute: typeof CampaignsSlugRouteImport
+      parentRoute: typeof CampaignsRoute
+    }
+    '/infrastructure-issues/': {
+      id: '/infrastructure-issues/'
+      path: '/infrastructure-issues'
+      fullPath: '/infrastructure-issues/'
+      preLoaderRoute: typeof InfrastructureIssuesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/infrastructure-issues/$issueId': {
+      id: '/infrastructure-issues/$issueId'
+      path: '/infrastructure-issues/$issueId'
+      fullPath: '/infrastructure-issues/$issueId'
+      preLoaderRoute: typeof InfrastructureIssuesIssueIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/news/': {
       id: '/news/'
       path: '/news'
@@ -919,6 +1006,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBannerAdsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/campaigns': {
+      id: '/_authenticated/admin/campaigns'
+      path: '/campaigns'
+      fullPath: '/admin/campaigns'
+      preLoaderRoute: typeof AuthenticatedAdminCampaignsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/categories': {
       id: '/_authenticated/admin/categories'
       path: '/categories'
@@ -945,6 +1039,13 @@ declare module '@tanstack/react-router' {
       path: '/footer'
       fullPath: '/admin/footer'
       preLoaderRoute: typeof AuthenticatedAdminFooterRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/infrastructure-issues': {
+      id: '/_authenticated/admin/infrastructure-issues'
+      path: '/infrastructure-issues'
+      fullPath: '/admin/infrastructure-issues'
+      preLoaderRoute: typeof AuthenticatedAdminInfrastructureIssuesRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/merch-items': {
@@ -1045,10 +1146,12 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAlertsRoute: typeof AuthenticatedAdminAlertsRoute
   AuthenticatedAdminArticlesRoute: typeof AuthenticatedAdminArticlesRoute
   AuthenticatedAdminBannerAdsRoute: typeof AuthenticatedAdminBannerAdsRoute
+  AuthenticatedAdminCampaignsRoute: typeof AuthenticatedAdminCampaignsRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCommentsRoute: typeof AuthenticatedAdminCommentsRoute
   AuthenticatedAdminFeaturedRoute: typeof AuthenticatedAdminFeaturedRoute
   AuthenticatedAdminFooterRoute: typeof AuthenticatedAdminFooterRoute
+  AuthenticatedAdminInfrastructureIssuesRoute: typeof AuthenticatedAdminInfrastructureIssuesRoute
   AuthenticatedAdminMerchItemsRoute: typeof AuthenticatedAdminMerchItemsRoute
   AuthenticatedAdminMerchOrdersRoute: typeof AuthenticatedAdminMerchOrdersRoute
   AuthenticatedAdminMyArticlesRoute: typeof AuthenticatedAdminMyArticlesRoute
@@ -1070,10 +1173,13 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminAlertsRoute: AuthenticatedAdminAlertsRoute,
     AuthenticatedAdminArticlesRoute: AuthenticatedAdminArticlesRoute,
     AuthenticatedAdminBannerAdsRoute: AuthenticatedAdminBannerAdsRoute,
+    AuthenticatedAdminCampaignsRoute: AuthenticatedAdminCampaignsRoute,
     AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
     AuthenticatedAdminCommentsRoute: AuthenticatedAdminCommentsRoute,
     AuthenticatedAdminFeaturedRoute: AuthenticatedAdminFeaturedRoute,
     AuthenticatedAdminFooterRoute: AuthenticatedAdminFooterRoute,
+    AuthenticatedAdminInfrastructureIssuesRoute:
+      AuthenticatedAdminInfrastructureIssuesRoute,
     AuthenticatedAdminMerchItemsRoute: AuthenticatedAdminMerchItemsRoute,
     AuthenticatedAdminMerchOrdersRoute: AuthenticatedAdminMerchOrdersRoute,
     AuthenticatedAdminMyArticlesRoute: AuthenticatedAdminMyArticlesRoute,
@@ -1111,11 +1217,23 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface CampaignsRouteChildren {
+  CampaignsSlugRoute: typeof CampaignsSlugRoute
+}
+
+const CampaignsRouteChildren: CampaignsRouteChildren = {
+  CampaignsSlugRoute: CampaignsSlugRoute,
+}
+
+const CampaignsRouteWithChildren = CampaignsRoute._addFileChildren(
+  CampaignsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
-  CampaignsRoute: CampaignsRoute,
+  CampaignsRoute: CampaignsRouteWithChildren,
   MerchRoute: MerchRoute,
   NotificationsRoute: NotificationsRoute,
   PartnerWithUsRoute: PartnerWithUsRoute,
@@ -1129,6 +1247,7 @@ const rootRouteChildren: RootRouteChildren = {
   VideosRoute: VideosRoute,
   AlertsAlertIdRoute: AlertsAlertIdRoute,
   AuthResetRoute: AuthResetRoute,
+  InfrastructureIssuesIssueIdRoute: InfrastructureIssuesIssueIdRoute,
   NewsSlugRoute: NewsSlugRoute,
   PagesSlugRoute: PagesSlugRoute,
   ReportsReportIdRoute: ReportsReportIdRoute,
@@ -1136,6 +1255,7 @@ const rootRouteChildren: RootRouteChildren = {
   UUserIdRoute: UUserIdRoute,
   AlertsIndexRoute: AlertsIndexRoute,
   AuthIndexRoute: AuthIndexRoute,
+  InfrastructureIssuesIndexRoute: InfrastructureIssuesIndexRoute,
   NewsIndexRoute: NewsIndexRoute,
   PagesIndexRoute: PagesIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,

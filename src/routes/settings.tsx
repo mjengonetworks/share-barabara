@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, Copy, UserCog } from "lucide-react";
+import { Check, Copy, Gift, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { KENYA_COUNTIES } from "@/lib/constants";
@@ -55,6 +55,8 @@ function SettingsPage() {
   const [form, setForm] = useState<ProfileForm>(EMPTY);
   const [loaded, setLoaded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [referralCopied, setReferralCopied] = useState(false);
+  const [referralInput, setReferralInput] = useState("");
 
   const { data: profile } = useQuery({
     enabled: !!user,
@@ -136,6 +138,56 @@ function SettingsPage() {
       toast.error("Couldn't copy the link");
     }
   }
+
+  const { data: ownReferral } = useQuery({
+    enabled: !!user,
+    queryKey: ["referral-own", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("referrals")
+        .select("id")
+        .eq("referee_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const referralUrl =
+    typeof window !== "undefined" && profile?.referral_code
+      ? `${window.location.origin}/auth?ref=${profile.referral_code}`
+      : "";
+
+  async function copyReferralUrl() {
+    if (!referralUrl) return;
+    try {
+      await navigator.clipboard.writeText(referralUrl);
+      setReferralCopied(true);
+      toast.success("Referral link copied");
+      setTimeout(() => setReferralCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy the link");
+    }
+  }
+
+  const applyReferral = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("apply_referral_code", {
+        _code: referralInput.trim(),
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (applied) => {
+      if (applied) {
+        toast.success("Referral code applied");
+        queryClient.invalidateQueries({ queryKey: ["referral-own", user?.id] });
+      } else {
+        toast.error("That code doesn't look right");
+      }
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   if (!user) {
     return (
@@ -280,6 +332,58 @@ function SettingsPage() {
           {save.isPending ? "Saving…" : "Save changes"}
         </Button>
       </form>
+
+      <div className="mt-8 rounded-lg border border-border bg-card p-6 card-elevated">
+        <h2 className="flex items-center gap-2 text-lg font-bold">
+          <Gift className="size-5 text-accent" /> Referrals
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Earn {profile?.referral_points ?? 0} points so far. You get 5 points when someone signs up
+          with your link, and 15 more once they subscribe to Premium.
+        </p>
+        {referralUrl ? (
+          <div className="mt-3 flex items-center gap-2">
+            <a href={referralUrl} className="text-sm text-brand-blue underline">
+              {referralUrl.replace(/^https?:\/\//, "")}
+            </a>
+            <button
+              type="button"
+              onClick={copyReferralUrl}
+              aria-label="Copy referral link"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              {referralCopied ? (
+                <Check className="size-4 text-safe" />
+              ) : (
+                <Copy className="size-4" />
+              )}
+            </button>
+          </div>
+        ) : null}
+
+        {!ownReferral ? (
+          <div className="mt-5 border-t border-border pt-4">
+            <Label htmlFor="s-referral">Have a referral code?</Label>
+            <div className="mt-1 flex gap-2">
+              <Input
+                id="s-referral"
+                value={referralInput}
+                onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+                placeholder="e.g. AB12CD3"
+                className="max-w-40"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={referralInput.trim().length < 4 || applyReferral.isPending}
+                onClick={() => applyReferral.mutate()}
+              >
+                Apply
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
