@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, TriangleAlert } from "lucide-react";
@@ -66,6 +67,13 @@ function AlertDetail() {
       return data;
     },
   });
+
+  const recordedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!alert || recordedFor.current === alert.id) return;
+    recordedFor.current = alert.id;
+    void supabase.from("alert_views").insert({ alert_id: alert.id }).then();
+  }, [alert]);
 
   const people = alert ? [alert.user_id] : [];
   const { data: names = {} } = useProfileNames(people);
@@ -185,14 +193,6 @@ function AlertDetail() {
                 </span>
               ))}
             </div>
-          ) : null}
-
-          {alert.image_url ? (
-            <img
-              src={alert.image_url}
-              alt={alert.title}
-              className="mt-6 aspect-video w-full rounded-lg border border-border object-cover"
-            />
           ) : null}
 
           <div className="mt-6 space-y-4 text-foreground/90">

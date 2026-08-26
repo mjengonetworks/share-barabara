@@ -75,7 +75,7 @@ function NewsDetail() {
   useEffect(() => {
     if (!article || recordedFor.current === article.id) return;
     recordedFor.current = article.id;
-    void supabase.from("news_views").insert({ news_id: article.id });
+    void supabase.from("news_views").insert({ news_id: article.id }).then();
   }, [article]);
 
   const { data: related = [] } = useQuery({

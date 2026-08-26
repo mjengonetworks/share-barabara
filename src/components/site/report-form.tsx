@@ -13,6 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
+import {
+  PartyCasualtyInputs,
+  type CasualtyBreakdown,
+} from "@/components/site/party-casualty-inputs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
@@ -41,6 +45,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
     image_url: "",
   });
   const [partiesInvolved, setPartiesInvolved] = useState<string[]>([]);
+  const [casualtyBreakdown, setCasualtyBreakdown] = useState<CasualtyBreakdown>({});
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -51,6 +56,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         image_url: form.image_url.trim() || null,
         road_id,
         parties_involved: partiesInvolved,
+        casualty_breakdown: casualtyBreakdown,
         occurred_at: new Date(form.occurred_at).toISOString(),
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
@@ -70,6 +76,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         image_url: "",
       });
       setPartiesInvolved([]);
+      setCasualtyBreakdown({});
       setAnonymous(false);
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       onDone?.();
@@ -199,9 +206,14 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
             </label>
           ))}
         </div>
+        <PartyCasualtyInputs
+          parties={partiesInvolved}
+          value={casualtyBreakdown}
+          onChange={setCasualtyBreakdown}
+        />
       </div>
       <div>
-        <Label htmlFor="r-img">Photo URL (optional)</Label>
+        <Label htmlFor="r-img">Featured image URL (optional)</Label>
         <Input
           id="r-img"
           type="url"

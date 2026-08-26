@@ -71,7 +71,7 @@ function ReportDetail() {
   useEffect(() => {
     if (!report || recordedFor.current === report.id) return;
     recordedFor.current = report.id;
-    void supabase.from("accident_report_views").insert({ report_id: report.id });
+    void supabase.from("accident_report_views").insert({ report_id: report.id }).then();
   }, [report]);
 
   const people = report ? ([report.user_id, report.reviewed_by].filter(Boolean) as string[]) : [];

@@ -13,6 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
+import {
+  PartyCasualtyInputs,
+  type CasualtyBreakdown,
+} from "@/components/site/party-casualty-inputs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
@@ -35,9 +39,9 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
     severity: "medium",
     latitude: null as number | null,
     longitude: null as number | null,
-    image_url: "",
   });
   const [partiesInvolved, setPartiesInvolved] = useState<string[]>([]);
+  const [casualties, setCasualties] = useState<CasualtyBreakdown>({});
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -45,9 +49,9 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
       const road_id = await matchOrCreateRoad(form.road, form.county);
       const { error } = await supabase.from("alerts").insert({
         ...form,
-        image_url: form.image_url.trim() || null,
         road_id,
         parties_involved: partiesInvolved,
+        casualty_breakdown: casualties,
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
         is_anonymous: identity.type === "profile" && anonymous,
@@ -56,16 +60,9 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
     },
     onSuccess: () => {
       toast.success("Alert published, thank you");
-      setForm({
-        ...form,
-        title: "",
-        description: "",
-        road: "",
-        latitude: null,
-        longitude: null,
-        image_url: "",
-      });
+      setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
       setPartiesInvolved([]);
+      setCasualties({});
       setAnonymous(false);
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
       onDone?.();
@@ -167,15 +164,10 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
             </label>
           ))}
         </div>
-      </div>
-      <div>
-        <Label htmlFor="a-img">Photo URL (optional)</Label>
-        <Input
-          id="a-img"
-          type="url"
-          value={form.image_url}
-          onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-          placeholder="https://..."
+        <PartyCasualtyInputs
+          parties={partiesInvolved}
+          value={casualties}
+          onChange={setCasualties}
         />
       </div>
       <div>
@@ -186,7 +178,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
           rows={4}
           value={form.description}
           onChange={(v) => setForm({ ...form, description: v })}
-          placeholder="Direction of travel, how long the hazard has been there, whether emergency services are on scene."
+          placeholder="Direction of travel, how long the hazard has been there, whether emergency services are on scene. Add photos or a video with the toolbar."
         />
       </div>
       {identity.type === "profile" ? (

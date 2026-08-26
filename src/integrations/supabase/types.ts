@@ -37,6 +37,7 @@ export type Database = {
       accident_reports: {
         Row: {
           casualties: number;
+          casualty_breakdown: Json;
           county: string;
           created_at: string;
           description: string;
@@ -64,6 +65,7 @@ export type Database = {
         };
         Insert: {
           casualties?: number;
+          casualty_breakdown?: Json;
           county: string;
           created_at?: string;
           description: string;
@@ -91,6 +93,7 @@ export type Database = {
         };
         Update: {
           casualties?: number;
+          casualty_breakdown?: Json;
           county?: string;
           created_at?: string;
           description?: string;
@@ -133,8 +136,35 @@ export type Database = {
           },
         ];
       };
+      alert_views: {
+        Row: {
+          alert_id: string;
+          created_at: string;
+          id: number;
+        };
+        Insert: {
+          alert_id: string;
+          created_at?: string;
+          id?: number;
+        };
+        Update: {
+          alert_id?: string;
+          created_at?: string;
+          id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "alert_views_alert_id_fkey";
+            columns: ["alert_id"];
+            isOneToOne: false;
+            referencedRelation: "alerts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       alerts: {
         Row: {
+          casualty_breakdown: Json;
           county: string;
           created_at: string;
           description: string;
@@ -155,6 +185,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          casualty_breakdown?: Json;
           county: string;
           created_at?: string;
           description: string;
@@ -175,6 +206,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          casualty_breakdown?: Json;
           county?: string;
           created_at?: string;
           description?: string;
@@ -1511,10 +1543,41 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      trending_alerts: {
+        Args: { hours_back?: number; result_limit?: number };
+        Returns: {
+          casualty_breakdown: Json;
+          county: string;
+          created_at: string;
+          description: string;
+          hazard_type: string;
+          id: string;
+          image_url: string | null;
+          is_anonymous: boolean;
+          latitude: number | null;
+          longitude: number | null;
+          page_id: string | null;
+          parties_involved: string[];
+          road: string | null;
+          road_id: string | null;
+          severity: string;
+          status: string;
+          title: string;
+          updated_at: string;
+          user_id: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "alerts";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       trending_reports: {
         Args: { hours_back?: number; result_limit?: number };
         Returns: {
           casualties: number;
+          casualty_breakdown: Json;
           county: string;
           created_at: string;
           description: string;

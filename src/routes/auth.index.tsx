@@ -57,7 +57,7 @@ function AuthPage() {
     const pending = localStorage.getItem(PENDING_REFERRAL_KEY);
     if (pending) {
       localStorage.removeItem(PENDING_REFERRAL_KEY);
-      void supabase.rpc("apply_referral_code", { _code: pending });
+      void supabase.rpc("apply_referral_code", { _code: pending }).then();
     }
     navigate({ to: "/dashboard", replace: true });
   }, [user, navigate]);
