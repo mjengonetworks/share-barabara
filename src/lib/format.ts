@@ -22,6 +22,17 @@ export function longDate(iso: string): string {
   });
 }
 
+/** Date and time together, for admin lists where "when exactly" matters. */
+export function dateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-KE", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function num(value: number): string {
   return value.toLocaleString("en-KE");
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Newspaper, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRoles } from "@/hooks/useRoles";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
 import { ArticleForm } from "@/components/site/article-form";
-import { timeAgo } from "@/lib/format";
+import { dateTime } from "@/lib/format";
 import { NEWS_CATEGORIES } from "@/lib/constants";
 
 export const Route = createFileRoute("/_authenticated/admin/my-articles")({
@@ -170,18 +170,29 @@ function MyArticlesPage() {
 
           return (
             <li key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[a.status] ?? ""}`}
-                >
-                  {a.status.replace("_", " ")}
-                </span>
-                <span className="font-semibold">{a.title}</span>
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {timeAgo(a.created_at)}
-                </span>
+              <div className="flex items-center gap-3">
+                {a.image_url ? (
+                  <img src={a.image_url} alt="" className="size-12 shrink-0 rounded object-cover" />
+                ) : (
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
+                    <Newspaper className="size-4 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[a.status] ?? ""}`}
+                    >
+                      {a.status.replace("_", " ")}
+                    </span>
+                    <span className="truncate font-semibold">{a.title}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {dateTime(a.created_at)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{a.category}</p>
+                </div>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">{a.category}</p>
 
               {editingId === a.id ? (
                 <div className="mt-4 space-y-3">
