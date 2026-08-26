@@ -45,7 +45,15 @@ export const Route = createFileRoute("/_authenticated/admin/articles")({
   component: ArticlesQueuePage,
 });
 
-type ArticleDraft = { title: string; summary: string; body: string; category: string };
+type ArticleDraft = {
+  title: string;
+  summary: string;
+  body: string;
+  category: string;
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string;
+};
 type Status = "draft" | "pending_review" | "published" | "rejected";
 
 function ArticlesQueuePage() {
@@ -106,7 +114,14 @@ function ArticlesQueuePage() {
         reviewed_by: user?.id ?? null,
         reviewed_at: new Date().toISOString(),
         ...(status === "published" ? { published_at: new Date().toISOString() } : {}),
-        ...(draft ?? {}),
+        ...(draft
+          ? {
+              ...draft,
+              seo_title: draft.seo_title.trim() || null,
+              seo_description: draft.seo_description.trim() || null,
+              seo_keywords: draft.seo_keywords.trim() || null,
+            }
+          : {}),
       };
       const { error } = await supabase.from("news").update(patch).eq("id", id);
       if (error) throw error;
@@ -208,6 +223,9 @@ function ArticlesQueuePage() {
             summary: a.summary,
             body: a.body,
             category: a.category,
+            seo_title: a.seo_title ?? "",
+            seo_description: a.seo_description ?? "",
+            seo_keywords: a.seo_keywords ?? "",
           };
           const set = (patch: Partial<ArticleDraft>) =>
             setDrafts((prev) => ({ ...prev, [a.id]: { ...d, ...patch } }));
@@ -344,6 +362,39 @@ function ArticlesQueuePage() {
                           value={d.body}
                           onChange={(v) => set({ body: v })}
                         />
+                      </div>
+                      <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                          SEO (optional, overrides defaults)
+                        </p>
+                        <div>
+                          <Label htmlFor={`aseo-t-${a.id}`}>SEO title</Label>
+                          <Input
+                            id={`aseo-t-${a.id}`}
+                            value={d.seo_title}
+                            onChange={(e) => set({ seo_title: e.target.value })}
+                            placeholder={a.title}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`aseo-d-${a.id}`}>SEO description</Label>
+                          <Textarea
+                            id={`aseo-d-${a.id}`}
+                            rows={2}
+                            value={d.seo_description}
+                            onChange={(e) => set({ seo_description: e.target.value })}
+                            placeholder={a.summary}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`aseo-k-${a.id}`}>SEO keywords</Label>
+                          <Input
+                            id={`aseo-k-${a.id}`}
+                            value={d.seo_keywords}
+                            onChange={(e) => set({ seo_keywords: e.target.value })}
+                            placeholder="comma, separated, keywords"
+                          />
+                        </div>
                       </div>
                     </div>
                   ) : (

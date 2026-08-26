@@ -57,6 +57,9 @@ export type Database = {
           road: string | null;
           road_id: string | null;
           severity: string;
+          seo_description: string | null;
+          seo_keywords: string | null;
+          seo_title: string | null;
           status: string;
           title: string;
           updated_at: string;
@@ -85,6 +88,9 @@ export type Database = {
           road?: string | null;
           road_id?: string | null;
           severity?: string;
+          seo_description?: string | null;
+          seo_keywords?: string | null;
+          seo_title?: string | null;
           status?: string;
           title: string;
           updated_at?: string;
@@ -113,6 +119,9 @@ export type Database = {
           road?: string | null;
           road_id?: string | null;
           severity?: string;
+          seo_description?: string | null;
+          seo_keywords?: string | null;
+          seo_title?: string | null;
           status?: string;
           title?: string;
           updated_at?: string;
@@ -708,6 +717,9 @@ export type Database = {
           reviewed_at: string | null;
           reviewed_by: string | null;
           slug: string;
+          seo_description: string | null;
+          seo_keywords: string | null;
+          seo_title: string | null;
           source: string | null;
           status: string;
           summary: string;
@@ -727,6 +739,9 @@ export type Database = {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           slug: string;
+          seo_description?: string | null;
+          seo_keywords?: string | null;
+          seo_title?: string | null;
           source?: string | null;
           status?: string;
           summary: string;
@@ -746,6 +761,9 @@ export type Database = {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           slug?: string;
+          seo_description?: string | null;
+          seo_keywords?: string | null;
+          seo_title?: string | null;
           source?: string | null;
           status?: string;
           summary?: string;

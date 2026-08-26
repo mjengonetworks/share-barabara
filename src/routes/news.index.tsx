@@ -85,6 +85,44 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
   );
 }
 
+function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
+  return (
+    <ul className="mt-5 divide-y divide-border rounded-lg border border-border bg-card card-elevated">
+      {articles.map((a) => (
+        <li key={a.id}>
+          <Link
+            to="/news/$slug"
+            params={{ slug: a.slug }}
+            className="group flex items-center gap-4 p-4 transition-colors hover:bg-muted/40"
+          >
+            {a.image_url ? (
+              <img
+                src={a.image_url}
+                alt={a.title}
+                className="aspect-video w-28 shrink-0 rounded object-cover sm:w-36"
+              />
+            ) : (
+              <div className="aspect-video w-28 shrink-0 rounded bg-muted sm:w-36" />
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+                <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
+                {a.featured ? <span className="text-caution">Featured</span> : null}
+              </div>
+              <h3 className="mt-1 truncate text-base font-bold text-brand-blue group-hover:underline sm:text-lg">
+                {a.title}
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
+              </p>
+            </div>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function NewsIndex() {
   const { user } = useAuth();
   const canWrite = useCanWriteArticles();
@@ -270,9 +308,7 @@ function NewsIndex() {
             <div id="all-articles" className="mt-12 scroll-mt-24">
               <h2 className="text-2xl font-bold">More articles</h2>
               {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
-              <div className="mt-5">
-                <ArticleGrid articles={all} />
-              </div>
+              <ArticleCompactList articles={all} />
             </div>
           </>
         )}

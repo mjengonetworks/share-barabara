@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { type AppRole, useRoles } from "@/hooks/useRoles";
+import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { UserLink } from "@/components/site/user-link";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
@@ -77,10 +79,27 @@ function UsersAdminPage() {
     return ROLES.reduce((max, r) => (roles.includes(r) ? r : max), "member" as AppRole);
   };
 
+  const { data: subStatus = {} } = useSubscriptionStatuses(profiles.map((p) => p.id));
+
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     queryClient.invalidateQueries({ queryKey: ["admin-user-roles"] });
+    queryClient.invalidateQueries({ queryKey: ["subscription-statuses"] });
   };
+
+  const toggleCheckmark = useMutation({
+    mutationFn: async ({ userId, active }: { userId: string; active: boolean }) => {
+      const { error } = await supabase
+        .from("subscriptions")
+        .upsert({ user_id: userId, active, tier: "profile" }, { onConflict: "user_id" });
+      if (error) throw error;
+    },
+    onSuccess: (_data, vars) => {
+      toast.success(vars.active ? "Checkmark granted" : "Checkmark revoked");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const setRole = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
@@ -168,6 +187,7 @@ function UsersAdminPage() {
               <TableHead>Contributor</TableHead>
               <TableHead>County</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Checkmark</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -203,6 +223,26 @@ function UsersAdminPage() {
                       <Badge variant="outline" className="capitalize">
                         {highestRole(p.id).replace("_", " ")}
                       </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isAdmin ? (
+                      <Button
+                        size="sm"
+                        variant={subStatus[p.id] ? "secondary" : "outline"}
+                        disabled={toggleCheckmark.isPending}
+                        onClick={() =>
+                          toggleCheckmark.mutate({ userId: p.id, active: !subStatus[p.id] })
+                        }
+                        className={subStatus[p.id] ? "text-accent" : ""}
+                      >
+                        <BadgeCheck className="mr-1 size-4" />
+                        {subStatus[p.id] ? "Granted" : "Grant"}
+                      </Button>
+                    ) : subStatus[p.id] ? (
+                      <BadgeCheck className="size-4 text-accent" aria-label="Subscribed" />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </TableCell>
                   <TableCell>

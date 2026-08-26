@@ -55,6 +55,9 @@ type ReportDraft = {
   casualties: number;
   fatalities: number;
   editor_note: string;
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string;
 };
 type Status = "pending" | "approved" | "rejected";
 
@@ -114,7 +117,14 @@ function ReportsQueuePage() {
         status,
         reviewed_by: user?.id ?? null,
         reviewed_at: new Date().toISOString(),
-        ...(draft ?? {}),
+        ...(draft
+          ? {
+              ...draft,
+              seo_title: draft.seo_title.trim() || null,
+              seo_description: draft.seo_description.trim() || null,
+              seo_keywords: draft.seo_keywords.trim() || null,
+            }
+          : {}),
       };
       const { error } = await supabase.from("accident_reports").update(patch).eq("id", id);
       if (error) throw error;
@@ -229,6 +239,9 @@ function ReportsQueuePage() {
             casualties: r.casualties,
             fatalities: r.fatalities,
             editor_note: r.editor_note ?? "",
+            seo_title: r.seo_title ?? "",
+            seo_description: r.seo_description ?? "",
+            seo_keywords: r.seo_keywords ?? "",
           };
           const set = (patch: Partial<ReportDraft>) =>
             setDrafts((prev) => ({ ...prev, [r.id]: { ...d, ...patch } }));
@@ -420,6 +433,38 @@ function ReportsQueuePage() {
                         onChange={(e) => set({ editor_note: e.target.value })}
                         placeholder="Verification details, corrections or context added during review."
                       />
+                    </div>
+                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        SEO (optional, overrides defaults)
+                      </p>
+                      <div>
+                        <Label htmlFor={`rseo-t-${r.id}`}>SEO title</Label>
+                        <Input
+                          id={`rseo-t-${r.id}`}
+                          value={d.seo_title}
+                          onChange={(e) => set({ seo_title: e.target.value })}
+                          placeholder={r.title}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`rseo-d-${r.id}`}>SEO description</Label>
+                        <Textarea
+                          id={`rseo-d-${r.id}`}
+                          rows={2}
+                          value={d.seo_description}
+                          onChange={(e) => set({ seo_description: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`rseo-k-${r.id}`}>SEO keywords</Label>
+                        <Input
+                          id={`rseo-k-${r.id}`}
+                          value={d.seo_keywords}
+                          onChange={(e) => set({ seo_keywords: e.target.value })}
+                          placeholder="comma, separated, keywords"
+                        />
+                      </div>
                     </div>
                   </div>
 

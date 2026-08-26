@@ -15,8 +15,8 @@ export function SubscribeButton() {
       title={subscribed ? "You're subscribed" : "Subscribe"}
       className={`flex size-9 items-center justify-center rounded-full border transition-colors ${
         subscribed
-          ? "border-accent bg-accent/15 text-accent"
-          : "border-border text-muted-foreground hover:border-accent hover:text-foreground"
+          ? "border-accent bg-accent text-accent-foreground"
+          : "border-accent bg-accent/10 text-accent hover:bg-accent/20"
       }`}
     >
       <BadgeCheck className="size-5" />

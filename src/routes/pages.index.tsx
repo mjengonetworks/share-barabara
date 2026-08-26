@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, Building2, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/pages/")({
   validateSearch: (search: Record<string, unknown>): { category?: string } => {
@@ -38,6 +46,7 @@ export const Route = createFileRoute("/pages/")({
 
 function PagesIndex() {
   const { user } = useAuth();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { category } = Route.useSearch();
   const { data: categories = [] } = usePageCategories();
 
@@ -74,31 +83,23 @@ function PagesIndex() {
         <FeaturedPageCard slot="pages_of_week" />
       </div>
 
-      <div className="mt-10 flex flex-wrap gap-2">
-        <Link
-          to="/pages"
-          className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-            !category
-              ? "border-accent bg-accent/15 text-accent-foreground"
-              : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-          }`}
+      <div className="mt-10">
+        <Select
+          value={category ?? "all"}
+          onValueChange={(v) => navigate({ search: v === "all" ? {} : { category: v } })}
         >
-          All categories
-        </Link>
-        {categories.map((c) => (
-          <Link
-            key={c.id}
-            to="/pages"
-            search={{ category: c.name }}
-            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-              category === c.name
-                ? "border-accent bg-accent/15 text-accent-foreground"
-                : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-            }`}
-          >
-            {c.name}
-          </Link>
-        ))}
+          <SelectTrigger className="w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.name}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading pages…</p> : null}
@@ -192,7 +193,8 @@ function PageCard({ page: p }: { page: PageRow }) {
 }
 
 function PageLeaderboard({ title, days }: { title: string; days: number }) {
-  const { data: ranked = [], isLoading } = usePageLeaderboard(days, 5);
+  const [expanded, setExpanded] = useState(false);
+  const { data: ranked = [], isLoading } = usePageLeaderboard(days, expanded ? 20 : 5);
   const { data: pagesMap = {} } = usePagesByIds(ranked.map((r) => r.id));
 
   return (
@@ -227,6 +229,14 @@ function PageLeaderboard({ title, days }: { title: string; days: number }) {
           );
         })}
       </ol>
+      {!expanded && ranked.length >= 5 ? (
+        <button
+          onClick={() => setExpanded(true)}
+          className="mt-3 text-sm font-semibold text-brand-blue underline"
+        >
+          View more
+        </button>
+      ) : null}
     </div>
   );
 }

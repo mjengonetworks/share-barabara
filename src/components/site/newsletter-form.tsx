@@ -52,7 +52,11 @@ export function NewsletterForm({ className = "" }: { className?: string }) {
         placeholder="you@example.com"
         className="max-w-xs bg-background"
       />
-      <Button type="submit" disabled={subscribe.isPending}>
+      <Button
+        type="submit"
+        disabled={subscribe.isPending}
+        className="bg-accent text-accent-foreground hover:bg-accent/90"
+      >
         <Mail className="mr-1 size-4" />
         {subscribe.isPending ? "Subscribing…" : "Subscribe"}
       </Button>

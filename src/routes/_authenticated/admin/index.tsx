@@ -13,7 +13,7 @@ import {
   subWeeks,
   subYears,
 } from "date-fns";
-import { Flame, Newspaper, ShieldAlert } from "lucide-react";
+import { Flame, Newspaper, ShieldAlert, TriangleAlert } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -101,7 +101,7 @@ function mergeSeries(
 }
 
 function useContentStats(
-  table: "news" | "accident_reports",
+  table: "news" | "accident_reports" | "alerts",
   status: string,
   dateColumn: string,
   viewsTable: string,
@@ -109,6 +109,7 @@ function useContentStats(
 ) {
   const { data: items = [] } = useQuery({
     queryKey: ["admin-overview", table],
+    refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from(table as never)
@@ -124,6 +125,7 @@ function useContentStats(
 
   const { data: views = [] } = useQuery({
     queryKey: ["admin-overview-views", viewsTable],
+    refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from(viewsTable as never)
@@ -142,7 +144,9 @@ function useContentStats(
 
 function OverviewPage() {
   const [period, setPeriod] = useState<Period>("week");
-  const now = useMemo(() => new Date(), []);
+  // Recomputed every render (not memoized) so the refetchInterval ticks below
+  // actually advance the period window instead of comparing against a frozen "now".
+  const now = new Date();
   const { start, prevStart } = periodBounds(period, now);
   const activePeriod = PERIODS.find((p) => p.key === period)!;
 
@@ -154,9 +158,11 @@ function OverviewPage() {
     "accident_report_views",
     "created_at",
   );
+  const alerts = useContentStats("alerts", "active", "created_at", "alert_views", "created_at");
 
   const { data: trendingArticles = [] } = useQuery({
     queryKey: ["admin-trending-articles", period],
+    refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
         hours_back: activePeriod.hoursBack,
@@ -169,8 +175,22 @@ function OverviewPage() {
 
   const { data: trendingReports = [] } = useQuery({
     queryKey: ["admin-trending-reports", period],
+    refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_reports", {
+        hours_back: activePeriod.hoursBack,
+        result_limit: 5,
+      });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: trendingAlerts = [] } = useQuery({
+    queryKey: ["admin-trending-alerts", period],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("trending_alerts", {
         hours_back: activePeriod.hoursBack,
         result_limit: 5,
       });
@@ -183,6 +203,8 @@ function OverviewPage() {
   const articleViewsSeries = useDailySeries(articles.viewDates, 30);
   const reportsSeries = useDailySeries(reports.itemDates, 30);
   const reportViewsSeries = useDailySeries(reports.viewDates, 30);
+  const alertsSeries = useDailySeries(alerts.itemDates, 30);
+  const alertViewsSeries = useDailySeries(alerts.viewDates, 30);
 
   const articlesPublished = countBetween(articles.itemDates, start, now);
   const articlesPublishedPrev = countBetween(articles.itemDates, prevStart, start);
@@ -193,6 +215,11 @@ function OverviewPage() {
   const reportsFiledPrev = countBetween(reports.itemDates, prevStart, start);
   const reportViews = countBetween(reports.viewDates, start, now);
   const reportViewsPrev = countBetween(reports.viewDates, prevStart, start);
+
+  const alertsPosted = countBetween(alerts.itemDates, start, now);
+  const alertsPostedPrev = countBetween(alerts.itemDates, prevStart, start);
+  const alertViews = countBetween(alerts.viewDates, start, now);
+  const alertViewsPrev = countBetween(alerts.viewDates, prevStart, start);
 
   return (
     <div>
@@ -217,7 +244,7 @@ function OverviewPage() {
         ))}
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-5 card-elevated">
           <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             <Newspaper className="size-3.5" /> Articles published
@@ -245,6 +272,77 @@ function OverviewPage() {
           </p>
           <p className="mt-2 font-display text-3xl font-extrabold">{num(reportViews)}</p>
           <DeltaBadge current={reportViews} previous={reportViewsPrev} />
+        </div>
+        <div className="rounded-lg border border-border bg-card p-5 card-elevated">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <TriangleAlert className="size-3.5" /> Alerts posted
+          </p>
+          <p className="mt-2 font-display text-3xl font-extrabold">{num(alertsPosted)}</p>
+          <DeltaBadge current={alertsPosted} previous={alertsPostedPrev} />
+        </div>
+        <div className="rounded-lg border border-border bg-card p-5 card-elevated">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Alert views
+          </p>
+          <p className="mt-2 font-display text-3xl font-extrabold">{num(alertViews)}</p>
+          <DeltaBadge current={alertViews} previous={alertViewsPrev} />
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Refreshes automatically every 30 seconds.
+      </p>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-lg border border-border bg-card p-5 card-elevated">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Alerts: posted vs viewed (30 days)
+          </h2>
+          <div className="mt-4 h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={mergeSeries(alertsSeries, alertViewsSeries, "Posted", "Views")}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="Posted"
+                  stroke="var(--safe)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="Views"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-5 card-elevated">
+          <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            <Flame className="size-4 text-destructive" /> Trending alerts ·{" "}
+            {activePeriod.label.toLowerCase()}
+          </h2>
+          <ul className="mt-3 space-y-2">
+            {trendingAlerts.map((a) => (
+              <li key={a.id}>
+                <Link
+                  to="/alerts/$alertId"
+                  params={{ alertId: a.id }}
+                  className="text-sm text-brand-blue hover:underline"
+                >
+                  {a.title}
+                </Link>
+              </li>
+            ))}
+            {trendingAlerts.length === 0 ? (
+              <li className="text-sm text-muted-foreground">No alert views in this period yet.</li>
+            ) : null}
+          </ul>
         </div>
       </div>
 

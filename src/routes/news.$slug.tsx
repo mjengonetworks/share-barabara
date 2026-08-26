@@ -4,30 +4,39 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate } from "@/lib/format";
-import { useProfileNames, useProfileUsernames } from "@/lib/profiles";
-import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
+import { useProfileNames, useProfileUsernames, useProfileAvatars } from "@/lib/profiles";
+import { useRoleLabels, primaryRoleLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { renderRichText } from "@/lib/richtext";
 import { UserLink } from "@/components/site/user-link";
+import { UserAvatar } from "@/components/site/user-avatar";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 
 export const Route = createFileRoute("/news/$slug")({
-  head: () => ({
-    meta: [
-      { title: "News story: Share Barabara Kenya" },
-      {
-        name: "description",
-        content: "Read the full road safety story and join the community discussion.",
-      },
-      { property: "og:title", content: "Road safety story: Share Barabara Kenya" },
-      {
-        property: "og:description",
-        content: "Read the full road safety story and join the community discussion.",
-      },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase.from("news").select("*").eq("slug", params.slug).maybeSingle();
+    return data;
+  },
+  head: ({ loaderData }) => {
+    const title = loaderData?.seo_title || loaderData?.title || "News story";
+    const description =
+      loaderData?.seo_description ||
+      loaderData?.summary ||
+      "Read the full road safety story and join the community discussion.";
+    return {
+      meta: [
+        { title: `${title}: Share Barabara Kenya` },
+        { name: "description", content: description },
+        ...(loaderData?.seo_keywords
+          ? [{ name: "keywords", content: loaderData.seo_keywords }]
+          : []),
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+      ],
+    };
+  },
   component: NewsDetail,
 });
 
@@ -53,6 +62,7 @@ function ArticleList({ articles }: { articles: RelatedArticle[] }) {
 
 function NewsDetail() {
   const { slug } = Route.useParams();
+  const loaderData = Route.useLoaderData();
   const { data: article, isLoading } = useQuery({
     queryKey: ["news", slug],
     queryFn: async () => {
@@ -64,11 +74,13 @@ function NewsDetail() {
       if (error) throw error;
       return data;
     },
+    initialData: loaderData,
   });
 
   const authorIds = article?.author_id ? [article.author_id] : [];
   const { data: authorNames = {} } = useProfileNames(authorIds);
   const { data: authorUsernames = {} } = useProfileUsernames(authorIds);
+  const { data: authorAvatars = {} } = useProfileAvatars(authorIds);
   const { data: authorRoles = {} } = useRoleLabels(authorIds);
 
   const recordedFor = useRef<string | null>(null);
@@ -153,24 +165,38 @@ function NewsDetail() {
             {article.category}
           </Link>
           <h1 className="mt-3 text-4xl font-extrabold leading-tight">{article.title}</h1>
-          <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+          <div className="mt-3 flex items-start gap-3">
             {article.author_id ? (
-              <>
-                By{" "}
-                <UserLink
-                  userId={article.author_id}
-                  name={authorNames[article.author_id]}
-                  username={authorUsernames[article.author_id]}
-                  className="text-foreground"
-                />
-                <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-xs">
-                  {primaryRoleLabel(authorRoles[article.author_id])}
-                </span>
-                {" · "}
-              </>
+              <UserAvatar
+                url={authorAvatars[article.author_id]}
+                name={authorNames[article.author_id]}
+                className="mt-0.5 size-11"
+              />
             ) : null}
-            {longDate(article.published_at)} {article.source ? `· ${article.source}` : ""}
-          </p>
+            <div>
+              <p className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+                {article.author_id ? (
+                  <>
+                    By{" "}
+                    <UserLink
+                      userId={article.author_id}
+                      name={authorNames[article.author_id]}
+                      username={authorUsernames[article.author_id]}
+                      staff={roleRank(authorRoles[article.author_id] ?? []) >= ROLE_RANK.moderator}
+                      className="text-foreground"
+                    />
+                    {" · "}
+                  </>
+                ) : null}
+                {longDate(article.published_at)} {article.source ? `· ${article.source}` : ""}
+              </p>
+              {article.author_id ? (
+                <p className="mt-0.5 inline-block rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                  {primaryRoleLabel(authorRoles[article.author_id])}
+                </p>
+              ) : null}
+            </div>
+          </div>
           <div className="mt-3">
             <ShareButtons title={article.title} />
           </div>

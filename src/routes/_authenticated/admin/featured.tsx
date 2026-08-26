@@ -50,6 +50,11 @@ const FEATURED_SLOTS = [
     label: "Pages directory: featured page of the week",
     kind: "page" as const,
   },
+  { slot: "home_pages_1", label: "Home: Pages preview, slot 1", kind: "page" as const },
+  { slot: "home_pages_2", label: "Home: Pages preview, slot 2", kind: "page" as const },
+  { slot: "home_pages_3", label: "Home: Pages preview, slot 3", kind: "page" as const },
+  { slot: "home_pages_4", label: "Home: Pages preview, slot 4", kind: "page" as const },
+  { slot: "home_pages_5", label: "Home: Pages preview, slot 5", kind: "page" as const },
 ];
 
 function FeaturedPicksPage() {
@@ -107,6 +112,7 @@ function FeaturedPicksPage() {
       queryClient.invalidateQueries({ queryKey: ["featured-picks-admin"] });
       queryClient.invalidateQueries({ queryKey: ["featured-profile"] });
       queryClient.invalidateQueries({ queryKey: ["featured-page"] });
+      queryClient.invalidateQueries({ queryKey: ["featured-pages-list"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });

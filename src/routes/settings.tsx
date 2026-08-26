@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { UserAvatar } from "@/components/site/user-avatar";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -34,6 +35,7 @@ type ProfileForm = {
   road_safety_message: string;
   mjengo_networks_url: string;
   mjengo_hub_url: string;
+  avatar_url: string;
 };
 
 const EMPTY: ProfileForm = {
@@ -45,6 +47,7 @@ const EMPTY: ProfileForm = {
   road_safety_message: "",
   mjengo_networks_url: "",
   mjengo_hub_url: "",
+  avatar_url: "",
 };
 
 const USERNAME_RE = /^[a-z0-9](?:[a-z0-9-]{1,22}[a-z0-9])?$/;
@@ -83,6 +86,7 @@ function SettingsPage() {
         road_safety_message: profile.road_safety_message ?? "",
         mjengo_networks_url: profile.mjengo_networks_url ?? "",
         mjengo_hub_url: profile.mjengo_hub_url ?? "",
+        avatar_url: profile.avatar_url ?? "",
       });
       setLoaded(true);
     }
@@ -108,6 +112,7 @@ function SettingsPage() {
           road_safety_message: form.road_safety_message || null,
           mjengo_networks_url: form.mjengo_networks_url || null,
           mjengo_hub_url: form.mjengo_hub_url || null,
+          avatar_url: form.avatar_url.trim() || null,
         })
         .eq("id", user.id);
       if (error) {
@@ -218,6 +223,24 @@ function SettingsPage() {
           save.mutate();
         }}
       >
+        <div>
+          <Label htmlFor="s-avatar">Profile picture URL</Label>
+          <div className="mt-2 flex items-center gap-3">
+            <UserAvatar url={form.avatar_url} name={form.display_name} className="size-14" />
+            <Input
+              id="s-avatar"
+              type="url"
+              value={form.avatar_url}
+              onChange={(e) => set({ avatar_url: e.target.value })}
+              placeholder="https://…"
+              className="flex-1"
+            />
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Defaults to your Google account picture on signup; paste a different image URL to change
+            it.
+          </p>
+        </div>
         <div>
           <Label htmlFor="s-name">Display name</Label>
           <Input

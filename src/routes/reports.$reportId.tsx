@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Flame, MapPin, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useProfileNames } from "@/lib/profiles";
-import { useRoleLabels, primaryRoleLabel } from "@/hooks/useRoles";
+import { useProfileNames, useProfileAvatars } from "@/lib/profiles";
+import { useRoleLabels, primaryRoleLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
@@ -13,21 +13,38 @@ import { renderRichText } from "@/lib/richtext";
 import { PARTIES_INVOLVED } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { UserLink } from "@/components/site/user-link";
+import { UserAvatar } from "@/components/site/user-avatar";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 
 export const Route = createFileRoute("/reports/$reportId")({
-  head: () => ({
-    meta: [
-      { title: "Accident Report: Share Barabara" },
-      {
-        name: "description",
-        content: "Read the full accident report and join the community discussion.",
-      },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("accident_reports")
+      .select("*")
+      .eq("id", params.reportId)
+      .maybeSingle();
+    return data;
+  },
+  head: ({ loaderData }) => {
+    const title = loaderData?.seo_title || loaderData?.title || "Accident Report";
+    const description =
+      loaderData?.seo_description ||
+      "Read the full accident report and join the community discussion.";
+    return {
+      meta: [
+        { title: `${title}: Share Barabara` },
+        { name: "description", content: description },
+        ...(loaderData?.seo_keywords
+          ? [{ name: "keywords", content: loaderData.seo_keywords }]
+          : []),
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+      ],
+    };
+  },
   component: ReportDetail,
 });
 
@@ -53,6 +70,7 @@ function ReportList({ reports }: { reports: RelatedReport[] }) {
 
 function ReportDetail() {
   const { reportId } = Route.useParams();
+  const loaderData = Route.useLoaderData();
 
   const { data: report, isLoading } = useQuery({
     queryKey: ["report", reportId],
@@ -65,6 +83,7 @@ function ReportDetail() {
       if (error) throw error;
       return data;
     },
+    initialData: loaderData,
   });
 
   const recordedFor = useRef<string | null>(null);
@@ -76,6 +95,7 @@ function ReportDetail() {
 
   const people = report ? ([report.user_id, report.reviewed_by].filter(Boolean) as string[]) : [];
   const { data: names = {} } = useProfileNames(people);
+  const { data: avatars = {} } = useProfileAvatars(people);
   const { data: verified = {} } = useSubscriptionStatuses(people);
   const { data: pages = {} } = usePagesByIds(report ? [report.page_id] : []);
   const { data: roleMap = {} } = useRoleLabels(people);
@@ -112,6 +132,19 @@ function ReportDetail() {
       if (error) throw error;
       const relatedIds = new Set(related.map((r) => r.id));
       return data.filter((r) => !relatedIds.has(r.id)).slice(0, 5);
+    },
+  });
+
+  const { data: trending = [] } = useQuery({
+    queryKey: ["reports-trending-sidebar", report?.id],
+    enabled: !!report,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("trending_reports", {
+        hours_back: 48,
+        result_limit: 6,
+      });
+      if (error) throw error;
+      return (data ?? []).filter((r) => r.id !== report!.id).slice(0, 5);
     },
   });
 
@@ -180,38 +213,55 @@ function ReportDetail() {
               </>
             ) : null}
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Reported by{" "}
-            <UserLink
-              userId={report.user_id}
-              name={names[report.user_id]}
-              anonymous={report.is_anonymous}
-              verified={
-                report.page_id ? !!pages[report.page_id]?.verified : !!verified[report.user_id]
-              }
-              pageSlug={report.page_id ? pages[report.page_id]?.slug : undefined}
-              pageName={report.page_id ? pages[report.page_id]?.name : undefined}
-            />
+          <div className="mt-2 flex items-start gap-3">
             {!report.is_anonymous ? (
-              <span className="ml-1 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
-                {primaryRoleLabel(roleMap[report.user_id])}
-              </span>
+              <UserAvatar
+                url={avatars[report.user_id]}
+                name={names[report.user_id]}
+                className="mt-0.5 size-10"
+              />
             ) : null}
-            {report.reviewed_by ? (
-              <>
-                {" · verified & edited by "}
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Reported by{" "}
                 <UserLink
-                  userId={report.reviewed_by}
-                  name={names[report.reviewed_by]}
-                  verified={!!verified[report.reviewed_by]}
+                  userId={report.user_id}
+                  name={names[report.user_id]}
+                  anonymous={report.is_anonymous}
+                  verified={
+                    report.page_id ? !!pages[report.page_id]?.verified : !!verified[report.user_id]
+                  }
+                  staff={roleRank(roleMap[report.user_id] ?? []) >= ROLE_RANK.moderator}
+                  pageSlug={report.page_id ? pages[report.page_id]?.slug : undefined}
+                  pageName={report.page_id ? pages[report.page_id]?.name : undefined}
                 />
-                <span className="ml-1 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
-                  <ShieldCheck className="size-3 text-accent" />
-                  {primaryRoleLabel(roleMap[report.reviewed_by])}
-                </span>
-              </>
-            ) : null}
-          </p>
+                {report.reviewed_by ? (
+                  <>
+                    {" · verified & edited by "}
+                    <UserLink
+                      userId={report.reviewed_by}
+                      name={names[report.reviewed_by]}
+                      verified={!!verified[report.reviewed_by]}
+                      staff={roleRank(roleMap[report.reviewed_by] ?? []) >= ROLE_RANK.moderator}
+                    />
+                  </>
+                ) : null}
+              </p>
+              <div className="mt-0.5 flex flex-wrap gap-1">
+                {!report.is_anonymous ? (
+                  <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                    {primaryRoleLabel(roleMap[report.user_id])}
+                  </span>
+                ) : null}
+                {report.reviewed_by ? (
+                  <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                    <ShieldCheck className="size-3 text-accent" />
+                    {primaryRoleLabel(roleMap[report.reviewed_by])}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
 
           <div className="mt-3">
             <ShareButtons title={report.title} />
@@ -298,6 +348,20 @@ function ReportDetail() {
                 Latest reports
               </h2>
               <ReportList reports={latest} />
+              <Link
+                to="/reports"
+                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
+              >
+                Read more
+              </Link>
+            </div>
+          ) : null}
+          {trending.length > 0 ? (
+            <div className="rounded-lg border border-border bg-card p-5 card-elevated">
+              <h2 className="flex items-center gap-1 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                <Flame className="size-4 text-destructive" /> Trending
+              </h2>
+              <ReportList reports={trending} />
               <Link
                 to="/reports"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"

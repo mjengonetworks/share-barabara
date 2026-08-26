@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin } from "lucide-react";
+import { Flame, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -50,6 +50,33 @@ export const Route = createFileRoute("/reports/")({
   component: ReportsPage,
 });
 
+type ReportCard = {
+  id: string;
+  title: string;
+  severity: string;
+  county: string;
+  occurred_at: string;
+};
+
+function ReportMiniCard({ report }: { report: ReportCard }) {
+  return (
+    <Link
+      to="/reports/$reportId"
+      params={{ reportId: report.id }}
+      className="block rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <SeverityBadge value={report.severity} />
+        <span className="ml-auto text-xs text-muted-foreground">{timeAgo(report.occurred_at)}</span>
+      </div>
+      <p className="mt-2 font-semibold text-brand-blue hover:underline">{report.title}</p>
+      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+        <MapPin className="size-3" /> {report.county}
+      </p>
+    </Link>
+  );
+}
+
 function ReportsPage() {
   const { user } = useAuth();
   const searchParams = Route.useSearch();
@@ -85,6 +112,18 @@ function ReportsPage() {
   );
   const latest = reports.slice(0, 3);
 
+  const { data: trending = [] } = useQuery({
+    queryKey: ["reports-trending"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("trending_reports", {
+        hours_back: 48,
+        result_limit: 3,
+      });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
@@ -109,24 +148,27 @@ function ReportsPage() {
               <ul className="mt-5 grid gap-4 sm:grid-cols-3">
                 {latest.map((r) => (
                   <li key={r.id}>
-                    <Link
-                      to="/reports/$reportId"
-                      params={{ reportId: r.id }}
-                      className="block rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
-                    >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <SeverityBadge value={r.severity} />
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          {timeAgo(r.occurred_at)}
-                        </span>
-                      </div>
-                      <p className="mt-2 font-semibold text-brand-blue hover:underline">
-                        {r.title}
-                      </p>
-                      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                        <MapPin className="size-3" /> {r.county}
-                      </p>
-                    </Link>
+                    <ReportMiniCard report={r} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {trending.length > 0 ? (
+            <div className="mt-12">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="flex items-center gap-2 text-2xl font-bold">
+                  <Flame className="size-6 text-destructive" /> Trending reports
+                </h2>
+                <a href="#all-reports" className="text-sm font-semibold text-brand-blue underline">
+                  Read more
+                </a>
+              </div>
+              <ul className="mt-5 grid gap-4 sm:grid-cols-3">
+                {trending.map((r) => (
+                  <li key={r.id}>
+                    <ReportMiniCard report={r} />
                   </li>
                 ))}
               </ul>

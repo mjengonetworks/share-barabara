@@ -19,6 +19,24 @@ export function useProfileNames(ids: string[]) {
   });
 }
 
+export function useProfileAvatars(ids: string[]) {
+  const unique = Array.from(new Set(ids)).sort();
+  return useQuery({
+    queryKey: ["profile-avatars", unique],
+    enabled: unique.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, avatar_url")
+        .in("id", unique);
+      if (error) throw error;
+      const map: Record<string, string | null> = {};
+      for (const row of data ?? []) map[row.id] = row.avatar_url;
+      return map;
+    },
+  });
+}
+
 export function useProfileUsernames(ids: string[]) {
   const unique = Array.from(new Set(ids)).sort();
   return useQuery({

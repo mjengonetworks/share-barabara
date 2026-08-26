@@ -24,6 +24,7 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { SearchBar } from "@/components/site/search-bar";
 import { QuoteOfTheDay } from "@/components/site/quote-of-the-day";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
+import { useFeaturedPagesList } from "@/hooks/useFeatured";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 
 export const Route = createFileRoute("/")({
@@ -86,19 +87,7 @@ function Index() {
     },
   });
 
-  const { data: pages = [] } = useQuery({
-    queryKey: ["home-pages"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pages")
-        .select("id, slug, name, category, verified")
-        .order("verified", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(6);
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: pages = [] } = useFeaturedPagesList();
 
   const { data: videos = [] } = useQuery({
     queryKey: ["home-videos"],
@@ -244,13 +233,22 @@ function Index() {
                 key={n.id}
                 to="/news/$slug"
                 params={{ slug: n.slug }}
-                className="rounded-lg border border-border bg-card p-5 transition-colors hover:border-accent card-elevated"
+                className="flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-accent card-elevated"
               >
-                <span className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">
-                  {n.category}
-                </span>
-                <h3 className="mt-2 font-bold leading-snug">{n.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.summary}</p>
+                {n.image_url ? (
+                  <img
+                    src={n.image_url}
+                    alt={n.title}
+                    className="aspect-video w-full object-cover"
+                  />
+                ) : null}
+                <div className="p-5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">
+                    {n.category}
+                  </span>
+                  <h3 className="mt-2 font-bold leading-snug">{n.title}</h3>
+                  <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.summary}</p>
+                </div>
               </Link>
             ))}
           </div>

@@ -59,6 +59,54 @@ type FeaturedPageSlot =
   | "pages_of_day"
   | "pages_of_week";
 
+const HOME_PAGES_LIST_SLOTS = [
+  "home_pages_1",
+  "home_pages_2",
+  "home_pages_3",
+  "home_pages_4",
+  "home_pages_5",
+] as const;
+
+/** Five slots for the homepage Pages preview: each independently admin-pinnable,
+ *  falling back to a random verified (subscribed) page, offset so the five
+ *  slots don't collide with each other on a given day. Deduped as a final pass
+ *  in case an admin pins the same page to more than one slot. */
+export function useFeaturedPagesList() {
+  return useQuery({
+    queryKey: ["featured-pages-list"],
+    queryFn: async () => {
+      const { data: picksRows } = await supabase
+        .from("featured_picks")
+        .select("slot, page_id")
+        .in("slot", HOME_PAGES_LIST_SLOTS);
+      const pinned = new Map((picksRows ?? []).map((p) => [p.slot, p.page_id]));
+
+      const { data: verifiedPages } = await supabase
+        .from("pages")
+        .select("id")
+        .eq("verified", true);
+      const eligible = (verifiedPages ?? []).map((p) => p.id).sort();
+
+      const seen = new Set<string>();
+      const ids: string[] = [];
+      HOME_PAGES_LIST_SLOTS.forEach((slot, offset) => {
+        let id = pinned.get(slot) ?? null;
+        if (!id) id = periodPick(eligible, "day", offset);
+        if (id && !seen.has(id)) {
+          seen.add(id);
+          ids.push(id);
+        }
+      });
+      if (ids.length === 0) return [];
+
+      const { data: pages, error } = await supabase.from("pages").select("*").in("id", ids);
+      if (error) throw error;
+      const byId = new Map((pages ?? []).map((p) => [p.id, p]));
+      return ids.map((id) => byId.get(id)).filter((p): p is NonNullable<typeof p> => !!p);
+    },
+  });
+}
+
 /** Random fallback only ever draws from verified (premium subscribed) pages. */
 export function useFeaturedPage(slot: FeaturedPageSlot) {
   return useQuery({

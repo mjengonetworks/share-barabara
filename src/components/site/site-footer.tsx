@@ -45,19 +45,24 @@ export function SiteFooter() {
 
   return (
     <footer className="mt-12 asphalt text-secondary">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-4 border-b border-secondary/10 px-4 py-5">
-        {socials.map((s) => (
-          <a
-            key={s.id}
-            href={s.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Follow Share Barabara on ${s.label}`}
-            className="flex size-9 items-center justify-center rounded-full border border-secondary/20 text-secondary/70 transition-colors hover:border-accent hover:text-accent"
-          >
-            <SocialIcon iconKey={s.icon_key} className="size-4" />
-          </a>
-        ))}
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 border-b border-secondary/10 px-4 py-5">
+        <p className="text-xs font-semibold uppercase tracking-widest text-secondary/60">
+          Our Platforms
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {socials.map((s) => (
+            <a
+              key={s.id}
+              href={s.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Follow Share Barabara on ${s.label}`}
+              className="flex size-9 items-center justify-center rounded-full border border-secondary/20 text-secondary/70 transition-colors hover:border-accent hover:text-accent"
+            >
+              <SocialIcon iconKey={s.icon_key} className="size-4" />
+            </a>
+          ))}
+        </div>
       </div>
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-5">
@@ -84,7 +89,11 @@ export function SiteFooter() {
           </p>
           <NewsletterForm className="mt-3" />
           {!alreadySubscribed ? (
-            <Button asChild size="sm" className="mt-5">
+            <Button
+              asChild
+              size="sm"
+              className="mt-5 bg-accent text-accent-foreground hover:bg-accent/90"
+            >
               <Link to="/subscribe">
                 <BadgeCheck className="mr-1.5 size-4" /> Subscribe to Premium
               </Link>

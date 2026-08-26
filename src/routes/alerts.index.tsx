@@ -309,7 +309,8 @@ function AlertsPage() {
 }
 
 function TopContributingProfiles() {
-  const { data: weekly = [], isLoading } = useProfileLeaderboard(7, 5);
+  const [expanded, setExpanded] = useState(false);
+  const { data: weekly = [], isLoading } = useProfileLeaderboard(7, expanded ? 20 : 5);
   const { data: names = {} } = useProfileNames(weekly.map((r) => r.id));
   const { data: usernames = {} } = useProfileUsernames(weekly.map((r) => r.id));
 
@@ -344,6 +345,14 @@ function TopContributingProfiles() {
           </li>
         ))}
       </ol>
+      {!expanded && weekly.length >= 5 ? (
+        <button
+          onClick={() => setExpanded(true)}
+          className="mt-4 text-sm font-semibold text-brand-blue underline"
+        >
+          View more
+        </button>
+      ) : null}
     </div>
   );
 }
