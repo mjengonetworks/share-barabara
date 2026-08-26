@@ -479,6 +479,8 @@ export type Database = {
           contact_name: string;
           contact_phone: string;
           created_at: string;
+          delivery_address: string | null;
+          delivery_county: string | null;
           delivery_notes: string | null;
           id: string;
           item_id: string | null;
@@ -490,6 +492,8 @@ export type Database = {
           contact_name: string;
           contact_phone: string;
           created_at?: string;
+          delivery_address?: string | null;
+          delivery_county?: string | null;
           delivery_notes?: string | null;
           id?: string;
           item_id?: string | null;
@@ -501,6 +505,8 @@ export type Database = {
           contact_name?: string;
           contact_phone?: string;
           created_at?: string;
+          delivery_address?: string | null;
+          delivery_county?: string | null;
           delivery_notes?: string | null;
           id?: string;
           item_id?: string | null;

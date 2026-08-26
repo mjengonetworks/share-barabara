@@ -12,6 +12,7 @@ import {
   Newspaper,
   Quote,
   ShieldAlert,
+  ShoppingBag,
   Sparkles,
   TriangleAlert,
   Users,
@@ -100,6 +101,23 @@ const SECTIONS: NavSection[] = [
         minRank: ROLE_RANK.editor,
       },
       { to: "/admin/newsletter", label: "Newsletter", icon: Mail, minRank: ROLE_RANK.editor },
+    ],
+  },
+  {
+    label: "Commerce",
+    items: [
+      {
+        to: "/admin/merch-items",
+        label: "Merch Items",
+        icon: ShoppingBag,
+        minRank: ROLE_RANK.editor,
+      },
+      {
+        to: "/admin/merch-orders",
+        label: "Merch Orders",
+        icon: Inbox,
+        minRank: ROLE_RANK.editor,
+      },
     ],
   },
   {

@@ -47,6 +47,8 @@ import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminCommentsRouteImport } from './routes/_authenticated/admin/comments'
 import { Route as AuthenticatedAdminFeaturedRouteImport } from './routes/_authenticated/admin/featured'
 import { Route as AuthenticatedAdminFooterRouteImport } from './routes/_authenticated/admin/footer'
+import { Route as AuthenticatedAdminMerchItemsRouteImport } from './routes/_authenticated/admin/merch-items'
+import { Route as AuthenticatedAdminMerchOrdersRouteImport } from './routes/_authenticated/admin/merch-orders'
 import { Route as AuthenticatedAdminMyArticlesRouteImport } from './routes/_authenticated/admin/my-articles'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
 import { Route as AuthenticatedAdminQuoteRouteImport } from './routes/_authenticated/admin/quote'
@@ -253,6 +255,18 @@ const AuthenticatedAdminFooterRoute =
     path: '/footer',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminMerchItemsRoute =
+  AuthenticatedAdminMerchItemsRouteImport.update({
+    id: '/merch-items',
+    path: '/merch-items',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminMerchOrdersRoute =
+  AuthenticatedAdminMerchOrdersRouteImport.update({
+    id: '/merch-orders',
+    path: '/merch-orders',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminMyArticlesRoute =
   AuthenticatedAdminMyArticlesRouteImport.update({
     id: '/my-articles',
@@ -343,6 +357,8 @@ export interface FileRoutesByFullPath {
   '/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
+  '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
@@ -390,6 +406,8 @@ export interface FileRoutesByTo {
   '/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
+  '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
@@ -440,6 +458,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/_authenticated/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/_authenticated/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/_authenticated/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
+  '/_authenticated/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/_authenticated/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/_authenticated/admin/quote': typeof AuthenticatedAdminQuoteRoute
@@ -490,6 +510,8 @@ export interface FileRouteTypes {
     | '/admin/comments'
     | '/admin/featured'
     | '/admin/footer'
+    | '/admin/merch-items'
+    | '/admin/merch-orders'
     | '/admin/my-articles'
     | '/admin/newsletter'
     | '/admin/quote'
@@ -537,6 +559,8 @@ export interface FileRouteTypes {
     | '/admin/comments'
     | '/admin/featured'
     | '/admin/footer'
+    | '/admin/merch-items'
+    | '/admin/merch-orders'
     | '/admin/my-articles'
     | '/admin/newsletter'
     | '/admin/quote'
@@ -586,6 +610,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/comments'
     | '/_authenticated/admin/featured'
     | '/_authenticated/admin/footer'
+    | '/_authenticated/admin/merch-items'
+    | '/_authenticated/admin/merch-orders'
     | '/_authenticated/admin/my-articles'
     | '/_authenticated/admin/newsletter'
     | '/_authenticated/admin/quote'
@@ -896,6 +922,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFooterRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/merch-items': {
+      id: '/_authenticated/admin/merch-items'
+      path: '/merch-items'
+      fullPath: '/admin/merch-items'
+      preLoaderRoute: typeof AuthenticatedAdminMerchItemsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/merch-orders': {
+      id: '/_authenticated/admin/merch-orders'
+      path: '/merch-orders'
+      fullPath: '/admin/merch-orders'
+      preLoaderRoute: typeof AuthenticatedAdminMerchOrdersRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/my-articles': {
       id: '/_authenticated/admin/my-articles'
       path: '/my-articles'
@@ -970,6 +1010,8 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminCommentsRoute: typeof AuthenticatedAdminCommentsRoute
   AuthenticatedAdminFeaturedRoute: typeof AuthenticatedAdminFeaturedRoute
   AuthenticatedAdminFooterRoute: typeof AuthenticatedAdminFooterRoute
+  AuthenticatedAdminMerchItemsRoute: typeof AuthenticatedAdminMerchItemsRoute
+  AuthenticatedAdminMerchOrdersRoute: typeof AuthenticatedAdminMerchOrdersRoute
   AuthenticatedAdminMyArticlesRoute: typeof AuthenticatedAdminMyArticlesRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
   AuthenticatedAdminQuoteRoute: typeof AuthenticatedAdminQuoteRoute
@@ -991,6 +1033,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminCommentsRoute: AuthenticatedAdminCommentsRoute,
     AuthenticatedAdminFeaturedRoute: AuthenticatedAdminFeaturedRoute,
     AuthenticatedAdminFooterRoute: AuthenticatedAdminFooterRoute,
+    AuthenticatedAdminMerchItemsRoute: AuthenticatedAdminMerchItemsRoute,
+    AuthenticatedAdminMerchOrdersRoute: AuthenticatedAdminMerchOrdersRoute,
     AuthenticatedAdminMyArticlesRoute: AuthenticatedAdminMyArticlesRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
     AuthenticatedAdminQuoteRoute: AuthenticatedAdminQuoteRoute,

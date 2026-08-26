@@ -26,6 +26,12 @@ import { ReportForm } from "@/components/site/report-form";
 import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/reports/")({
+  validateSearch: (search: Record<string, unknown>): { county?: string; severity?: string } => {
+    const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
+    const severity =
+      typeof search["severity"] === "string" ? (search["severity"] as string) : undefined;
+    return { ...(county ? { county } : {}), ...(severity ? { severity } : {}) };
+  },
   head: () => ({
     meta: [
       { title: "Accident Reports from Kenyan Roads: Share Barabara" },
@@ -46,8 +52,9 @@ export const Route = createFileRoute("/reports/")({
 
 function ReportsPage() {
   const { user } = useAuth();
-  const [county, setCounty] = useState("all");
-  const [severity, setSeverity] = useState("all");
+  const searchParams = Route.useSearch();
+  const [county, setCounty] = useState(searchParams.county ?? "all");
+  const [severity, setSeverity] = useState(searchParams.severity ?? "all");
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports"],

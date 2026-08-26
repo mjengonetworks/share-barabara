@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { HAZARD_TYPES, PARTIES_INVOLVED, REPORT_SEVERITIES } from "@/lib/constants";
 import {
@@ -150,6 +150,7 @@ const tooltipStyle = {
 };
 
 function StatisticsPage() {
+  const navigate = useNavigate();
   const { data: yearly = [] } = useStat<{
     year: number;
     fatalities: number;
@@ -300,11 +301,17 @@ function StatisticsPage() {
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             Alerts by hazard type
           </h2>
-          <ul className="mt-4 space-y-2">
+          <ul className="mt-4 space-y-1">
             {HAZARD_TYPES.map((h) => (
-              <li key={h.value} className="flex items-center justify-between text-sm">
-                <span>{h.label}</span>
-                <span className="font-semibold">{hazardCounts[h.value] ?? 0}</span>
+              <li key={h.value}>
+                <Link
+                  to="/alerts"
+                  search={{ hazard: h.value }}
+                  className="flex items-center justify-between rounded px-2 py-1.5 text-sm transition-colors hover:bg-muted"
+                >
+                  <span className="text-brand-blue">{h.label}</span>
+                  <span className="font-semibold">{hazardCounts[h.value] ?? 0}</span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -313,11 +320,17 @@ function StatisticsPage() {
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             Reports by severity
           </h2>
-          <ul className="mt-4 space-y-2">
+          <ul className="mt-4 space-y-1">
             {REPORT_SEVERITIES.map((s) => (
-              <li key={s.value} className="flex items-center justify-between text-sm">
-                <span>{s.label}</span>
-                <span className="font-semibold">{reportSeverityCounts[s.value] ?? 0}</span>
+              <li key={s.value}>
+                <Link
+                  to="/reports"
+                  search={{ severity: s.value }}
+                  className="flex items-center justify-between rounded px-2 py-1.5 text-sm transition-colors hover:bg-muted"
+                >
+                  <span className="text-brand-blue">{s.label}</span>
+                  <span className="font-semibold">{reportSeverityCounts[s.value] ?? 0}</span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -327,12 +340,22 @@ function StatisticsPage() {
             Who was involved
           </h2>
           <ul className="mt-4 space-y-2">
-            {PARTIES_INVOLVED.map((p) => (
-              <li key={p.value} className="flex items-center justify-between text-sm">
-                <span>{p.label}</span>
-                <span className="font-semibold">{partiesCounts[p.value] ?? 0}</span>
-              </li>
-            ))}
+            {PARTIES_INVOLVED.map((p) => {
+              const total = Object.values(partiesCounts).reduce((s, v) => s + v, 0) || 1;
+              const count = partiesCounts[p.value] ?? 0;
+              const pct = Math.round((count / total) * 100);
+              return (
+                <li key={p.value}>
+                  <div className="flex items-baseline justify-between text-sm">
+                    <span>{p.label}</span>
+                    <span className="font-semibold">{count}</span>
+                  </div>
+                  <div className="mt-1 h-2 w-full overflow-hidden rounded bg-muted">
+                    <div className="h-full bg-accent" style={{ width: `${pct}%` }} />
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
@@ -605,6 +628,9 @@ function StatisticsPage() {
       <section className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>
           <h2 className="text-2xl font-bold">Counties with the most deaths</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Click a bar to see reports for that county.
+          </p>
           <div className="mt-4 h-96 rounded-lg border border-border bg-card p-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={counties} layout="vertical" margin={{ left: 24 }}>
@@ -618,7 +644,15 @@ function StatisticsPage() {
                   fontSize={12}
                 />
                 <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-                <Bar dataKey="fatalities" name="Fatalities" radius={[0, 4, 4, 0]}>
+                <Bar
+                  dataKey="fatalities"
+                  name="Fatalities"
+                  radius={[0, 4, 4, 0]}
+                  cursor="pointer"
+                  onClick={(entry) =>
+                    navigate({ to: "/reports", search: { county: entry.county } })
+                  }
+                >
                   {counties.map((c, i) => (
                     <Cell key={c.id} fill={i === 0 ? "var(--destructive)" : "var(--caution)"} />
                   ))}

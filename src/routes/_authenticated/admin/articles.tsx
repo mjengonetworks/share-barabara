@@ -1,8 +1,17 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Eye, Newspaper } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  ExternalLink,
+  MoreVertical,
+  Newspaper,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoles } from "@/hooks/useRoles";
@@ -29,30 +45,41 @@ export const Route = createFileRoute("/_authenticated/admin/articles")({
 });
 
 type ArticleDraft = { title: string; summary: string; body: string; category: string };
+type Status = "draft" | "pending_review" | "published" | "rejected";
 
 function ArticlesQueuePage() {
   const { user } = useAuth();
   const { canPublishArticles } = useRoles();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<"pending_review" | "published" | "rejected" | "draft">(
-    "pending_review",
-  );
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending_review");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, ArticleDraft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { data: articles = [], isLoading } = useQuery({
-    queryKey: ["admin-articles", tab],
+  const { data: allArticles = [], isLoading } = useQuery({
+    queryKey: ["admin-articles"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
         .select("*")
-        .eq("status", tab)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(500);
       if (error) throw error;
       return data;
     },
   });
+
+  const articles = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return allArticles.filter((a) => {
+      if (statusFilter !== "all" && a.status !== statusFilter) return false;
+      if (categoryFilter !== "all" && a.category !== categoryFilter) return false;
+      if (q && !a.title.toLowerCase().includes(q) && !a.summary.toLowerCase().includes(q))
+        return false;
+      return true;
+    });
+  }, [allArticles, statusFilter, categoryFilter, search]);
 
   const { data: names = {} } = useProfileNames(
     articles.map((a) => a.author_id).filter((id): id is string => !!id),
@@ -92,6 +119,20 @@ function ArticlesQueuePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("news").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Article deleted");
+      setExpandedId(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="max-w-4xl">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
@@ -102,21 +143,47 @@ function ArticlesQueuePage() {
         Review submissions from contributors. Publishing or rejecting needs editor rank or above.
       </p>
 
-      <div className="mt-6 flex gap-2">
-        {(["pending_review", "published", "rejected", "draft"] as const).map((t) => (
-          <Button
-            key={t}
-            size="sm"
-            variant={tab === t ? "default" : "outline"}
-            onClick={() => {
-              setTab(t);
-              setExpandedId(null);
-            }}
-            className="capitalize"
-          >
-            {t.replace("_", " ")}
-          </Button>
-        ))}
+      <div className="mt-6 flex flex-wrap items-end gap-3">
+        <div>
+          <Label>Status</Label>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="pending_review">Pending review</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Category</Label>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {NEWS_CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="min-w-48 flex-1">
+          <Label htmlFor="article-search">Search</Label>
+          <Input
+            id="article-search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search title or summary…"
+          />
+        </div>
       </div>
 
       {!canPublishArticles ? (
@@ -129,7 +196,7 @@ function ArticlesQueuePage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
       {!isLoading && articles.length === 0 ? (
         <p className="mt-8 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
-          Nothing here right now.
+          Nothing matches these filters.
         </p>
       ) : null}
 
@@ -147,41 +214,90 @@ function ArticlesQueuePage() {
 
           return (
             <li key={a.id} className="rounded-lg border border-border bg-card card-elevated">
-              <button
-                type="button"
-                onClick={() => setExpandedId(expanded ? null : a.id)}
-                className="flex w-full items-center gap-3 p-4 text-left"
-              >
-                {a.image_url ? (
-                  <img src={a.image_url} alt="" className="size-14 shrink-0 rounded object-cover" />
-                ) : (
-                  <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
-                    <Newspaper className="size-5 text-muted-foreground" />
+              <div className="flex items-center gap-3 p-4">
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(expanded ? null : a.id)}
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                >
+                  {a.image_url ? (
+                    <img
+                      src={a.image_url}
+                      alt=""
+                      className="size-14 shrink-0 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
+                      <Newspaper className="size-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{a.title}</p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                      <span className="rounded bg-accent/20 px-1.5 py-0.5 font-semibold uppercase tracking-wide text-accent-foreground">
+                        {a.category}
+                      </span>
+                      {a.author_id ? (
+                        <>
+                          · by <UserLink userId={a.author_id} name={names[a.author_id]} />
+                        </>
+                      ) : null}
+                      <span className="inline-flex items-center gap-0.5">
+                        · <Eye className="size-3" /> {viewCounts[a.id] ?? 0}
+                      </span>
+                      <span>· {dateTime(a.created_at)}</span>
+                    </p>
                   </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{a.title}</p>
-                  <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                    <span className="rounded bg-accent/20 px-1.5 py-0.5 font-semibold uppercase tracking-wide text-accent-foreground">
-                      {a.category}
-                    </span>
-                    {a.author_id ? (
-                      <>
-                        · by <UserLink userId={a.author_id} name={names[a.author_id]} />
-                      </>
+                </button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                      <MoreVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link to="/news/$slug" params={{ slug: a.slug }} target="_blank">
+                        <ExternalLink className="mr-2 size-4" /> View on website
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setExpandedId(a.id)}>
+                      <Pencil className="mr-2 size-4" /> Edit
+                    </DropdownMenuItem>
+                    {canPublishArticles && a.status !== "published" ? (
+                      <DropdownMenuItem
+                        onClick={() => save.mutate({ id: a.id, status: "published" })}
+                      >
+                        Publish
+                      </DropdownMenuItem>
                     ) : null}
-                    <span className="inline-flex items-center gap-0.5">
-                      · <Eye className="size-3" /> {viewCounts[a.id] ?? 0}
-                    </span>
-                    <span>· {dateTime(a.created_at)}</span>
-                  </p>
-                </div>
-                {expanded ? (
-                  <ChevronUp className="size-4 shrink-0 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
-                )}
-              </button>
+                    {canPublishArticles && a.status !== "rejected" ? (
+                      <DropdownMenuItem
+                        onClick={() => save.mutate({ id: a.id, status: "rejected" })}
+                      >
+                        Reject
+                      </DropdownMenuItem>
+                    ) : null}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => remove.mutate(a.id)}
+                    >
+                      <Trash2 className="mr-2 size-4" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <button
+                  type="button"
+                  aria-label={expanded ? "Collapse" : "Expand"}
+                  onClick={() => setExpandedId(expanded ? null : a.id)}
+                  className="shrink-0 text-muted-foreground"
+                >
+                  {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                </button>
+              </div>
 
               {expanded ? (
                 <div className="border-t border-border p-5">

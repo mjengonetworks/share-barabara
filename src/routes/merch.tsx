@@ -6,11 +6,19 @@ import { CheckCircle2, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { num } from "@/lib/format";
+import { KENYA_COUNTIES } from "@/lib/constants";
 import { BannerAd } from "@/components/site/banner-ad";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +33,8 @@ export const Route = createFileRoute("/merch")({
       { title: "Merch: Share Barabara" },
       {
         name: "description",
-        content: "Share Barabara merchandise: reflective jackets, t-shirts, caps and stickers. Every journey home should end at home.",
+        content:
+          "Share Barabara merchandise: reflective jackets, t-shirts, caps and stickers. Every journey home should end at home.",
       },
     ],
   }),
@@ -58,8 +67,12 @@ function MerchPage() {
       {!isLoading && items.length === 0 ? (
         <p className="mt-10 rounded border border-dashed border-border p-10 text-center text-muted-foreground">
           <ShoppingBag className="mx-auto mb-2 size-8" />
-          The storefront is being stocked. Check back soon, or contact us directly to place an
-          order at <a href="mailto:sharebarabara@gmail.com" className="underline">sharebarabara@gmail.com</a>.
+          The storefront is being stocked. Check back soon, or contact us directly to place an order
+          at{" "}
+          <a href="mailto:sharebarabara@gmail.com" className="underline">
+            sharebarabara@gmail.com
+          </a>
+          .
         </p>
       ) : null}
 
@@ -67,14 +80,20 @@ function MerchPage() {
         {items.map((item) => (
           <div key={item.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
             {item.image_url ? (
-              <img src={item.image_url} alt={item.name} className="aspect-square w-full rounded object-cover" />
+              <img
+                src={item.image_url}
+                alt={item.name}
+                className="aspect-square w-full rounded object-cover"
+              />
             ) : (
               <div className="flex aspect-square items-center justify-center rounded bg-muted">
                 <ShoppingBag className="size-10 text-muted-foreground" />
               </div>
             )}
             <h2 className="mt-3 font-bold">{item.name}</h2>
-            {item.description ? <p className="mt-1 text-sm text-muted-foreground">{item.description}</p> : null}
+            {item.description ? (
+              <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+            ) : null}
             <p className="mt-2 font-display text-lg font-extrabold">KES {num(item.price_kes)}</p>
             <OrderDialog itemId={item.id} itemName={item.name} />
           </div>
@@ -103,12 +122,22 @@ function OrderDialog({ itemId, itemName }: { itemId: string; itemName: string })
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({ contact_name: "", contact_phone: "", quantity: 1, delivery_notes: "" });
+  const [form, setForm] = useState({
+    contact_name: "",
+    contact_phone: "",
+    quantity: 1,
+    delivery_county: "",
+    delivery_address: "",
+    delivery_notes: "",
+  });
 
   const submit = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("merch_orders").insert({
         ...form,
+        delivery_county: form.delivery_county || null,
+        delivery_address: form.delivery_address.trim() || null,
+        delivery_notes: form.delivery_notes.trim() || null,
         item_id: itemId,
         user_id: user?.id ?? null,
       });
@@ -172,12 +201,41 @@ function OrderDialog({ itemId, itemName }: { itemId: string; itemName: string })
               />
             </div>
             <div>
+              <Label>Delivery county</Label>
+              <Select
+                value={form.delivery_county}
+                onValueChange={(v) => setForm({ ...form, delivery_county: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select county" />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {KENYA_COUNTIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="m-address">Delivery address</Label>
+              <Input
+                id="m-address"
+                required
+                placeholder="Estate, street, building, or a nearby landmark"
+                value={form.delivery_address}
+                onChange={(e) => setForm({ ...form, delivery_address: e.target.value })}
+              />
+            </div>
+            <div>
               <Label htmlFor="m-notes">Delivery notes (optional)</Label>
               <Textarea
                 id="m-notes"
                 rows={2}
                 value={form.delivery_notes}
                 onChange={(e) => setForm({ ...form, delivery_notes: e.target.value })}
+                placeholder="Preferred delivery time, alternate contact, etc."
               />
             </div>
             <Button type="submit" className="w-full" disabled={submit.isPending}>

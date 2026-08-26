@@ -27,6 +27,11 @@ import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/alerts/")({
+  validateSearch: (search: Record<string, unknown>): { county?: string; hazard?: string } => {
+    const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
+    const hazard = typeof search["hazard"] === "string" ? (search["hazard"] as string) : undefined;
+    return { ...(county ? { county } : {}), ...(hazard ? { hazard } : {}) };
+  },
   head: () => ({
     meta: [
       { title: "Live Road Hazard Alerts in Kenya: Share Barabara" },
@@ -48,8 +53,9 @@ export const Route = createFileRoute("/alerts/")({
 
 function AlertsPage() {
   const { user } = useAuth();
-  const [county, setCounty] = useState("all");
-  const [hazard, setHazard] = useState("all");
+  const searchParams = Route.useSearch();
+  const [county, setCounty] = useState(searchParams.county ?? "all");
+  const [hazard, setHazard] = useState(searchParams.hazard ?? "all");
   const [openId, setOpenId] = useState<string | null>(null);
 
   const { data: alerts = [], isLoading } = useQuery({
