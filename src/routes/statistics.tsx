@@ -21,7 +21,6 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { num } from "@/lib/format";
-import { useHubStats } from "@/hooks/useHubStats";
 import { BannerAd } from "@/components/site/banner-ad";
 
 export const Route = createFileRoute("/statistics")({
@@ -207,7 +206,6 @@ function StatisticsPage() {
     crashes: number;
   }>("road_class_stats", "fatalities", false);
 
-  const { data: hubStats = [] } = useHubStats();
   const { data: alertsCount } = useLiveCount("alerts", "alerts");
   const { data: reportsFiledCount } = useLiveCount("reports-filed", "accident_reports");
   const { data: reportsApprovedCount } = useLiveCount("reports-approved", "accident_reports", [
@@ -235,35 +233,11 @@ function StatisticsPage() {
       </p>
       <h1 className="mt-2 text-4xl font-extrabold">Live statistics</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Mjengo Hub's own numbers and what the Share Barabara community has reported so far, updated
-        as it happens.
+        Kenyan road traffic crash data and what the Share Barabara community has reported so far,
+        updated as it happens.
       </p>
 
-      {hubStats.length > 0 ? (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {hubStats.map((s) =>
-            s.link_url ? (
-              <a
-                key={s.id}
-                href={s.link_url}
-                target={s.link_url.startsWith("http") ? "_blank" : undefined}
-                rel={s.link_url.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"
-              >
-                <p className="font-display text-3xl font-extrabold">{s.value}</p>
-                <p className="mt-1 text-sm text-brand-blue underline">{s.label}</p>
-              </a>
-            ) : (
-              <div key={s.id} className="rounded-lg border border-border bg-card p-6 card-elevated">
-                <p className="font-display text-3xl font-extrabold">{s.value}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
-              </div>
-            ),
-          )}
-        </div>
-      ) : null}
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           to="/alerts"
           className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"

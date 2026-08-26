@@ -816,6 +816,7 @@ export type Database = {
           author_id: string | null;
           body: string;
           category: string;
+          categories: string[];
           created_at: string;
           featured: boolean;
           id: string;
@@ -841,6 +842,7 @@ export type Database = {
           author_id?: string | null;
           body: string;
           category?: string;
+          categories?: string[];
           created_at?: string;
           featured?: boolean;
           id?: string;
@@ -866,6 +868,7 @@ export type Database = {
           author_id?: string | null;
           body?: string;
           category?: string;
+          categories?: string[];
           created_at?: string;
           featured?: boolean;
           id?: string;

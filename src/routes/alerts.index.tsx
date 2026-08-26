@@ -141,8 +141,8 @@ function AlertsPage() {
             what you see on your route.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/infrastructure-issues">Report an infrastructure issue</Link>
+        <Button asChild>
+          <a href="#alert-form">Submit alert</a>
         </Button>
       </div>
 
@@ -165,6 +165,15 @@ function AlertsPage() {
               </ul>
             </div>
           ) : null}
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4">
+            <p className="text-sm text-muted-foreground">
+              Seen a road, bridge or drainage problem that isn't an immediate hazard?
+            </p>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/infrastructure-issues">Report an infrastructure issue</Link>
+            </Button>
+          </div>
 
           {trending.length > 0 ? (
             <div className="mt-12">
@@ -327,7 +336,10 @@ function AlertsPage() {
           </ul>
         </div>
 
-        <aside className="h-fit rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24">
+        <aside
+          id="alert-form"
+          className="h-fit scroll-mt-24 rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24"
+        >
           <h2 className="text-lg font-bold">Report a hazard</h2>
           {user ? (
             <div className="mt-4">

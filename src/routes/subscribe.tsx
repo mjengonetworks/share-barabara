@@ -87,7 +87,9 @@ function SubscribePage() {
       </div>
 
       <Button asChild variant="outline" className="mt-8">
-        <Link to="/campaigns">Or support us with a one-off donation</Link>
+        <Link to="/campaigns" hash="donate">
+          Or support us with a one-off donation
+        </Link>
       </Button>
     </div>
   );

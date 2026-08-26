@@ -36,6 +36,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -47,6 +48,20 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 type NavItem = { to: string; label: string; icon: typeof LayoutGrid; minRank: number };
 type NavSection = { label: string; items: NavItem[] };
+
+/** Closes the offcanvas sidebar on mobile once a nav item is tapped, so it
+ *  doesn't stay covering the page after navigating. */
+function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+  const { isMobile, setOpenMobile } = useSidebar();
+  return (
+    <SidebarMenuButton asChild isActive={active}>
+      <Link to={item.to} onClick={() => isMobile && setOpenMobile(false)}>
+        <item.icon />
+        <span>{item.label}</span>
+      </Link>
+    </SidebarMenuButton>
+  );
+}
 
 const SECTIONS: NavSection[] = [
   {
@@ -210,12 +225,7 @@ function AdminLayout() {
                   <SidebarMenu>
                     {items.map((item) => (
                       <SidebarMenuItem key={item.to}>
-                        <SidebarMenuButton asChild isActive={currentPath === item.to}>
-                          <Link to={item.to}>
-                            <item.icon />
-                            <span>{item.label}</span>
-                          </Link>
-                        </SidebarMenuButton>
+                        <NavLink item={item} active={currentPath === item.to} />
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>

@@ -5,18 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
+import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
+import { useRoles } from "@/hooks/useRoles";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { slugify } from "@/lib/format";
 
@@ -24,6 +19,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const { identity } = useActiveIdentity();
   const queryClient = useQueryClient();
+  const { canPublishArticles } = useRoles();
   const { data: categories = [] } = useNewsCategories();
   const [form, setForm] = useState({
     title: "",
@@ -32,12 +28,13 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
     image_url: "",
     image_caption: "",
     image_credit: "",
-    category: "News",
   });
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(["News"]);
 
   const submit = useMutation({
-    mutationFn: async (status: "draft" | "pending_review") => {
+    mutationFn: async (status: "draft" | "pending_review" | "published") => {
       if (!user) throw new Error("Sign in required");
+      if (selectedCategories.length === 0) throw new Error("Pick at least one category");
       const { error } = await supabase.from("news").insert({
         title: form.title,
         summary: form.summary,
@@ -45,19 +42,29 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         image_url: form.image_url.trim() || null,
         image_caption: form.image_caption.trim() || null,
         image_credit: form.image_credit.trim() || null,
-        category: form.category,
+        category: selectedCategories[0] ?? "News",
+        categories: selectedCategories,
         slug: slugify(form.title),
         author_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
         status,
+        ...(status === "published"
+          ? {
+              published_at: new Date().toISOString(),
+              reviewed_by: user.id,
+              reviewed_at: new Date().toISOString(),
+            }
+          : {}),
       });
       if (error) throw error;
     },
     onSuccess: (_data, status) => {
       toast.success(
-        status === "pending_review"
-          ? "Article submitted, an editor will review it before it is published"
-          : "Draft saved. Find it on your dashboard when you're ready to submit it.",
+        status === "published"
+          ? "Article published"
+          : status === "pending_review"
+            ? "Article submitted, an editor will review it before it is published"
+            : "Draft saved. Find it on your dashboard when you're ready to submit it.",
       );
       setForm({
         title: "",
@@ -66,9 +73,10 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         image_url: "",
         image_caption: "",
         image_credit: "",
-        category: "News",
       });
+      setSelectedCategories(["News"]);
       queryClient.invalidateQueries({ queryKey: ["my-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
       onDone?.();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -79,7 +87,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        submit.mutate("pending_review");
+        submit.mutate(canPublishArticles ? "published" : "pending_review");
       }}
     >
       <div>
@@ -94,19 +102,14 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         />
       </div>
       <div>
-        <Label>Category</Label>
-        <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((c) => (
-              <SelectItem key={c.id} value={c.name}>
-                {c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Label>Categories (pick one or more)</Label>
+        <div className="mt-2">
+          <CategoryMultiSelect
+            categories={categories}
+            value={selectedCategories}
+            onChange={setSelectedCategories}
+          />
+        </div>
       </div>
       <div>
         <Label>Featured image (optional)</Label>
@@ -154,14 +157,22 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
           placeholder="Separate paragraphs with a blank line. Use the toolbar to add bold, italic, links, images or a YouTube video."
         />
       </div>
-      <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-        Submitted articles are reviewed and may be edited for accuracy by an editor before they
-        appear publicly.
-      </p>
+      {!canPublishArticles ? (
+        <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+          Submitted articles are reviewed and may be edited for accuracy by an editor before they
+          appear publicly.
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={submit.isPending}>
-          {submit.isPending ? "Submitting…" : "Submit for review"}
-        </Button>
+        {canPublishArticles ? (
+          <Button type="submit" disabled={submit.isPending}>
+            {submit.isPending ? "Publishing…" : "Publish now"}
+          </Button>
+        ) : (
+          <Button type="submit" disabled={submit.isPending}>
+            {submit.isPending ? "Submitting…" : "Submit for review"}
+          </Button>
+        )}
         <Button
           type="button"
           variant="outline"

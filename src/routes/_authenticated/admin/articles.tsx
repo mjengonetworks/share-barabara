@@ -39,6 +39,7 @@ import { UserLink } from "@/components/site/user-link";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { dateTime } from "@/lib/format";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
+import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -49,7 +50,7 @@ type ArticleDraft = {
   title: string;
   summary: string;
   body: string;
-  category: string;
+  categories: string[];
   image_alt: string;
   image_caption: string;
   image_credit: string;
@@ -121,6 +122,7 @@ function ArticlesQueuePage() {
         ...(draft
           ? {
               ...draft,
+              category: draft.categories[0] ?? "News",
               image_alt: draft.image_alt.trim() || null,
               image_caption: draft.image_caption.trim() || null,
               image_credit: draft.image_credit.trim() || null,
@@ -229,7 +231,7 @@ function ArticlesQueuePage() {
             title: a.title,
             summary: a.summary,
             body: a.body,
-            category: a.category,
+            categories: a.categories?.length ? a.categories : [a.category],
             image_alt: a.image_alt ?? "",
             image_caption: a.image_caption ?? "",
             image_credit: a.image_credit ?? "",
@@ -263,9 +265,14 @@ function ArticlesQueuePage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{a.title}</p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                      <span className="rounded bg-accent/20 px-1.5 py-0.5 font-semibold uppercase tracking-wide text-accent-foreground">
-                        {a.category}
-                      </span>
+                      {(a.categories?.length ? a.categories : [a.category]).map((c) => (
+                        <span
+                          key={c}
+                          className="rounded bg-accent/20 px-1.5 py-0.5 font-semibold uppercase tracking-wide text-accent-foreground"
+                        >
+                          {c}
+                        </span>
+                      ))}
                       {a.author_id ? (
                         <>
                           · by <UserLink userId={a.author_id} name={names[a.author_id]} />
@@ -341,19 +348,14 @@ function ArticlesQueuePage() {
                         />
                       </div>
                       <div>
-                        <Label>Category</Label>
-                        <Select value={d.category} onValueChange={(v) => set({ category: v })}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((c) => (
-                              <SelectItem key={c.id} value={c.name}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label>Categories</Label>
+                        <div className="mt-2">
+                          <CategoryMultiSelect
+                            categories={categories}
+                            value={d.categories}
+                            onChange={(v) => set({ categories: v })}
+                          />
+                        </div>
                       </div>
                       <div>
                         <Label htmlFor={`as-${a.id}`}>Summary</Label>

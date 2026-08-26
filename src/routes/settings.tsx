@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserAvatar } from "@/components/site/user-avatar";
+import { ImageUploadField } from "@/components/site/image-upload-field";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -224,20 +225,17 @@ function SettingsPage() {
         }}
       >
         <div>
-          <Label htmlFor="s-avatar">Profile picture URL</Label>
+          <Label>Profile picture</Label>
           <div className="mt-2 flex items-center gap-3">
             <UserAvatar url={form.avatar_url} name={form.display_name} className="size-14" />
-            <Input
-              id="s-avatar"
-              type="url"
+            <ImageUploadField
               value={form.avatar_url}
-              onChange={(e) => set({ avatar_url: e.target.value })}
-              placeholder="https://…"
-              className="flex-1"
+              onChange={(url) => set({ avatar_url: url })}
+              label="Change picture"
             />
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Defaults to your Google account picture on signup; paste a different image URL to change
+            Defaults to your Google account picture on signup; upload a different image to change
             it.
           </p>
         </div>

@@ -16,6 +16,7 @@ import { campaignStatus } from "@/lib/campaigns";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
+import { useHubStats } from "@/hooks/useHubStats";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -116,6 +117,7 @@ function CampaignSection({
 }
 
 function CampaignsPage() {
+  const { data: hubStats = [] } = useHubStats();
   const { data: campaigns = [] } = useQuery({
     queryKey: ["campaigns"],
     queryFn: async () => {
@@ -157,6 +159,30 @@ function CampaignsPage() {
       <p className="mt-3 max-w-2xl text-muted-foreground">
         Our road safety campaigns, and how to get involved or support them.
       </p>
+
+      {hubStats.length > 0 ? (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {hubStats.map((s) =>
+            s.link_url ? (
+              <a
+                key={s.id}
+                href={s.link_url}
+                target={s.link_url.startsWith("http") ? "_blank" : undefined}
+                rel={s.link_url.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"
+              >
+                <p className="font-display text-3xl font-extrabold">{s.value}</p>
+                <p className="mt-1 text-sm text-brand-blue underline">{s.label}</p>
+              </a>
+            ) : (
+              <div key={s.id} className="rounded-lg border border-border bg-card p-6 card-elevated">
+                <p className="font-display text-3xl font-extrabold">{s.value}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
+              </div>
+            ),
+          )}
+        </div>
+      ) : null}
 
       <section className="mt-10 rounded-lg border border-border bg-card p-6 card-elevated">
         <h2 className="flex items-center gap-2 text-xl font-bold">

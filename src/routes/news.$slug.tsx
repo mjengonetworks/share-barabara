@@ -167,15 +167,36 @@ function NewsDetail() {
           <Link to="/news" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
             <ArrowLeft className="size-4" /> All news
           </Link>
-          <Link
-            to="/news"
-            search={{ category: article.category }}
-            className="mt-6 inline-block rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground hover:bg-accent/30"
-          >
-            {article.category}
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {(article.categories?.length ? article.categories : [article.category]).map((c) => (
+              <Link
+                key={c}
+                to="/news"
+                search={{ category: c }}
+                className="inline-block rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground hover:bg-accent/30"
+              >
+                {c}
+              </Link>
+            ))}
+          </div>
           <h1 className="mt-3 text-4xl font-extrabold leading-tight">{article.title}</h1>
-          <div className="mt-3 flex items-start gap-3">
+          {article.image_url ? (
+            <figure className="mt-4">
+              <img
+                src={article.image_url}
+                alt={article.image_alt || article.title}
+                className="aspect-video w-full rounded-lg border border-border object-cover"
+              />
+              {article.image_caption || article.image_credit ? (
+                <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                  {article.image_caption}
+                  {article.image_caption && article.image_credit ? " · " : ""}
+                  {article.image_credit ? `Credit: ${article.image_credit}` : ""}
+                </figcaption>
+              ) : null}
+            </figure>
+          ) : null}
+          <div className="mt-4 flex items-start gap-3">
             {article.author_id ? (
               <UserAvatar
                 url={authorAvatars[article.author_id]}
@@ -210,22 +231,6 @@ function NewsDetail() {
           <div className="mt-3">
             <ShareButtons title={article.title} />
           </div>
-          {article.image_url ? (
-            <figure className="mt-6">
-              <img
-                src={article.image_url}
-                alt={article.image_alt || article.title}
-                className="aspect-video w-full rounded-lg border border-border object-cover"
-              />
-              {article.image_caption || article.image_credit ? (
-                <figcaption className="mt-1.5 text-xs text-muted-foreground">
-                  {article.image_caption}
-                  {article.image_caption && article.image_credit ? " · " : ""}
-                  {article.image_credit ? `Credit: ${article.image_credit}` : ""}
-                </figcaption>
-              ) : null}
-            </figure>
-          ) : null}
           <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
             {article.summary}
           </p>
@@ -251,13 +256,16 @@ function NewsDetail() {
             <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Tags
             </span>
-            <Link
-              to="/news"
-              search={{ category: article.category }}
-              className="rounded-full border border-border px-3 py-1 text-xs font-medium hover:border-accent hover:text-accent-foreground"
-            >
-              {article.category}
-            </Link>
+            {(article.categories?.length ? article.categories : [article.category]).map((c) => (
+              <Link
+                key={c}
+                to="/news"
+                search={{ category: c }}
+                className="rounded-full border border-border px-3 py-1 text-xs font-medium hover:border-accent hover:text-accent-foreground"
+              >
+                {c}
+              </Link>
+            ))}
           </div>
 
           <div className="mt-8">

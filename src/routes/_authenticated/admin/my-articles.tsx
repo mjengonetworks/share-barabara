@@ -1,20 +1,15 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Newspaper, Plus } from "lucide-react";
+import { ExternalLink, MoreVertical, Newspaper, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ImageUploadField } from "@/components/site/image-upload-field";
+import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +17,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoles } from "@/hooks/useRoles";
@@ -42,11 +44,17 @@ const STATUS_STYLE: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
 };
 
-type Draft = { title: string; summary: string; body: string; category: string; image_url: string };
+type Draft = {
+  title: string;
+  summary: string;
+  body: string;
+  categories: string[];
+  image_url: string;
+};
 
 function MyArticlesPage() {
   const { user } = useAuth();
-  const { keepsArticleRightsAfterPublish } = useRoles();
+  const { keepsArticleRightsAfterPublish, canPublishArticles } = useRoles();
   const canWrite = useCanWriteArticles();
   const queryClient = useQueryClient();
   const { data: categories = [] } = useNewsCategories();
@@ -75,7 +83,7 @@ function MyArticlesPage() {
       draft,
     }: {
       id: string;
-      status?: "draft" | "pending_review";
+      status?: "draft" | "pending_review" | "published";
       draft?: Draft;
     }) => {
       const patch = {
@@ -84,19 +92,28 @@ function MyArticlesPage() {
               title: draft.title,
               summary: draft.summary,
               body: draft.body,
-              category: draft.category,
+              category: draft.categories[0] ?? "News",
+              categories: draft.categories,
               image_url: draft.image_url.trim() || null,
             }
           : {}),
         ...(status ? { status } : {}),
+        ...(status === "published"
+          ? {
+              published_at: new Date().toISOString(),
+              reviewed_by: user?.id ?? null,
+              reviewed_at: new Date().toISOString(),
+            }
+          : {}),
       };
       const { error } = await supabase.from("news").update(patch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast.success("Saved");
+    onSuccess: (_data, vars) => {
+      toast.success(vars.status === "published" ? "Article published" : "Saved");
       setEditingId(null);
       queryClient.invalidateQueries({ queryKey: ["my-articles"] });
+      queryClient.invalidateQueries({ queryKey: ["news"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -164,7 +181,7 @@ function MyArticlesPage() {
             title: a.title,
             summary: a.summary,
             body: a.body,
-            category: a.category,
+            categories: a.categories?.length ? a.categories : [a.category],
             image_url: a.image_url ?? "",
           };
           const set = (patch: Partial<Draft>) =>
@@ -188,12 +205,60 @@ function MyArticlesPage() {
                       {a.status.replace("_", " ")}
                     </span>
                     <span className="truncate font-semibold">{a.title}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {dateTime(a.created_at)}
-                    </span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{a.category}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {(a.categories?.length ? a.categories : [a.category]).join(", ")}
+                  </p>
                 </div>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {dateTime(a.created_at)}
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                      <MoreVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {a.status === "published" ? (
+                      <DropdownMenuItem asChild>
+                        <Link to="/news/$slug" params={{ slug: a.slug }} target="_blank">
+                          <ExternalLink className="mr-2 size-4" /> View on website
+                        </Link>
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canEdit ? (
+                      <DropdownMenuItem onClick={() => setEditingId(a.id)}>
+                        <Pencil className="mr-2 size-4" /> Edit
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canPublishArticles && a.status !== "published" ? (
+                      <DropdownMenuItem
+                        onClick={() => save.mutate({ id: a.id, status: "published" })}
+                      >
+                        Publish now
+                      </DropdownMenuItem>
+                    ) : null}
+                    {a.status === "draft" ? (
+                      <DropdownMenuItem
+                        onClick={() => save.mutate({ id: a.id, status: "pending_review" })}
+                      >
+                        Submit for review
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canEdit ? (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => remove.mutate(a.id)}
+                        >
+                          <Trash2 className="mr-2 size-4" /> Delete
+                        </DropdownMenuItem>
+                      </>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {editingId === a.id ? (
@@ -207,27 +272,23 @@ function MyArticlesPage() {
                     />
                   </div>
                   <div>
-                    <Label>Category</Label>
-                    <Select value={d.category} onValueChange={(v) => set({ category: v })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={c.name}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Categories</Label>
+                    <div className="mt-2">
+                      <CategoryMultiSelect
+                        categories={categories}
+                        value={d.categories}
+                        onChange={(v) => set({ categories: v })}
+                      />
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor={`img-${a.id}`}>Image URL</Label>
-                    <Input
-                      id={`img-${a.id}`}
-                      value={d.image_url}
-                      onChange={(e) => set({ image_url: e.target.value })}
-                    />
+                    <Label>Featured image</Label>
+                    <div className="mt-2">
+                      <ImageUploadField
+                        value={d.image_url}
+                        onChange={(url) => set({ image_url: url })}
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor={`s-${a.id}`}>Summary</Label>
@@ -259,34 +320,7 @@ function MyArticlesPage() {
                     </Button>
                   </div>
                 </div>
-              ) : (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {canEdit ? (
-                    <Button size="sm" variant="outline" onClick={() => setEditingId(a.id)}>
-                      Edit
-                    </Button>
-                  ) : null}
-                  {a.status === "draft" ? (
-                    <Button
-                      size="sm"
-                      disabled={save.isPending}
-                      onClick={() => save.mutate({ id: a.id, status: "pending_review" })}
-                    >
-                      Submit for review
-                    </Button>
-                  ) : null}
-                  {canEdit ? (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={remove.isPending}
-                      onClick={() => remove.mutate(a.id)}
-                    >
-                      Delete
-                    </Button>
-                  ) : null}
-                </div>
-              )}
+              ) : null}
             </li>
           );
         })}

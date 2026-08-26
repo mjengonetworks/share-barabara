@@ -202,6 +202,22 @@ function ReportDetail() {
             </p>
           ) : null}
           <h1 className="mt-3 text-4xl font-extrabold leading-tight">{report.title}</h1>
+          {report.image_url ? (
+            <figure className="mt-4">
+              <img
+                src={report.image_url}
+                alt={report.image_alt || report.title}
+                className="aspect-video w-full rounded-lg border border-border object-cover"
+              />
+              {report.image_caption || report.image_credit ? (
+                <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                  {report.image_caption}
+                  {report.image_caption && report.image_credit ? " · " : ""}
+                  {report.image_credit ? `Credit: ${report.image_credit}` : ""}
+                </figcaption>
+              ) : null}
+            </figure>
+          ) : null}
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {report.county}
             {report.road ? (
@@ -276,23 +292,6 @@ function ReportDetail() {
             />
             <ShareButtons title={report.title} />
           </div>
-
-          {report.image_url ? (
-            <figure className="mt-6">
-              <img
-                src={report.image_url}
-                alt={report.image_alt || report.title}
-                className="aspect-video w-full rounded-lg border border-border object-cover"
-              />
-              {report.image_caption || report.image_credit ? (
-                <figcaption className="mt-1.5 text-xs text-muted-foreground">
-                  {report.image_caption}
-                  {report.image_caption && report.image_credit ? " · " : ""}
-                  {report.image_credit ? `Credit: ${report.image_credit}` : ""}
-                </figcaption>
-              ) : null}
-            </figure>
-          ) : null}
 
           <div className="mt-6 grid grid-cols-3 gap-4">
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
