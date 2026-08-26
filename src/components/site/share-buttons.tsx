@@ -109,7 +109,7 @@ export function ShareButtons({ title }: { title: string }) {
       <a
         href={
           settings?.google_source_url ??
-          "https://www.google.com/preferences/source/sharebarabara.co.ke"
+          "https://www.google.com/preferences/source?q=sharebarabara.co.ke"
         }
         target="_blank"
         rel="noopener noreferrer"
