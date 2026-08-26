@@ -17,13 +17,14 @@ import { ImageUploadField } from "@/components/site/image-upload-field";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
-import { NEWS_CATEGORIES } from "@/lib/constants";
+import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { slugify } from "@/lib/format";
 
 export function ArticleForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const { identity } = useActiveIdentity();
   const queryClient = useQueryClient();
+  const { data: categories = [] } = useNewsCategories();
   const [form, setForm] = useState({
     title: "",
     summary: "",
@@ -31,7 +32,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
     image_url: "",
     image_caption: "",
     image_credit: "",
-    category: "News" as (typeof NEWS_CATEGORIES)[number],
+    category: "News",
   });
 
   const submit = useMutation({
@@ -94,19 +95,14 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
       </div>
       <div>
         <Label>Category</Label>
-        <Select
-          value={form.category}
-          onValueChange={(v) =>
-            setForm({ ...form, category: v as (typeof NEWS_CATEGORIES)[number] })
-          }
-        >
+        <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {NEWS_CATEGORIES.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.name}>
+                {c.name}
               </SelectItem>
             ))}
           </SelectContent>

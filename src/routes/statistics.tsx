@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { HAZARD_TYPES, PARTIES_INVOLVED, REPORT_SEVERITIES } from "@/lib/constants";
+import { PARTIES_INVOLVED } from "@/lib/constants";
+import { useHazardTypes, useReportSeverities } from "@/hooks/useTaxonomy";
 import {
   Area,
   AreaChart,
@@ -151,6 +152,8 @@ const tooltipStyle = {
 
 function StatisticsPage() {
   const navigate = useNavigate();
+  const { data: hazardTypes = [] } = useHazardTypes();
+  const { data: reportSeverities = [] } = useReportSeverities();
   const { data: yearly = [] } = useStat<{
     year: number;
     fatalities: number;
@@ -302,7 +305,7 @@ function StatisticsPage() {
             Alerts by hazard type
           </h2>
           <ul className="mt-4 space-y-1">
-            {HAZARD_TYPES.map((h) => (
+            {hazardTypes.map((h) => (
               <li key={h.value}>
                 <Link
                   to="/alerts"
@@ -321,7 +324,7 @@ function StatisticsPage() {
             Reports by severity
           </h2>
           <ul className="mt-4 space-y-1">
-            {REPORT_SEVERITIES.map((s) => (
+            {reportSeverities.map((s) => (
               <li key={s.value}>
                 <Link
                   to="/reports"

@@ -19,7 +19,8 @@ import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useProfileLeaderboard } from "@/hooks/useContributionLeaderboards";
 import { timeAgo } from "@/lib/format";
-import { HAZARD_TYPES, KENYA_COUNTIES } from "@/lib/constants";
+import { KENYA_COUNTIES } from "@/lib/constants";
+import { useHazardTypes } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
@@ -85,6 +86,7 @@ function AlertsPage() {
   const [county, setCounty] = useState(searchParams.county ?? "all");
   const [hazard, setHazard] = useState(searchParams.hazard ?? "all");
   const [openId, setOpenId] = useState<string | null>(null);
+  const { data: hazardTypes = [] } = useHazardTypes();
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ["alerts"],
@@ -197,7 +199,7 @@ function AlertsPage() {
               >
                 All hazards
               </button>
-              {HAZARD_TYPES.map((h) => (
+              {hazardTypes.map((h) => (
                 <button
                   key={h.value}
                   onClick={() => setHazard(h.value)}
@@ -255,7 +257,7 @@ function AlertsPage() {
                     <TriangleAlert className="size-4 text-caution" />
                     <SeverityBadge value={a.severity} />
                     <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                      {HAZARD_TYPES.find((h) => h.value === a.hazard_type)?.label ?? a.hazard_type}
+                      {hazardTypes.find((h) => h.value === a.hazard_type)?.label ?? a.hazard_type}
                     </span>
                     <span className="ml-auto text-xs text-muted-foreground">
                       {timeAgo(a.created_at)}

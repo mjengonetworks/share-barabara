@@ -20,7 +20,8 @@ import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { longDate, timeAgo } from "@/lib/format";
-import { KENYA_COUNTIES, REPORT_SEVERITIES } from "@/lib/constants";
+import { KENYA_COUNTIES } from "@/lib/constants";
+import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
@@ -84,6 +85,7 @@ function ReportsPage() {
   const [county, setCounty] = useState(searchParams.county ?? "all");
   const [severity, setSeverity] = useState(searchParams.severity ?? "all");
   const [search, setSearch] = useState("");
+  const { data: severities = [] } = useReportSeverities();
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports"],
@@ -205,7 +207,7 @@ function ReportsPage() {
               >
                 All severities
               </button>
-              {REPORT_SEVERITIES.map((s) => (
+              {severities.map((s) => (
                 <button
                   key={s.value}
                   onClick={() => setSeverity(s.value)}

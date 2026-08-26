@@ -159,7 +159,12 @@ const SECTIONS: NavSection[] = [
         minRank: ROLE_RANK.moderator,
       },
       { to: "/admin/featured", label: "Featured Picks", icon: Sparkles, minRank: ROLE_RANK.editor },
-      { to: "/admin/categories", label: "Categories", icon: LayoutGrid, minRank: ROLE_RANK.editor },
+      {
+        to: "/admin/categories",
+        label: "Categories & Filters",
+        icon: LayoutGrid,
+        minRank: ROLE_RANK.editor,
+      },
     ],
   },
 ];

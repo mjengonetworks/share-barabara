@@ -38,7 +38,8 @@ import { UserLink } from "@/components/site/user-link";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { dateTime } from "@/lib/format";
-import { KENYA_COUNTIES, REPORT_SEVERITIES } from "@/lib/constants";
+import { KENYA_COUNTIES } from "@/lib/constants";
+import { useReportSeverities } from "@/hooks/useTaxonomy";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -67,6 +68,7 @@ type Status = "pending" | "approved" | "rejected";
 function ReportsQueuePage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { data: severities = [] } = useReportSeverities();
   const [statusFilter, setStatusFilter] = useState<Status | "all">("pending");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [countyFilter, setCountyFilter] = useState<string>("all");
@@ -191,7 +193,7 @@ function ReportsQueuePage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All severities</SelectItem>
-              {REPORT_SEVERITIES.map((s) => (
+              {severities.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   {s.label}
                 </SelectItem>
@@ -383,7 +385,7 @@ function ReportsQueuePage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {REPORT_SEVERITIES.map((s) => (
+                            {severities.map((s) => (
                               <SelectItem key={s.value} value={s.value}>
                                 {s.label}
                               </SelectItem>

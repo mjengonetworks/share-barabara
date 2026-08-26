@@ -28,7 +28,7 @@ import { useRoles } from "@/hooks/useRoles";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
 import { ArticleForm } from "@/components/site/article-form";
 import { dateTime } from "@/lib/format";
-import { NEWS_CATEGORIES } from "@/lib/constants";
+import { useNewsCategories } from "@/hooks/useTaxonomy";
 
 export const Route = createFileRoute("/_authenticated/admin/my-articles")({
   head: () => ({ meta: [{ title: "My Articles: Share Barabara Admin" }] }),
@@ -49,6 +49,7 @@ function MyArticlesPage() {
   const { keepsArticleRightsAfterPublish } = useRoles();
   const canWrite = useCanWriteArticles();
   const queryClient = useQueryClient();
+  const { data: categories = [] } = useNewsCategories();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -212,9 +213,9 @@ function MyArticlesPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {NEWS_CATEGORIES.map((c) => (
-                          <SelectItem key={c} value={c}>
-                            {c}
+                        {categories.map((c) => (
+                          <SelectItem key={c.id} value={c.name}>
+                            {c.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

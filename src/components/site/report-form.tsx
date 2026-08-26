@@ -22,7 +22,8 @@ import { AttachmentsField, type Attachment } from "@/components/site/attachments
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
-import { KENYA_COUNTIES, PARTIES_INVOLVED, REPORT_SEVERITIES } from "@/lib/constants";
+import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
+import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { matchOrCreateRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
@@ -31,6 +32,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
+  const { data: severities = [] } = useReportSeverities();
   const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -159,7 +161,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {REPORT_SEVERITIES.map((s) => (
+              {severities.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   {s.label}
                 </SelectItem>

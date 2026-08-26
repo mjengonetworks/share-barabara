@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
 import { longDate } from "@/lib/format";
-import { NEWS_CATEGORIES } from "@/lib/constants";
+import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/site/article-form";
 import { BannerAd } from "@/components/site/banner-ad";
@@ -127,6 +127,7 @@ function NewsIndex() {
   const { user } = useAuth();
   const canWrite = useCanWriteArticles();
   const { category } = Route.useSearch();
+  const { data: categories = [] } = useNewsCategories();
 
   const { data: filtered = [], isLoading: filteredLoading } = useQuery({
     queryKey: ["news-category", category],
@@ -250,14 +251,14 @@ function NewsIndex() {
             <div className="mt-12">
               <h2 className="text-lg font-bold text-muted-foreground">Browse by category</h2>
               <div className="mt-3 flex flex-wrap gap-2">
-                {NEWS_CATEGORIES.map((c) => (
+                {categories.map((c) => (
                   <Link
-                    key={c}
+                    key={c.id}
                     to="/news"
-                    search={{ category: c }}
+                    search={{ category: c.name }}
                     className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium transition-colors hover:border-accent hover:text-accent-foreground"
                   >
-                    {c}
+                    {c.name}
                   </Link>
                 ))}
               </div>

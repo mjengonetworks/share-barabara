@@ -8,6 +8,99 @@ export type Database = {
   };
   public: {
     Tables: {
+      alert_severities: {
+        Row: {
+          created_at: string;
+          id: string;
+          label: string;
+          sort_order: number;
+          value: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          label: string;
+          sort_order?: number;
+          value: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          label?: string;
+          sort_order?: number;
+          value?: string;
+        };
+        Relationships: [];
+      };
+      hazard_types: {
+        Row: {
+          created_at: string;
+          id: string;
+          label: string;
+          sort_order: number;
+          value: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          label: string;
+          sort_order?: number;
+          value: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          label?: string;
+          sort_order?: number;
+          value?: string;
+        };
+        Relationships: [];
+      };
+      news_categories: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          sort_order: number;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          sort_order?: number;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      report_severities: {
+        Row: {
+          created_at: string;
+          id: string;
+          label: string;
+          sort_order: number;
+          value: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          label: string;
+          sort_order?: number;
+          value: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          label?: string;
+          sort_order?: number;
+          value?: string;
+        };
+        Relationships: [];
+      };
       accident_report_views: {
         Row: {
           created_at: string;

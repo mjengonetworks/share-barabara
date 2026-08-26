@@ -21,7 +21,8 @@ import { AttachmentsField, type Attachment } from "@/components/site/attachments
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
-import { HAZARD_TYPES, KENYA_COUNTIES, PARTIES_INVOLVED, SEVERITIES } from "@/lib/constants";
+import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
+import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { matchOrCreateRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
@@ -30,6 +31,8 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
+  const { data: hazardTypes = [] } = useHazardTypes();
+  const { data: severities = [] } = useAlertSeverities();
   const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -127,7 +130,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {HAZARD_TYPES.map((h) => (
+              {hazardTypes.map((h) => (
                 <SelectItem key={h.value} value={h.value}>
                   {h.label}
                 </SelectItem>
@@ -142,7 +145,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {SEVERITIES.map((s) => (
+              {severities.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   {s.label}
                 </SelectItem>

@@ -9,7 +9,8 @@ import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useVotes } from "@/hooks/useVotes";
 import { longDate } from "@/lib/format";
-import { HAZARD_TYPES, PARTIES_INVOLVED } from "@/lib/constants";
+import { PARTIES_INVOLVED } from "@/lib/constants";
+import { useHazardTypes } from "@/hooks/useTaxonomy";
 import { renderRichText } from "@/lib/richtext";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { VoteButtons } from "@/components/site/vote-buttons";
@@ -55,6 +56,7 @@ function AlertList({ alerts }: { alerts: RelatedAlert[] }) {
 
 function AlertDetail() {
   const { alertId } = Route.useParams();
+  const { data: hazardTypes = [] } = useHazardTypes();
 
   const { data: alert, isLoading } = useQuery({
     queryKey: ["alert", alertId],
@@ -147,7 +149,7 @@ function AlertDetail() {
             <TriangleAlert className="size-4 text-caution" />
             <SeverityBadge value={alert.severity} />
             <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              {HAZARD_TYPES.find((h) => h.value === alert.hazard_type)?.label ?? alert.hazard_type}
+              {hazardTypes.find((h) => h.value === alert.hazard_type)?.label ?? alert.hazard_type}
             </span>
             <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
           </div>

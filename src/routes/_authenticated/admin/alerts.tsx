@@ -32,7 +32,8 @@ import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { dateTime } from "@/lib/format";
-import { HAZARD_TYPES, KENYA_COUNTIES, SEVERITIES } from "@/lib/constants";
+import { KENYA_COUNTIES } from "@/lib/constants";
+import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
   head: () => ({ meta: [{ title: "Hazard Alerts: Share Barabara Admin" }] }),
@@ -41,6 +42,8 @@ export const Route = createFileRoute("/_authenticated/admin/alerts")({
 
 function AlertsAdminPage() {
   const queryClient = useQueryClient();
+  const { data: hazardTypes = [] } = useHazardTypes();
+  const { data: severities = [] } = useAlertSeverities();
   const [county, setCounty] = useState("all");
   const [hazard, setHazard] = useState("all");
   const [severity, setSeverity] = useState("all");
@@ -129,7 +132,7 @@ function AlertsAdminPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All hazard types</SelectItem>
-              {HAZARD_TYPES.map((h) => (
+              {hazardTypes.map((h) => (
                 <SelectItem key={h.value} value={h.value}>
                   {h.label}
                 </SelectItem>
@@ -145,7 +148,7 @@ function AlertsAdminPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All severities</SelectItem>
-              {SEVERITIES.map((s) => (
+              {severities.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   {s.label}
                 </SelectItem>
@@ -201,7 +204,7 @@ function AlertsAdminPage() {
                       <SeverityBadge value={a.severity} />
                     </SelectTrigger>
                     <SelectContent>
-                      {SEVERITIES.map((s) => (
+                      {severities.map((s) => (
                         <SelectItem key={s.value} value={s.value}>
                           {s.label}
                         </SelectItem>

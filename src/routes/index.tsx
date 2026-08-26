@@ -18,7 +18,8 @@ import heroRoad from "@/assets/hero-road.jpg";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { num, timeAgo, longDate } from "@/lib/format";
-import { EMERGENCY_CONTACTS, HAZARD_TYPES } from "@/lib/constants";
+import { EMERGENCY_CONTACTS } from "@/lib/constants";
+import { useHazardTypes } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { BannerAd } from "@/components/site/banner-ad";
 import { SearchBar } from "@/components/site/search-bar";
@@ -47,6 +48,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { data: hazardTypes = [] } = useHazardTypes();
   const { data: alerts = [] } = useQuery({
     queryKey: ["home-alerts"],
     queryFn: async () => {
@@ -186,7 +188,7 @@ function Index() {
                   <TriangleAlert className="size-4 text-caution" />
                   <SeverityBadge value={a.severity} />
                   <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    {HAZARD_TYPES.find((h) => h.value === a.hazard_type)?.label ?? a.hazard_type}
+                    {hazardTypes.find((h) => h.value === a.hazard_type)?.label ?? a.hazard_type}
                   </span>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {timeAgo(a.created_at)}

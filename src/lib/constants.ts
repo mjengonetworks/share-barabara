@@ -48,46 +48,6 @@ export const KENYA_COUNTIES = [
   "West Pokot",
 ] as const;
 
-export const NEWS_CATEGORIES = [
-  "News",
-  "Alerts",
-  "Awareness",
-  "Enforcement",
-  "Policy",
-  "History",
-  "Engineering",
-  "Opinion",
-  "Victims Focus",
-  "Infrastructure",
-  "Counties",
-  "Partner Content",
-] as const;
-
-export const HAZARD_TYPES = [
-  { value: "crash", label: "Crash / collision" },
-  { value: "road_damage", label: "Potholes or road damage" },
-  { value: "flooding", label: "Flooding" },
-  { value: "obstruction", label: "Obstruction or stalled vehicle" },
-  { value: "poor_visibility", label: "Fog or poor visibility" },
-  { value: "reckless_driving", label: "Reckless driving" },
-  { value: "roadworks", label: "Roadworks" },
-  { value: "other", label: "Other hazard" },
-] as const;
-
-export const SEVERITIES = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "critical", label: "Critical" },
-] as const;
-
-export const REPORT_SEVERITIES = [
-  { value: "minor", label: "Minor" },
-  { value: "moderate", label: "Moderate" },
-  { value: "serious", label: "Serious" },
-  { value: "fatal", label: "Fatal" },
-] as const;
-
 /** Who was involved, for both alerts and accident reports. A crash can have more than one. */
 export const PARTIES_INVOLVED = [
   { value: "pedestrian", label: "Pedestrian" },

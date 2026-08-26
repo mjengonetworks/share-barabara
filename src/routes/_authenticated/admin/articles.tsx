@@ -38,7 +38,7 @@ import { useViewCounts } from "@/hooks/useViewCounts";
 import { UserLink } from "@/components/site/user-link";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { dateTime } from "@/lib/format";
-import { NEWS_CATEGORIES } from "@/lib/constants";
+import { useNewsCategories } from "@/hooks/useTaxonomy";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -63,6 +63,7 @@ function ArticlesQueuePage() {
   const { user } = useAuth();
   const { canPublishArticles } = useRoles();
   const queryClient = useQueryClient();
+  const { data: categories = [] } = useNewsCategories();
   const [statusFilter, setStatusFilter] = useState<Status | "all">("pending_review");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -189,9 +190,9 @@ function ArticlesQueuePage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All categories</SelectItem>
-              {NEWS_CATEGORIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={c.name}>
+                  {c.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -346,9 +347,9 @@ function ArticlesQueuePage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {NEWS_CATEGORIES.map((c) => (
-                              <SelectItem key={c} value={c}>
-                                {c}
+                            {categories.map((c) => (
+                              <SelectItem key={c.id} value={c.name}>
+                                {c.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
