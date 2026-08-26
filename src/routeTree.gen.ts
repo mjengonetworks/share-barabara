@@ -51,6 +51,8 @@ import { Route as AuthenticatedAdminMerchItemsRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminMerchOrdersRouteImport } from './routes/_authenticated/admin/merch-orders'
 import { Route as AuthenticatedAdminMyArticlesRouteImport } from './routes/_authenticated/admin/my-articles'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
+import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin/pages'
+import { Route as AuthenticatedAdminPartnerEnquiriesRouteImport } from './routes/_authenticated/admin/partner-enquiries'
 import { Route as AuthenticatedAdminQuoteRouteImport } from './routes/_authenticated/admin/quote'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin/requests'
@@ -279,6 +281,17 @@ const AuthenticatedAdminNewsletterRoute =
     path: '/newsletter',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminPagesRoute = AuthenticatedAdminPagesRouteImport.update({
+  id: '/pages',
+  path: '/pages',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminPartnerEnquiriesRoute =
+  AuthenticatedAdminPartnerEnquiriesRouteImport.update({
+    id: '/partner-enquiries',
+    path: '/partner-enquiries',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminQuoteRoute = AuthenticatedAdminQuoteRouteImport.update({
   id: '/quote',
   path: '/quote',
@@ -361,6 +374,8 @@ export interface FileRoutesByFullPath {
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
@@ -410,6 +425,8 @@ export interface FileRoutesByTo {
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
@@ -462,6 +479,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/_authenticated/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/_authenticated/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/_authenticated/admin/quote': typeof AuthenticatedAdminQuoteRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/requests': typeof AuthenticatedAdminRequestsRoute
@@ -514,6 +533,8 @@ export interface FileRouteTypes {
     | '/admin/merch-orders'
     | '/admin/my-articles'
     | '/admin/newsletter'
+    | '/admin/pages'
+    | '/admin/partner-enquiries'
     | '/admin/quote'
     | '/admin/reports'
     | '/admin/requests'
@@ -563,6 +584,8 @@ export interface FileRouteTypes {
     | '/admin/merch-orders'
     | '/admin/my-articles'
     | '/admin/newsletter'
+    | '/admin/pages'
+    | '/admin/partner-enquiries'
     | '/admin/quote'
     | '/admin/reports'
     | '/admin/requests'
@@ -614,6 +637,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/merch-orders'
     | '/_authenticated/admin/my-articles'
     | '/_authenticated/admin/newsletter'
+    | '/_authenticated/admin/pages'
+    | '/_authenticated/admin/partner-enquiries'
     | '/_authenticated/admin/quote'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/requests'
@@ -950,6 +975,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminNewsletterRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/pages': {
+      id: '/_authenticated/admin/pages'
+      path: '/pages'
+      fullPath: '/admin/pages'
+      preLoaderRoute: typeof AuthenticatedAdminPagesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/partner-enquiries': {
+      id: '/_authenticated/admin/partner-enquiries'
+      path: '/partner-enquiries'
+      fullPath: '/admin/partner-enquiries'
+      preLoaderRoute: typeof AuthenticatedAdminPartnerEnquiriesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/quote': {
       id: '/_authenticated/admin/quote'
       path: '/quote'
@@ -1014,6 +1053,8 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminMerchOrdersRoute: typeof AuthenticatedAdminMerchOrdersRoute
   AuthenticatedAdminMyArticlesRoute: typeof AuthenticatedAdminMyArticlesRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
+  AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRoute
+  AuthenticatedAdminPartnerEnquiriesRoute: typeof AuthenticatedAdminPartnerEnquiriesRoute
   AuthenticatedAdminQuoteRoute: typeof AuthenticatedAdminQuoteRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
@@ -1037,6 +1078,9 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminMerchOrdersRoute: AuthenticatedAdminMerchOrdersRoute,
     AuthenticatedAdminMyArticlesRoute: AuthenticatedAdminMyArticlesRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
+    AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRoute,
+    AuthenticatedAdminPartnerEnquiriesRoute:
+      AuthenticatedAdminPartnerEnquiriesRoute,
     AuthenticatedAdminQuoteRoute: AuthenticatedAdminQuoteRoute,
     AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
     AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,

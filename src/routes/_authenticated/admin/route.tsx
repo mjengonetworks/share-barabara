@@ -2,9 +2,11 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import {
   BarChart3,
   Bell,
+  Building,
   Building2,
   Facebook,
   FileText,
+  Handshake,
   Inbox,
   LayoutGrid,
   Mail,
@@ -116,6 +118,18 @@ const SECTIONS: NavSection[] = [
         to: "/admin/merch-orders",
         label: "Merch Orders",
         icon: Inbox,
+        minRank: ROLE_RANK.editor,
+      },
+    ],
+  },
+  {
+    label: "Directory & Partners",
+    items: [
+      { to: "/admin/pages", label: "Pages", icon: Building, minRank: ROLE_RANK.editor },
+      {
+        to: "/admin/partner-enquiries",
+        label: "Partner Enquiries",
+        icon: Handshake,
         minRank: ROLE_RANK.editor,
       },
     ],
