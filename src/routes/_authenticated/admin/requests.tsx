@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +9,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRoles } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
+import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
+import { PARTIES_INVOLVED } from "@/lib/constants";
 import { timeAgo } from "@/lib/format";
+
+// News is routed by slug, not id, and content_requests only stores the id —
+// so only alert/report (routed by raw id) can link straight to the item.
+const ENTITY_LINK: Partial<
+  Record<string, (id: string) => { to: string; params: Record<string, string> }>
+> = {
+  alert: (id) => ({ to: "/alerts/$alertId", params: { alertId: id } }),
+  report: (id) => ({ to: "/reports/$reportId", params: { reportId: id } }),
+};
 
 export const Route = createFileRoute("/_authenticated/admin/requests")({
   head: () => ({ meta: [{ title: "Requests: Share Barabara Admin" }] }),
@@ -135,8 +147,37 @@ function RequestsAdminPage() {
                   about <UserLink userId={r.entity_id} name={names[r.entity_id]} />
                 </>
               ) : null}
+              {ENTITY_LINK[r.entity_type] ? (
+                <Link
+                  {...ENTITY_LINK[r.entity_type]!(r.entity_id)}
+                  target="_blank"
+                  className="ml-1 inline-flex items-center gap-0.5 text-brand-blue underline"
+                >
+                  <ExternalLink className="size-3" /> View
+                </Link>
+              ) : null}
             </p>
             <p className="mt-2 text-sm text-foreground/90">{r.message}</p>
+
+            {r.casualty_breakdown && Object.keys(r.casualty_breakdown).length > 0 ? (
+              <div className="mt-2 rounded border border-dashed border-border bg-muted/30 p-2 text-xs">
+                <p className="font-semibold text-muted-foreground">Suggested casualty counts</p>
+                <ul className="mt-1 space-y-0.5">
+                  {Object.entries(
+                    r.casualty_breakdown as Record<string, { dead?: number; injured?: number }>,
+                  ).map(([party, counts]) => (
+                    <li key={party}>
+                      {PARTIES_INVOLVED.find((p) => p.value === party)?.label ?? party}:{" "}
+                      {counts.dead ? `${counts.dead} dead` : ""}
+                      {counts.dead && counts.injured ? ", " : ""}
+                      {counts.injured ? `${counts.injured} injured` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            <AttachmentGallery attachments={(r.attachments as AttachmentRow[] | null) ?? []} />
 
             {r.status === "pending" ? (
               <div className="mt-3 flex flex-wrap gap-2">

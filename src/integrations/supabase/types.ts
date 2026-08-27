@@ -527,6 +527,8 @@ export type Database = {
       };
       content_requests: {
         Row: {
+          attachments: Json;
+          casualty_breakdown: Json | null;
           created_at: string;
           entity_id: string;
           entity_type: string;
@@ -539,6 +541,8 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          attachments?: Json;
+          casualty_breakdown?: Json | null;
           created_at?: string;
           entity_id: string;
           entity_type: string;
@@ -551,6 +555,8 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          attachments?: Json;
+          casualty_breakdown?: Json | null;
           created_at?: string;
           entity_id?: string;
           entity_type?: string;

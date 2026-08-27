@@ -283,13 +283,7 @@ function ReportDetail() {
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <VoteButtons
-              size="md"
-              net={scores[report.id]?.net ?? 0}
-              mine={scores[report.id]?.mine ?? 0}
-              onVote={(v) => vote(report.id, v)}
-            />
+          <div className="mt-3">
             <ShareButtons title={report.title} />
           </div>
 
@@ -339,11 +333,22 @@ function ReportDetail() {
             entityType="report"
             entityId={report.id}
             ownerId={report.user_id}
+            parties={report.parties_involved}
           />
 
           <div className="mt-8">
             <BannerAd />
           </div>
+
+          <div className="mt-6">
+            <VoteButtons
+              size="md"
+              net={scores[report.id]?.net ?? 0}
+              mine={scores[report.id]?.mine ?? 0}
+              onVote={(v) => vote(report.id, v)}
+            />
+          </div>
+
           <CommentSection entityType="report" entityId={report.id} />
         </article>
 

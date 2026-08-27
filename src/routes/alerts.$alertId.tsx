@@ -212,7 +212,12 @@ function AlertDetail() {
             />
           </div>
 
-          <ContentRequestActions entityType="alert" entityId={alert.id} ownerId={alert.user_id} />
+          <ContentRequestActions
+            entityType="alert"
+            entityId={alert.id}
+            ownerId={alert.user_id}
+            parties={alert.parties_involved}
+          />
 
           <div className="mt-8">
             <BannerAd />

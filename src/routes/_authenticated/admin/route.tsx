@@ -168,8 +168,8 @@ const SECTIONS: NavSection[] = [
     items: [
       { to: "/admin/users", label: "Users & Roles", icon: Users, minRank: ROLE_RANK.moderator },
       {
-        to: "/admin/site-figures",
-        label: "Site Figures",
+        to: "/admin/crash-statistics",
+        label: "Crash Statistics",
         icon: BarChart3,
         minRank: ROLE_RANK.moderator,
       },

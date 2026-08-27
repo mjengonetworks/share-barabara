@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { MapPin } from "lucide-react";
 import { PARTIES_INVOLVED } from "@/lib/constants";
 import { useHazardTypes, useReportSeverities } from "@/hooks/useTaxonomy";
 import {
@@ -105,6 +106,48 @@ function usePartiesCounts() {
   });
 }
 
+/** Real roads ranked by their published-report toll, each linking through to
+ *  its own road profile — the concrete, drill-down-able counterpart to the
+ *  aggregate road-class chart above it. */
+function useTopRoads(limit = 8) {
+  return useQuery({
+    queryKey: ["top-roads", limit],
+    queryFn: async () => {
+      const { data: reports, error } = await supabase
+        .from("accident_reports")
+        .select("road_id, fatalities, casualties")
+        .eq("status", "approved")
+        .not("road_id", "is", null);
+      if (error) throw error;
+      const totals = new Map<string, { fatalities: number; casualties: number; crashes: number }>();
+      for (const r of reports ?? []) {
+        if (!r.road_id) continue;
+        const entry = totals.get(r.road_id) ?? { fatalities: 0, casualties: 0, crashes: 0 };
+        entry.fatalities += r.fatalities;
+        entry.casualties += r.casualties;
+        entry.crashes += 1;
+        totals.set(r.road_id, entry);
+      }
+      const ranked = Array.from(totals, ([road_id, t]) => ({ road_id, ...t }))
+        .sort((a, b) => b.fatalities - a.fatalities || b.crashes - a.crashes)
+        .slice(0, limit);
+      if (ranked.length === 0) return [];
+      const { data: roads, error: roadsError } = await supabase
+        .from("roads")
+        .select("id, name, slug, county")
+        .in(
+          "id",
+          ranked.map((r) => r.road_id),
+        );
+      if (roadsError) throw roadsError;
+      const roadMap = new Map((roads ?? []).map((r) => [r.id, r]));
+      return ranked
+        .map((r) => ({ ...r, road: roadMap.get(r.road_id) }))
+        .filter((r): r is typeof r & { road: NonNullable<typeof r.road> } => !!r.road);
+    },
+  });
+}
+
 function useStat<T>(table: string, order: string, asc = true) {
   return useQuery({
     queryKey: [table, order, asc],
@@ -168,6 +211,8 @@ function StatisticsPage() {
     "fatalities",
     false,
   );
+
+  const { data: topRoads = [] } = useTopRoads();
 
   const { data: victims = [] } = useStat<{ id: string; category: string; fatalities: number }>(
     "victim_stats",
@@ -601,6 +646,41 @@ function StatisticsPage() {
           </div>
         </div>
       </section>
+
+      {topRoads.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="text-2xl font-bold">Most dangerous roads</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Ranked by fatalities in verified accident reports. Click through to a road's own profile
+            for every alert and report filed against it.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {topRoads.map((r) => (
+              <Link
+                key={r.road_id}
+                to="/roads/$slug"
+                params={{ slug: r.road.slug }}
+                className="rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+              >
+                <p className="flex items-center gap-1 font-semibold text-brand-blue hover:underline">
+                  <MapPin className="size-4 shrink-0" /> {r.road.name}
+                </p>
+                {r.road.county ? (
+                  <p className="mt-0.5 text-xs text-muted-foreground">{r.road.county}</p>
+                ) : null}
+                <div className="mt-2 flex gap-4 text-sm">
+                  <span className="text-destructive">
+                    <strong>{r.fatalities}</strong> deaths
+                  </span>
+                  <span className="text-caution">
+                    <strong>{r.casualties}</strong> injured
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>

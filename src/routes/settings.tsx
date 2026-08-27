@@ -359,8 +359,8 @@ function SettingsPage() {
           <Gift className="size-5 text-accent" /> Referrals
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Earn {profile?.referral_points ?? 0} points so far. You get 5 points when someone signs up
-          with your link, and 15 more once they subscribe to Premium.
+          Earned {profile?.referral_points ?? 0} points so far. You get 5 points when someone signs
+          up with your link, and 15 more once they subscribe to Premium.
         </p>
         {referralUrl ? (
           <div className="mt-3 flex items-center gap-2">
