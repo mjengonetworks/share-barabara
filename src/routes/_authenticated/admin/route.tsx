@@ -196,7 +196,7 @@ function AdminLayout() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-20 text-center">
         <ShieldAlert className="mx-auto size-10 text-muted-foreground" />
-        <h1 className="mt-4 text-2xl font-bold">Admin dashboard</h1>
+        <h1 className="mt-4 text-[1.05rem] font-bold">Admin dashboard</h1>
         <p className="mt-3 text-muted-foreground">
           This area is for approved contributors, moderators, editors and admins. Ask an admin to
           grant you a role to get access.

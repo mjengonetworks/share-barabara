@@ -1,17 +1,28 @@
 import type { ReactNode } from "react";
+import katex from "katex";
 
 /**
  * A deliberately small markdown-lite dialect, not full CommonMark: bold
  * (**text**), italic (*text*), links ([text](url)), block images
- * (![alt](url) alone on its own line/paragraph) and a video embed marker
- * ({{video:URL}} alone on its own line/paragraph) for YouTube links. Existing
+ * (![alt](url) alone on its own line/paragraph), a video embed marker
+ * ({{video:URL}} alone on its own line/paragraph) for YouTube links, and
+ * LaTeX math ($inline$ or $$block$$, rendered with KaTeX). Existing
  * plain-text content (paragraphs separated by a blank line) keeps rendering
  * exactly as before, since none of that syntax appears in it.
  */
 
-// The 5th alternative ($...$) is a lightweight math marker: not real LaTeX
-// typesetting, just preserved and visually set apart so a pasted formula
-// survives instead of getting flattened into plain running text.
+/** trust:false (the default) disables LaTeX commands that could otherwise
+ *  reach into the page (\href, \includegraphics, etc.) -- required since
+ *  this renders arbitrary user-submitted formulas. */
+function renderMath(latex: string, displayMode: boolean): string {
+  try {
+    return katex.renderToString(latex, { throwOnError: false, displayMode });
+  } catch {
+    return latex;
+  }
+}
+
+// The 5th alternative ($...$) is inline LaTeX math, rendered with KaTeX.
 const INLINE_RE = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*|\$([^$\n]+)\$/g;
 
 function parseInline(text: string, keyPrefix: string): ReactNode[] {
@@ -40,9 +51,10 @@ function parseInline(text: string, keyPrefix: string): ReactNode[] {
       nodes.push(<em key={`${keyPrefix}-${i++}`}>{match[4]}</em>);
     } else if (match[5] !== undefined) {
       nodes.push(
-        <code key={`${keyPrefix}-${i++}`} className="rounded bg-muted px-1 py-0.5 font-mono">
-          {match[5]}
-        </code>,
+        <span
+          key={`${keyPrefix}-${i++}`}
+          dangerouslySetInnerHTML={{ __html: renderMath(match[5], false) }}
+        />,
       );
     }
     lastIndex = match.index + match[0].length;
@@ -103,10 +115,9 @@ export function renderRichText(content: string): ReactNode {
       return (
         <div
           key={i}
-          className="my-4 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4 text-center font-mono text-sm"
-        >
-          {mathMatch[1]?.trim()}
-        </div>
+          className="my-4 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4"
+          dangerouslySetInnerHTML={{ __html: renderMath((mathMatch[1] ?? "").trim(), true) }}
+        />
       );
     }
     const imageMatch = trimmed.match(IMAGE_BLOCK_RE);
@@ -123,7 +134,7 @@ export function renderRichText(content: string): ReactNode {
             <figcaption className="mt-1.5 text-xs text-muted-foreground">
               {caption}
               {caption && credit ? " · " : ""}
-              {credit ? `Credit: ${credit}` : ""}
+              {credit ? <em>Credit: {credit}</em> : null}
             </figcaption>
           ) : null}
         </figure>

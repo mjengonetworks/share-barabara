@@ -133,7 +133,7 @@ function AlertsAdminPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Moderation queue
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Hazard alerts</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Hazard alerts</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Adjust severity or remove alerts that are spam, duplicate or resolved.
       </p>

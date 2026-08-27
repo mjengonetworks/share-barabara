@@ -93,7 +93,7 @@ function CampaignSection({
 
   return (
     <section className="mt-6 rounded-lg border border-border bg-card p-6 card-elevated">
-      <h2 className="flex items-center gap-2 text-xl font-bold">
+      <h2 className="flex items-center gap-2 text-[0.875rem] font-bold">
         <Icon className="size-5 text-accent" /> {title}
       </h2>
       {campaigns.length === 0 ? (
@@ -157,13 +157,13 @@ function CampaignsPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Campaigns
       </p>
-      <h1 className="mt-2 text-4xl font-extrabold">Share Barabara</h1>
+      <h1 className="mt-2 text-[1.575rem] font-extrabold">Share Barabara</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
         Our road safety campaigns, and how to get involved or support them.
       </p>
 
       <section className="mt-10 rounded-lg border border-border bg-card p-6 card-elevated">
-        <h2 className="flex items-center gap-2 text-xl font-bold">
+        <h2 className="flex items-center gap-2 text-[0.875rem] font-bold">
           <RouteIcon className="size-5 text-accent" /> Share Barabara: share the road
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -196,7 +196,7 @@ function CampaignsPage() {
 
       <section className="mt-6 rounded-lg border border-border bg-card p-6 card-elevated">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-xl font-bold">
+          <h2 className="flex items-center gap-2 text-[0.875rem] font-bold">
             <Construction className="size-5 text-accent" /> Infrastructure issues
           </h2>
           <Button asChild size="sm" variant="outline">
@@ -243,7 +243,7 @@ function CampaignsPage() {
 
       <section id="emergency" className="mt-14 grid scroll-mt-24 gap-8 lg:grid-cols-2">
         <div className="rounded-lg asphalt p-8 text-secondary">
-          <h2 className="text-2xl font-bold text-background">At a crash scene</h2>
+          <h2 className="text-[1.05rem] font-bold text-background">At a crash scene</h2>
           <ol className="mt-4 space-y-3 text-sm text-secondary/80">
             <li>1. Stop safely, switch on hazard lights and place a warning triangle well back.</li>
             <li>2. Call 999 or 112. Give the road name, direction and nearest landmark.</li>
@@ -254,7 +254,7 @@ function CampaignsPage() {
           </ol>
         </div>
         <div className="rounded-lg border border-border bg-card p-8 card-elevated">
-          <h2 className="flex items-center gap-2 text-2xl font-bold">
+          <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
             <PhoneCall className="size-5 text-accent" /> Emergency numbers
           </h2>
           <ul className="mt-4 divide-y divide-border">
@@ -274,7 +274,7 @@ function CampaignsPage() {
       </section>
 
       <section className="mt-14 border-t border-border pt-10">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
+        <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
           <HandHeart className="size-5 text-accent" /> Support &amp; partner with Share Barabara
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">

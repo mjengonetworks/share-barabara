@@ -112,7 +112,7 @@ function SocialLinksPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Site content
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Social links</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Social links</h1>
       <p className="mt-2 text-muted-foreground">
         Shown as icons in the site footer. Add, remove or swap the icon and destination for each.
       </p>

@@ -23,8 +23,8 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h1 className="text-[3.15rem] font-bold text-foreground">404</h1>
+        <h2 className="mt-4 text-[0.875rem] font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
         </p>
@@ -51,7 +51,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-[0.875rem] font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -87,8 +87,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Share Barabara: Road Safety in Kenya" },
       {
         name: "description",
-        content:
-          "Road safety for Kenya: live hazard alerts, crash statistics, news and guidance.",
+        content: "Road safety for Kenya: live hazard alerts, crash statistics, news and guidance.",
       },
       { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
       {

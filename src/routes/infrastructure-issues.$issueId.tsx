@@ -120,7 +120,7 @@ function IssueDetail() {
   if (!issue) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <h1 className="text-2xl font-bold">Issue not found</h1>
+        <h1 className="text-[1.05rem] font-bold">Issue not found</h1>
         <Link to="/infrastructure-issues" className="mt-4 inline-block underline">
           Back to infrastructure issues
         </Link>
@@ -155,7 +155,7 @@ function IssueDetail() {
             <span className="ml-auto text-muted-foreground">{longDate(issue.created_at)}</span>
           </div>
 
-          <h1 className="mt-3 text-4xl font-extrabold leading-tight">{issue.title}</h1>
+          <h1 className="mt-3 text-[1.575rem] font-extrabold leading-tight">{issue.title}</h1>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {issue.road_name}
             {issue.county ? ` · ${issue.county}` : ""}

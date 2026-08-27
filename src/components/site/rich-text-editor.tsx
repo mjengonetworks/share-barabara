@@ -8,6 +8,7 @@ import {
   Link2,
   Loader2,
   PencilLine,
+  Sigma,
   Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -156,6 +157,19 @@ export function RichTextEditor({ id, value, onChange, rows = 8, placeholder, req
           className="hidden"
           onChange={(e) => handleImageFile(e.target.files?.[0])}
         />
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          className="size-7"
+          title="Math formula (LaTeX). Select text to wrap it, or insert a placeholder."
+          disabled={preview}
+          onClick={() =>
+            ref.current && applyInline(ref.current, value, onChange, "$", "$", "x^2 + y^2 = z^2")
+          }
+        >
+          <Sigma className="size-3.5" />
+        </Button>
         <Button
           type="button"
           size="icon"

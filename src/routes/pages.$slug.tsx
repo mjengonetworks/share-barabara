@@ -120,7 +120,7 @@ function PageProfile() {
   if (!page) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <h1 className="text-2xl font-bold">Page not found</h1>
+        <h1 className="text-[1.05rem] font-bold">Page not found</h1>
         <Link to="/pages" className="mt-4 inline-block underline">
           Back to pages
         </Link>
@@ -136,7 +136,7 @@ function PageProfile() {
         {page.category}
       </p>
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="mt-2 flex items-center gap-2 text-4xl font-extrabold">
+        <h1 className="mt-2 flex items-center gap-2 text-[1.575rem] font-extrabold">
           <span className="flex size-10 items-center justify-center rounded bg-accent/20 text-accent-foreground">
             <Building2 className="size-6" />
           </span>
@@ -199,7 +199,7 @@ function PageProfile() {
       </div>
 
       <section className="mt-10">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
+        <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
           <Newspaper className="size-5 text-accent" /> Articles
         </h2>
         {articles.length === 0 ? (
@@ -230,7 +230,7 @@ function PageProfile() {
       </section>
 
       <section className="mt-10">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
+        <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
           <TriangleAlert className="size-5 text-caution" /> Hazard alerts
         </h2>
         {alerts.length === 0 ? (
@@ -263,7 +263,7 @@ function PageProfile() {
       </section>
 
       <section className="mt-10">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
+        <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
           <CarFront className="size-5 text-accent" /> Accident reports
         </h2>
         {reports.length === 0 ? (
@@ -296,7 +296,7 @@ function PageProfile() {
       </section>
 
       <section className="mt-10">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
+        <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
           <MessageSquare className="size-5 text-accent" /> Comments
         </h2>
         {comments.length === 0 ? (

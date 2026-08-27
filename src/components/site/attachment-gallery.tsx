@@ -34,7 +34,7 @@ export function AttachmentGallery({ attachments }: { attachments: AttachmentRow[
             <figcaption className="mt-1.5 text-xs text-muted-foreground">
               {a.caption}
               {a.caption && a.credit ? " · " : ""}
-              {a.credit ? `Credit: ${a.credit}` : ""}
+              {a.credit ? <em>Credit: {a.credit}</em> : null}
             </figcaption>
           ) : null}
         </figure>

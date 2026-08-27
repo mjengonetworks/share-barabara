@@ -71,7 +71,7 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
               <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
               {a.featured ? <span className="text-caution">Featured</span> : null}
             </div>
-            <h2 className="mt-3 text-xl font-bold text-brand-blue group-hover:underline">
+            <h2 className="mt-3 text-[0.875rem] font-bold text-brand-blue group-hover:underline">
               {a.title}
             </h2>
             <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
@@ -207,7 +207,7 @@ function NewsIndex() {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
             Newsroom
           </p>
-          <h1 className="mt-2 text-4xl font-extrabold">Road safety news</h1>
+          <h1 className="mt-2 text-[1.575rem] font-extrabold">Road safety news</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Enforcement operations, policy shifts, infrastructure works and campaigns affecting how
             Kenyans travel. Every story is open for discussion.
@@ -220,7 +220,7 @@ function NewsIndex() {
         {category ? (
           <>
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold">{category}</h2>
+              <h2 className="text-[1.05rem] font-bold">{category}</h2>
               <Link to="/news" className="text-sm font-semibold text-brand-blue underline">
                 All news
               </Link>
@@ -239,7 +239,7 @@ function NewsIndex() {
         ) : (
           <>
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold">Latest news</h2>
+              <h2 className="text-[1.05rem] font-bold">Latest news</h2>
               <a href="#all-articles" className="text-sm font-semibold text-brand-blue underline">
                 Read more
               </a>
@@ -267,7 +267,7 @@ function NewsIndex() {
             {featured.length > 0 ? (
               <div className="mt-12">
                 <div className="flex items-center justify-between gap-4">
-                  <h2 className="flex items-center gap-2 text-2xl font-bold">
+                  <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
                     <Sparkles className="size-6 text-caution" /> Featured
                   </h2>
                   <a
@@ -286,7 +286,7 @@ function NewsIndex() {
             {trending.length > 0 ? (
               <div className="mt-12">
                 <div className="flex items-center justify-between gap-4">
-                  <h2 className="flex items-center gap-2 text-2xl font-bold">
+                  <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
                     <Flame className="size-6 text-destructive" /> Trending
                   </h2>
                   <a
@@ -307,7 +307,7 @@ function NewsIndex() {
             </div>
 
             <div id="all-articles" className="mt-12 scroll-mt-24">
-              <h2 className="text-2xl font-bold">More articles</h2>
+              <h2 className="text-[1.05rem] font-bold">More articles</h2>
               {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
               <ArticleCompactList articles={all} />
             </div>

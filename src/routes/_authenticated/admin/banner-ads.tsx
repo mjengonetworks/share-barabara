@@ -90,7 +90,7 @@ function BannerAdsPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Site content
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Banner ads</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Banner ads</h1>
       <p className="mt-2 text-muted-foreground">
         Shown across article, alert and report pages. Inactive ads never rotate in.
       </p>

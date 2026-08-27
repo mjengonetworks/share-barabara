@@ -70,7 +70,7 @@ function SearchPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Search
       </p>
-      <h1 className="mt-2 flex items-center gap-2 text-3xl font-extrabold">
+      <h1 className="mt-2 flex items-center gap-2 text-[1.3125rem] font-extrabold">
         <SearchIcon className="size-7 text-accent" />
         {term ? `Results for "${term}"` : "Search Share Barabara"}
       </h1>

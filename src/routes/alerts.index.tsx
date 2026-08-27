@@ -135,7 +135,7 @@ function AlertsPage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
             Live feed
           </p>
-          <h1 className="mt-2 text-4xl font-extrabold">Road hazard alerts</h1>
+          <h1 className="mt-2 text-[1.575rem] font-extrabold">Road hazard alerts</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Hazards reported by road users across the 47 counties. Check before you travel, and add
             what you see on your route.
@@ -151,7 +151,7 @@ function AlertsPage() {
           {latest.length > 0 ? (
             <div>
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold">Latest alerts</h2>
+                <h2 className="text-[1.05rem] font-bold">Latest alerts</h2>
                 <a href="#all-alerts" className="text-sm font-semibold text-brand-blue underline">
                   See all
                 </a>
@@ -178,7 +178,7 @@ function AlertsPage() {
           {trending.length > 0 ? (
             <div className="mt-12">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="flex items-center gap-2 text-2xl font-bold">
+                <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
                   <Flame className="size-6 text-destructive" /> Most viewed, last 24hrs
                 </h2>
                 <a href="#all-alerts" className="text-sm font-semibold text-brand-blue underline">
@@ -225,7 +225,7 @@ function AlertsPage() {
           </div>
 
           <div id="all-alerts" className="mt-12 scroll-mt-24">
-            <h2 className="text-2xl font-bold">All alerts</h2>
+            <h2 className="text-[1.05rem] font-bold">All alerts</h2>
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <Select value={county} onValueChange={setCounty}>
@@ -374,7 +374,7 @@ function TopContributingProfiles() {
 
   return (
     <div className="mt-14 border-t border-border pt-10">
-      <h2 className="flex items-center gap-2 text-2xl font-bold">
+      <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
         <Trophy className="size-5 text-accent" /> Top contributors this week
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">

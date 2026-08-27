@@ -50,7 +50,7 @@ function ResetPasswordPage() {
       <span className="inline-flex items-center gap-2 rounded bg-accent/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         <KeyRound className="size-4" /> Reset password
       </span>
-      <h1 className="mt-5 text-3xl font-extrabold">Choose a new password</h1>
+      <h1 className="mt-5 text-[1.3125rem] font-extrabold">Choose a new password</h1>
 
       {!ready ? (
         <p className="mt-4 text-sm text-muted-foreground">

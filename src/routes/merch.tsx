@@ -57,7 +57,7 @@ function MerchPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Shop</p>
-      <h1 className="mt-2 text-4xl font-extrabold">Share Barabara merch</h1>
+      <h1 className="mt-2 text-[1.575rem] font-extrabold">Share Barabara merch</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
         Reflective jackets, t-shirts, caps and stickers carrying the message: every journey home
         should end at home. Proceeds support Share Barabara campaigns.

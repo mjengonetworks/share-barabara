@@ -204,7 +204,7 @@ function SettingsPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold">Sign in to edit your profile</h1>
+        <h1 className="text-[1.05rem] font-bold">Sign in to edit your profile</h1>
         <Button asChild className="mt-4">
           <Link to="/auth">Sign in</Link>
         </Button>
@@ -219,7 +219,7 @@ function SettingsPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Your account
       </p>
-      <h1 className="mt-2 flex items-center gap-2 text-4xl font-extrabold">
+      <h1 className="mt-2 flex items-center gap-2 text-[1.575rem] font-extrabold">
         <UserCog className="size-8 text-accent" /> Profile settings
       </h1>
 

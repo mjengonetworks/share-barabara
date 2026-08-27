@@ -222,7 +222,7 @@ function ChartCard({
 }) {
   return (
     <section className="mt-10">
-      <h2 className="text-2xl font-bold">{title}</h2>
+      <h2 className="text-[1.05rem] font-bold">{title}</h2>
       {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
       <div className={`mt-4 ${height} rounded-lg border border-border bg-card p-4`}>
         <ResponsiveContainer width="100%" height="100%">
@@ -402,7 +402,7 @@ function StatisticsPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Share Barabara
       </p>
-      <h1 className="mt-2 text-4xl font-extrabold">Live statistics</h1>
+      <h1 className="mt-2 text-[1.575rem] font-extrabold">Live statistics</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
         Kenyan road traffic crash data and what the Share Barabara community has reported so far,
         updated as it happens.
@@ -515,7 +515,7 @@ function StatisticsPage() {
             Live · counted from verified reports as they're filed
           </p>
         </div>
-        <h2 className="mt-2 text-4xl font-extrabold">{currentYear} so far</h2>
+        <h2 className="mt-2 text-[1.575rem] font-extrabold">{currentYear} so far</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Our own count, not a government release — built straight from accident reports filed and
           verified on Share Barabara.
@@ -719,7 +719,7 @@ function StatisticsPage() {
 
       {topRoads.length > 0 ? (
         <section className="mt-14 border-t border-border pt-10">
-          <h2 className="text-2xl font-bold">Most dangerous roads</h2>
+          <h2 className="text-[1.05rem] font-bold">Most dangerous roads</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Ranked by fatalities in verified accident reports. Click through to a road's own profile
             for every alert and report filed against it.
@@ -758,7 +758,7 @@ function StatisticsPage() {
             <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
               Open data
             </p>
-            <h2 className="mt-2 text-4xl font-extrabold">Kenya road crash statistics</h2>
+            <h2 className="mt-2 text-[1.575rem] font-extrabold">Kenya road crash statistics</h2>
           </div>
           {availableYears.length > 0 ? (
             <div>
@@ -913,7 +913,7 @@ function StatisticsPage() {
       </ChartCard>
 
       <section className="mt-10">
-        <h2 className="text-2xl font-bold">Deaths by month</h2>
+        <h2 className="text-[1.05rem] font-bold">Deaths by month</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Seasonality of road deaths in {activeYear}.
         </p>
@@ -941,7 +941,7 @@ function StatisticsPage() {
 
       <section className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>
-          <h2 className="text-2xl font-bold">Main causes of crashes</h2>
+          <h2 className="text-[1.05rem] font-bold">Main causes of crashes</h2>
           <div className="mt-4 h-96 rounded-lg border border-border bg-card p-4">
             {causesForYear.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -969,7 +969,7 @@ function StatisticsPage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold">Deaths by vehicle type</h2>
+          <h2 className="text-[1.05rem] font-bold">Deaths by vehicle type</h2>
           <div className="mt-4 h-96 rounded-lg border border-border bg-card p-4">
             {vehiclesForYear.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -1008,7 +1008,7 @@ function StatisticsPage() {
 
       <section className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>
-          <h2 className="text-2xl font-bold">When crashes kill</h2>
+          <h2 className="text-[1.05rem] font-bold">When crashes kill</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             The evening rush and the hours after dark are the deadliest.
           </p>
@@ -1037,7 +1037,7 @@ function StatisticsPage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold">Deaths by road class</h2>
+          <h2 className="text-[1.05rem] font-bold">Deaths by road class</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Trunk highways carry the heaviest toll per kilometre.
           </p>
@@ -1072,7 +1072,7 @@ function StatisticsPage() {
 
       <section className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>
-          <h2 className="text-2xl font-bold">Counties with the most deaths</h2>
+          <h2 className="text-[1.05rem] font-bold">Counties with the most deaths</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Click a bar to see reports for that county.
           </p>
@@ -1112,7 +1112,7 @@ function StatisticsPage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold">Who is dying on our roads</h2>
+          <h2 className="text-[1.05rem] font-bold">Who is dying on our roads</h2>
           {victimsForYear.length === 0 ? <NoYearData year={activeYear} /> : null}
           <ul className="mt-4 space-y-4">
             {victimsForYear.map((v) => {

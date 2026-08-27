@@ -303,7 +303,7 @@ function CrashStatisticsPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Admin
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Crash statistics</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Crash statistics</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Feeds every chart on the public Statistics page. Alerts and accident reports already
         populate their own live counts automatically — this is for the aggregate national/county

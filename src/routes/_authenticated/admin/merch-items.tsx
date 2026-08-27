@@ -100,7 +100,7 @@ function MerchItemsPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Commerce
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Merch items</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Merch items</h1>
       <p className="mt-2 text-muted-foreground">
         The catalogue shown on the public Merch page. Inactive items are hidden from shoppers.
       </p>

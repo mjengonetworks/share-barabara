@@ -142,7 +142,7 @@ function ReportsPage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
             Crash record
           </p>
-          <h1 className="mt-2 text-4xl font-extrabold">Accident reports</h1>
+          <h1 className="mt-2 text-[1.575rem] font-extrabold">Accident reports</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Crash reports filed by the community and reviewed by our editors before publication.
             Each report carries a shared byline: the road user who filed it and the editor who
@@ -159,7 +159,7 @@ function ReportsPage() {
           {latest.length > 0 ? (
             <div>
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold">Latest reports</h2>
+                <h2 className="text-[1.05rem] font-bold">Latest reports</h2>
                 <a href="#all-reports" className="text-sm font-semibold text-brand-blue underline">
                   See all
                 </a>
@@ -177,7 +177,7 @@ function ReportsPage() {
           {trending.length > 0 ? (
             <div className="mt-12">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="flex items-center gap-2 text-2xl font-bold">
+                <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
                   <Flame className="size-6 text-destructive" /> Trending reports
                 </h2>
                 <a href="#all-reports" className="text-sm font-semibold text-brand-blue underline">
@@ -224,7 +224,7 @@ function ReportsPage() {
           </div>
 
           <div id="all-reports" className="mt-12 scroll-mt-24">
-            <h2 className="text-2xl font-bold">All reports</h2>
+            <h2 className="text-[1.05rem] font-bold">All reports</h2>
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <Select value={county} onValueChange={setCounty}>

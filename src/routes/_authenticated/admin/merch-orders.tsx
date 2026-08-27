@@ -72,7 +72,7 @@ function MerchOrdersPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Commerce
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Merch orders</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Merch orders</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Order requests submitted from the Merch page, with delivery details.
       </p>

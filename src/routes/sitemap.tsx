@@ -49,7 +49,7 @@ function SitemapPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Navigate
       </p>
-      <h1 className="mt-2 text-4xl font-extrabold">Site map</h1>
+      <h1 className="mt-2 text-[1.575rem] font-extrabold">Site map</h1>
       <div className="mt-8 grid gap-8 sm:grid-cols-3">
         {SECTIONS.map((s) => (
           <div key={s.title}>

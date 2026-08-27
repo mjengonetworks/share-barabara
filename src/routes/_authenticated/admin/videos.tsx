@@ -74,7 +74,7 @@ function VideosAdminPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Moderation queue
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Videos</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Videos</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Submitted video links awaiting review. Featuring or rejecting needs editor rank or above.
       </p>

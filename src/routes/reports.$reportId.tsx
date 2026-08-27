@@ -160,7 +160,7 @@ function ReportDetail() {
   if (!report) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <h1 className="text-2xl font-bold">Report not found</h1>
+        <h1 className="text-[1.05rem] font-bold">Report not found</h1>
         <Link to="/reports" className="mt-4 inline-block underline">
           Back to reports
         </Link>
@@ -202,7 +202,7 @@ function ReportDetail() {
               {report.rejection_reason}
             </p>
           ) : null}
-          <h1 className="mt-3 text-4xl font-extrabold leading-tight">{report.title}</h1>
+          <h1 className="mt-3 text-[1.575rem] font-extrabold leading-tight">{report.title}</h1>
           <div className="mt-3">
             <ShareButtons title={report.title} />
           </div>
@@ -217,7 +217,7 @@ function ReportDetail() {
                 <figcaption className="mt-1.5 text-xs text-muted-foreground">
                   {report.image_caption}
                   {report.image_caption && report.image_credit ? " · " : ""}
-                  {report.image_credit ? `Credit: ${report.image_credit}` : ""}
+                  {report.image_credit ? <em>Credit: {report.image_credit}</em> : null}
                 </figcaption>
               ) : null}
             </figure>

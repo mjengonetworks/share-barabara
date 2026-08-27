@@ -172,7 +172,7 @@ function ReportsQueuePage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Moderation queue
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">Accident reports</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Accident reports</h1>
       <p className="mt-2 text-muted-foreground">
         Edit submissions for accuracy and clarity, then approve them.
       </p>

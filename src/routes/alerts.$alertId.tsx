@@ -124,7 +124,7 @@ function AlertDetail() {
   if (!alert) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <h1 className="text-2xl font-bold">Alert not found</h1>
+        <h1 className="text-[1.05rem] font-bold">Alert not found</h1>
         <Link to="/alerts" className="mt-4 inline-block underline">
           Back to alerts
         </Link>
@@ -154,7 +154,7 @@ function AlertDetail() {
             <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
           </div>
 
-          <h1 className="mt-3 text-4xl font-extrabold leading-tight">{alert.title}</h1>
+          <h1 className="mt-3 text-[1.575rem] font-extrabold leading-tight">{alert.title}</h1>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {alert.county}
             {alert.road ? (

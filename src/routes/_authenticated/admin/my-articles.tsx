@@ -151,7 +151,7 @@ function MyArticlesPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Admin
       </p>
-      <h1 className="mt-1 text-3xl font-extrabold">My articles</h1>
+      <h1 className="mt-1 text-[1.3125rem] font-extrabold">My articles</h1>
       <p className="mt-2 text-muted-foreground">
         Draft and submit articles for editorial review. Once an article is published, only
         authors-and-above keep edit or delete rights on it.

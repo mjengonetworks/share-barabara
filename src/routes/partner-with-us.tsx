@@ -110,7 +110,7 @@ function PartnerPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Advertise with Share Barabara
       </p>
-      <h1 className="mt-2 max-w-2xl text-4xl font-extrabold leading-tight sm:text-5xl">
+      <h1 className="mt-2 max-w-2xl text-[1.575rem] font-extrabold leading-tight sm:text-[2.1rem]">
         Put your brand behind every journey home.
       </h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
@@ -130,7 +130,7 @@ function PartnerPage() {
       </div>
 
       <section className="mt-14">
-        <h2 className="text-2xl font-bold">Why advertise with us</h2>
+        <h2 className="text-[1.05rem] font-bold">Why advertise with us</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {AUDIENCE.map((a) => (
             <div
@@ -146,7 +146,7 @@ function PartnerPage() {
       </section>
 
       <section className="mt-14">
-        <h2 className="text-2xl font-bold">Ad formats</h2>
+        <h2 className="text-[1.05rem] font-bold">Ad formats</h2>
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
           {FORMATS.map((f) => (
             <div
@@ -165,7 +165,9 @@ function PartnerPage() {
         <div className="flex items-start gap-3">
           <ShieldCheck className="size-7 shrink-0 text-accent" />
           <div>
-            <h2 className="text-xl font-bold text-background">Good companies of every kind</h2>
+            <h2 className="text-[0.875rem] font-bold text-background">
+              Good companies of every kind
+            </h2>
             <p className="mt-2 text-sm text-secondary/80">
               Most of our advertisers are naturally road-safety-adjacent: insurance providers,
               vehicle hire and dealership brands, transport and logistics operators, safety
