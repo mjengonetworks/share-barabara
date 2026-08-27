@@ -404,6 +404,7 @@ export type Database = {
           report_content: string | null;
           report_image_url: string | null;
           report_needs_review: boolean;
+          report_published: boolean;
           slug: string;
           start_date: string;
           title: string;
@@ -422,6 +423,7 @@ export type Database = {
           report_content?: string | null;
           report_image_url?: string | null;
           report_needs_review?: boolean;
+          report_published?: boolean;
           slug: string;
           start_date: string;
           title: string;
@@ -440,6 +442,7 @@ export type Database = {
           report_content?: string | null;
           report_image_url?: string | null;
           report_needs_review?: boolean;
+          report_published?: boolean;
           slug?: string;
           start_date?: string;
           title?: string;

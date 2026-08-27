@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { AlertTriangle, Megaphone, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,6 +56,7 @@ const EMPTY_EVENT: EventForm = {
 type ReportForm = {
   report_content: string;
   report_image_url: string;
+  report_published: boolean;
 };
 
 function CampaignsAdminPage() {
@@ -68,6 +70,7 @@ function CampaignsAdminPage() {
   const [reportForm, setReportForm] = useState<ReportForm>({
     report_content: "",
     report_image_url: "",
+    report_published: false,
   });
   const [reportAttachments, setReportAttachments] = useState<Attachment[]>([]);
 
@@ -118,6 +121,7 @@ function CampaignsAdminPage() {
     setReportForm({
       report_content: c.report_content ?? c.description,
       report_image_url: c.report_image_url ?? c.image_url ?? "",
+      report_published: c.report_published,
     });
     setReportAttachments(((c.report_attachments as Attachment[] | null) ?? []) as Attachment[]);
   };
@@ -159,13 +163,14 @@ function CampaignsAdminPage() {
           report_content: reportForm.report_content.trim() || null,
           report_image_url: reportForm.report_image_url.trim() || null,
           report_attachments: reportAttachments,
+          report_published: reportForm.report_published,
           report_needs_review: false,
         })
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Report saved");
+      toast.success(reportForm.report_published ? "Report saved and published" : "Report saved");
       setReportOpenId(null);
       refresh();
     },
@@ -192,8 +197,9 @@ function CampaignsAdminPage() {
       <h1 className="mt-1 text-3xl font-extrabold">Campaigns</h1>
       <p className="mt-2 text-muted-foreground">
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
-        campaign's end date passes, its report is flagged for review here — nobody can write a
-        first-hand account before the event actually happens.
+        campaign's end date passes, it's hidden from the public until its report is written and
+        published here — nobody can write a first-hand account before the event actually happens,
+        and a lapsed campaign with no published report just won't appear on the site.
       </p>
 
       <div className="mt-6">
@@ -316,6 +322,11 @@ function CampaignsAdminPage() {
                       <AlertTriangle className="size-3" /> Report needs review
                     </Badge>
                   ) : null}
+                  {status === "previous" ? (
+                    <Badge variant={c.report_published ? "default" : "outline"}>
+                      {c.report_published ? "Report published" : "Not visible to public yet"}
+                    </Badge>
+                  ) : null}
                   <p className="truncate font-semibold">{c.title}</p>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -341,8 +352,9 @@ function CampaignsAdminPage() {
                   </DialogHeader>
                   <div className="space-y-4">
                     <p className="text-xs text-muted-foreground">
-                      Shown on the public campaigns page once the event is over. Defaults to the
-                      event description until an editor writes up what actually happened.
+                      Hidden from the public until the event is over AND you tick "Published" below
+                      — a lapsed campaign with no published report simply won't appear on the site.
+                      Defaults to the event description until you write up what actually happened.
                     </p>
                     <div>
                       <Label>Report banner (optional)</Label>
@@ -374,8 +386,17 @@ function CampaignsAdminPage() {
                         />
                       </div>
                     </div>
+                    <label className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={reportForm.report_published}
+                        onCheckedChange={(v) =>
+                          setReportForm({ ...reportForm, report_published: v === true })
+                        }
+                      />
+                      Published (visible to the public once the event is over)
+                    </label>
                     <Button disabled={saveReport.isPending} onClick={() => saveReport.mutate(c.id)}>
-                      Save report
+                      {reportForm.report_published ? "Save & publish" : "Save draft"}
                     </Button>
                   </div>
                 </DialogContent>
