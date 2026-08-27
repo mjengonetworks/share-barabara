@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Megaphone, Plus } from "lucide-react";
+import { AlertTriangle, Megaphone, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
+import { ImageUploadField } from "@/components/site/image-upload-field";
+import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
@@ -32,24 +34,27 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
   previous: "outline",
 };
 
-type CampaignForm = {
+type EventForm = {
   title: string;
+  location: string;
   description: string;
   image_url: string;
   start_date: string;
   end_date: string;
-  report_content: string;
-  report_image_url: string;
 };
 
-const EMPTY: CampaignForm = {
+const EMPTY_EVENT: EventForm = {
   title: "",
+  location: "",
   description: "",
   image_url: "",
   start_date: new Date().toISOString().slice(0, 10),
   end_date: new Date().toISOString().slice(0, 10),
-  report_content: "",
-  report_image_url: "",
+};
+
+type ReportForm = {
+  report_content: string;
+  report_image_url: string;
 };
 
 function CampaignsAdminPage() {
@@ -57,7 +62,14 @@ function CampaignsAdminPage() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<CampaignForm>(EMPTY);
+  const [form, setForm] = useState<EventForm>(EMPTY_EVENT);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [reportOpenId, setReportOpenId] = useState<string | null>(null);
+  const [reportForm, setReportForm] = useState<ReportForm>({
+    report_content: "",
+    report_image_url: "",
+  });
+  const [reportAttachments, setReportAttachments] = useState<Attachment[]>([]);
 
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: ["admin-campaigns"],
@@ -78,7 +90,8 @@ function CampaignsAdminPage() {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm(EMPTY);
+    setForm(EMPTY_EVENT);
+    setAttachments([]);
     setOpen(true);
   };
 
@@ -88,26 +101,37 @@ function CampaignsAdminPage() {
     setEditingId(id);
     setForm({
       title: c.title,
+      location: c.location ?? "",
       description: c.description,
       image_url: c.image_url ?? "",
       start_date: c.start_date,
       end_date: c.end_date,
-      report_content: c.report_content ?? "",
-      report_image_url: c.report_image_url ?? "",
     });
+    setAttachments(((c.attachments as Attachment[] | null) ?? []) as Attachment[]);
     setOpen(true);
+  };
+
+  const openReport = (id: string) => {
+    const c = campaigns.find((x) => x.id === id);
+    if (!c) return;
+    setReportOpenId(id);
+    setReportForm({
+      report_content: c.report_content ?? c.description,
+      report_image_url: c.report_image_url ?? c.image_url ?? "",
+    });
+    setReportAttachments(((c.report_attachments as Attachment[] | null) ?? []) as Attachment[]);
   };
 
   const save = useMutation({
     mutationFn: async () => {
       const payload = {
         title: form.title.trim(),
+        location: form.location.trim() || null,
         description: form.description.trim(),
         image_url: form.image_url.trim() || null,
+        attachments,
         start_date: form.start_date,
         end_date: form.end_date,
-        report_content: form.report_content.trim() || null,
-        report_image_url: form.report_image_url.trim() || null,
       };
       if (editingId) {
         const { error } = await supabase.from("campaigns").update(payload).eq("id", editingId);
@@ -122,6 +146,27 @@ function CampaignsAdminPage() {
     onSuccess: () => {
       toast.success(editingId ? "Campaign updated" : "Campaign created");
       setOpen(false);
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saveReport = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("campaigns")
+        .update({
+          report_content: reportForm.report_content.trim() || null,
+          report_image_url: reportForm.report_image_url.trim() || null,
+          report_attachments: reportAttachments,
+          report_needs_review: false,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Report saved");
+      setReportOpenId(null);
       refresh();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -147,8 +192,8 @@ function CampaignsAdminPage() {
       <h1 className="mt-1 text-3xl font-extrabold">Campaigns</h1>
       <p className="mt-2 text-muted-foreground">
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
-        campaign is over, write it up as a report — it appears on the public Campaigns page under
-        Previous Campaigns.
+        campaign's end date passes, its report is flagged for review here — nobody can write a
+        first-hand account before the event actually happens.
       </p>
 
       <div className="mt-6">
@@ -178,6 +223,15 @@ function CampaignsAdminPage() {
                 />
               </div>
               <div>
+                <Label htmlFor="c-location">Location</Label>
+                <Input
+                  id="c-location"
+                  value={form.location}
+                  onChange={(e) => setForm({ ...form, location: e.target.value })}
+                  placeholder="e.g. Uhuru Park, Nairobi"
+                />
+              </div>
+              <div>
                 <Label htmlFor="c-desc">Description</Label>
                 <Textarea
                   id="c-desc"
@@ -187,12 +241,13 @@ function CampaignsAdminPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="c-img">Image URL (optional)</Label>
-                <Input
-                  id="c-img"
-                  value={form.image_url}
-                  onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                />
+                <Label>Main banner (optional)</Label>
+                <div className="mt-2">
+                  <ImageUploadField
+                    value={form.image_url}
+                    onChange={(url) => setForm({ ...form, image_url: url })}
+                  />
+                </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -214,23 +269,14 @@ function CampaignsAdminPage() {
                   />
                 </div>
               </div>
-              <div className="border-t border-border pt-4">
-                <Label htmlFor="c-report-img">Report image URL (optional)</Label>
-                <Input
-                  id="c-report-img"
-                  value={form.report_image_url}
-                  onChange={(e) => setForm({ ...form, report_image_url: e.target.value })}
-                />
-              </div>
               <div>
-                <Label htmlFor="c-report">Campaign report (shown once the campaign is over)</Label>
-                <RichTextEditor
-                  id="c-report"
-                  rows={6}
-                  value={form.report_content}
-                  onChange={(v) => setForm({ ...form, report_content: v })}
-                  placeholder="How the campaign went, with photos or a video from the toolbar."
-                />
+                <Label>More media (optional)</Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Extra photos or promo videos for the event, beyond the main banner.
+                </p>
+                <div className="mt-2">
+                  <AttachmentsField value={attachments} onChange={setAttachments} />
+                </div>
               </div>
               <Button
                 disabled={!form.title.trim() || !form.description.trim() || save.isPending}
@@ -251,7 +297,7 @@ function CampaignsAdminPage() {
           return (
             <li
               key={c.id}
-              className="flex items-center gap-4 rounded-lg border border-border bg-card p-4"
+              className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
             >
               {c.image_url ? (
                 <img src={c.image_url} alt="" className="size-12 shrink-0 rounded object-cover" />
@@ -261,19 +307,79 @@ function CampaignsAdminPage() {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={STATUS_VARIANT[status]} className="capitalize">
                     {status}
                   </Badge>
+                  {c.report_needs_review ? (
+                    <Badge variant="destructive" className="gap-1">
+                      <AlertTriangle className="size-3" /> Report needs review
+                    </Badge>
+                  ) : null}
                   <p className="truncate font-semibold">{c.title}</p>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {longDate(c.start_date)} – {longDate(c.end_date)}
+                  {c.location ? ` · ${c.location}` : ""}
                 </p>
               </div>
               <Button size="sm" variant="outline" onClick={() => openEdit(c.id)}>
-                Edit
+                Edit event
               </Button>
+              <Dialog
+                open={reportOpenId === c.id}
+                onOpenChange={(v) => setReportOpenId(v ? c.id : null)}
+              >
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" onClick={() => openReport(c.id)}>
+                    Report
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>Report: {c.title}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p className="text-xs text-muted-foreground">
+                      Shown on the public campaigns page once the event is over. Defaults to the
+                      event description until an editor writes up what actually happened.
+                    </p>
+                    <div>
+                      <Label>Report banner (optional)</Label>
+                      <div className="mt-2">
+                        <ImageUploadField
+                          value={reportForm.report_image_url}
+                          onChange={(url) =>
+                            setReportForm({ ...reportForm, report_image_url: url })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="c-report">Report body</Label>
+                      <RichTextEditor
+                        id="c-report"
+                        rows={8}
+                        value={reportForm.report_content}
+                        onChange={(v) => setReportForm({ ...reportForm, report_content: v })}
+                        placeholder="How the campaign actually went, with photos or a video from the toolbar."
+                      />
+                    </div>
+                    <div>
+                      <Label>More media (optional)</Label>
+                      <div className="mt-2">
+                        <AttachmentsField
+                          value={reportAttachments}
+                          onChange={setReportAttachments}
+                        />
+                      </div>
+                    </div>
+                    <Button disabled={saveReport.isPending} onClick={() => saveReport.mutate(c.id)}>
+                      Save report
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Button
                 size="sm"
                 variant="ghost"

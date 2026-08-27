@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Megaphone } from "lucide-react";
+import { ArrowLeft, MapPin, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate } from "@/lib/format";
 import { renderRichText } from "@/lib/richtext";
 import { campaignStatus } from "@/lib/campaigns";
 import { Badge } from "@/components/ui/badge";
 import { ShareButtons } from "@/components/site/share-buttons";
+import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   head: () => ({
@@ -56,7 +57,8 @@ function CampaignDetail() {
   }
 
   const status = campaignStatus(campaign.start_date, campaign.end_date);
-  const heroImage = campaign.report_image_url ?? campaign.image_url;
+  const isPast = status === "previous";
+  const heroImage = (isPast && campaign.report_image_url) || campaign.image_url;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -75,34 +77,52 @@ function CampaignDetail() {
           <Megaphone className="size-4" />
           {longDate(campaign.start_date)} – {longDate(campaign.end_date)}
         </span>
+        {campaign.location ? (
+          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="size-4" />
+            {campaign.location}
+          </span>
+        ) : null}
       </div>
 
       <h1 className="mt-3 text-4xl font-extrabold leading-tight">{campaign.title}</h1>
-
-      <div className="mt-3">
-        <ShareButtons title={campaign.title} />
-      </div>
 
       {heroImage ? (
         <img
           src={heroImage}
           alt={campaign.title}
-          className="mt-6 aspect-video w-full rounded-lg border border-border object-cover"
+          className="mt-4 aspect-video w-full rounded-lg border border-border object-cover"
         />
       ) : null}
+
+      <div className="mt-3">
+        <ShareButtons title={campaign.title} />
+      </div>
 
       <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
         {campaign.description}
       </p>
 
-      {campaign.report_content ? (
-        <div className="mt-6 space-y-4 text-foreground/90">
-          {renderRichText(campaign.report_content)}
-        </div>
-      ) : status === "previous" ? (
-        <p className="mt-6 text-sm text-muted-foreground">
-          The write-up for this campaign is coming soon.
-        </p>
+      <AttachmentGallery attachments={(campaign.attachments as AttachmentRow[] | null) ?? []} />
+
+      {isPast ? (
+        campaign.report_content ? (
+          <>
+            <div className="mt-8 border-t border-border pt-6 text-foreground/90">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                What happened
+              </h2>
+              <div className="mt-4 space-y-4">{renderRichText(campaign.report_content)}</div>
+            </div>
+            <AttachmentGallery
+              attachments={(campaign.report_attachments as AttachmentRow[] | null) ?? []}
+            />
+          </>
+        ) : (
+          <p className="mt-6 text-sm text-muted-foreground">
+            The write-up for this campaign is coming soon.
+          </p>
+        )
       ) : null}
     </div>
   );

@@ -392,42 +392,54 @@ export type Database = {
       };
       campaigns: {
         Row: {
+          attachments: Json;
           created_at: string;
           created_by: string | null;
           description: string;
           end_date: string;
           id: string;
           image_url: string | null;
+          location: string | null;
+          report_attachments: Json;
           report_content: string | null;
           report_image_url: string | null;
+          report_needs_review: boolean;
           slug: string;
           start_date: string;
           title: string;
           updated_at: string;
         };
         Insert: {
+          attachments?: Json;
           created_at?: string;
           created_by?: string | null;
           description: string;
           end_date: string;
           id?: string;
           image_url?: string | null;
+          location?: string | null;
+          report_attachments?: Json;
           report_content?: string | null;
           report_image_url?: string | null;
+          report_needs_review?: boolean;
           slug: string;
           start_date: string;
           title: string;
           updated_at?: string;
         };
         Update: {
+          attachments?: Json;
           created_at?: string;
           created_by?: string | null;
           description?: string;
           end_date?: string;
           id?: string;
           image_url?: string | null;
+          location?: string | null;
+          report_attachments?: Json;
           report_content?: string | null;
           report_image_url?: string | null;
+          report_needs_review?: boolean;
           slug?: string;
           start_date?: string;
           title?: string;
