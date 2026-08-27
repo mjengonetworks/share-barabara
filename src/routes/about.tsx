@@ -20,7 +20,7 @@ function AboutPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         About
       </p>
-      <h1 className="mt-2 text-[1.575rem] font-extrabold">About Share Barabara</h1>
+      <h1 className="mt-2 text-[1.7325rem] font-extrabold">About Share Barabara</h1>
       <div className="mt-6 space-y-4 text-foreground/90">
         <p>
           Share Barabara, meaning "share the road", is a community road safety platform for Kenya,

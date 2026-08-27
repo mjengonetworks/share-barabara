@@ -195,7 +195,7 @@ function ContributorPage() {
   if (!profileLoading && !profile) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <h1 className="text-[1.05rem] font-bold">Profile not found</h1>
+        <h1 className="text-[1.155rem] font-bold">Profile not found</h1>
         <Link to="/" className="mt-4 inline-block underline">
           Back home
         </Link>
@@ -210,7 +210,7 @@ function ContributorPage() {
           {role}
         </p>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <h1 className="mt-2 flex items-center gap-2 text-[1.575rem] font-extrabold">
+          <h1 className="mt-2 flex items-center gap-2 text-[1.7325rem] font-extrabold">
             {name}
             {isStaff ? (
               <BadgeCheck className="size-7 text-accent" aria-label="Staff member" />
@@ -323,7 +323,7 @@ function ContributorPage() {
         </div>
 
         <section className="mt-10">
-          <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+          <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
             <CarFront className="size-5 text-accent" /> Accident reports
           </h2>
           {submitted.length === 0 ? (
@@ -368,7 +368,7 @@ function ContributorPage() {
         </section>
 
         <section className="mt-10">
-          <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+          <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
             <Newspaper className="size-5 text-accent" /> Articles
           </h2>
           {articles.length === 0 ? (
@@ -412,7 +412,7 @@ function ContributorPage() {
 
         {reviewed.length > 0 ? (
           <section className="mt-10">
-            <h2 className="text-[1.05rem] font-bold">Reports approved and edited</h2>
+            <h2 className="text-[1.155rem] font-bold">Reports approved and edited</h2>
             <ul className="mt-4 space-y-3">
               {reviewed.map((r) => (
                 <li key={r.id} className="rounded-lg border border-border bg-card p-4">
@@ -427,7 +427,7 @@ function ContributorPage() {
         ) : null}
 
         <section className="mt-10">
-          <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+          <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
             <TriangleAlert className="size-5 text-caution" /> Hazard alerts
           </h2>
           {alerts.length === 0 ? (
@@ -472,7 +472,7 @@ function ContributorPage() {
         </section>
 
         <section className="mt-10">
-          <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+          <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
             <MessageSquare className="size-5 text-accent" /> Comments
           </h2>
           {comments.length === 0 ? (

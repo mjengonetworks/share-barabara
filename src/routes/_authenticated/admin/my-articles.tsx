@@ -151,7 +151,7 @@ function MyArticlesPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Admin
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">My articles</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">My articles</h1>
       <p className="mt-2 text-muted-foreground">
         Draft and submit articles for editorial review. Once an article is published, only
         authors-and-above keep edit or delete rights on it.
@@ -310,6 +310,10 @@ function MyArticlesPage() {
                   <div>
                     <Label>Featured image</Label>
                     <div className="mt-2 space-y-2">
+                      <ImageUploadField
+                        value={d.image_url}
+                        onChange={(url) => set({ image_url: url })}
+                      />
                       {canEditSeo ? (
                         <>
                           <Input
@@ -331,10 +335,6 @@ function MyArticlesPage() {
                           </div>
                         </>
                       ) : null}
-                      <ImageUploadField
-                        value={d.image_url}
-                        onChange={(url) => set({ image_url: url })}
-                      />
                     </div>
                   </div>
                   <div>
@@ -350,7 +350,7 @@ function MyArticlesPage() {
                     <Label htmlFor={`b-${a.id}`}>Body</Label>
                     <RichTextEditor
                       id={`b-${a.id}`}
-                      rows={8}
+                      rows={16}
                       value={d.body}
                       onChange={(v) => set({ body: v })}
                     />

@@ -194,7 +194,7 @@ function CampaignsAdminPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Site content
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Campaigns</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Campaigns</h1>
       <p className="mt-2 text-muted-foreground">
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
         campaign's end date passes, it's hidden from the public until its report is written and

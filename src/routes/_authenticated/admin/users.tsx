@@ -162,7 +162,7 @@ function UsersAdminPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Administration
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Users &amp; roles</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Users &amp; roles</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         {isAdmin
           ? "Grant or revoke contributor roles, and suspend accounts that break the rules."

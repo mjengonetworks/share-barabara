@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, Sparkles } from "lucide-react";
@@ -71,7 +72,7 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
               <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
               {a.featured ? <span className="text-caution">Featured</span> : null}
             </div>
-            <h2 className="mt-3 text-[0.875rem] font-bold text-brand-blue group-hover:underline">
+            <h2 className="mt-3 text-[0.9625rem] font-bold text-brand-blue group-hover:underline">
               {a.title}
             </h2>
             <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
@@ -87,39 +88,38 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
 
 function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
   return (
-    <ul className="mt-5 divide-y divide-border rounded-lg border border-border bg-card card-elevated">
+    <div className="mt-5 grid gap-4 sm:grid-cols-2">
       {articles.map((a) => (
-        <li key={a.id}>
-          <Link
-            to="/news/$slug"
-            params={{ slug: a.slug }}
-            className="group flex items-center gap-4 p-4 transition-colors hover:bg-muted/40"
-          >
-            {a.image_url ? (
-              <img
-                src={a.image_url}
-                alt={a.title}
-                className="aspect-video w-28 shrink-0 rounded object-cover sm:w-36"
-              />
-            ) : (
-              <div className="aspect-video w-28 shrink-0 rounded bg-muted sm:w-36" />
-            )}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-                <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
-                {a.featured ? <span className="text-caution">Featured</span> : null}
-              </div>
-              <h3 className="mt-1 truncate text-base font-bold text-brand-blue group-hover:underline sm:text-lg">
-                {a.title}
-              </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
-              </p>
+        <Link
+          key={a.id}
+          to="/news/$slug"
+          params={{ slug: a.slug }}
+          className="group flex gap-4 rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+        >
+          {a.image_url ? (
+            <img
+              src={a.image_url}
+              alt={a.title}
+              className="aspect-video w-28 shrink-0 rounded object-cover sm:w-36"
+            />
+          ) : (
+            <div className="aspect-video w-28 shrink-0 rounded bg-muted sm:w-36" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+              <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
+              {a.featured ? <span className="text-caution">Featured</span> : null}
             </div>
-          </Link>
-        </li>
+            <h3 className="mt-1.5 line-clamp-2 font-bold text-brand-blue group-hover:underline">
+              {a.title}
+            </h3>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
+            </p>
+          </div>
+        </Link>
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -158,8 +158,9 @@ function NewsIndex() {
     },
   });
 
+  const [featuredLimit, setFeaturedLimit] = useState(3);
   const { data: featured = [] } = useQuery({
-    queryKey: ["news-featured"],
+    queryKey: ["news-featured", featuredLimit],
     enabled: !category,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -167,19 +168,20 @@ function NewsIndex() {
         .select("id, slug, title, summary, category, source, published_at, featured, image_url")
         .eq("featured", true)
         .order("published_at", { ascending: false })
-        .limit(3);
+        .limit(featuredLimit);
       if (error) throw error;
       return data;
     },
   });
 
+  const [trendingLimit, setTrendingLimit] = useState(3);
   const { data: trending = [] } = useQuery({
-    queryKey: ["news-trending"],
+    queryKey: ["news-trending", trendingLimit],
     enabled: !category,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
         hours_back: 8,
-        result_limit: 3,
+        result_limit: trendingLimit,
       });
       if (error) throw error;
       return data;
@@ -207,7 +209,7 @@ function NewsIndex() {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
             Newsroom
           </p>
-          <h1 className="mt-2 text-[1.575rem] font-extrabold">Road safety news</h1>
+          <h1 className="mt-2 text-[1.7325rem] font-extrabold">Road safety news</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Enforcement operations, policy shifts, infrastructure works and campaigns affecting how
             Kenyans travel. Every story is open for discussion.
@@ -220,7 +222,7 @@ function NewsIndex() {
         {category ? (
           <>
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-[1.05rem] font-bold">{category}</h2>
+              <h2 className="text-[1.155rem] font-bold">{category}</h2>
               <Link to="/news" className="text-sm font-semibold text-brand-blue underline">
                 All news
               </Link>
@@ -238,14 +240,14 @@ function NewsIndex() {
           </>
         ) : (
           <>
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-[1.05rem] font-bold">Latest news</h2>
-              <a href="#all-articles" className="text-sm font-semibold text-brand-blue underline">
-                Read more
-              </a>
-            </div>
+            <h2 className="text-[1.155rem] font-bold">Latest news</h2>
             <div className="mt-5">
               <ArticleGrid articles={latest} />
+            </div>
+            <div className="mt-6 text-center">
+              <a href="#all-articles" className="text-base font-semibold text-brand-blue underline">
+                Read more
+              </a>
             </div>
 
             <div className="mt-12">
@@ -266,39 +268,45 @@ function NewsIndex() {
 
             {featured.length > 0 ? (
               <div className="mt-12">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
-                    <Sparkles className="size-6 text-caution" /> Featured
-                  </h2>
-                  <a
-                    href="#all-articles"
-                    className="text-sm font-semibold text-brand-blue underline"
-                  >
-                    Read more
-                  </a>
-                </div>
+                <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
+                  <Sparkles className="size-6 text-caution" /> Featured
+                </h2>
                 <div className="mt-5">
                   <ArticleGrid articles={featured} />
                 </div>
+                {featured.length === featuredLimit ? (
+                  <div className="mt-6 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setFeaturedLimit((n) => n + 6)}
+                      className="text-base font-semibold text-brand-blue underline"
+                    >
+                      Read more
+                    </button>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
             {trending.length > 0 ? (
               <div className="mt-12">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
-                    <Flame className="size-6 text-destructive" /> Trending
-                  </h2>
-                  <a
-                    href="#all-articles"
-                    className="text-sm font-semibold text-brand-blue underline"
-                  >
-                    Read more
-                  </a>
-                </div>
+                <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
+                  <Flame className="size-6 text-destructive" /> Trending
+                </h2>
                 <div className="mt-5">
                   <ArticleGrid articles={trending} />
                 </div>
+                {trending.length === trendingLimit ? (
+                  <div className="mt-6 text-center">
+                    <button
+                      type="button"
+                      onClick={() => setTrendingLimit((n) => n + 6)}
+                      className="text-base font-semibold text-brand-blue underline"
+                    >
+                      Read more
+                    </button>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -307,7 +315,7 @@ function NewsIndex() {
             </div>
 
             <div id="all-articles" className="mt-12 scroll-mt-24">
-              <h2 className="text-[1.05rem] font-bold">More articles</h2>
+              <h2 className="text-[1.155rem] font-bold">More articles</h2>
               {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
               <ArticleCompactList articles={all} />
             </div>

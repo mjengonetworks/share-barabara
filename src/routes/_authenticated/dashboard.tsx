@@ -131,7 +131,7 @@ function DashboardPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Your account
       </p>
-      <h1 className="mt-2 text-[1.575rem] font-extrabold">
+      <h1 className="mt-2 text-[1.7325rem] font-extrabold">
         Habari, {profile?.display_name ?? "road user"}
       </h1>
       <p className="mt-3 text-muted-foreground">
@@ -186,7 +186,7 @@ function DashboardPage() {
       </div>
 
       <section className="mt-12">
-        <h2 className="text-[1.05rem] font-bold">Your alerts</h2>
+        <h2 className="text-[1.155rem] font-bold">Your alerts</h2>
         {alerts.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">You haven't posted any alerts yet.</p>
         ) : (
@@ -217,7 +217,7 @@ function DashboardPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="text-[1.05rem] font-bold">Your accident reports</h2>
+        <h2 className="text-[1.155rem] font-bold">Your accident reports</h2>
         {reports.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">No reports filed yet.</p>
         ) : (
@@ -259,7 +259,7 @@ function DashboardPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="text-[1.05rem] font-bold">Your articles</h2>
+        <h2 className="text-[1.155rem] font-bold">Your articles</h2>
         {articles.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             You haven't written anything yet.{" "}
@@ -297,7 +297,7 @@ function DashboardPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="text-[1.05rem] font-bold">Your pages</h2>
+        <h2 className="text-[1.155rem] font-bold">Your pages</h2>
         {pages.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             No organisation pages yet.{" "}

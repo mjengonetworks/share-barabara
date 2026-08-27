@@ -149,7 +149,7 @@ function VideosPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Watch
       </p>
-      <h1 className="mt-2 text-[1.575rem] font-extrabold">Road safety videos</h1>
+      <h1 className="mt-2 text-[1.7325rem] font-extrabold">Road safety videos</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
         Videos promoting road safety and the Share Barabara culture, from Mjengo Hub and curated
         from the community.
@@ -158,7 +158,7 @@ function VideosPage() {
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
           <section>
-            <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+            <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
               <Film className="size-6 text-accent" /> Mjengo Hub playlists
             </h2>
             <div className="mt-5 grid gap-6 sm:grid-cols-2">
@@ -169,7 +169,7 @@ function VideosPage() {
           </section>
 
           <section className="mt-12">
-            <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+            <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
               <ShieldCheck className="size-6 text-accent" /> From our admins
             </h2>
             {isLoading ? <p className="mt-4 text-muted-foreground">Loading videos…</p> : null}
@@ -185,7 +185,7 @@ function VideosPage() {
           </section>
 
           <section className="mt-12">
-            <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+            <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
               <Users className="size-6 text-accent" /> From our community
             </h2>
             {!isLoading && communityVideos.length === 0 ? (

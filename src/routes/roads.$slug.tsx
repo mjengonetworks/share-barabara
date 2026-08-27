@@ -74,7 +74,7 @@ function RoadProfilePage() {
   if (!road) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <h1 className="text-[1.05rem] font-bold">Road not found</h1>
+        <h1 className="text-[1.155rem] font-bold">Road not found</h1>
         <Link to="/alerts" className="mt-4 inline-block underline">
           Back to alerts
         </Link>
@@ -90,7 +90,7 @@ function RoadProfilePage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Road profile
       </p>
-      <h1 className="mt-2 flex items-center gap-2 text-[1.575rem] font-extrabold">
+      <h1 className="mt-2 flex items-center gap-2 text-[1.7325rem] font-extrabold">
         <MapPin className="size-8 text-accent" /> {road.name}
       </h1>
       <p className="mt-2 text-muted-foreground">
@@ -114,7 +114,7 @@ function RoadProfilePage() {
       </div>
 
       <section className="mt-12">
-        <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+        <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
           <TriangleAlert className="size-5 text-caution" /> Alerts on this road
         </h2>
         {alerts.length === 0 ? (
@@ -143,7 +143,7 @@ function RoadProfilePage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="flex items-center gap-2 text-[1.05rem] font-bold">
+        <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
           <CarFront className="size-5 text-accent" /> Accident reports on this road
         </h2>
         {reports.length === 0 ? (

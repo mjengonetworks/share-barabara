@@ -158,7 +158,7 @@ function NewsDetail() {
   if (!article) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <h1 className="text-[1.05rem] font-bold">Story not found</h1>
+        <h1 className="text-[1.155rem] font-bold">Story not found</h1>
         <Link to="/news" className="mt-4 inline-block underline">
           Back to news
         </Link>
@@ -190,7 +190,7 @@ function NewsDetail() {
               Preview · {article.status.replace("_", " ")}, not visible to the public yet
             </p>
           ) : null}
-          <h1 className="mt-3 text-[1.575rem] font-extrabold leading-tight">{article.title}</h1>
+          <h1 className="mt-3 text-[1.7325rem] font-extrabold leading-tight">{article.title}</h1>
           <p className="mt-3 text-sm text-muted-foreground">
             {longDateWithDay(article.published_at)} {article.source ? `· ${article.source}` : ""}
           </p>

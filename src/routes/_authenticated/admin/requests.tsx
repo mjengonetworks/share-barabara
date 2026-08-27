@@ -111,7 +111,7 @@ function RequestsAdminPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Moderation queue
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Requests</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Requests</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Edit and removal requests from contributors, plus suspension recommendations filed by
         moderators. Approving a suspension needs editor rank or above.

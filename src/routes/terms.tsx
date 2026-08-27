@@ -13,7 +13,7 @@ function TermsPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Legal
       </p>
-      <h1 className="mt-2 text-[1.575rem] font-extrabold">Terms of use</h1>
+      <h1 className="mt-2 text-[1.7325rem] font-extrabold">Terms of use</h1>
       <div className="mt-6 space-y-6 text-sm text-foreground/90">
         <section>
           <h2 className="text-lg font-bold">Using Share Barabara</h2>

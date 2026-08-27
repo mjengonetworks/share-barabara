@@ -13,7 +13,7 @@ function PrivacyPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Legal
       </p>
-      <h1 className="mt-2 text-[1.575rem] font-extrabold">Privacy policy</h1>
+      <h1 className="mt-2 text-[1.7325rem] font-extrabold">Privacy policy</h1>
       <div className="mt-6 space-y-6 text-sm text-foreground/90">
         <section>
           <h2 className="text-lg font-bold">What we collect</h2>

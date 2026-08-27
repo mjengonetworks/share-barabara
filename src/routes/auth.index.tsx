@@ -126,7 +126,7 @@ function AuthPage() {
         <span className="inline-flex items-center gap-2 rounded bg-accent/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
           <ShieldAlert className="size-4" /> Community access
         </span>
-        <h1 className="mt-5 text-[1.575rem] font-extrabold">Your report can save a life</h1>
+        <h1 className="mt-5 text-[1.7325rem] font-extrabold">Your report can save a life</h1>
         <p className="mt-4 max-w-md text-muted-foreground">
           Sign in to post hazard alerts, file accident reports, write articles and join the
           discussion. Reading the site is always free.

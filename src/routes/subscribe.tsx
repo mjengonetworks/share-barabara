@@ -48,7 +48,7 @@ function SubscribePage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Support Share Barabara
       </p>
-      <h1 className="mt-2 text-[1.575rem] font-extrabold">Subscribe for 1 USD a year</h1>
+      <h1 className="mt-2 text-[1.7325rem] font-extrabold">Subscribe for 1 USD a year</h1>
       <p className="mt-3 text-muted-foreground">
         Personal profile verification is 1 USD per year. Page verification (for organisations) is 10
         USD per year, billed separately per app.

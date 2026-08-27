@@ -88,7 +88,7 @@ function InfrastructureIssuesPage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
             Infrastructure
           </p>
-          <h1 className="mt-2 flex items-center gap-2 text-[1.575rem] font-extrabold">
+          <h1 className="mt-2 flex items-center gap-2 text-[1.7325rem] font-extrabold">
             <Construction className="size-8 text-accent" /> Road infrastructure issues
           </h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">

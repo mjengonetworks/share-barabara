@@ -68,7 +68,7 @@ function PagesIndex() {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
             Organisations
           </p>
-          <h1 className="mt-2 text-[1.575rem] font-extrabold">Pages</h1>
+          <h1 className="mt-2 text-[1.7325rem] font-extrabold">Pages</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Companies and organisations on Share Barabara — from driving schools and saccos to
             brands of any kind. A page works like a profile: it shows up wherever it has contributed
@@ -123,7 +123,7 @@ function PagesIndex() {
             return (
               <div key={c.id}>
                 <div className="flex items-end justify-between gap-4">
-                  <h2 className="text-[0.875rem] font-bold">{c.name}</h2>
+                  <h2 className="text-[0.9625rem] font-bold">{c.name}</h2>
                   {inCategory.length > 5 ? (
                     <Link
                       to="/pages"
@@ -199,7 +199,7 @@ function PageLeaderboard({ title, days }: { title: string; days: number }) {
 
   return (
     <div>
-      <h2 className="flex items-center gap-2 text-[0.875rem] font-bold">
+      <h2 className="flex items-center gap-2 text-[0.9625rem] font-bold">
         <Trophy className="size-5 text-accent" /> {title}
       </h2>
       {isLoading ? <p className="mt-3 text-sm text-muted-foreground">Loading…</p> : null}

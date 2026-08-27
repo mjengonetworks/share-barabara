@@ -735,8 +735,10 @@ export type Database = {
           description: string | null;
           id: string;
           image_url: string | null;
+          in_stock: boolean;
           name: string;
           price_kes: number;
+          variant_options: Json;
         };
         Insert: {
           active?: boolean;
@@ -744,8 +746,10 @@ export type Database = {
           description?: string | null;
           id?: string;
           image_url?: string | null;
+          in_stock?: boolean;
           name: string;
           price_kes: number;
+          variant_options?: Json;
         };
         Update: {
           active?: boolean;
@@ -753,10 +757,60 @@ export type Database = {
           description?: string | null;
           id?: string;
           image_url?: string | null;
+          in_stock?: boolean;
           name?: string;
           price_kes?: number;
+          variant_options?: Json;
         };
         Relationships: [];
+      };
+      merch_order_items: {
+        Row: {
+          created_at: string;
+          id: string;
+          item_id: string | null;
+          item_name: string;
+          order_id: string;
+          quantity: number;
+          unit_price_kes: number;
+          variant_selections: Json;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          item_id?: string | null;
+          item_name: string;
+          order_id: string;
+          quantity?: number;
+          unit_price_kes: number;
+          variant_selections?: Json;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          item_id?: string | null;
+          item_name?: string;
+          order_id?: string;
+          quantity?: number;
+          unit_price_kes?: number;
+          variant_selections?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "merch_order_items_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "merch_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merch_order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "merch_orders";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       merch_orders: {
         Row: {
@@ -767,9 +821,8 @@ export type Database = {
           delivery_county: string | null;
           delivery_notes: string | null;
           id: string;
-          item_id: string | null;
-          quantity: number;
           status: string;
+          total_kes: number;
           user_id: string | null;
         };
         Insert: {
@@ -780,9 +833,8 @@ export type Database = {
           delivery_county?: string | null;
           delivery_notes?: string | null;
           id?: string;
-          item_id?: string | null;
-          quantity?: number;
           status?: string;
+          total_kes?: number;
           user_id?: string | null;
         };
         Update: {
@@ -793,20 +845,11 @@ export type Database = {
           delivery_county?: string | null;
           delivery_notes?: string | null;
           id?: string;
-          item_id?: string | null;
-          quantity?: number;
           status?: string;
+          total_kes?: number;
           user_id?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "merch_orders_item_id_fkey";
-            columns: ["item_id"];
-            isOneToOne: false;
-            referencedRelation: "merch_items";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
       monthly_stats: {
         Row: {

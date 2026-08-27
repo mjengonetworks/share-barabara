@@ -113,7 +113,7 @@ function QuotePage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Site content
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Quote of the day</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Quote of the day</h1>
       <p className="mt-2 text-muted-foreground">
         Shown site-wide until it's changed again — it's on you to refresh it.
       </p>
@@ -144,7 +144,7 @@ function QuotePage() {
         </Button>
       </div>
 
-      <h2 className="mt-10 text-[0.875rem] font-bold">Submitted quotes</h2>
+      <h2 className="mt-10 text-[0.9625rem] font-bold">Submitted quotes</h2>
       {isLoading ? <p className="mt-4 text-muted-foreground">Loading…</p> : null}
       {!isLoading && submissions.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">No pending submissions.</p>

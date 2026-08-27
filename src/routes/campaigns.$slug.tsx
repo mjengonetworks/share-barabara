@@ -48,7 +48,7 @@ function CampaignDetail() {
   if (!campaign) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <h1 className="text-[1.05rem] font-bold">Campaign not found</h1>
+        <h1 className="text-[1.155rem] font-bold">Campaign not found</h1>
         <Link to="/campaigns" className="mt-4 inline-block underline">
           Back to campaigns
         </Link>
@@ -85,7 +85,7 @@ function CampaignDetail() {
         ) : null}
       </div>
 
-      <h1 className="mt-3 text-[1.575rem] font-extrabold leading-tight">{campaign.title}</h1>
+      <h1 className="mt-3 text-[1.7325rem] font-extrabold leading-tight">{campaign.title}</h1>
 
       <div className="mt-3">
         <ShareButtons title={campaign.title} />

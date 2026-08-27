@@ -130,6 +130,10 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
       <div>
         <Label>Featured image (optional)</Label>
         <div className="mt-2 space-y-2">
+          <ImageUploadField
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+          />
           <Input
             value={form.image_alt}
             onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
@@ -147,10 +151,6 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
               placeholder="Credit / source (optional)"
             />
           </div>
-          <ImageUploadField
-            value={form.image_url}
-            onChange={(url) => setForm({ ...form, image_url: url })}
-          />
         </div>
       </div>
       <div>
@@ -170,7 +170,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         <RichTextEditor
           id="a-body"
           required
-          rows={8}
+          rows={16}
           value={form.body}
           onChange={(v) => setForm({ ...form, body: v })}
           placeholder="Separate paragraphs with a blank line. Use the toolbar to add bold, italic, links, images or a YouTube video."

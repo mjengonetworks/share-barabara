@@ -231,6 +231,10 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       <div>
         <Label>Featured image (optional)</Label>
         <div className="mt-2 space-y-2">
+          <ImageUploadField
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+          />
           <Input
             value={form.image_alt}
             onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
@@ -248,10 +252,6 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
               placeholder="Credit / source (optional)"
             />
           </div>
-          <ImageUploadField
-            value={form.image_url}
-            onChange={(url) => setForm({ ...form, image_url: url })}
-          />
         </div>
       </div>
       <div>
@@ -259,7 +259,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         <RichTextEditor
           id="r-desc"
           required
-          rows={4}
+          rows={10}
           value={form.description}
           onChange={(v) => setForm({ ...form, description: v })}
           placeholder="Weather, road conditions, contributing factors and the response by emergency services. Use the toolbar to add photos or a video."

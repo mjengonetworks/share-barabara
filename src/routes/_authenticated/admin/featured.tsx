@@ -122,7 +122,7 @@ function FeaturedPicksPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Admin
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Featured picks</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Featured picks</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Pin a specific contributor or page to a slot. Leave it unset and the site picks randomly
         (but stably for the day) from subscribed members and verified pages.

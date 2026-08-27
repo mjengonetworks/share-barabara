@@ -130,7 +130,7 @@ function Index() {
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-20">
           <div className="hazard-stripe h-1.5 w-24 rounded" />
-          <h1 className="mt-4 max-w-3xl font-display text-[2.1rem] font-extrabold leading-tight sm:text-[2.625rem]">
+          <h1 className="mt-4 max-w-3xl font-display text-[2.31rem] font-extrabold leading-tight sm:text-[2.8875rem]">
             Every journey home should end at home.
           </h1>
           <p className="mt-4 max-w-xl text-[12.6px] text-muted-foreground lg:max-w-3xl">
@@ -160,7 +160,7 @@ function Index() {
 
       <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="text-[1.3125rem] font-bold">Latest hazard alerts</h2>
+          <h2 className="text-[1.44375rem] font-bold">Latest hazard alerts</h2>
           <div className="flex gap-3">
             <Button asChild size="sm">
               <Link to="/alerts">Submit alert</Link>
@@ -216,7 +216,7 @@ function Index() {
       <section className="border-y border-border bg-secondary/40">
         <div className="mx-auto max-w-6xl px-4 py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-[1.3125rem] font-bold">Road safety news</h2>
+            <h2 className="text-[1.44375rem] font-bold">Road safety news</h2>
             <div className="flex gap-3">
               <Button asChild size="sm">
                 <Link to="/news">Write article</Link>
@@ -263,7 +263,7 @@ function Index() {
 
       <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="flex items-center gap-2 text-[1.3125rem] font-bold">
+          <h2 className="flex items-center gap-2 text-[1.44375rem] font-bold">
             <CarFront className="size-7 text-accent" /> Accident reports
           </h2>
           <div className="flex gap-3">
@@ -309,7 +309,7 @@ function Index() {
       {pages.length > 0 ? (
         <section className="mx-auto max-w-6xl px-4 py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="flex items-center gap-2 text-[1.3125rem] font-bold">
+            <h2 className="flex items-center gap-2 text-[1.44375rem] font-bold">
               <Building2 className="size-7 text-accent" /> Pages
             </h2>
             <Link to="/pages" className="text-sm font-semibold text-brand-blue underline">
@@ -401,7 +401,7 @@ function Index() {
       <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="rounded-lg border border-border bg-card p-8 text-center card-elevated">
           <HandHeart className="mx-auto size-8 text-accent" />
-          <h2 className="mt-3 text-[1.05rem] font-bold">Support Share Barabara</h2>
+          <h2 className="mt-3 text-[1.155rem] font-bold">Support Share Barabara</h2>
           <p className="mx-auto mt-2 max-w-lg text-sm text-muted-foreground">
             Your support funds campaigns like the Share Barabara Walk and hospital visits to crash
             victims.
@@ -452,7 +452,7 @@ function Index() {
       <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid gap-6 lg:grid-cols-2">
           <div>
-            <h2 className="text-[1.3125rem] font-bold">In an emergency</h2>
+            <h2 className="text-[1.44375rem] font-bold">In an emergency</h2>
             <p className="mt-3 text-muted-foreground">
               Save these numbers now. Minutes matter after a crash: the first hour decides whether
               an injury becomes a fatality.

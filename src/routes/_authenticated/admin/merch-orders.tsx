@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { dateTime } from "@/lib/format";
+import { dateTime, num } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/merch-orders")({
   head: () => ({ meta: [{ title: "Merch Orders: Share Barabara Admin" }] }),
@@ -35,7 +35,7 @@ function MerchOrdersPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("merch_orders")
-        .select("*, merch_items(name)")
+        .select("*, merch_order_items(*)")
         .order("created_at", { ascending: false })
         .limit(300);
       if (error) throw error;
@@ -72,9 +72,10 @@ function MerchOrdersPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Commerce
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Merch orders</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Merch orders</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
-        Order requests submitted from the Merch page, with delivery details.
+        Orders placed from the Merch page cart, with delivery details. Delivery cost isn't included
+        in the total, it's arranged separately once the customer is contacted.
       </p>
 
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
@@ -83,9 +84,10 @@ function MerchOrdersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Item</TableHead>
+              <TableHead>Items</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Delivery</TableHead>
+              <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Placed</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -94,8 +96,23 @@ function MerchOrdersPage() {
           <TableBody>
             {orders.map((o) => (
               <TableRow key={o.id}>
-                <TableCell>
-                  {o.merch_items?.name ?? "—"} × {o.quantity}
+                <TableCell className="max-w-xs text-sm">
+                  {(o.merch_order_items ?? []).map((li) => (
+                    <p key={li.id}>
+                      {li.item_name} × {li.quantity}
+                      {Object.keys((li.variant_selections as Record<string, string>) ?? {}).length >
+                      0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          {" "}
+                          (
+                          {Object.entries((li.variant_selections as Record<string, string>) ?? {})
+                            .map(([k, v]) => `${k}: ${v}`)
+                            .join(", ")}
+                          )
+                        </span>
+                      ) : null}
+                    </p>
+                  ))}
                 </TableCell>
                 <TableCell className="text-sm">
                   <p>{o.contact_name}</p>
@@ -107,6 +124,7 @@ function MerchOrdersPage() {
                   {o.delivery_notes ? <p className="italic">{o.delivery_notes}</p> : null}
                   {!o.delivery_county && !o.delivery_address && !o.delivery_notes ? "—" : null}
                 </TableCell>
+                <TableCell className="text-sm font-semibold">KES {num(o.total_kes)}</TableCell>
                 <TableCell>
                   <Select
                     value={o.status}
@@ -142,7 +160,7 @@ function MerchOrdersPage() {
             ))}
             {!isLoading && orders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   No orders yet.
                 </TableCell>
               </TableRow>

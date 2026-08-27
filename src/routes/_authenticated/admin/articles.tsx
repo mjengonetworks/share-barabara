@@ -163,7 +163,7 @@ function ArticlesQueuePage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Moderation queue
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Articles</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Articles</h1>
       <p className="mt-2 text-muted-foreground">
         Review submissions from contributors. Publishing or rejecting needs moderator rank or above.
       </p>
@@ -376,7 +376,7 @@ function ArticlesQueuePage() {
                         <Label htmlFor={`ab-${a.id}`}>Article body</Label>
                         <RichTextEditor
                           id={`ab-${a.id}`}
-                          rows={8}
+                          rows={16}
                           value={d.body}
                           onChange={(v) => set({ body: v })}
                         />

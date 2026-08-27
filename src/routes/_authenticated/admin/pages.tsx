@@ -83,7 +83,7 @@ function PagesAdminPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Directory &amp; partners
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Pages</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Pages</h1>
       <p className="mt-2 text-muted-foreground">
         Organisation pages in the directory. Verifying a page grants it a blue checkmark, normally a
         paid perk you can also activate manually here.

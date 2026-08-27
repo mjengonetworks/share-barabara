@@ -74,7 +74,7 @@ function NewsletterPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Site content
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Newsletter</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Newsletter</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Composing here logs the broadcast for your records.{" "}
         <span className="font-semibold text-foreground">

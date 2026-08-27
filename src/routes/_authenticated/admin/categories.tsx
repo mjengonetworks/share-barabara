@@ -260,7 +260,7 @@ function CategoriesPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Admin
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Categories &amp; filters</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Categories &amp; filters</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Manage the picker options used across articles, alerts and reports. Removing an option
         doesn't change existing content already using it — it just stops showing up for new

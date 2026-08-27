@@ -236,7 +236,7 @@ function OverviewPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Overview
       </p>
-      <h1 className="mt-1 text-[1.3125rem] font-extrabold">Site performance</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Site performance</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Articles and accident reports posted and viewed, independent of any external analytics tool.
       </p>
