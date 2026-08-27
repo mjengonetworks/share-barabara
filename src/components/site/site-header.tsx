@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Building2,
   CircleUserRound,
@@ -52,6 +52,25 @@ export function SiteHeader() {
   const { identity, setIdentity, myPages, activePage } = useActiveIdentity();
   const { data: ownUsername = {} } = useProfileUsernames(user ? [user.id] : []);
   const { rank } = useRoles();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Close the mobile menu on any navigation (logo, search results, browser
+  // back/forward) -- not just a tap on one of the menu's own links.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Close it when clicking anywhere outside the header too, since the panel
+  // sits inline in the page flow rather than as a full-screen overlay.
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -61,7 +80,10 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur"
+    >
       <div className="mx-auto flex h-20 max-w-6xl items-center gap-4 px-4">
         <Link to="/" className="flex items-center" aria-label="Share Barabara home">
           <img src={logoUrl} alt="Share Barabara" className="h-14 w-auto sm:h-16" />

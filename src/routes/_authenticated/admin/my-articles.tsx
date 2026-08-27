@@ -242,13 +242,12 @@ function MyArticlesPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {a.status === "published" ? (
-                      <DropdownMenuItem asChild>
-                        <Link to="/news/$slug" params={{ slug: a.slug }} target="_blank">
-                          <ExternalLink className="mr-2 size-4" /> View on website
-                        </Link>
-                      </DropdownMenuItem>
-                    ) : null}
+                    <DropdownMenuItem asChild>
+                      <Link to="/news/$slug" params={{ slug: a.slug }} target="_blank">
+                        <ExternalLink className="mr-2 size-4" />{" "}
+                        {a.status === "published" ? "View on website" : "Preview"}
+                      </Link>
+                    </DropdownMenuItem>
                     {canEdit ? (
                       <DropdownMenuItem onClick={() => setEditingId(a.id)}>
                         <Pencil className="mr-2 size-4" /> Edit

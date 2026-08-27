@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -238,6 +239,14 @@ const tooltipStyle = {
   borderRadius: 6,
 };
 
+function NoYearData({ year }: { year: number }) {
+  return (
+    <div className="flex h-full items-center justify-center px-4 text-center text-sm text-muted-foreground">
+      No data entered for {year} yet.
+    </div>
+  );
+}
+
 function StatisticsPage() {
   const navigate = useNavigate();
   const { data: hazardTypes = [] } = useHazardTypes();
@@ -252,30 +261,35 @@ function StatisticsPage() {
     deaths_per_100k: number | null;
   }>("yearly_stats", "year");
 
-  const { data: counties = [] } = useStat<{ id: string; county: string; fatalities: number }>(
-    "county_stats",
-    "fatalities",
-    false,
-  );
+  const { data: counties = [] } = useStat<{
+    id: string;
+    county: string;
+    fatalities: number;
+    year: number;
+  }>("county_stats", "fatalities", false);
 
   const { data: topRoads = [] } = useTopRoads();
 
-  const { data: victims = [] } = useStat<{ id: string; category: string; fatalities: number }>(
-    "victim_stats",
-    "fatalities",
-    false,
-  );
+  const { data: victims = [] } = useStat<{
+    id: string;
+    category: string;
+    fatalities: number;
+    year: number;
+  }>("victim_stats", "fatalities", false);
 
-  const { data: monthly = [] } = useStat<{ month: number; fatalities: number; crashes: number }>(
-    "monthly_stats",
-    "month",
-  );
+  const { data: monthly = [] } = useStat<{
+    month: number;
+    fatalities: number;
+    crashes: number;
+    year: number;
+  }>("monthly_stats", "month");
 
   const { data: causes = [] } = useStat<{
     id: string;
     cause: string;
     share: number;
     fatalities: number;
+    year: number;
   }>("cause_stats", "fatalities", false);
 
   const { data: vehicles = [] } = useStat<{
@@ -283,18 +297,22 @@ function StatisticsPage() {
     vehicle_type: string;
     crashes: number;
     fatalities: number;
+    year: number;
   }>("vehicle_stats", "fatalities", false);
 
-  const { data: bands = [] } = useStat<{ id: string; band: string; fatalities: number }>(
-    "time_of_day_stats",
-    "sort_order",
-  );
+  const { data: bands = [] } = useStat<{
+    id: string;
+    band: string;
+    fatalities: number;
+    year: number;
+  }>("time_of_day_stats", "sort_order");
 
   const { data: roadClasses = [] } = useStat<{
     id: string;
     road_class: string;
     fatalities: number;
     crashes: number;
+    year: number;
   }>("road_class_stats", "fatalities", false);
 
   const { data: alertsCount } = useLiveCount("alerts", "alerts");
@@ -307,16 +325,31 @@ function StatisticsPage() {
   const { data: reportSeverityCounts = {} } = useGroupCounts("accident_reports", "severity");
   const { data: partiesCounts = {} } = usePartiesCasualtyCounts();
 
-  const latest = yearly[yearly.length - 1];
-  const prev = yearly[yearly.length - 2];
-  const totalVictims = victims.reduce((sum, v) => sum + v.fatalities, 0) || 1;
-  const monthlyData = monthly.map((m) => ({ ...m, label: MONTHS[m.month - 1] }));
+  const currentYear = new Date().getFullYear();
+  const availableYears = yearly
+    .map((y) => y.year)
+    .slice()
+    .reverse();
+  const maxStatYear = yearly[yearly.length - 1]?.year ?? currentYear;
+  const [statYear, setStatYear] = useState<number | null>(null);
+  const activeYear = statYear ?? maxStatYear;
+
+  const latest = yearly.find((y) => y.year === activeYear);
+  const prev = yearly.find((y) => y.year === activeYear - 1);
   const yoy =
     latest && prev
       ? Math.round(((latest.fatalities - prev.fatalities) / prev.fatalities) * 1000) / 10
       : null;
 
-  const currentYear = new Date().getFullYear();
+  const monthlyForYear = monthly.filter((m) => m.year === activeYear);
+  const monthlyData = monthlyForYear.map((m) => ({ ...m, label: MONTHS[m.month - 1] }));
+  const causesForYear = causes.filter((c) => c.year === activeYear);
+  const vehiclesForYear = vehicles.filter((v) => v.year === activeYear);
+  const bandsForYear = bands.filter((b) => b.year === activeYear);
+  const roadClassesForYear = roadClasses.filter((r) => r.year === activeYear);
+  const countiesForYear = counties.filter((c) => c.year === activeYear);
+  const victimsForYear = victims.filter((v) => v.year === activeYear);
+  const totalVictims = victimsForYear.reduce((sum, v) => sum + v.fatalities, 0) || 1;
   const { data: liveReports = [] } = useLiveYearReports();
   const [liveCounty, setLiveCounty] = useState("all");
   const [liveSeverity, setLiveSeverity] = useState("all");
@@ -684,14 +717,72 @@ function StatisticsPage() {
         </p>
       </div>
 
-      <div className="mt-14 border-t border-border pt-10">
-        <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-          Open data
-        </p>
-        <h2 className="mt-2 text-4xl font-extrabold">Kenya road crash statistics</h2>
+      {topRoads.length > 0 ? (
+        <section className="mt-14 border-t border-border pt-10">
+          <h2 className="text-2xl font-bold">Most dangerous roads</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Ranked by fatalities in verified accident reports. Click through to a road's own profile
+            for every alert and report filed against it.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {topRoads.map((r) => (
+              <Link
+                key={r.road_id}
+                to="/roads/$slug"
+                params={{ slug: r.road.slug }}
+                className="rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+              >
+                <p className="flex items-center gap-1 font-semibold text-brand-blue hover:underline">
+                  <MapPin className="size-4 shrink-0" /> {r.road.name}
+                </p>
+                {r.road.county ? (
+                  <p className="mt-0.5 text-xs text-muted-foreground">{r.road.county}</p>
+                ) : null}
+                <div className="mt-2 flex gap-4 text-sm">
+                  <span className="text-destructive">
+                    <strong>{r.fatalities}</strong> deaths
+                  </span>
+                  <span className="text-caution">
+                    <strong>{r.casualties}</strong> injured
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <div className={topRoads.length > 0 ? "mt-14" : "mt-14 border-t border-border pt-10"}>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+              Open data
+            </p>
+            <h2 className="mt-2 text-4xl font-extrabold">Kenya road crash statistics</h2>
+          </div>
+          {availableYears.length > 0 ? (
+            <div>
+              <Label className="text-xs text-muted-foreground">Year</Label>
+              <Select value={String(activeYear)} onValueChange={(v) => setStatYear(Number(v))}>
+                <SelectTrigger className="w-28">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+        </div>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Indicative national figures compiled for public awareness. Roughly thirteen people die on
-          Kenyan roads every single day, and most of them are outside a car when it happens.
+          Kenyan roads every single day, and most of them are outside a car when it happens. Only
+          the yearly fatality trend below currently has data back to{" "}
+          {availableYears.at(-1) ?? "2019"}; the breakdown charts fill in as more years are entered.
         </p>
       </div>
 
@@ -821,74 +912,96 @@ function StatisticsPage() {
         </AreaChart>
       </ChartCard>
 
-      <ChartCard
-        title="Deaths by month"
-        subtitle="Seasonality of road deaths across the most recent year."
-      >
-        <BarChart data={monthlyData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-          <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
-          <YAxis stroke="var(--muted-foreground)" fontSize={12} />
-          <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-          <Bar
-            dataKey="fatalities"
-            name="Fatalities"
-            fill="var(--destructive)"
-            radius={[4, 4, 0, 0]}
-          />
-        </BarChart>
-      </ChartCard>
+      <section className="mt-10">
+        <h2 className="text-2xl font-bold">Deaths by month</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Seasonality of road deaths in {activeYear}.
+        </p>
+        <div className="mt-4 h-80 rounded-lg border border-border bg-card p-4">
+          {monthlyForYear.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={12} />
+                <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
+                <Bar
+                  dataKey="fatalities"
+                  name="Fatalities"
+                  fill="var(--destructive)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoYearData year={activeYear} />
+          )}
+        </div>
+      </section>
 
       <section className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>
           <h2 className="text-2xl font-bold">Main causes of crashes</h2>
           <div className="mt-4 h-96 rounded-lg border border-border bg-card p-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={causes}
-                  dataKey="share"
-                  nameKey="cause"
-                  innerRadius={60}
-                  outerRadius={110}
-                  paddingAngle={2}
-                >
-                  {causes.map((c, i) => (
-                    <Cell key={c.id} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v: number) => `${v}%`} contentStyle={tooltipStyle} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            {causesForYear.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={causesForYear}
+                    dataKey="share"
+                    nameKey="cause"
+                    innerRadius={60}
+                    outerRadius={110}
+                    paddingAngle={2}
+                  >
+                    {causesForYear.map((c, i) => (
+                      <Cell key={c.id} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(v: number) => `${v}%`} contentStyle={tooltipStyle} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <NoYearData year={activeYear} />
+            )}
           </div>
         </div>
 
         <div>
           <h2 className="text-2xl font-bold">Deaths by vehicle type</h2>
           <div className="mt-4 h-96 rounded-lg border border-border bg-card p-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={vehicles} layout="vertical" margin={{ left: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
-                <YAxis
-                  type="category"
-                  dataKey="vehicle_type"
-                  width={140}
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                />
-                <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-                <Legend />
-                <Bar
-                  dataKey="fatalities"
-                  name="Fatalities"
-                  fill="var(--destructive)"
-                  radius={[0, 4, 4, 0]}
-                />
-                <Bar dataKey="crashes" name="Crashes" fill="var(--caution)" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {vehiclesForYear.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={vehiclesForYear} layout="vertical" margin={{ left: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                  <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
+                  <YAxis
+                    type="category"
+                    dataKey="vehicle_type"
+                    width={140}
+                    stroke="var(--muted-foreground)"
+                    fontSize={11}
+                  />
+                  <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Bar
+                    dataKey="fatalities"
+                    name="Fatalities"
+                    fill="var(--destructive)"
+                    radius={[0, 4, 4, 0]}
+                  />
+                  <Bar
+                    dataKey="crashes"
+                    name="Crashes"
+                    fill="var(--caution)"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <NoYearData year={activeYear} />
+            )}
           </div>
         </div>
       </section>
@@ -900,22 +1013,26 @@ function StatisticsPage() {
             The evening rush and the hours after dark are the deadliest.
           </p>
           <div className="mt-4 h-80 rounded-lg border border-border bg-card p-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={bands}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="band" stroke="var(--muted-foreground)" fontSize={11} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={12} />
-                <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-                <Bar dataKey="fatalities" name="Fatalities" radius={[4, 4, 0, 0]}>
-                  {bands.map((b) => (
-                    <Cell
-                      key={b.id}
-                      fill={b.fatalities > 900 ? "var(--destructive)" : "var(--caution)"}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {bandsForYear.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={bandsForYear}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="band" stroke="var(--muted-foreground)" fontSize={11} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={12} />
+                  <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
+                  <Bar dataKey="fatalities" name="Fatalities" radius={[4, 4, 0, 0]}>
+                    {bandsForYear.map((b) => (
+                      <Cell
+                        key={b.id}
+                        fill={b.fatalities > 900 ? "var(--destructive)" : "var(--caution)"}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <NoYearData year={activeYear} />
+            )}
           </div>
         </div>
 
@@ -925,64 +1042,33 @@ function StatisticsPage() {
             Trunk highways carry the heaviest toll per kilometre.
           </p>
           <div className="mt-4 h-80 rounded-lg border border-border bg-card p-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={roadClasses} layout="vertical" margin={{ left: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
-                <YAxis
-                  type="category"
-                  dataKey="road_class"
-                  width={150}
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                />
-                <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-                <Bar
-                  dataKey="fatalities"
-                  name="Fatalities"
-                  fill="var(--primary)"
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {roadClassesForYear.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={roadClassesForYear} layout="vertical" margin={{ left: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                  <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
+                  <YAxis
+                    type="category"
+                    dataKey="road_class"
+                    width={150}
+                    stroke="var(--muted-foreground)"
+                    fontSize={11}
+                  />
+                  <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
+                  <Bar
+                    dataKey="fatalities"
+                    name="Fatalities"
+                    fill="var(--primary)"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <NoYearData year={activeYear} />
+            )}
           </div>
         </div>
       </section>
-
-      {topRoads.length > 0 ? (
-        <section className="mt-10">
-          <h2 className="text-2xl font-bold">Most dangerous roads</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Ranked by fatalities in verified accident reports. Click through to a road's own profile
-            for every alert and report filed against it.
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {topRoads.map((r) => (
-              <Link
-                key={r.road_id}
-                to="/roads/$slug"
-                params={{ slug: r.road.slug }}
-                className="rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
-              >
-                <p className="flex items-center gap-1 font-semibold text-brand-blue hover:underline">
-                  <MapPin className="size-4 shrink-0" /> {r.road.name}
-                </p>
-                {r.road.county ? (
-                  <p className="mt-0.5 text-xs text-muted-foreground">{r.road.county}</p>
-                ) : null}
-                <div className="mt-2 flex gap-4 text-sm">
-                  <span className="text-destructive">
-                    <strong>{r.fatalities}</strong> deaths
-                  </span>
-                  <span className="text-caution">
-                    <strong>{r.casualties}</strong> injured
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <section className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>
@@ -991,40 +1077,45 @@ function StatisticsPage() {
             Click a bar to see reports for that county.
           </p>
           <div className="mt-4 h-96 rounded-lg border border-border bg-card p-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={counties} layout="vertical" margin={{ left: 24 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
-                <YAxis
-                  type="category"
-                  dataKey="county"
-                  width={90}
-                  stroke="var(--muted-foreground)"
-                  fontSize={12}
-                />
-                <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-                <Bar
-                  dataKey="fatalities"
-                  name="Fatalities"
-                  radius={[0, 4, 4, 0]}
-                  cursor="pointer"
-                  onClick={(entry) =>
-                    navigate({ to: "/reports", search: { county: entry.county } })
-                  }
-                >
-                  {counties.map((c, i) => (
-                    <Cell key={c.id} fill={i === 0 ? "var(--destructive)" : "var(--caution)"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {countiesForYear.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={countiesForYear} layout="vertical" margin={{ left: 24 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                  <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} />
+                  <YAxis
+                    type="category"
+                    dataKey="county"
+                    width={90}
+                    stroke="var(--muted-foreground)"
+                    fontSize={12}
+                  />
+                  <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
+                  <Bar
+                    dataKey="fatalities"
+                    name="Fatalities"
+                    radius={[0, 4, 4, 0]}
+                    cursor="pointer"
+                    onClick={(entry) =>
+                      navigate({ to: "/reports", search: { county: entry.county } })
+                    }
+                  >
+                    {countiesForYear.map((c, i) => (
+                      <Cell key={c.id} fill={i === 0 ? "var(--destructive)" : "var(--caution)"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <NoYearData year={activeYear} />
+            )}
           </div>
         </div>
 
         <div>
           <h2 className="text-2xl font-bold">Who is dying on our roads</h2>
+          {victimsForYear.length === 0 ? <NoYearData year={activeYear} /> : null}
           <ul className="mt-4 space-y-4">
-            {victims.map((v) => {
+            {victimsForYear.map((v) => {
               const pct = Math.round((v.fatalities / totalVictims) * 100);
               return (
                 <li key={v.id}>

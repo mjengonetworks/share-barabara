@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Check, Copy, Gift, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoles, primaryRoleLabel } from "@/hooks/useRoles";
 import { KENYA_COUNTIES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ type ProfileForm = {
   county: string;
   bio: string;
   occupation: string;
+  byline_title: string;
   road_safety_message: string;
   mjengo_networks_url: string;
   mjengo_hub_url: string;
@@ -45,6 +47,7 @@ const EMPTY: ProfileForm = {
   county: "",
   bio: "",
   occupation: "",
+  byline_title: "",
   road_safety_message: "",
   mjengo_networks_url: "",
   mjengo_hub_url: "",
@@ -55,6 +58,7 @@ const USERNAME_RE = /^[a-z0-9](?:[a-z0-9-]{1,22}[a-z0-9])?$/;
 
 function SettingsPage() {
   const { user } = useAuth();
+  const { roles, isGuestAuthor } = useRoles();
   const queryClient = useQueryClient();
   const [form, setForm] = useState<ProfileForm>(EMPTY);
   const [loaded, setLoaded] = useState(false);
@@ -84,6 +88,7 @@ function SettingsPage() {
         county: profile.county ?? "",
         bio: profile.bio ?? "",
         occupation: profile.occupation ?? "",
+        byline_title: profile.byline_title ?? "",
         road_safety_message: profile.road_safety_message ?? "",
         mjengo_networks_url: profile.mjengo_networks_url ?? "",
         mjengo_hub_url: profile.mjengo_hub_url ?? "",
@@ -110,6 +115,7 @@ function SettingsPage() {
           county: form.county || null,
           bio: form.bio || null,
           occupation: form.occupation || null,
+          ...(isGuestAuthor ? {} : { byline_title: form.byline_title || null }),
           road_safety_message: form.road_safety_message || null,
           mjengo_networks_url: form.mjengo_networks_url || null,
           mjengo_hub_url: form.mjengo_hub_url || null,
@@ -304,6 +310,27 @@ function SettingsPage() {
             onChange={(e) => set({ occupation: e.target.value })}
             placeholder="e.g. Driving instructor, matatu operator"
           />
+        </div>
+        <div>
+          <Label htmlFor="s-byline">Byline title</Label>
+          {isGuestAuthor ? (
+            <p className="mt-1 rounded border border-dashed border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+              Guest author (fixed while you're a guest author)
+            </p>
+          ) : (
+            <>
+              <Input
+                id="s-byline"
+                value={form.byline_title}
+                onChange={(e) => set({ byline_title: e.target.value })}
+                placeholder={primaryRoleLabel(roles)}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Shown under your name on articles and reports. Defaults to your role (
+                {primaryRoleLabel(roles)}) if left blank.
+              </p>
+            </>
+          )}
         </div>
         <div>
           <Label htmlFor="s-bio">Bio</Label>

@@ -3,8 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Flame, MapPin, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useProfileNames, useProfileAvatars } from "@/lib/profiles";
-import { useRoleLabels, primaryRoleLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
+import { useProfileNames, useProfileAvatars, useProfileBylines } from "@/lib/profiles";
+import { useRoleLabels, bylineLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
@@ -102,6 +102,7 @@ function ReportDetail() {
   const { data: verified = {} } = useSubscriptionStatuses(people);
   const { data: pages = {} } = usePagesByIds(report ? [report.page_id] : []);
   const { data: roleMap = {} } = useRoleLabels(people);
+  const { data: bylineMap = {} } = useProfileBylines(people);
   const { data: roadMap = {} } = useRoadsByIds(report ? [report.road_id] : []);
   const { scores, vote } = useVotes("report", report ? [report.id] : []);
 
@@ -273,13 +274,13 @@ function ReportDetail() {
               <div className="mt-0.5 flex flex-wrap gap-1">
                 {!report.is_anonymous ? (
                   <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                    {primaryRoleLabel(roleMap[report.user_id])}
+                    {bylineLabel(roleMap[report.user_id], bylineMap[report.user_id])}
                   </span>
                 ) : null}
                 {report.reviewed_by ? (
                   <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
                     <ShieldCheck className="size-3 text-accent" />
-                    {primaryRoleLabel(roleMap[report.reviewed_by])}
+                    {bylineLabel(roleMap[report.reviewed_by], bylineMap[report.reviewed_by])}
                   </span>
                 ) : null}
               </div>

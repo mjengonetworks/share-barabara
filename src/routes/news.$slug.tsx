@@ -3,9 +3,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { longDate } from "@/lib/format";
-import { useProfileNames, useProfileUsernames, useProfileAvatars } from "@/lib/profiles";
-import { useRoleLabels, primaryRoleLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
+import { longDateWithDay } from "@/lib/format";
+import {
+  useProfileNames,
+  useProfileUsernames,
+  useProfileAvatars,
+  useProfileBylines,
+} from "@/lib/profiles";
+import { useRoleLabels, bylineLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { renderRichText } from "@/lib/richtext";
 import { UserLink } from "@/components/site/user-link";
 import { UserAvatar } from "@/components/site/user-avatar";
@@ -82,10 +87,11 @@ function NewsDetail() {
   const { data: authorUsernames = {} } = useProfileUsernames(authorIds);
   const { data: authorAvatars = {} } = useProfileAvatars(authorIds);
   const { data: authorRoles = {} } = useRoleLabels(authorIds);
+  const { data: authorBylines = {} } = useProfileBylines(authorIds);
 
   const recordedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!article || recordedFor.current === article.id) return;
+    if (!article || article.status !== "published" || recordedFor.current === article.id) return;
     recordedFor.current = article.id;
     void supabase.from("news_views").insert({ news_id: article.id }).then();
   }, [article]);
@@ -179,39 +185,15 @@ function NewsDetail() {
               </Link>
             ))}
           </div>
+          {article.status !== "published" ? (
+            <p className="mt-4 rounded border border-dashed border-caution bg-caution/10 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-caution">
+              Preview · {article.status.replace("_", " ")}, not visible to the public yet
+            </p>
+          ) : null}
           <h1 className="mt-3 text-4xl font-extrabold leading-tight">{article.title}</h1>
-          <div className="mt-4 flex items-start gap-3">
-            {article.author_id ? (
-              <UserAvatar
-                url={authorAvatars[article.author_id]}
-                name={authorNames[article.author_id]}
-                className="mt-0.5 size-11"
-              />
-            ) : null}
-            <div>
-              <p className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
-                {article.author_id ? (
-                  <>
-                    By{" "}
-                    <UserLink
-                      userId={article.author_id}
-                      name={authorNames[article.author_id]}
-                      username={authorUsernames[article.author_id]}
-                      staff={roleRank(authorRoles[article.author_id] ?? []) >= ROLE_RANK.moderator}
-                      className="text-foreground"
-                    />
-                    {" · "}
-                  </>
-                ) : null}
-                {longDate(article.published_at)} {article.source ? `· ${article.source}` : ""}
-              </p>
-              {article.author_id ? (
-                <p className="mt-0.5 inline-block rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                  {primaryRoleLabel(authorRoles[article.author_id])}
-                </p>
-              ) : null}
-            </div>
-          </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            {longDateWithDay(article.published_at)} {article.source ? `· ${article.source}` : ""}
+          </p>
           <div className="mt-3">
             <ShareButtons title={article.title} />
           </div>
@@ -230,6 +212,30 @@ function NewsDetail() {
                 </figcaption>
               ) : null}
             </figure>
+          ) : null}
+          {article.author_id ? (
+            <div className="mt-4 flex items-start gap-3">
+              <UserAvatar
+                url={authorAvatars[article.author_id]}
+                name={authorNames[article.author_id]}
+                className="mt-0.5 size-11"
+              />
+              <div>
+                <p className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+                  By{" "}
+                  <UserLink
+                    userId={article.author_id}
+                    name={authorNames[article.author_id]}
+                    username={authorUsernames[article.author_id]}
+                    staff={roleRank(authorRoles[article.author_id] ?? []) >= ROLE_RANK.moderator}
+                    className="text-foreground"
+                  />
+                </p>
+                <p className="mt-0.5 inline-block rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                  {bylineLabel(authorRoles[article.author_id], authorBylines[article.author_id])}
+                </p>
+              </div>
+            </div>
           ) : null}
           <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
             {article.summary}

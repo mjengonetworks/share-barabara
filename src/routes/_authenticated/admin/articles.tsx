@@ -295,7 +295,8 @@ function ArticlesQueuePage() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link to="/news/$slug" params={{ slug: a.slug }} target="_blank">
-                        <ExternalLink className="mr-2 size-4" /> View on website
+                        <ExternalLink className="mr-2 size-4" />{" "}
+                        {a.status === "published" ? "View on website" : "Preview"}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setExpandedId(a.id)}>

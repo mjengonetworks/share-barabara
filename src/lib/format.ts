@@ -22,6 +22,16 @@ export function longDate(iso: string): string {
   });
 }
 
+/** Same as longDate but leads with the day name, e.g. "Wednesday, 27 August 2026". */
+export function longDateWithDay(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-KE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 /** Date and time together, for admin lists where "when exactly" matters. */
 export function dateTime(iso: string): string {
   return new Date(iso).toLocaleString("en-KE", {

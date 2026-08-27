@@ -9,7 +9,10 @@ import type { ReactNode } from "react";
  * exactly as before, since none of that syntax appears in it.
  */
 
-const INLINE_RE = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*/g;
+// The 5th alternative ($...$) is a lightweight math marker: not real LaTeX
+// typesetting, just preserved and visually set apart so a pasted formula
+// survives instead of getting flattened into plain running text.
+const INLINE_RE = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*|\$([^$\n]+)\$/g;
 
 function parseInline(text: string, keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = [];
@@ -35,6 +38,12 @@ function parseInline(text: string, keyPrefix: string): ReactNode[] {
       nodes.push(<strong key={`${keyPrefix}-${i++}`}>{match[3]}</strong>);
     } else if (match[4] !== undefined) {
       nodes.push(<em key={`${keyPrefix}-${i++}`}>{match[4]}</em>);
+    } else if (match[5] !== undefined) {
+      nodes.push(
+        <code key={`${keyPrefix}-${i++}`} className="rounded bg-muted px-1 py-0.5 font-mono">
+          {match[5]}
+        </code>,
+      );
     }
     lastIndex = match.index + match[0].length;
   }
@@ -75,6 +84,7 @@ export function YouTubeEmbed({ url, className = "" }: { url: string; className?:
 }
 
 const VIDEO_BLOCK_RE = /^\{\{video:(.+)\}\}$/;
+const MATH_BLOCK_RE = /^\$\$([\s\S]+)\$\$$/;
 // Optional quoted title after the URL carries "caption::credit" (both
 // optional), a convention this app's own editor writes — plain
 // ![alt](url) with no title still renders exactly as before.
@@ -88,6 +98,17 @@ export function renderRichText(content: string): ReactNode {
     const trimmed = block.trim();
     const videoMatch = trimmed.match(VIDEO_BLOCK_RE);
     if (videoMatch) return <YouTubeEmbed key={i} url={videoMatch[1] ?? ""} className="my-4" />;
+    const mathMatch = trimmed.match(MATH_BLOCK_RE);
+    if (mathMatch) {
+      return (
+        <div
+          key={i}
+          className="my-4 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4 text-center font-mono text-sm"
+        >
+          {mathMatch[1]?.trim()}
+        </div>
+      );
+    }
     const imageMatch = trimmed.match(IMAGE_BLOCK_RE);
     if (imageMatch) {
       const [caption, credit] = (imageMatch[3] ?? "").split("::");
@@ -108,6 +129,10 @@ export function renderRichText(content: string): ReactNode {
         </figure>
       );
     }
-    return <p key={i}>{parseInline(trimmed, String(i))}</p>;
+    return (
+      <p key={i} className="whitespace-pre-wrap">
+        {parseInline(trimmed, String(i))}
+      </p>
+    );
   });
 }

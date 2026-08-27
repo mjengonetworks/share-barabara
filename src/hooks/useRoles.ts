@@ -101,3 +101,15 @@ export function primaryRoleLabel(roles: AppRole[] | undefined): string {
   if (roles.includes("guest_author")) return "Guest author";
   return "Contributor";
 }
+
+/** The text shown under a name on a byline: a custom title the person set
+ *  in their profile, falling back to their role label. Guest authors can't
+ *  set one -- it always reads "Guest author" for them, since editors add
+ *  their SEO/review polish and the byline shouldn't imply otherwise. */
+export function bylineLabel(
+  roles: AppRole[] | undefined,
+  bylineTitle: string | null | undefined,
+): string {
+  if (roles && roleRank(roles) === ROLE_RANK.guest_author) return "Guest author";
+  return bylineTitle?.trim() || primaryRoleLabel(roles);
+}

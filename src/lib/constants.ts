@@ -53,7 +53,7 @@ export const PARTIES_INVOLVED = [
   { value: "pedestrian", label: "Pedestrian" },
   { value: "cyclist", label: "Cyclist" },
   { value: "motorcyclist", label: "Motorcyclist" },
-  { value: "passenger", label: "Passenger (incl. driver)" },
+  { value: "passenger", label: "Passenger" },
   { value: "other", label: "Other" },
 ] as const;
 

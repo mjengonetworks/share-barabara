@@ -37,6 +37,24 @@ export function useProfileAvatars(ids: string[]) {
   });
 }
 
+export function useProfileBylines(ids: string[]) {
+  const unique = Array.from(new Set(ids)).sort();
+  return useQuery({
+    queryKey: ["profile-bylines", unique],
+    enabled: unique.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, byline_title")
+        .in("id", unique);
+      if (error) throw error;
+      const map: Record<string, string | null> = {};
+      for (const row of data ?? []) map[row.id] = row.byline_title;
+      return map;
+    },
+  });
+}
+
 export function useProfileUsernames(ids: string[]) {
   const unique = Array.from(new Set(ids)).sort();
   return useQuery({
