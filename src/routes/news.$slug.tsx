@@ -180,22 +180,6 @@ function NewsDetail() {
             ))}
           </div>
           <h1 className="mt-3 text-4xl font-extrabold leading-tight">{article.title}</h1>
-          {article.image_url ? (
-            <figure className="mt-4">
-              <img
-                src={article.image_url}
-                alt={article.image_alt || article.title}
-                className="aspect-video w-full rounded-lg border border-border object-cover"
-              />
-              {article.image_caption || article.image_credit ? (
-                <figcaption className="mt-1.5 text-xs text-muted-foreground">
-                  {article.image_caption}
-                  {article.image_caption && article.image_credit ? " · " : ""}
-                  {article.image_credit ? `Credit: ${article.image_credit}` : ""}
-                </figcaption>
-              ) : null}
-            </figure>
-          ) : null}
           <div className="mt-4 flex items-start gap-3">
             {article.author_id ? (
               <UserAvatar
@@ -231,6 +215,22 @@ function NewsDetail() {
           <div className="mt-3">
             <ShareButtons title={article.title} />
           </div>
+          {article.image_url ? (
+            <figure className="mt-4">
+              <img
+                src={article.image_url}
+                alt={article.image_alt || article.title}
+                className="aspect-video w-full rounded-lg border border-border object-cover"
+              />
+              {article.image_caption || article.image_credit ? (
+                <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                  {article.image_caption}
+                  {article.image_caption && article.image_credit ? " · " : ""}
+                  {article.image_credit ? `Credit: ${article.image_credit}` : ""}
+                </figcaption>
+              ) : null}
+            </figure>
+          ) : null}
           <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
             {article.summary}
           </p>

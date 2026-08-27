@@ -202,6 +202,9 @@ function ReportDetail() {
             </p>
           ) : null}
           <h1 className="mt-3 text-4xl font-extrabold leading-tight">{report.title}</h1>
+          <div className="mt-3">
+            <ShareButtons title={report.title} />
+          </div>
           {report.image_url ? (
             <figure className="mt-4">
               <img
@@ -281,10 +284,6 @@ function ReportDetail() {
                 ) : null}
               </div>
             </div>
-          </div>
-
-          <div className="mt-3">
-            <ShareButtons title={report.title} />
           </div>
 
           <div className="mt-6 grid grid-cols-3 gap-4">

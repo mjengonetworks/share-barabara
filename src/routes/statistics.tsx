@@ -1,7 +1,16 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
-import { PARTIES_INVOLVED } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { useHazardTypes, useReportSeverities } from "@/hooks/useTaxonomy";
 import {
   Area,
@@ -102,6 +111,35 @@ function usePartiesCounts() {
         for (const p of row.parties_involved ?? []) counts[p] = (counts[p] ?? 0) + 1;
       }
       return counts;
+    },
+  });
+}
+
+type LiveReport = {
+  occurred_at: string;
+  county: string;
+  severity: string;
+  fatalities: number;
+  casualties: number;
+  parties_involved: string[];
+};
+
+/** This year's and last year's approved reports, fetched once and filtered/
+ *  aggregated client-side -- the live, community-fed counterpart to the
+ *  admin-entered yearly_stats figures below. */
+function useLiveYearReports() {
+  const currentYear = new Date().getFullYear();
+  return useQuery({
+    queryKey: ["live-year-reports", currentYear],
+    queryFn: async () => {
+      const since = new Date(currentYear - 1, 0, 1).toISOString();
+      const { data, error } = await supabase
+        .from("accident_reports")
+        .select("occurred_at, county, severity, fatalities, casualties, parties_involved")
+        .eq("status", "approved")
+        .gte("occurred_at", since);
+      if (error) throw error;
+      return (data ?? []) as LiveReport[];
     },
   });
 }
@@ -257,7 +295,6 @@ function StatisticsPage() {
     "status",
     "approved",
   ]);
-  const { data: commentsCount } = useLiveCount("comments", "comments");
   const { data: hazardCounts = {} } = useGroupCounts("alerts", "hazard_type");
   const { data: reportSeverityCounts = {} } = useGroupCounts("accident_reports", "severity");
   const { data: partiesCounts = {} } = usePartiesCounts();
@@ -271,6 +308,46 @@ function StatisticsPage() {
       ? Math.round(((latest.fatalities - prev.fatalities) / prev.fatalities) * 1000) / 10
       : null;
 
+  const currentYear = new Date().getFullYear();
+  const { data: liveReports = [] } = useLiveYearReports();
+  const [liveCounty, setLiveCounty] = useState("all");
+  const [liveSeverity, setLiveSeverity] = useState("all");
+  const [liveParty, setLiveParty] = useState("all");
+  const liveFiltered = liveCounty !== "all" || liveSeverity !== "all" || liveParty !== "all";
+
+  const matchesLiveFilters = (r: LiveReport) =>
+    (liveCounty === "all" || r.county === liveCounty) &&
+    (liveSeverity === "all" || r.severity === liveSeverity) &&
+    (liveParty === "all" || r.parties_involved.includes(liveParty));
+
+  const jan1ThisYear = new Date(currentYear, 0, 1).getTime();
+  const dayOfYear = Math.floor((Date.now() - jan1ThisYear) / 86_400_000);
+  const jan1LastYear = new Date(currentYear - 1, 0, 1).getTime();
+
+  const thisYearReports = liveReports.filter(
+    (r) => new Date(r.occurred_at).getFullYear() === currentYear && matchesLiveFilters(r),
+  );
+  const lastYearToDateReports = liveReports.filter((r) => {
+    const occurred = new Date(r.occurred_at);
+    if (occurred.getFullYear() !== currentYear - 1) return false;
+    const doy = Math.floor((occurred.getTime() - jan1LastYear) / 86_400_000);
+    return doy <= dayOfYear && matchesLiveFilters(r);
+  });
+
+  const sumBy = (rows: LiveReport[], key: "fatalities" | "casualties") =>
+    rows.reduce((s, r) => s + r[key], 0);
+
+  const pctChange = (curr: number, prior: number) =>
+    prior === 0 ? null : Math.round(((curr - prior) / prior) * 1000) / 10;
+
+  const liveMonthly = MONTHS.map((label, i) => ({
+    label,
+    fatalities: sumBy(
+      thisYearReports.filter((r) => new Date(r.occurred_at).getMonth() === i),
+      "fatalities",
+    ),
+  }));
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
@@ -282,7 +359,7 @@ function StatisticsPage() {
         updated as it happens.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
         <Link
           to="/alerts"
           className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"
@@ -310,12 +387,6 @@ function StatisticsPage() {
           </p>
           <p className="mt-1 text-sm text-brand-blue underline">Reports verified &amp; published</p>
         </Link>
-        <div className="rounded-lg border border-border bg-card p-6 card-elevated">
-          <p className="font-display text-3xl font-extrabold">
-            {commentsCount === undefined ? "…" : num(commentsCount)}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">Community comments</p>
-        </div>
       </div>
 
       <div className="mt-6 grid gap-6 sm:grid-cols-3">
@@ -380,6 +451,147 @@ function StatisticsPage() {
             })}
           </ul>
         </div>
+      </div>
+
+      <div className="mt-14 border-t border-border pt-10">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="relative flex size-2.5">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive opacity-75" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-destructive" />
+          </span>
+          <p className="text-xs font-semibold uppercase tracking-widest text-destructive">
+            Live · counted from verified reports as they're filed
+          </p>
+        </div>
+        <h2 className="mt-2 text-4xl font-extrabold">{currentYear} so far</h2>
+        <p className="mt-3 max-w-2xl text-muted-foreground">
+          Our own count, not a government release -- built straight from accident reports filed and
+          verified on Share Barabara. Filter it the same way you'd filter the reports themselves.
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-end gap-2">
+          <Select value={liveCounty} onValueChange={setLiveCounty}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-64">
+              <SelectItem value="all">All counties</SelectItem>
+              {KENYA_COUNTIES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={liveSeverity} onValueChange={setLiveSeverity}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All severities</SelectItem>
+              {reportSeverities.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={liveParty} onValueChange={setLiveParty}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Everyone involved</SelectItem>
+              {PARTIES_INVOLVED.map((p) => (
+                <SelectItem key={p.value} value={p.value}>
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {liveFiltered ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setLiveCounty("all");
+                setLiveSeverity("all");
+                setLiveParty("all");
+              }}
+            >
+              Clear filters
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {(
+            [
+              {
+                label: "Accidents recorded",
+                curr: thisYearReports.length,
+                prior: lastYearToDateReports.length,
+                tone: "text-foreground",
+              },
+              {
+                label: "Deaths",
+                curr: sumBy(thisYearReports, "fatalities"),
+                prior: sumBy(lastYearToDateReports, "fatalities"),
+                tone: "text-destructive",
+              },
+              {
+                label: "Injuries",
+                curr: sumBy(thisYearReports, "casualties"),
+                prior: sumBy(lastYearToDateReports, "casualties"),
+                tone: "text-caution",
+              },
+            ] as const
+          ).map((s) => {
+            const change = pctChange(s.curr, s.prior);
+            return (
+              <div
+                key={s.label}
+                className="rounded-lg border border-border bg-card p-6 card-elevated"
+              >
+                <p className={`font-display text-4xl font-extrabold ${s.tone}`}>{num(s.curr)}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {s.label} in {currentYear}
+                  {liveFiltered ? " (filtered)" : ""}
+                </p>
+                {change !== null ? (
+                  <p
+                    className={`mt-2 text-xs font-semibold ${
+                      change > 0 ? "text-destructive" : "text-safe"
+                    }`}
+                  >
+                    {change > 0 ? "+" : ""}
+                    {change}% vs the same point in {currentYear - 1}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 h-64 rounded-lg border border-border bg-card p-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={liveMonthly}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
+              <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
+              <Bar
+                dataKey="fatalities"
+                name="Deaths"
+                fill="var(--destructive)"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Deaths by month in {currentYear}, same filters as above.
+        </p>
       </div>
 
       <div className="mt-14 border-t border-border pt-10">

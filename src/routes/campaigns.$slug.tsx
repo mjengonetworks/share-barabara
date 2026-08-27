@@ -87,6 +87,10 @@ function CampaignDetail() {
 
       <h1 className="mt-3 text-4xl font-extrabold leading-tight">{campaign.title}</h1>
 
+      <div className="mt-3">
+        <ShareButtons title={campaign.title} />
+      </div>
+
       {heroImage ? (
         <img
           src={heroImage}
@@ -94,10 +98,6 @@ function CampaignDetail() {
           className="mt-4 aspect-video w-full rounded-lg border border-border object-cover"
         />
       ) : null}
-
-      <div className="mt-3">
-        <ShareButtons title={campaign.title} />
-      </div>
 
       <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
         {campaign.description}
