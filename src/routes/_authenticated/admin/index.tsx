@@ -150,6 +150,16 @@ function OverviewPage() {
   const { start, prevStart } = periodBounds(period, now);
   const activePeriod = PERIODS.find((p) => p.key === period)!;
 
+  const [articlesLimit, setArticlesLimit] = useState(5);
+  const [reportsLimit, setReportsLimit] = useState(5);
+  const [alertsLimit, setAlertsLimit] = useState(5);
+  const changePeriod = (p: Period) => {
+    setPeriod(p);
+    setArticlesLimit(5);
+    setReportsLimit(5);
+    setAlertsLimit(5);
+  };
+
   const articles = useContentStats("news", "published", "published_at", "news_views", "created_at");
   const reports = useContentStats(
     "accident_reports",
@@ -161,12 +171,12 @@ function OverviewPage() {
   const alerts = useContentStats("alerts", "active", "created_at", "alert_views", "created_at");
 
   const { data: trendingArticles = [] } = useQuery({
-    queryKey: ["admin-trending-articles", period],
+    queryKey: ["admin-trending-articles", period, articlesLimit],
     refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
         hours_back: activePeriod.hoursBack,
-        result_limit: 5,
+        result_limit: articlesLimit,
       });
       if (error) throw error;
       return data ?? [];
@@ -174,12 +184,12 @@ function OverviewPage() {
   });
 
   const { data: trendingReports = [] } = useQuery({
-    queryKey: ["admin-trending-reports", period],
+    queryKey: ["admin-trending-reports", period, reportsLimit],
     refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_reports", {
         hours_back: activePeriod.hoursBack,
-        result_limit: 5,
+        result_limit: reportsLimit,
       });
       if (error) throw error;
       return data ?? [];
@@ -187,12 +197,12 @@ function OverviewPage() {
   });
 
   const { data: trendingAlerts = [] } = useQuery({
-    queryKey: ["admin-trending-alerts", period],
+    queryKey: ["admin-trending-alerts", period, alertsLimit],
     refetchInterval: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_alerts", {
         hours_back: activePeriod.hoursBack,
-        result_limit: 5,
+        result_limit: alertsLimit,
       });
       if (error) throw error;
       return data ?? [];
@@ -237,7 +247,7 @@ function OverviewPage() {
             key={p.key}
             size="sm"
             variant={period === p.key ? "default" : "outline"}
-            onClick={() => setPeriod(p.key)}
+            onClick={() => changePeriod(p.key)}
           >
             {p.label}
           </Button>
@@ -343,6 +353,16 @@ function OverviewPage() {
               <li className="text-sm text-muted-foreground">No alert views in this period yet.</li>
             ) : null}
           </ul>
+          {trendingAlerts.length === alertsLimit ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-2"
+              onClick={() => setAlertsLimit((n) => n + 10)}
+            >
+              View 10 more
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -433,6 +453,16 @@ function OverviewPage() {
               </li>
             ) : null}
           </ul>
+          {trendingArticles.length === articlesLimit ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-2"
+              onClick={() => setArticlesLimit((n) => n + 10)}
+            >
+              View 10 more
+            </Button>
+          ) : null}
         </div>
         <div className="rounded-lg border border-border bg-card p-5 card-elevated">
           <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-widest text-muted-foreground">
@@ -455,6 +485,16 @@ function OverviewPage() {
               <li className="text-sm text-muted-foreground">No report views in this period yet.</li>
             ) : null}
           </ul>
+          {trendingReports.length === reportsLimit ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-2"
+              onClick={() => setReportsLimit((n) => n + 10)}
+            >
+              View 10 more
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>

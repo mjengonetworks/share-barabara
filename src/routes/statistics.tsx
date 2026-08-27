@@ -96,19 +96,27 @@ function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
   });
 }
 
-function usePartiesCounts() {
+type CasualtyBreakdownRow = Record<string, { dead?: number; injured?: number }> | null;
+
+/** Actual dead + injured counts per party, summed from the casualty
+ *  breakdown reporters (or an admin, backfilling later) filled in on alerts
+ *  and reports, not just how many rows merely tagged a party as present. */
+function usePartiesCasualtyCounts() {
   return useQuery({
-    queryKey: ["group-counts-parties"],
+    queryKey: ["parties-casualty-counts"],
     queryFn: async () => {
       const [{ data: alerts, error: e1 }, { data: reports, error: e2 }] = await Promise.all([
-        supabase.from("alerts").select("parties_involved"),
-        supabase.from("accident_reports").select("parties_involved"),
+        supabase.from("alerts").select("casualty_breakdown"),
+        supabase.from("accident_reports").select("casualty_breakdown"),
       ]);
       if (e1) throw e1;
       if (e2) throw e2;
       const counts: Record<string, number> = {};
       for (const row of [...(alerts ?? []), ...(reports ?? [])]) {
-        for (const p of row.parties_involved ?? []) counts[p] = (counts[p] ?? 0) + 1;
+        const breakdown = row.casualty_breakdown as CasualtyBreakdownRow;
+        for (const [party, c] of Object.entries(breakdown ?? {})) {
+          counts[party] = (counts[party] ?? 0) + (c.dead ?? 0) + (c.injured ?? 0);
+        }
       }
       return counts;
     },
@@ -125,7 +133,7 @@ type LiveReport = {
 };
 
 /** This year's and last year's approved reports, fetched once and filtered/
- *  aggregated client-side -- the live, community-fed counterpart to the
+ *  aggregated client-side, the live, community-fed counterpart to the
  *  admin-entered yearly_stats figures below. */
 function useLiveYearReports() {
   const currentYear = new Date().getFullYear();
@@ -297,7 +305,7 @@ function StatisticsPage() {
   ]);
   const { data: hazardCounts = {} } = useGroupCounts("alerts", "hazard_type");
   const { data: reportSeverityCounts = {} } = useGroupCounts("accident_reports", "severity");
-  const { data: partiesCounts = {} } = usePartiesCounts();
+  const { data: partiesCounts = {} } = usePartiesCasualtyCounts();
 
   const latest = yearly[yearly.length - 1];
   const prev = yearly[yearly.length - 2];
@@ -340,12 +348,20 @@ function StatisticsPage() {
   const pctChange = (curr: number, prior: number) =>
     prior === 0 ? null : Math.round(((curr - prior) / prior) * 1000) / 10;
 
-  const liveMonthly = MONTHS.map((label, i) => ({
-    label,
-    fatalities: sumBy(
-      thisYearReports.filter((r) => new Date(r.occurred_at).getMonth() === i),
-      "fatalities",
-    ),
+  const liveMonthly = MONTHS.map((label, i) => {
+    const rows = thisYearReports.filter((r) => new Date(r.occurred_at).getMonth() === i);
+    return {
+      label,
+      accidents: rows.length,
+      fatalities: sumBy(rows, "fatalities"),
+      injuries: sumBy(rows, "casualties"),
+    };
+  });
+
+  const liveSeverityMix = ["minor", "serious", "fatal"].map((value) => ({
+    value,
+    label: reportSeverities.find((s) => s.value === value)?.label ?? value,
+    count: thisYearReports.filter((r) => r.severity === value).length,
   }));
 
   return (
@@ -432,6 +448,9 @@ function StatisticsPage() {
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             Who was involved
           </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Dead and injured, from casualty counts filed on alerts and reports.
+          </p>
           <ul className="mt-4 space-y-2">
             {PARTIES_INVOLVED.map((p) => {
               const total = Object.values(partiesCounts).reduce((s, v) => s + v, 0) || 1;
@@ -465,8 +484,8 @@ function StatisticsPage() {
         </div>
         <h2 className="mt-2 text-4xl font-extrabold">{currentYear} so far</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Our own count, not a government release -- built straight from accident reports filed and
-          verified on Share Barabara. Filter it the same way you'd filter the reports themselves.
+          Our own count, not a government release — built straight from accident reports filed and
+          verified on Share Barabara.
         </p>
 
         <div className="mt-6 flex flex-wrap items-end gap-2">
@@ -573,24 +592,95 @@ function StatisticsPage() {
           })}
         </div>
 
-        <div className="mt-4 h-64 rounded-lg border border-border bg-card p-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={liveMonthly}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
-              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
-              <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
-              <Bar
-                dataKey="fatalities"
-                name="Deaths"
-                fill="var(--destructive)"
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Deaths &amp; injuries by month
+            </h3>
+            <div className="mt-3 h-64 rounded-lg border border-border bg-card p-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={liveMonthly}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={12} />
+                  <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
+                  <Legend />
+                  <Bar
+                    dataKey="fatalities"
+                    name="Deaths"
+                    fill="var(--destructive)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="injuries"
+                    name="Injuries"
+                    fill="var(--caution)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Accidents by month
+            </h3>
+            <div className="mt-3 h-64 rounded-lg border border-border bg-card p-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={liveMonthly}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="label" stroke="var(--muted-foreground)" fontSize={12} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={12} allowDecimals={false} />
+                  <Tooltip cursor={{ fill: "var(--muted)" }} contentStyle={tooltipStyle} />
+                  <Bar
+                    dataKey="accidents"
+                    name="Accidents"
+                    fill="var(--primary)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Severity mix this year
+            </h3>
+            <div className="mt-3 h-64 rounded-lg border border-border bg-card p-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={liveSeverityMix}
+                    dataKey="count"
+                    nameKey="label"
+                    innerRadius={50}
+                    outerRadius={90}
+                    paddingAngle={2}
+                  >
+                    {liveSeverityMix.map((s) => (
+                      <Cell
+                        key={s.value}
+                        fill={
+                          s.value === "fatal"
+                            ? "var(--destructive)"
+                            : s.value === "serious"
+                              ? "var(--caution)"
+                              : "var(--safe)"
+                        }
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Deaths by month in {currentYear}, same filters as above.
+        <p className="mt-4 text-xs text-muted-foreground">
+          All three charts follow the filters above.
         </p>
       </div>
 

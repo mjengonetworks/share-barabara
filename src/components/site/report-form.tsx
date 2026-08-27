@@ -39,7 +39,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
     description: "",
     county: "Nairobi",
     road: "",
-    severity: "moderate",
+    severity: "minor",
     occurred_at: new Date().toISOString().slice(0, 16),
     vehicles_involved: 1,
     casualties: 0,
@@ -47,6 +47,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
     latitude: null as number | null,
     longitude: null as number | null,
     image_url: "",
+    image_alt: "",
     image_caption: "",
     image_credit: "",
   });
@@ -61,6 +62,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       const { error } = await supabase.from("accident_reports").insert({
         ...form,
         image_url: form.image_url.trim() || null,
+        image_alt: form.image_alt.trim() || null,
         image_caption: form.image_caption.trim() || null,
         image_credit: form.image_credit.trim() || null,
         road_id,
@@ -84,6 +86,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         latitude: null,
         longitude: null,
         image_url: "",
+        image_alt: "",
         image_caption: "",
         image_credit: "",
       });
@@ -227,14 +230,13 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       </div>
       <div>
         <Label>Featured image (optional)</Label>
-        <div className="mt-2">
-          <ImageUploadField
-            value={form.image_url}
-            onChange={(url) => setForm({ ...form, image_url: url })}
+        <div className="mt-2 space-y-2">
+          <Input
+            value={form.image_alt}
+            onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
+            placeholder="Alt text (describes the image for screen readers and search engines)"
           />
-        </div>
-        {form.image_url ? (
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-2">
             <Input
               value={form.image_caption}
               onChange={(e) => setForm({ ...form, image_caption: e.target.value })}
@@ -246,7 +248,11 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
               placeholder="Credit / source (optional)"
             />
           </div>
-        ) : null}
+          <ImageUploadField
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+          />
+        </div>
       </div>
       <div>
         <Label htmlFor="r-desc">What happened?</Label>

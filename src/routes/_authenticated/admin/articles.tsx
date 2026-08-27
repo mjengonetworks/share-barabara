@@ -111,7 +111,7 @@ function ArticlesQueuePage() {
       draft,
     }: {
       id: string;
-      status: "published" | "rejected" | "pending_review";
+      status: "published" | "rejected" | "pending_review" | "draft";
       draft?: ArticleDraft;
     }) => {
       const patch = {
@@ -308,6 +308,11 @@ function ArticlesQueuePage() {
                         Publish
                       </DropdownMenuItem>
                     ) : null}
+                    {canPublishArticles && a.status === "published" ? (
+                      <DropdownMenuItem onClick={() => save.mutate({ id: a.id, status: "draft" })}>
+                        Unpublish (send back to draft)
+                      </DropdownMenuItem>
+                    ) : null}
                     {canPublishArticles && a.status !== "rejected" ? (
                       <DropdownMenuItem
                         onClick={() => save.mutate({ id: a.id, status: "rejected" })}
@@ -479,6 +484,15 @@ function ArticlesQueuePage() {
                           onClick={() => save.mutate({ id: a.id, status: "pending_review" })}
                         >
                           Send back to review
+                        </Button>
+                      ) : null}
+                      {a.status === "published" ? (
+                        <Button
+                          variant="ghost"
+                          disabled={save.isPending}
+                          onClick={() => save.mutate({ id: a.id, status: "draft" })}
+                        >
+                          Unpublish
                         </Button>
                       ) : null}
                     </div>

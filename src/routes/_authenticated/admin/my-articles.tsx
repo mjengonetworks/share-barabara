@@ -50,11 +50,17 @@ type Draft = {
   body: string;
   categories: string[];
   image_url: string;
+  image_alt: string;
+  image_caption: string;
+  image_credit: string;
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string;
 };
 
 function MyArticlesPage() {
   const { user } = useAuth();
-  const { keepsArticleRightsAfterPublish, canPublishArticles } = useRoles();
+  const { keepsArticleRightsAfterPublish, canPublishArticles, canEditSeo } = useRoles();
   const canWrite = useCanWriteArticles();
   const queryClient = useQueryClient();
   const { data: categories = [] } = useNewsCategories();
@@ -95,6 +101,16 @@ function MyArticlesPage() {
               category: draft.categories[0] ?? "News",
               categories: draft.categories,
               image_url: draft.image_url.trim() || null,
+              image_alt: draft.image_alt.trim() || null,
+              image_caption: draft.image_caption.trim() || null,
+              image_credit: draft.image_credit.trim() || null,
+              ...(canEditSeo
+                ? {
+                    seo_title: draft.seo_title.trim() || null,
+                    seo_description: draft.seo_description.trim() || null,
+                    seo_keywords: draft.seo_keywords.trim() || null,
+                  }
+                : {}),
             }
           : {}),
         ...(status ? { status } : {}),
@@ -183,6 +199,12 @@ function MyArticlesPage() {
             body: a.body,
             categories: a.categories?.length ? a.categories : [a.category],
             image_url: a.image_url ?? "",
+            image_alt: a.image_alt ?? "",
+            image_caption: a.image_caption ?? "",
+            image_credit: a.image_credit ?? "",
+            seo_title: a.seo_title ?? "",
+            seo_description: a.seo_description ?? "",
+            seo_keywords: a.seo_keywords ?? "",
           };
           const set = (patch: Partial<Draft>) =>
             setDrafts((prev) => ({ ...prev, [a.id]: { ...d, ...patch } }));
@@ -239,6 +261,11 @@ function MyArticlesPage() {
                         Publish now
                       </DropdownMenuItem>
                     ) : null}
+                    {canEdit && a.status === "published" ? (
+                      <DropdownMenuItem onClick={() => save.mutate({ id: a.id, status: "draft" })}>
+                        Unpublish (send back to draft)
+                      </DropdownMenuItem>
+                    ) : null}
                     {a.status === "draft" ? (
                       <DropdownMenuItem
                         onClick={() => save.mutate({ id: a.id, status: "pending_review" })}
@@ -283,7 +310,28 @@ function MyArticlesPage() {
                   </div>
                   <div>
                     <Label>Featured image</Label>
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-2">
+                      {canEditSeo ? (
+                        <>
+                          <Input
+                            value={d.image_alt}
+                            onChange={(e) => set({ image_alt: e.target.value })}
+                            placeholder="Alt text (describes the image for screen readers and search engines)"
+                          />
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <Input
+                              value={d.image_caption}
+                              onChange={(e) => set({ image_caption: e.target.value })}
+                              placeholder="Caption (optional)"
+                            />
+                            <Input
+                              value={d.image_credit}
+                              onChange={(e) => set({ image_credit: e.target.value })}
+                              placeholder="Credit / source (optional)"
+                            />
+                          </div>
+                        </>
+                      ) : null}
                       <ImageUploadField
                         value={d.image_url}
                         onChange={(url) => set({ image_url: url })}
@@ -308,6 +356,41 @@ function MyArticlesPage() {
                       onChange={(v) => set({ body: v })}
                     />
                   </div>
+                  {canEditSeo ? (
+                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        SEO (optional, overrides defaults)
+                      </p>
+                      <div>
+                        <Label htmlFor={`seo-t-${a.id}`}>SEO title</Label>
+                        <Input
+                          id={`seo-t-${a.id}`}
+                          value={d.seo_title}
+                          onChange={(e) => set({ seo_title: e.target.value })}
+                          placeholder={a.title}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`seo-d-${a.id}`}>SEO description</Label>
+                        <Textarea
+                          id={`seo-d-${a.id}`}
+                          rows={2}
+                          value={d.seo_description}
+                          onChange={(e) => set({ seo_description: e.target.value })}
+                          placeholder={a.summary}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`seo-k-${a.id}`}>SEO keywords</Label>
+                        <Input
+                          id={`seo-k-${a.id}`}
+                          value={d.seo_keywords}
+                          onChange={(e) => set({ seo_keywords: e.target.value })}
+                          placeholder="comma, separated, keywords"
+                        />
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     <Button
                       disabled={save.isPending}

@@ -49,6 +49,11 @@ export function useRoles() {
   const canPublishArticles = rank >= ROLE_RANK.moderator;
   /** Keep edit/delete rights on an article after it is published: author and above. */
   const keepsArticleRightsAfterPublish = rank >= ROLE_RANK.author;
+  /** SEO fields, image alt text, and the option to save as a draft (rather than
+   *  going straight to pending review): author and above, not guest_author.
+   *  Guest author submissions always go straight to pending review, and an
+   *  editor/moderator/admin adds SEO + alt text during review instead. */
+  const canEditSeo = rank >= ROLE_RANK.author;
 
   return {
     roles,
@@ -61,6 +66,7 @@ export function useRoles() {
     canReview,
     canPublishArticles,
     keepsArticleRightsAfterPublish,
+    canEditSeo,
     isLoading,
   };
 }

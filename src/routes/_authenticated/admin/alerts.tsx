@@ -6,6 +6,7 @@ import { ExternalLink, MoreVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -27,12 +28,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  PartyCasualtyInputs,
+  type CasualtyBreakdown,
+} from "@/components/site/party-casualty-inputs";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { dateTime } from "@/lib/format";
-import { KENYA_COUNTIES } from "@/lib/constants";
+import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
@@ -48,6 +54,11 @@ function AlertsAdminPage() {
   const [hazard, setHazard] = useState("all");
   const [severity, setSeverity] = useState("all");
   const [search, setSearch] = useState("");
+  const [editingParties, setEditingParties] = useState<{
+    id: string;
+    parties: string[];
+    casualties: CasualtyBreakdown;
+  } | null>(null);
 
   const { data: allAlerts = [], isLoading } = useQuery({
     queryKey: ["admin-alerts"],
@@ -92,6 +103,26 @@ function AlertsAdminPage() {
     },
     onSuccess: () => {
       toast.success("Alert removed");
+      queryClient.invalidateQueries({ queryKey: ["admin-alerts"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const saveParties = useMutation({
+    mutationFn: async () => {
+      if (!editingParties) return;
+      const { error } = await supabase
+        .from("alerts")
+        .update({
+          parties_involved: editingParties.parties,
+          casualty_breakdown: editingParties.casualties,
+        })
+        .eq("id", editingParties.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Updated");
+      setEditingParties(null);
       queryClient.invalidateQueries({ queryKey: ["admin-alerts"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -232,6 +263,17 @@ function AlertsAdminPage() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        onClick={() =>
+                          setEditingParties({
+                            id: a.id,
+                            parties: a.parties_involved ?? [],
+                            casualties: (a.casualty_breakdown as CasualtyBreakdown | null) ?? {},
+                          })
+                        }
+                      >
+                        Who was involved
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         onClick={() => remove.mutate(a.id)}
                       >
@@ -252,6 +294,49 @@ function AlertsAdminPage() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!editingParties} onOpenChange={(v) => !v && setEditingParties(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Who was involved</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Often left blank by whoever posted the alert. Fill it in from the description if you
+            know the breakdown, for accurate statistics.
+          </p>
+          {editingParties ? (
+            <>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {PARTIES_INVOLVED.map((p) => (
+                  <label key={p.value} className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={editingParties.parties.includes(p.value)}
+                      onCheckedChange={(v) =>
+                        setEditingParties({
+                          ...editingParties,
+                          parties:
+                            v === true
+                              ? [...editingParties.parties, p.value]
+                              : editingParties.parties.filter((x) => x !== p.value),
+                        })
+                      }
+                    />
+                    {p.label}
+                  </label>
+                ))}
+              </div>
+              <PartyCasualtyInputs
+                parties={editingParties.parties}
+                value={editingParties.casualties}
+                onChange={(v) => setEditingParties({ ...editingParties, casualties: v })}
+              />
+              <Button disabled={saveParties.isPending} onClick={() => saveParties.mutate()}>
+                {saveParties.isPending ? "Saving…" : "Save"}
+              </Button>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -52,12 +52,25 @@ export const KENYA_COUNTIES = [
 export const PARTIES_INVOLVED = [
   { value: "pedestrian", label: "Pedestrian" },
   { value: "cyclist", label: "Cyclist" },
-  { value: "motorcycle", label: "Motorcycle / boda boda" },
+  { value: "motorcyclist", label: "Motorcyclist" },
+  { value: "passenger", label: "Passenger (incl. driver)" },
+  { value: "other", label: "Other" },
+] as const;
+
+/** Optional sub-breakdown for the "passenger" party, which kind of vehicle
+ *  they were in. All vehicle occupants are bundled under one party at the
+ *  top level; this is where the detail can live if someone has it. */
+export const PASSENGER_VEHICLE_TYPES = [
   { value: "car", label: "Car" },
   { value: "matatu_bus", label: "Matatu / bus" },
+  { value: "van", label: "Van" },
   { value: "truck_lorry", label: "Truck / lorry" },
-  { value: "animal", label: "Animal" },
-  { value: "other", label: "Other" },
+] as const;
+
+/** Optional sub-breakdown for the "motorcyclist" party. */
+export const MOTORCYCLIST_SUBTYPES = [
+  { value: "private", label: "Private rider" },
+  { value: "boda_boda", label: "Boda boda (commercial)" },
 ] as const;
 
 export const STRUCTURE_TYPES = [

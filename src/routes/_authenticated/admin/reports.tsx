@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -37,8 +38,12 @@ import { useViewCounts } from "@/hooks/useViewCounts";
 import { UserLink } from "@/components/site/user-link";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
+import {
+  PartyCasualtyInputs,
+  type CasualtyBreakdown,
+} from "@/components/site/party-casualty-inputs";
 import { dateTime } from "@/lib/format";
-import { KENYA_COUNTIES } from "@/lib/constants";
+import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
@@ -62,6 +67,8 @@ type ReportDraft = {
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
+  parties_involved: string[];
+  casualty_breakdown: CasualtyBreakdown;
 };
 type Status = "pending" | "approved" | "rejected";
 
@@ -253,6 +260,8 @@ function ReportsQueuePage() {
             seo_title: r.seo_title ?? "",
             seo_description: r.seo_description ?? "",
             seo_keywords: r.seo_keywords ?? "",
+            parties_involved: r.parties_involved ?? [],
+            casualty_breakdown: (r.casualty_breakdown as CasualtyBreakdown | null) ?? {},
           };
           const set = (patch: Partial<ReportDraft>) =>
             setDrafts((prev) => ({ ...prev, [r.id]: { ...d, ...patch } }));
@@ -508,6 +517,38 @@ function ReportsQueuePage() {
                           placeholder="comma, separated, keywords"
                         />
                       </div>
+                    </div>
+                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        Who was involved
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Often left blank by the reporter, fill it in here from the write-up if you
+                        know the breakdown, for accurate statistics.
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-2">
+                        {PARTIES_INVOLVED.map((p) => (
+                          <label key={p.value} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={d.parties_involved.includes(p.value)}
+                              onCheckedChange={(v) =>
+                                set({
+                                  parties_involved:
+                                    v === true
+                                      ? [...d.parties_involved, p.value]
+                                      : d.parties_involved.filter((x) => x !== p.value),
+                                })
+                              }
+                            />
+                            {p.label}
+                          </label>
+                        ))}
+                      </div>
+                      <PartyCasualtyInputs
+                        parties={d.parties_involved}
+                        value={d.casualty_breakdown}
+                        onChange={(v) => set({ casualty_breakdown: v })}
+                      />
                     </div>
                   </div>
 

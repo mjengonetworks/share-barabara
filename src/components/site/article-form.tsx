@@ -19,15 +19,19 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const { identity } = useActiveIdentity();
   const queryClient = useQueryClient();
-  const { canPublishArticles } = useRoles();
+  const { canPublishArticles, canEditSeo } = useRoles();
   const { data: categories = [] } = useNewsCategories();
   const [form, setForm] = useState({
     title: "",
     summary: "",
     body: "",
     image_url: "",
+    image_alt: "",
     image_caption: "",
     image_credit: "",
+    seo_title: "",
+    seo_description: "",
+    seo_keywords: "",
   });
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["News"]);
 
@@ -40,8 +44,16 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         summary: form.summary,
         body: form.body,
         image_url: form.image_url.trim() || null,
+        image_alt: form.image_alt.trim() || null,
         image_caption: form.image_caption.trim() || null,
         image_credit: form.image_credit.trim() || null,
+        ...(canEditSeo
+          ? {
+              seo_title: form.seo_title.trim() || null,
+              seo_description: form.seo_description.trim() || null,
+              seo_keywords: form.seo_keywords.trim() || null,
+            }
+          : {}),
         category: selectedCategories[0] ?? "News",
         categories: selectedCategories,
         slug: slugify(form.title),
@@ -71,8 +83,12 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         summary: "",
         body: "",
         image_url: "",
+        image_alt: "",
         image_caption: "",
         image_credit: "",
+        seo_title: "",
+        seo_description: "",
+        seo_keywords: "",
       });
       setSelectedCategories(["News"]);
       queryClient.invalidateQueries({ queryKey: ["my-articles"] });
@@ -113,14 +129,13 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
       </div>
       <div>
         <Label>Featured image (optional)</Label>
-        <div className="mt-2">
-          <ImageUploadField
-            value={form.image_url}
-            onChange={(url) => setForm({ ...form, image_url: url })}
+        <div className="mt-2 space-y-2">
+          <Input
+            value={form.image_alt}
+            onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
+            placeholder="Alt text (describes the image for screen readers and search engines)"
           />
-        </div>
-        {form.image_url ? (
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-2">
             <Input
               value={form.image_caption}
               onChange={(e) => setForm({ ...form, image_caption: e.target.value })}
@@ -132,7 +147,11 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
               placeholder="Credit / source (optional)"
             />
           </div>
-        ) : null}
+          <ImageUploadField
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+          />
+        </div>
       </div>
       <div>
         <Label htmlFor="a-summary">Summary</Label>
@@ -157,10 +176,46 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
           placeholder="Separate paragraphs with a blank line. Use the toolbar to add bold, italic, links, images or a YouTube video."
         />
       </div>
+      {canEditSeo ? (
+        <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            SEO (optional, overrides defaults)
+          </p>
+          <div>
+            <Label htmlFor="a-seo-title">SEO title</Label>
+            <Input
+              id="a-seo-title"
+              value={form.seo_title}
+              onChange={(e) => setForm({ ...form, seo_title: e.target.value })}
+              placeholder={form.title || "Defaults to the headline"}
+            />
+          </div>
+          <div>
+            <Label htmlFor="a-seo-desc">SEO description</Label>
+            <Textarea
+              id="a-seo-desc"
+              rows={2}
+              value={form.seo_description}
+              onChange={(e) => setForm({ ...form, seo_description: e.target.value })}
+              placeholder={form.summary || "Defaults to the summary"}
+            />
+          </div>
+          <div>
+            <Label htmlFor="a-seo-keywords">SEO keywords</Label>
+            <Input
+              id="a-seo-keywords"
+              value={form.seo_keywords}
+              onChange={(e) => setForm({ ...form, seo_keywords: e.target.value })}
+              placeholder="comma, separated, keywords"
+            />
+          </div>
+        </div>
+      ) : null}
       {!canPublishArticles ? (
         <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          Submitted articles are reviewed and may be edited for accuracy by an editor before they
-          appear publicly.
+          {canEditSeo
+            ? "Submitted articles are reviewed and may be edited for accuracy by an editor before they appear publicly."
+            : "Guest author submissions go straight to review. An editor adds SEO details and image alt text before it's published."}
         </p>
       ) : null}
       <div className="flex flex-wrap gap-3">
@@ -173,14 +228,16 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
             {submit.isPending ? "Submitting…" : "Submit for review"}
           </Button>
         )}
-        <Button
-          type="button"
-          variant="outline"
-          disabled={submit.isPending}
-          onClick={() => submit.mutate("draft")}
-        >
-          Save as draft
-        </Button>
+        {canEditSeo ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submit.isPending}
+            onClick={() => submit.mutate("draft")}
+          >
+            Save as draft
+          </Button>
+        ) : null}
       </div>
     </form>
   );
