@@ -49,6 +49,7 @@ import { Route as AuthenticatedAdminBannerAdsRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminCampaignsRouteImport } from './routes/_authenticated/admin/campaigns'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin/categories'
 import { Route as AuthenticatedAdminCommentsRouteImport } from './routes/_authenticated/admin/comments'
+import { Route as AuthenticatedAdminCrashStatisticsRouteImport } from './routes/_authenticated/admin/crash-statistics'
 import { Route as AuthenticatedAdminFeaturedRouteImport } from './routes/_authenticated/admin/featured'
 import { Route as AuthenticatedAdminFooterRouteImport } from './routes/_authenticated/admin/footer'
 import { Route as AuthenticatedAdminInfrastructureIssuesRouteImport } from './routes/_authenticated/admin/infrastructure-issues'
@@ -61,7 +62,6 @@ import { Route as AuthenticatedAdminPartnerEnquiriesRouteImport } from './routes
 import { Route as AuthenticatedAdminQuoteRouteImport } from './routes/_authenticated/admin/quote'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin/requests'
-import { Route as AuthenticatedAdminSiteFiguresRouteImport } from './routes/_authenticated/admin/site-figures'
 import { Route as AuthenticatedAdminSocialLinksRouteImport } from './routes/_authenticated/admin/social-links'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVideosRouteImport } from './routes/_authenticated/admin/videos'
@@ -273,6 +273,12 @@ const AuthenticatedAdminCommentsRoute =
     path: '/comments',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminCrashStatisticsRoute =
+  AuthenticatedAdminCrashStatisticsRouteImport.update({
+    id: '/crash-statistics',
+    path: '/crash-statistics',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminFeaturedRoute =
   AuthenticatedAdminFeaturedRouteImport.update({
     id: '/featured',
@@ -343,12 +349,6 @@ const AuthenticatedAdminRequestsRoute =
     path: '/requests',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
-const AuthenticatedAdminSiteFiguresRoute =
-  AuthenticatedAdminSiteFiguresRouteImport.update({
-    id: '/site-figures',
-    path: '/site-figures',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
 const AuthenticatedAdminSocialLinksRoute =
   AuthenticatedAdminSocialLinksRouteImport.update({
     id: '/social-links',
@@ -406,6 +406,7 @@ export interface FileRoutesByFullPath {
   '/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/comments': typeof AuthenticatedAdminCommentsRoute
+  '/admin/crash-statistics': typeof AuthenticatedAdminCrashStatisticsRoute
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
   '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
@@ -418,7 +419,6 @@ export interface FileRoutesByFullPath {
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
-  '/admin/site-figures': typeof AuthenticatedAdminSiteFiguresRoute
   '/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/videos': typeof AuthenticatedAdminVideosRoute
@@ -462,6 +462,7 @@ export interface FileRoutesByTo {
   '/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/comments': typeof AuthenticatedAdminCommentsRoute
+  '/admin/crash-statistics': typeof AuthenticatedAdminCrashStatisticsRoute
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
   '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
@@ -474,7 +475,6 @@ export interface FileRoutesByTo {
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
-  '/admin/site-figures': typeof AuthenticatedAdminSiteFiguresRoute
   '/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/videos': typeof AuthenticatedAdminVideosRoute
@@ -521,6 +521,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/comments': typeof AuthenticatedAdminCommentsRoute
+  '/_authenticated/admin/crash-statistics': typeof AuthenticatedAdminCrashStatisticsRoute
   '/_authenticated/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/_authenticated/admin/footer': typeof AuthenticatedAdminFooterRoute
   '/_authenticated/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
@@ -533,7 +534,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/quote': typeof AuthenticatedAdminQuoteRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/requests': typeof AuthenticatedAdminRequestsRoute
-  '/_authenticated/admin/site-figures': typeof AuthenticatedAdminSiteFiguresRoute
   '/_authenticated/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/videos': typeof AuthenticatedAdminVideosRoute
@@ -580,6 +580,7 @@ export interface FileRouteTypes {
     | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/comments'
+    | '/admin/crash-statistics'
     | '/admin/featured'
     | '/admin/footer'
     | '/admin/infrastructure-issues'
@@ -592,7 +593,6 @@ export interface FileRouteTypes {
     | '/admin/quote'
     | '/admin/reports'
     | '/admin/requests'
-    | '/admin/site-figures'
     | '/admin/social-links'
     | '/admin/users'
     | '/admin/videos'
@@ -636,6 +636,7 @@ export interface FileRouteTypes {
     | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/comments'
+    | '/admin/crash-statistics'
     | '/admin/featured'
     | '/admin/footer'
     | '/admin/infrastructure-issues'
@@ -648,7 +649,6 @@ export interface FileRouteTypes {
     | '/admin/quote'
     | '/admin/reports'
     | '/admin/requests'
-    | '/admin/site-figures'
     | '/admin/social-links'
     | '/admin/users'
     | '/admin/videos'
@@ -694,6 +694,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/campaigns'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/comments'
+    | '/_authenticated/admin/crash-statistics'
     | '/_authenticated/admin/featured'
     | '/_authenticated/admin/footer'
     | '/_authenticated/admin/infrastructure-issues'
@@ -706,7 +707,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/quote'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/requests'
-    | '/_authenticated/admin/site-figures'
     | '/_authenticated/admin/social-links'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/videos'
@@ -1027,6 +1027,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCommentsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/crash-statistics': {
+      id: '/_authenticated/admin/crash-statistics'
+      path: '/crash-statistics'
+      fullPath: '/admin/crash-statistics'
+      preLoaderRoute: typeof AuthenticatedAdminCrashStatisticsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/featured': {
       id: '/_authenticated/admin/featured'
       path: '/featured'
@@ -1111,13 +1118,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRequestsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/_authenticated/admin/site-figures': {
-      id: '/_authenticated/admin/site-figures'
-      path: '/site-figures'
-      fullPath: '/admin/site-figures'
-      preLoaderRoute: typeof AuthenticatedAdminSiteFiguresRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
     '/_authenticated/admin/social-links': {
       id: '/_authenticated/admin/social-links'
       path: '/social-links'
@@ -1149,6 +1149,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminCampaignsRoute: typeof AuthenticatedAdminCampaignsRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCommentsRoute: typeof AuthenticatedAdminCommentsRoute
+  AuthenticatedAdminCrashStatisticsRoute: typeof AuthenticatedAdminCrashStatisticsRoute
   AuthenticatedAdminFeaturedRoute: typeof AuthenticatedAdminFeaturedRoute
   AuthenticatedAdminFooterRoute: typeof AuthenticatedAdminFooterRoute
   AuthenticatedAdminInfrastructureIssuesRoute: typeof AuthenticatedAdminInfrastructureIssuesRoute
@@ -1161,7 +1162,6 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminQuoteRoute: typeof AuthenticatedAdminQuoteRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
-  AuthenticatedAdminSiteFiguresRoute: typeof AuthenticatedAdminSiteFiguresRoute
   AuthenticatedAdminSocialLinksRoute: typeof AuthenticatedAdminSocialLinksRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVideosRoute: typeof AuthenticatedAdminVideosRoute
@@ -1176,6 +1176,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminCampaignsRoute: AuthenticatedAdminCampaignsRoute,
     AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
     AuthenticatedAdminCommentsRoute: AuthenticatedAdminCommentsRoute,
+    AuthenticatedAdminCrashStatisticsRoute:
+      AuthenticatedAdminCrashStatisticsRoute,
     AuthenticatedAdminFeaturedRoute: AuthenticatedAdminFeaturedRoute,
     AuthenticatedAdminFooterRoute: AuthenticatedAdminFooterRoute,
     AuthenticatedAdminInfrastructureIssuesRoute:
@@ -1190,7 +1192,6 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminQuoteRoute: AuthenticatedAdminQuoteRoute,
     AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
     AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
-    AuthenticatedAdminSiteFiguresRoute: AuthenticatedAdminSiteFiguresRoute,
     AuthenticatedAdminSocialLinksRoute: AuthenticatedAdminSocialLinksRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminVideosRoute: AuthenticatedAdminVideosRoute,
