@@ -127,6 +127,9 @@ export function SiteFooter() {
             <li>
               <Link to="/merch">Merch</Link>
             </li>
+            <li>
+              <a href="/feed.xml">RSS Feed</a>
+            </li>
           </ul>
         </div>
         <div>
