@@ -129,21 +129,21 @@ function Index() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-20">
-          <div className="hazard-stripe h-1.5 w-24 rounded" />
-          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-foreground hover:underline">
-                Mjengo Hub
-              </a>
-              <a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-foreground hover:underline">
-                Mjengo Networks
-              </a>
+          <div className="flex flex-wrap gap-2">
+            <a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer" className="rounded-md border border-primary-foreground/25 bg-primary/75 px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary">
+              Mjengo Hub
+            </a>
+            <a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer" className="rounded-md border border-primary-foreground/25 bg-primary/75 px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary">
+              Mjengo Networks
+            </a>
           </div>
+          <div className="mt-4 hazard-stripe h-1.5 w-24 rounded" />
           <h1 className="mt-4 max-w-3xl font-display text-[2.31rem] font-extrabold leading-tight sm:text-[2.8875rem]">
             Every journey home should end at home.
           </h1>
           <p className="mt-4 max-w-xl text-[12.6px] text-muted-foreground lg:max-w-3xl">
             Share Barabara brings together live hazard alerts, crash data and road safety news from
-            across Kenya's 47 counties, reported by the people who use these roads every day.
+            Kenya and beyond, reported by the people who use these roads every day.
           </p>
           <SearchBar className="mt-6 max-w-md" />
           <div className="mt-6 flex flex-wrap gap-3">

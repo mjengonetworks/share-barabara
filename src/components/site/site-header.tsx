@@ -84,9 +84,16 @@ export function SiteHeader() {
       ref={headerRef}
       className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur"
     >
-      <div className="mx-auto grid h-20 max-w-6xl grid-cols-[auto,minmax(0,1fr),auto] items-center gap-3 px-4">
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-4 md:grid md:h-20 md:grid-cols-[auto,minmax(0,1fr),auto]">
+        <button
+          className="order-first flex size-9 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-muted md:hidden"
+          aria-label="Toggle menu"
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <X className="size-5" /> : <Menu className="size-5" />}
+        </button>
         <Link to="/" className="flex items-center" aria-label="Share Barabara home">
-          <img src={logoUrl} alt="Share Barabara" className="h-14 w-auto sm:h-16" />
+          <img src={logoUrl} alt="Share Barabara" className="h-9 w-auto sm:h-10 md:h-14 lg:h-16" />
         </Link>
 
         <nav className="hidden min-w-0 items-center justify-center gap-0.5 overflow-x-auto md:flex">
@@ -102,12 +109,12 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
+        <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2 md:ml-0">
           <HeaderSearch />
           <HeaderShareBarabaraAI />
           {user ? (
             <>
-              <SubscribeButton />
+              <span className="hidden md:inline-flex"><SubscribeButton /></span>
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -179,25 +186,40 @@ export function SiteHeader() {
               <Link to="/auth">Sign in</Link>
             </Button>
           )}
-          <button className="md:hidden" aria-label="Toggle menu" onClick={() => setOpen((v) => !v)}>
-            {open ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
         </div>
       </div>
 
       {open ? (
-        <nav className="border-t border-border/60 bg-background px-4 py-2 md:hidden">
-          {NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setOpen(false)}
-                className="block rounded px-2 py-2 text-sm font-medium text-foreground"
-              activeProps={{ className: "text-foreground" }}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav className="border-t border-border/60 bg-background px-4 py-3 md:hidden">
+          <div className="mx-auto max-w-sm">
+            {NAV.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className="block rounded px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+                activeProps={{ className: "block rounded bg-muted px-3 py-2.5 text-sm font-semibold text-foreground" }}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <div className="mt-3 border-t border-border/60 pt-3">
+              {user ? (
+                <Link
+                  to="/u/$userId"
+                  params={{ userId: ownUsername[user.id] ?? user.id }}
+                  onClick={() => setOpen(false)}
+                  className="flex w-2/3 items-center gap-2 rounded-md border border-primary bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                >
+                  <CircleUserRound className="size-4" /> My Profile
+                </Link>
+              ) : (
+                <Button asChild size="sm" onClick={() => setOpen(false)}>
+                  <Link to="/auth">Sign in</Link>
+                </Button>
+              )}
+            </div>
+          </div>
         </nav>
       ) : null}
     </header>
