@@ -47,5 +47,8 @@
 - [ ] 24.8 Distinct retrieval and provider failure states
 - [ ] 24.9 Server-only provider configuration
 - [ ] 24.10 Compatibility with the Task 25 Share Barabara Agent System
+- [ ] 24.11 SearXNG Provider Support & Deployment Readiness (adapter/docs complete; live instance not connected)
 
-Task 25 — Share Barabara Agent System depends on Task 24.
+Task 24 remains TESTING / VERIFICATION because no real SearXNG instance is connected yet.
+
+Task 25 — Share Barabara Agent System remains PENDING. External-discovery agents may begin after the selected retrieval provider is configured and live retrieval is verified.

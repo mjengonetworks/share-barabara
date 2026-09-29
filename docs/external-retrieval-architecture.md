@@ -15,11 +15,15 @@ Provider routing is intentionally unchanged: Editorial Generate = xAI/Grok, Edit
 
 ## Retrieval contract
 
-`searchExternal({ query, maxResults, topic, freshness, allowedDomains, blockedDomains })` is server-only. `EXTERNAL_SEARCH_PROVIDER` selects an adapter; the currently supported adapter names are `tavily` and `exa`, but neither is selected by default. Their credentials are `TAVILY_API_KEY` and `EXA_API_KEY` respectively. No `VITE_*` variable is used.
+`searchExternal({ query, maxResults, topic, language, categories, safeSearch, freshness, allowedDomains, blockedDomains })` is server-only. `EXTERNAL_SEARCH_PROVIDER` selects an adapter; supported names are `tavily`, `exa`, and `searxng`. Tavily and Exa seams remain intact. SearXNG uses `SEARXNG_BASE_URL` and does not require credentials. An eventual protected deployment may use the optional server-only `SEARXNG_AUTH_TOKEN` with `SEARXNG_AUTH_HEADER` (default `x-api-key`). No `VITE_*` variable is used.
+
+The SearXNG adapter sends only a bounded query and supported search parameters to `/search?format=json`. It maps result title, destination URL, content/snippet, publication date, and engine metadata into the existing normalized source/evidence format. Engine metadata is internal and does not override source classification. Duplicate destinations are merged deterministically before evidence is sent to Groq.
 
 The public flow is local resolution -> deterministic sufficiency assessment -> optional external retrieval -> validation/ranking -> evidence bundle -> Groq -> citation ID filtering. Local evidence remains preferred. A small local result set is not, by itself, a reason to search. Current/latest language, absent direct evidence, or an unrelated local match can trigger the controlled fallback.
 
 External results are untrusted evidence. Source classes and verification state are preserved; social sources are marked `investigate`, never authoritative by default. The LLM receives source IDs only. URLs and source metadata come from validated server results, and the browser receives only approved citation objects.
+
+SearXNG is treated as a metasearch transport, not as the factual source. Citations point to the original validated result URL and use its hostname; “SearXNG” is not presented as the source. The configured SearXNG base URL is administrator-controlled and may be private infrastructure, but result URLs still reject private, loopback, link-local, and credential-bearing destinations.
 
 No external search result is simulated when configuration is absent. The runtime returns `external_search_unavailable`; provider failures, invalid results, rejected sources, and rate limits remain separate states.
 
@@ -39,5 +43,7 @@ Queries are normalized, bounded, and stripped of control characters. The retriev
 | Public fallback suitability | Fits the interface if reviewed and configured | Fits the interface if reviewed and configured |
 | Pricing and rate limits | Not verified in this repository; confirm current vendor terms before selection | Not verified in this repository; confirm current vendor terms before selection |
 | Credential | `TAVILY_API_KEY` | `EXA_API_KEY` |
+
+SearXNG uses the JSON API at `SEARXNG_BASE_URL/search` and has no required credential. An eventual protected deployment may use the optional `SEARXNG_AUTH_TOKEN` / `SEARXNG_AUTH_HEADER` pair.
 
 This is an integration comparison, not a provider recommendation. The next task may reuse this retrieval contract for monitoring, discovery, source verification, duplicate/merge, and statistics agents without creating separate search implementations.
