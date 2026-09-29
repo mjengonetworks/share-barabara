@@ -34,3 +34,18 @@
 - [ ] 41.6 Mjengo Hub/Mjengo Networks previews
 - [ ] 41.7 Expanded banner-ad inventory
 - [ ] 41.8 Responsive/performance/security verification
+
+## Task 24 — External AI Retrieval
+
+- [ ] 24.1 Local-first sufficiency decision
+- [ ] 24.2 Provider-independent server abstraction
+- [ ] 24.3 Search result normalization and evidence bundles
+- [ ] 24.4 Source trust classification and validation
+- [ ] 24.5 Backend-controlled citation IDs and metadata
+- [ ] 24.6 SSRF and URL security
+- [ ] 24.7 External-search rate limiting
+- [ ] 24.8 Distinct retrieval and provider failure states
+- [ ] 24.9 Server-only provider configuration
+- [ ] 24.10 Compatibility with the Task 25 Share Barabara Agent System
+
+Task 25 — Share Barabara Agent System depends on Task 24.

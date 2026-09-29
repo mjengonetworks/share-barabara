@@ -35,16 +35,28 @@ export function validateCitation(input: unknown, id: number): TrustedCitation | 
     const url = new URL(value["url"]);
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     if (isPrivateHostname(url.hostname)) return null;
+    if (url.username || url.password || isPrivateIp(url.hostname)) return null;
     return {
       id,
       title: value["title"].slice(0, 200),
       url: url.href,
       domain: url.hostname,
       ...(typeof value["snippet"] === "string" ? { snippet: value["snippet"].slice(0, 500) } : {}),
+      ...(typeof value["sourceId"] === "string" ? { sourceId: value["sourceId"].slice(0, 80) } : {}),
+      ...(typeof value["publishedAt"] === "string" ? { publishedAt: value["publishedAt"].slice(0, 80) } : {}),
     };
   } catch {
     return null;
   }
+}
+
+function isPrivateIp(hostname: string) {
+  const host = hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  if (host === "0.0.0.0" || host === "255.255.255.255" || host === "169.254.169.254") return true;
+  if (host.includes(":")) return host === "::" || host === "::1" || host.startsWith("fe80:") || host.startsWith("fc") || host.startsWith("fd");
+  const parts = host.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return false;
+  return parts[0] === 0 || parts[0] === 10 || parts[0] === 127 || (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || (parts[0] === 192 && parts[1] === 168) || (parts[0] === 169 && parts[1] === 254);
 }
 
 export function clampText(value: unknown, max: number) {

@@ -61,7 +61,10 @@ function Composer({ value, onChange, onSend, busy, placeholder }: { value: strin
 }
 
 function errorText(result: PublicAIResult) {
-  return result.error === "not_configured" ? "Share Barabara AI is not configured yet." : "There is not enough supported information to answer safely.";
+  if (result.error === "not_configured") return "Share Barabara AI is not configured yet.";
+  if (result.error === "external_search_unavailable") return "Share Barabara could not check outside sources right now. Please try again later.";
+  if (result.error === "external_search_rate_limited") return "Please wait a moment before asking Share Barabara AI again.";
+  return "There is not enough supported information to answer safely.";
 }
 
 export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary" }: Props) {
@@ -88,7 +91,7 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
       const result = await callPublicAIChat({ data: { message: next, contextType, contextId, threadId, history: messages } });
       if (result.threadId) setThreadId(result.threadId);
       if (result.answer) setMessages((items) => [...items, { role: "assistant", content: result.answer!, citations: result.citations }]);
-      else setError(result.error === "insufficient_evidence" ? "Share Barabara does not have enough evidence to answer that safely." : "Share Barabara AI is temporarily unavailable.");
+      else setError(errorText(result));
     } catch { setError("Share Barabara AI is temporarily unavailable."); }
     finally { setBusy(false); }
   }

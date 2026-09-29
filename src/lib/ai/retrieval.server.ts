@@ -2,6 +2,21 @@ import { createPublicSupabaseClient } from "@/integrations/supabase/public.serve
 import { MAX_EVIDENCE_CHARS, MAX_EVIDENCE_RECORDS, clampText } from "./safe";
 import type { Evidence, PublicContextType } from "./types";
 
+const CURRENT_SIGNAL = /\b(current|currently|latest|today|tonight|now|breaking|recent|this week|this month|online|web|internet|as of)\b/i;
+
+/** Conservative, deterministic gate. A small local result set can still be sufficient. */
+export function assessLocalEvidence(query: string, evidence: Evidence[], contextType: PublicContextType) {
+  if (!evidence.length) return { sufficient: false, reason: "no_local_evidence" as const };
+  if (CURRENT_SIGNAL.test(query)) return { sufficient: false, reason: "freshness_requested" as const };
+  if (contextType !== "general" && evidence.length > 0) return { sufficient: true, reason: "direct_context" as const };
+  const terms = [...new Set(query.toLowerCase().split(/[^a-z0-9]+/).filter((term) => term.length >= 3))].slice(0, 8);
+  const relevant = evidence.filter((item) => {
+    const haystack = `${item.title} ${item.text}`.toLowerCase();
+    return terms.length === 0 || terms.some((term) => haystack.includes(term));
+  });
+  return relevant.length > 0 ? { sufficient: true, reason: "relevant_local_evidence" as const } : { sufficient: false, reason: "local_evidence_not_direct" as const };
+}
+
 function finish(items: Evidence[]) {
   let chars = 0;
   return items.slice(0, MAX_EVIDENCE_RECORDS).filter((item) => {

@@ -49,7 +49,7 @@ function validate(input: unknown): Input {
 }
 
 async function runPublicAI(input: Input, userId?: string): Promise<PublicAIResult> {
-  const { resolvePublicEvidence } = await import("./retrieval.server");
+  const { resolvePublicEvidence, assessLocalEvidence } = await import("./retrieval.server");
   const { searchExternal } = await import("./external.server");
   const { completeWithProvider } = await import("./providers.server");
   const evidence = await resolvePublicEvidence(
@@ -60,13 +60,18 @@ async function runPublicAI(input: Input, userId?: string): Promise<PublicAIResul
   let finalEvidence = evidence;
   let externalCitations: PublicAIResult["citations"] = [];
   let provenance: PublicAIResult["provenance"] = "share_barabara";
-  if (finalEvidence.length === 0) {
-    await enforceAIRateLimit("external", userId);
-    const external = await searchExternal(input.message);
-    if (!external.configured || external.evidence.length === 0)
+  const localAssessment = assessLocalEvidence(input.message, evidence, input.contextType ?? "general");
+  if (!localAssessment.sufficient) {
+    try {
+      await enforceAIRateLimit("external", userId);
+    } catch {
+      return { ok: false, error: "external_search_rate_limited", provenance: "none", citations: [], evidence };
+    }
+    const external = await searchExternal({ query: input.message, topic: "news", freshness: /\b(current|latest|today|breaking|recent|now)\b/i.test(input.message) ? "recent" : "any", maxResults: 5 });
+    if (external.status !== "ok")
       return {
         ok: false,
-        error: "insufficient_evidence",
+        error: external.status,
         provenance: "none",
         citations: [],
         evidence,
@@ -84,7 +89,12 @@ async function runPublicAI(input: Input, userId?: string): Promise<PublicAIResul
   if (!completion.ok)
     return {
       ok: false,
-      error: completion.error,
+      error:
+        completion.error === "not_configured"
+          ? "not_configured"
+          : completion.error === "malformed_ai_response"
+            ? "malformed_ai_response"
+            : "provider_failed",
       provenance: "none",
       citations: [],
       evidence: finalEvidence,
@@ -93,7 +103,7 @@ async function runPublicAI(input: Input, userId?: string): Promise<PublicAIResul
     ok: true,
     answer: completion.answer,
     provenance,
-    citations: [...externalCitations, ...completion.citations],
+    citations: externalCitations.filter((citation) => !completion.citationIds?.length || completion.citationIds.includes(citation.sourceId ?? "")),
     evidence: finalEvidence,
     ...(userId ? { threadId: input.threadId } : {}),
   };
