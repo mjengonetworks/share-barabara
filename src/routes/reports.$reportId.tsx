@@ -23,6 +23,7 @@ import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { displayReportCount } from "@/lib/report-metrics";
+import { DiscoverySections } from "@/components/site/discovery-sections";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -342,7 +343,7 @@ function ReportDetail() {
           />
 
           <div className="mt-8">
-            <BannerAd />
+            <BannerAd placement="report-primary-content" />
           </div>
 
           <div className="mt-6">
@@ -402,6 +403,7 @@ function ReportDetail() {
           ) : null}
         </aside>
       </div>
+      <DiscoverySections focus="report" currentId={report.id} />
     </div>
   );
 }

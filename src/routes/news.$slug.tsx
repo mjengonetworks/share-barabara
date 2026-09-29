@@ -19,6 +19,7 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
+import { DiscoverySections } from "@/components/site/discovery-sections";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -252,7 +253,7 @@ function NewsDetail() {
                 {article.summary}
               </p>
             ) : null}
-          {article.status === "published" ? <div className="mt-5"><BannerAd /></div> : null}
+          {article.status === "published" ? <div className="mt-5"><BannerAd placement="article-quick-summary" /></div> : null}
           {article.status === "published" ? <ShareBarabaraAI contextType="article" contextId={article.id} title={article.title} /> : null}
           <div className="mt-6 space-y-4 text-foreground/90">
             {renderRichText(article.body)}
@@ -337,6 +338,7 @@ function NewsDetail() {
           ) : null}
         </aside>
       </div>
+      <DiscoverySections focus="article" currentId={article.id} />
     </div>
   );
 }

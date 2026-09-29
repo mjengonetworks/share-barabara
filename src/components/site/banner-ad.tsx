@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
  * falls back to a house placeholder promoting Partner With Us, rather than
  * rendering nothing, since a promotional slot is a site-wide requirement.
  */
-export function BannerAd({ className = "" }: { className?: string }) {
+export function BannerAd({ className = "", placement = "site-default" }: { className?: string; placement?: string }) {
   const { data: ads = [] } = useQuery({
     queryKey: ["banner-ads"],
     queryFn: async () => {
@@ -30,6 +30,7 @@ export function BannerAd({ className = "" }: { className?: string }) {
         href={ad.link_url}
         target="_blank"
         rel="noopener noreferrer sponsored"
+        data-ad-placement={placement}
         className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 transition-colors hover:border-accent ${className}`}
       >
         {ad.image_url ? (
@@ -49,7 +50,7 @@ export function BannerAd({ className = "" }: { className?: string }) {
   }
 
   return (
-    <div className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 ${className}`}>
+    <div data-ad-placement={placement} className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 ${className}`}>
       <Megaphone className="size-6 text-accent" />
       <div className="min-w-0 flex-1">
         <p className="font-semibold">Your Ad Here</p>

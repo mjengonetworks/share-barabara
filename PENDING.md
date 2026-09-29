@@ -23,3 +23,14 @@
 - [ ] Apply the same compact image-card treatment to Latest Articles, cap at four, and avoid duplicates where practical.
 - [ ] Audit spacing and responsive behavior at 320, 360, 390, 412, 768, 1024, 1280, 1440 and 1600+ widths.
 - [ ] Add focused regression coverage for paragraph preservation, SEO application, Groq routing, card limits, profile fallback and attachment validation.
+
+## Task 41 — Cross-site discovery, content previews & ad inventory
+
+- [ ] 41.1 Article discovery
+- [ ] 41.2 Alert discovery
+- [ ] 41.3 Report discovery
+- [ ] 41.4 Homepage whole-platform previews
+- [ ] 41.5 Alert/Report category discovery
+- [ ] 41.6 Mjengo Hub/Mjengo Networks previews
+- [ ] 41.7 Expanded banner-ad inventory
+- [ ] 41.8 Responsive/performance/security verification

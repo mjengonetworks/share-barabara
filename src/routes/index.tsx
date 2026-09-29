@@ -10,23 +10,26 @@ import {
   Film,
   HandHeart,
   Mail,
-  MapPin,
   Megaphone,
-  TriangleAlert,
 } from "lucide-react";
 import heroRoad from "@/assets/hero-road.jpg";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { num, timeAgo, longDate } from "@/lib/format";
+import { num } from "@/lib/format";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
-import { useHazardTypes } from "@/hooks/useTaxonomy";
-import { SeverityBadge } from "@/components/site/severity-badge";
 import { BannerAd } from "@/components/site/banner-ad";
 import { SearchBar } from "@/components/site/search-bar";
 import { QuoteOfTheDay } from "@/components/site/quote-of-the-day";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
 import { useFeaturedPagesList } from "@/hooks/useFeatured";
 import { NewsletterForm } from "@/components/site/newsletter-form";
+import {
+  AlertPreviewCard,
+  ArticlePreviewCard,
+  ReportPreviewCard,
+  SisterPlatformPreviews,
+  TaxonomyDiscovery,
+} from "@/components/site/discovery-sections";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,13 +51,13 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { data: hazardTypes = [] } = useHazardTypes();
   const { data: alerts = [] } = useQuery({
     queryKey: ["home-alerts"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
         .select("*")
+        .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(3);
       if (error) throw error;
@@ -68,6 +71,7 @@ function Index() {
       const { data, error } = await supabase
         .from("news")
         .select("*")
+        .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(3);
       if (error) throw error;
@@ -190,32 +194,7 @@ function Index() {
           </p>
         ) : (
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {alerts.map((a) => (
-              <article
-                key={a.id}
-                className="rounded-lg border border-border bg-card p-5 card-elevated"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <TriangleAlert className="size-4 text-caution" />
-                  <SeverityBadge value={a.severity} />
-                  <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    {hazardTypes.find((h) => h.value === a.hazard_type)?.label ?? a.hazard_type}
-                  </span>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {timeAgo(a.created_at)}
-                  </span>
-                </div>
-                <Link to="/alerts/$alertId" params={{ alertId: a.id }} className="group">
-                  <h3 className="mt-3 font-bold text-brand-blue group-hover:underline">
-                    {a.title}
-                  </h3>
-                </Link>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="size-4" /> {a.county}
-                  {a.road ? ` · ${a.road}` : ""}
-                </p>
-              </article>
-            ))}
+            {alerts.map((a) => <AlertPreviewCard key={a.id} alert={a} />)}
           </div>
         )}
       </section>
@@ -241,35 +220,13 @@ function Index() {
             </div>
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {news.map((n) => (
-              <Link
-                key={n.id}
-                to="/news/$slug"
-                params={{ slug: n.slug }}
-                className="flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-accent card-elevated"
-              >
-                {n.image_url ? (
-                  <img
-                    src={n.image_url}
-                    alt={n.title}
-                    className="aspect-video w-full object-cover"
-                  />
-                ) : null}
-                <div className="p-5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">
-                    {n.category}
-                  </span>
-                  <h3 className="mt-2 font-bold leading-snug">{n.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.summary}</p>
-                </div>
-              </Link>
-            ))}
+            {news.map((n) => <ArticlePreviewCard key={n.id} article={n} />)}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-6">
-        <BannerAd />
+        <BannerAd placement="homepage-between-news-reports" />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10">
@@ -295,24 +252,7 @@ function Index() {
           </p>
         ) : (
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {reports.map((r) => (
-              <article
-                key={r.id}
-                className="rounded-lg border border-border bg-card p-5 card-elevated"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <SeverityBadge value={r.severity} />
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {longDate(r.occurred_at)}
-                  </span>
-                </div>
-                <h3 className="mt-3 font-bold">{r.title}</h3>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="size-4" /> {r.county}
-                  {r.road ? ` · ${r.road}` : ""}
-                </p>
-              </article>
-            ))}
+            {reports.map((r) => <ReportPreviewCard key={r.id} report={r} />)}
           </div>
         )}
       </section>
@@ -420,7 +360,7 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-6">
-        <BannerAd />
+        <BannerAd placement="homepage-support-partner" />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10">
@@ -483,6 +423,35 @@ function Index() {
 
       <section className="mx-auto max-w-6xl px-4 py-10">
         <FeaturedPageCard slot="home_page" />
+      </section>
+
+      <section className="border-t border-border bg-secondary/40">
+        <div className="mx-auto max-w-6xl space-y-8 px-4 py-10">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Explore the platform</p>
+            <h2 className="mt-1 text-[1.44375rem] font-bold">More from Share Barabara</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <PreviewCard title="Share Barabara AI" body="Ask questions about published road-safety content with answers grounded in the site's public evidence." to="/news" cta="Explore the newsroom" icon={BadgeCheck} />
+            <PreviewCard title="Merch" body="Support road-safety work with Share Barabara merchandise, where the public catalogue is available." to="/merch" cta="Browse merch" icon={HandHeart} />
+            <PreviewCard title="Partner with us" body="Reach Kenyan road users through responsible banner, campaign and content partnerships." to="/partner-with-us" cta="Start a partnership" icon={Megaphone} />
+          </div>
+          <div className="rounded-lg border border-border bg-card p-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div><h3 className="font-bold">Browse live alert types</h3><p className="mt-1 text-sm text-muted-foreground">Use the existing alert taxonomy to find the situations that matter to you.</p></div>
+              <Link to="/alerts" className="text-sm font-semibold text-brand-blue underline">View all alerts</Link>
+            </div>
+            <div className="mt-4"><TaxonomyDiscovery kind="alerts" /></div>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div><h3 className="font-bold">Browse report severities</h3><p className="mt-1 text-sm text-muted-foreground">Explore public accident reports using the existing report taxonomy.</p></div>
+              <Link to="/reports" className="text-sm font-semibold text-brand-blue underline">View all reports</Link>
+            </div>
+            <div className="mt-4"><TaxonomyDiscovery kind="reports" /></div>
+          </div>
+          <SisterPlatformPreviews />
+        </div>
       </section>
     </div>
   );

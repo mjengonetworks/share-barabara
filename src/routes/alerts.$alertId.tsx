@@ -21,6 +21,7 @@ import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
+import { DiscoverySections } from "@/components/site/discovery-sections";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   head: () => ({
@@ -223,7 +224,7 @@ function AlertDetail() {
           />
 
             <div className="mt-8">
-              <BannerAd />
+              <BannerAd placement="alert-primary-content" />
             </div>
             {alert.status === "active" ? <ShareBarabaraAI mode="chat" contextType="alert" contextId={alert.id} title={alert.title} /> : null}
             <CommentSection entityType="alert" entityId={alert.id} />
@@ -260,6 +261,7 @@ function AlertDetail() {
           ) : null}
         </aside>
       </div>
+      <DiscoverySections focus="alert" currentId={alert.id} />
     </div>
   );
 }
