@@ -4,3 +4,22 @@
   `SHARE BARABARA KENYA` market-aware so it reflects the active country (for
   example, Uganda or Tanzania). Do not implement geolocation or country
   detection as part of the current homepage work.
+
+## Real-device UI/editorial correction batch
+
+- [ ] Make the mobile navigation a responsive partial-width drawer with a visible scrim and resolved full profile name, retaining Verification & subscriptions.
+- [ ] Remove user-visible Mjengo Hub-style editorial workflow branding from Share Barabara.
+- [ ] Route Editorial AI Auto-Populate for articles, alerts and reports through Groq and verify the server-side model.
+- [ ] Replace decorative Editorial AI source badges with safe, removable text/document and image evidence attachments where supported.
+- [ ] Add All time and specific calendar month performance filters with valid comparison periods and compact responsive spacing.
+- [ ] Preserve article paragraph and supported semantic structure through paste, edit, preview, save, reload, Auto-Populate and public rendering.
+- [ ] Populate article SEO title, description and comma-separated keywords through Auto-Populate with regression coverage.
+- [ ] Replace the article back link with an accessible navigable Home > Articles > category breadcrumb and reduce the top gap.
+- [ ] Restyle article category pills with restrained translucent navy glass treatment.
+- [ ] Fit Google preferred-source action into the mobile social row with a permitted Google G mark and no overflow.
+- [ ] Restyle the article summary/standfirst as a subtle light-blue newsroom block.
+- [ ] Place a simplified fallback advertisement above Quick AI Summary without inventing an advertiser URL.
+- [ ] Redesign Related Articles as responsive image cards, cap at four, and add Read more.
+- [ ] Apply the same compact image-card treatment to Latest Articles, cap at four, and avoid duplicates where practical.
+- [ ] Audit spacing and responsive behavior at 320, 360, 390, 412, 768, 1024, 1280, 1440 and 1600+ widths.
+- [ ] Add focused regression coverage for paragraph preservation, SEO application, Groq routing, card limits, profile fallback and attachment validation.

@@ -152,7 +152,7 @@ function NewsIndex() {
         .from("news")
         .select("id, slug, title, summary, category, source, published_at, featured, image_url")
         .order("published_at", { ascending: false })
-        .limit(3);
+        .limit(4);
       if (error) throw error;
       return data;
     },

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronDown, FileText, ImagePlus, Sparkles } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronDown, FileText, Paperclip, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +38,8 @@ export function EditorialAIButton({
   const [busy, setBusy] = useState(false);
   const [proposal, setProposal] = useState<EditorialProposal | null>(null);
   const [sourceMaterial, setSourceMaterial] = useState(mode === "update" ? "" : source);
+  const [sourceFiles, setSourceFiles] = useState<Array<{ name: string; text: string }>>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
   const label = contentLabel(contentType);
   const title =
     mode === "update"
@@ -51,13 +53,21 @@ export function EditorialAIButton({
       : mode === "generate"
         ? "Create a reviewable draft from source material. Nothing is saved or published automatically."
         : "Extract and organize supplied source material into the supported CMS fields for review.";
+  const providerLabel = mode === "autopopulate" ? "Groq" : "xAI Grok";
 
   async function generate() {
-    if (!sourceMaterial.trim() || busy) return;
+    if ((!sourceMaterial.trim() && sourceFiles.length === 0) || busy) return;
     setBusy(true);
     try {
+      const attachedText = sourceFiles.map((file) => `ATTACHED SOURCE: ${file.name}\n${file.text}`).join("\n\n");
+      const combinedSource = [sourceMaterial, attachedText].filter(Boolean).join("\n\n");
+      if (combinedSource.length > 12000) {
+        toast.error("Source material and attachments together must be 12,000 characters or fewer.");
+        setBusy(false);
+        return;
+      }
       const result = await callGenerateEditorialDraft({
-        data: { contentType, source: sourceMaterial, mode, ...(contentId ? { contentId } : {}) },
+        data: { contentType, source: combinedSource, mode, ...(contentId ? { contentId } : {}) },
       });
       if (mode === "update") {
         if (!result.proposal) throw new Error("No proposal returned");
@@ -76,6 +86,34 @@ export function EditorialAIButton({
     }
   }
 
+  async function handleFiles(files: FileList | null) {
+    if (!files) return;
+    const next: Array<{ name: string; text: string }> = [];
+    for (const file of Array.from(files)) {
+      const isText = file.type.startsWith("text/") || /\.(txt|md|csv|json|rtf)$/i.test(file.name);
+      if (!isText) {
+        toast.error(`${file.name}: only text documents are supported as Editorial AI evidence right now.`);
+        continue;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`${file.name}: files must be 2 MB or smaller.`);
+        continue;
+      }
+      const text = await file.text();
+      if (text.length > 12000) {
+        toast.error(`${file.name}: source evidence must be 12,000 characters or fewer.`);
+        continue;
+      }
+      next.push({ name: file.name, text });
+    }
+    setSourceFiles((current) => {
+      const available = Math.max(0, 5 - current.length);
+      if (next.length > available) toast.error("You can attach up to 5 source files.");
+      return [...current, ...next.slice(0, available)];
+    });
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   return (
     <section
       className="relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-accent"
@@ -87,10 +125,10 @@ export function EditorialAIButton({
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold uppercase tracking-widest text-accent-foreground">
-            Mjengo Hub-style editorial workflow
+            Editorial AI
           </p>
           <h3 className="mt-1 text-base font-bold text-foreground">
-            {title} <span className="font-normal text-muted-foreground">(xAI Grok)</span>
+            {title} <span className="font-normal text-muted-foreground">({providerLabel})</span>
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
@@ -116,15 +154,16 @@ export function EditorialAIButton({
               : "Paste source notes, document text or verified URLs here…"
           }
         />
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded border border-border px-2 py-1">
-            <FileText className="size-3.5" /> Text/document source
-          </span>
-          <span className="inline-flex items-center gap-1 rounded border border-border px-2 py-1">
-            <ImagePlus className="size-3.5" /> Images stay in the normal form
-          </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <input ref={fileRef} type="file" multiple accept=".txt,.md,.csv,.json,.rtf,text/*" className="hidden" onChange={(event) => void handleFiles(event.target.files)} />
+          <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+            <Paperclip className="mr-1.5 size-3.5" /> Attach text files
+          </Button>
+          <span className="text-xs text-muted-foreground">TXT, MD, CSV, JSON or RTF · 2 MB each</span>
         </div>
-        <Button type="button" onClick={() => void generate()} disabled={busy || !sourceMaterial.trim()}>
+        <p className="text-xs text-muted-foreground">Image source analysis coming soon. Use the normal featured-image upload for article media.</p>
+        {sourceFiles.length > 0 ? <ul className="space-y-1 text-xs text-muted-foreground" aria-label="Attached source files">{sourceFiles.map((file, index) => <li key={`${file.name}-${index}`} className="flex items-center gap-2"><FileText className="size-3.5 shrink-0" /><span className="min-w-0 flex-1 truncate">{file.name}</span><button type="button" className="rounded p-1 hover:bg-muted" aria-label={`Remove ${file.name}`} onClick={() => setSourceFiles((current) => current.filter((_, i) => i !== index))}><X className="size-3.5" /></button></li>)}</ul> : null}
+        <Button type="button" onClick={() => void generate()} disabled={busy || (!sourceMaterial.trim() && sourceFiles.length === 0)}>
           <Sparkles className="mr-2 size-4" />
           {busy
             ? "Preparing proposal…"

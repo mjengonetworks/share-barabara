@@ -102,10 +102,14 @@ const MATH_BLOCK_RE = /^\$\$([\s\S]+)\$\$$/;
 // ![alt](url) with no title still renders exactly as before.
 const IMAGE_BLOCK_RE = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)$/;
 
+export function splitRichTextBlocks(content: string): string[] {
+  return content.replace(/\r\n?/g, "\n").split(/\n\s*\n/).filter((b) => b.trim().length > 0);
+}
+
 /** Renders rich-text-lite content as paragraphs, inline formatting, block
  *  images (with an optional caption/credit) and embedded YouTube videos. */
 export function renderRichText(content: string): ReactNode {
-  const blocks = content.split(/\n\s*\n/).filter((b) => b.trim().length > 0);
+  const blocks = splitRichTextBlocks(content);
   return blocks.map((block, i) => {
     const trimmed = block.trim();
     const videoMatch = trimmed.match(VIDEO_BLOCK_RE);
@@ -139,6 +143,12 @@ export function renderRichText(content: string): ReactNode {
           ) : null}
         </figure>
       );
+    }
+    const listItems = trimmed.split("\n").map((line) => line.match(/^\s*(?:[-*+] |\d+[.)] )(.*)$/)).filter(Boolean) as RegExpMatchArray[];
+    if (listItems.length === trimmed.split("\n").length && listItems.length > 0) {
+      const ordered = /^\s*\d+[.)] /.test(trimmed);
+      const List = ordered ? "ol" : "ul";
+      return <List key={i} className="list-inside list-disc space-y-1">{listItems.map((item, index) => <li key={index}>{parseInline(item[1] ?? "", `${i}-${index}`)}</li>)}</List>;
     }
     return (
       <p key={i} className="whitespace-pre-wrap">

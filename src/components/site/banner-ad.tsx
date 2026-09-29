@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,26 +37,24 @@ export function BannerAd({ className = "" }: { className?: string }) {
         ) : (
           <Megaphone className="size-6 text-accent" />
         )}
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Advertisement{ad.advertiser ? ` · ${ad.advertiser}` : ""}
           </p>
           <p className="font-semibold">{ad.title}</p>
         </div>
+        <span className="shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Visit Advertiser</span>
       </a>
     );
   }
 
   return (
-    <Link
-      to="/partner-with-us"
-      className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 transition-colors hover:border-accent ${className}`}
-    >
+    <div className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 ${className}`}>
       <Megaphone className="size-6 text-accent" />
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Advertisement</p>
-        <p className="font-semibold">Advertise your road safety business here</p>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold">Your Ad Here</p>
       </div>
-    </Link>
+      <span className="shrink-0 rounded-md border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">Visit Advertiser</span>
+    </div>
   );
 }

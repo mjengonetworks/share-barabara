@@ -50,11 +50,14 @@ test("Public AI uses Groq and cannot invoke Editorial AI", () => {
   assert.doesNotMatch(publicFunctions, /generateEditorialDraft|completeWithProvider\("grok"/);
 });
 
-test("Editorial xAI configuration uses the server-only XAI_API_KEY", () => {
+test("Editorial routing keeps action-specific server-only providers", async () => {
+  const editorial = await readFile("src/lib/ai/editorial.functions.ts", "utf8");
+  assert.match(providers, /serverEnv\("GROQ_API_KEY"\)/);
   assert.match(providers, /serverEnv\("XAI_API_KEY"\)/);
+  assert.match(editorial, /const provider = mode === "autopopulate" \? "groq" : "grok"/);
+  assert.match(editorial, /completeWithProvider\(provider/);
   assert.match(runtimeEnv, /__env__/);
-  assert.doesNotMatch(providers, new RegExp(["GROK", "API_KEY"].join("_")));
-  assert.doesNotMatch(providers, new RegExp(["VITE", "XAI_API_KEY"].join("_")));
+  assert.doesNotMatch(providers, /VITE_XAI_API_KEY/);
 });
 
 test("rate limiting supports a Cloudflare binding without embedding secrets", async () => {

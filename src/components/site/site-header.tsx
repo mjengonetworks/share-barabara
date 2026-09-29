@@ -28,7 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { ROLE_RANK, useRoles } from "@/hooks/useRoles";
-import { useProfileUsernames } from "@/lib/profiles";
+import { useProfileNames, useProfileUsernames } from "@/lib/profiles";
 import { NotificationBell } from "@/components/site/notification-bell";
 import { SubscribeButton } from "@/components/site/subscribe-button";
 import { HeaderSearch } from "@/components/site/header-search";
@@ -52,7 +52,9 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { identity, setIdentity, myPages, activePage } = useActiveIdentity();
   const { data: ownUsername = {} } = useProfileUsernames(user ? [user.id] : []);
+  const { data: ownNames = {} } = useProfileNames(user ? [user.id] : []);
   const { rank } = useRoles();
+  const profileName = user ? ownNames[user.id]?.trim() || "My Profile" : "My Profile";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const headerRef = useRef<HTMLElement>(null);
 
@@ -196,8 +198,10 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <nav className="border-t border-border/60 bg-background px-4 py-3 lg:hidden">
-          <div className="mx-auto max-w-sm">
+        <>
+          <div className="fixed inset-0 top-14 z-40 bg-black/45 lg:hidden" aria-hidden="true" />
+          <nav className="absolute left-0 top-full z-50 w-[min(82vw,22rem)] border-r border-t border-border/60 bg-background px-4 py-3 shadow-xl lg:hidden">
+          <div className="max-w-sm">
             {NAV.map((item) => (
               <Link
                 key={item.to}
@@ -218,7 +222,7 @@ export function SiteHeader() {
                     onClick={() => setOpen(false)}
                     className="flex w-2/3 items-center gap-2 rounded-md border border-primary bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
                   >
-                    <CircleUserRound className="size-4" /> My Profile
+                    <CircleUserRound className="size-4" /> <span className="truncate">{profileName}</span>
                   </Link>
                   <Link
                     to="/subscribe"
@@ -235,7 +239,8 @@ export function SiteHeader() {
               )}
             </div>
           </div>
-        </nav>
+          </nav>
+        </>
       ) : null}
     </header>
   );

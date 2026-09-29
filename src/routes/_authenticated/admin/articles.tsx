@@ -359,6 +359,9 @@ function ArticlesQueuePage() {
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
                             ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
                             ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
+                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
+                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
                           })
                         }
                       />
@@ -371,6 +374,9 @@ function ArticlesQueuePage() {
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
                             ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
                             ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
+                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
+                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
                           })
                         }
                       />
@@ -384,6 +390,9 @@ function ArticlesQueuePage() {
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
                             ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
                             ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
+                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
+                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
                           })
                         }
                       />

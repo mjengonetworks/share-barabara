@@ -8,6 +8,7 @@ import {
   startOfMonth,
   startOfWeek,
   startOfYear,
+  addMonths,
   subDays,
   subMonths,
   subWeeks,
@@ -32,27 +33,35 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   component: OverviewPage,
 });
 
-type Period = "today" | "week" | "month" | "year";
+type Period = "today" | "week" | "month" | "year" | "all" | "specific";
 const PERIODS: { key: Period; label: string; hoursBack: number }[] = [
   { key: "today", label: "Today", hoursBack: 24 },
   { key: "week", label: "This week", hoursBack: 24 * 7 },
   { key: "month", label: "This month", hoursBack: 24 * 30 },
   { key: "year", label: "This year", hoursBack: 24 * 365 },
+  { key: "all", label: "All time", hoursBack: 24 * 365 * 100 },
 ];
 
-function periodBounds(period: Period, now: Date) {
+function periodBounds(period: Period, now: Date, monthValue: string) {
   switch (period) {
     case "today":
-      return { start: startOfDay(now), prevStart: startOfDay(subDays(now, 1)) };
+      return { start: startOfDay(now), end: now, prevStart: startOfDay(subDays(now, 1)), prevEnd: startOfDay(now) };
     case "week":
       return {
         start: startOfWeek(now, { weekStartsOn: 1 }),
-        prevStart: startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 }),
+        end: now, prevStart: startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 }), prevEnd: startOfWeek(now, { weekStartsOn: 1 }),
       };
     case "month":
-      return { start: startOfMonth(now), prevStart: startOfMonth(subMonths(now, 1)) };
+      return { start: startOfMonth(now), end: now, prevStart: startOfMonth(subMonths(now, 1)), prevEnd: startOfMonth(now) };
     case "year":
-      return { start: startOfYear(now), prevStart: startOfYear(subYears(now, 1)) };
+      return { start: startOfYear(now), end: now, prevStart: startOfYear(subYears(now, 1)), prevEnd: startOfYear(now) };
+    case "specific": {
+      const selected = monthValue ? new Date(`${monthValue}-01T00:00:00`) : startOfMonth(now);
+      const start = startOfMonth(selected);
+      return { start, end: addMonths(start, 1), prevStart: startOfMonth(subMonths(start, 1)), prevEnd: start };
+    }
+    case "all":
+      return { start: new Date(0), end: now, prevStart: null, prevEnd: null };
   }
 }
 
@@ -63,7 +72,8 @@ function countBetween(dates: string[], start: Date, end: Date) {
   }).length;
 }
 
-function DeltaBadge({ current, previous }: { current: number; previous: number }) {
+function DeltaBadge({ current, previous }: { current: number; previous: number | null }) {
+  if (previous === null) return null;
   const delta = current - previous;
   const pct = previous > 0 ? Math.round((delta / previous) * 100) : current > 0 ? 100 : 0;
   const positive = delta >= 0;
@@ -111,15 +121,23 @@ function useContentStats(
     queryKey: ["admin-overview", table],
     refetchInterval: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(table as never)
-        .select(`id, title, ${dateColumn}`)
-        .eq("status", status)
-        .not(dateColumn, "is", null)
-        .order(dateColumn, { ascending: false })
-        .limit(2000);
-      if (error) throw error;
-      return data as unknown as { id: string; title: string; [key: string]: unknown }[];
+      const rows: unknown[] = [];
+      // Supabase applies a server row limit even when no explicit limit is
+      // supplied. Page until the complete available history is collected so
+      // All time is not a relabelled 2,000-row window.
+      for (let page = 0; ; page += 1) {
+        const { data, error } = await supabase
+          .from(table as never)
+          .select(`id, title, ${dateColumn}`)
+          .eq("status", status)
+          .not(dateColumn, "is", null)
+          .order(dateColumn, { ascending: false })
+          .range(page * 1000, page * 1000 + 999);
+        if (error) throw error;
+        rows.push(...(data ?? []));
+        if (!data || data.length < 1000) break;
+      }
+      return rows as { id: string; title: string; [key: string]: unknown }[];
     },
   });
 
@@ -127,13 +145,18 @@ function useContentStats(
     queryKey: ["admin-overview-views", viewsTable],
     refetchInterval: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(viewsTable as never)
-        .select(viewsDateColumn)
-        .order(viewsDateColumn, { ascending: false })
-        .limit(5000);
-      if (error) throw error;
-      return data as unknown as Record<string, string>[];
+      const rows: Record<string, string>[] = [];
+      for (let page = 0; ; page += 1) {
+        const { data, error } = await supabase
+          .from(viewsTable as never)
+          .select(viewsDateColumn)
+          .order(viewsDateColumn, { ascending: false })
+          .range(page * 1000, page * 1000 + 999);
+        if (error) throw error;
+        rows.push(...((data ?? []) as unknown as Record<string, string>[]));
+        if (!data || data.length < 1000) break;
+      }
+      return rows;
     },
   });
 
@@ -144,11 +167,12 @@ function useContentStats(
 
 function OverviewPage() {
   const [period, setPeriod] = useState<Period>("week");
+  const [monthValue, setMonthValue] = useState("");
   // Recomputed every render (not memoized) so the refetchInterval ticks below
   // actually advance the period window instead of comparing against a frozen "now".
   const now = new Date();
-  const { start, prevStart } = periodBounds(period, now);
-  const activePeriod = PERIODS.find((p) => p.key === period)!;
+  const { start, end, prevStart, prevEnd } = periodBounds(period, now, monthValue);
+  const activePeriod = PERIODS.find((p) => p.key === period) ?? PERIODS[2];
 
   const [articlesLimit, setArticlesLimit] = useState(5);
   const [reportsLimit, setReportsLimit] = useState(5);
@@ -216,20 +240,20 @@ function OverviewPage() {
   const alertsSeries = useDailySeries(alerts.itemDates, 30);
   const alertViewsSeries = useDailySeries(alerts.viewDates, 30);
 
-  const articlesPublished = countBetween(articles.itemDates, start, now);
-  const articlesPublishedPrev = countBetween(articles.itemDates, prevStart, start);
-  const articleViews = countBetween(articles.viewDates, start, now);
-  const articleViewsPrev = countBetween(articles.viewDates, prevStart, start);
+  const articlesPublished = countBetween(articles.itemDates, start, end);
+  const articlesPublishedPrev = prevStart && prevEnd ? countBetween(articles.itemDates, prevStart, prevEnd) : null;
+  const articleViews = countBetween(articles.viewDates, start, end);
+  const articleViewsPrev = prevStart && prevEnd ? countBetween(articles.viewDates, prevStart, prevEnd) : null;
 
-  const reportsFiled = countBetween(reports.itemDates, start, now);
-  const reportsFiledPrev = countBetween(reports.itemDates, prevStart, start);
-  const reportViews = countBetween(reports.viewDates, start, now);
-  const reportViewsPrev = countBetween(reports.viewDates, prevStart, start);
+  const reportsFiled = countBetween(reports.itemDates, start, end);
+  const reportsFiledPrev = prevStart && prevEnd ? countBetween(reports.itemDates, prevStart, prevEnd) : null;
+  const reportViews = countBetween(reports.viewDates, start, end);
+  const reportViewsPrev = prevStart && prevEnd ? countBetween(reports.viewDates, prevStart, prevEnd) : null;
 
-  const alertsPosted = countBetween(alerts.itemDates, start, now);
-  const alertsPostedPrev = countBetween(alerts.itemDates, prevStart, start);
-  const alertViews = countBetween(alerts.viewDates, start, now);
-  const alertViewsPrev = countBetween(alerts.viewDates, prevStart, start);
+  const alertsPosted = countBetween(alerts.itemDates, start, end);
+  const alertsPostedPrev = prevStart && prevEnd ? countBetween(alerts.itemDates, prevStart, prevEnd) : null;
+  const alertViews = countBetween(alerts.viewDates, start, end);
+  const alertViewsPrev = prevStart && prevEnd ? countBetween(alerts.viewDates, prevStart, prevEnd) : null;
 
   return (
     <div>
@@ -241,7 +265,7 @@ function OverviewPage() {
         Articles and accident reports posted and viewed, independent of any external analytics tool.
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap items-center gap-1.5">
         {PERIODS.map((p) => (
           <Button
             key={p.key}
@@ -252,6 +276,9 @@ function OverviewPage() {
             {p.label}
           </Button>
         ))}
+        <Button size="sm" variant={period === "specific" ? "default" : "outline"} onClick={() => changePeriod("specific")}>Specific month</Button>
+        <label className="sr-only" htmlFor="performance-month">Choose month</label>
+        <input id="performance-month" type="month" value={monthValue} onChange={(event) => { setMonthValue(event.target.value); setPeriod("specific"); }} className="h-9 w-40 rounded-md border border-input bg-background px-2 text-sm" />
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Flame } from "lucide-react";
+import { ChevronRight, Flame, Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDateWithDay } from "@/lib/format";
 import {
@@ -46,23 +46,26 @@ export const Route = createFileRoute("/news/$slug")({
   component: NewsDetail,
 });
 
-type RelatedArticle = { id: string; slug: string; title: string; category: string };
+type RelatedArticle = { id: string; slug: string; title: string; category?: string | null; image_url?: string | null; published_at?: string | null; source?: string | null };
 
 function ArticleList({ articles }: { articles: RelatedArticle[] }) {
   return (
-    <ul className="mt-3 space-y-3">
+    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
       {articles.map((a) => (
-        <li key={a.id}>
-          <Link
-            to="/news/$slug"
-            params={{ slug: a.slug }}
-            className="text-sm text-brand-blue hover:underline"
-          >
-            {a.title}
-          </Link>
-        </li>
+        <Link
+          key={a.id}
+          to="/news/$slug"
+          params={{ slug: a.slug }}
+          className="group flex min-w-0 gap-3 rounded-md border border-border/70 bg-background/60 p-2 transition-colors hover:border-accent"
+        >
+          {a.image_url ? <img src={a.image_url} alt="" className="size-16 shrink-0 rounded object-cover" /> : <div className="flex size-16 shrink-0 items-center justify-center rounded bg-muted"><Newspaper className="size-5 text-muted-foreground" /></div>}
+          <span className="min-w-0">
+            <span className="line-clamp-2 text-sm font-semibold text-brand-blue group-hover:underline">{a.title}</span>
+            <span className="mt-1 block truncate text-[0.68rem] text-muted-foreground">{a.category ?? "News"}{a.source ? ` · ${a.source}` : ""}</span>
+          </span>
+        </Link>
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -104,24 +107,24 @@ function NewsDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, category")
+        .select("id, slug, title, category, image_url, published_at, source")
         .eq("category", article!.category)
         .eq("status", "published")
         .neq("id", article!.id)
         .eq("status", "published")
         .order("published_at", { ascending: false })
-        .limit(5);
+        .limit(4);
       if (error) throw error;
       if (data.length > 0) return data;
       // Nothing else in this category yet — fall back to other recent
       // articles so "Related articles" is never empty.
       const fallback = await supabase
         .from("news")
-        .select("id, slug, title, category")
+        .select("id, slug, title, category, image_url, published_at, source")
         .neq("id", article!.id)
         .eq("status", "published")
         .order("published_at", { ascending: false })
-        .limit(5);
+        .limit(4);
       if (fallback.error) throw fallback.error;
       return fallback.data;
     },
@@ -133,13 +136,13 @@ function NewsDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, category")
+        .select("id, slug, title, category, image_url, published_at, source")
         .neq("id", article!.id)
         .order("published_at", { ascending: false })
         .limit(5 + related.length);
       if (error) throw error;
       const relatedIds = new Set(related.map((r) => r.id));
-      return data.filter((n) => !relatedIds.has(n.id)).slice(0, 5);
+      return data.filter((n) => !relatedIds.has(n.id)).slice(0, 4);
     },
   });
 
@@ -172,19 +175,21 @@ function NewsDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-5 sm:py-7">
       <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
         <article className="min-w-0">
-          <Link to="/news" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <ArrowLeft className="size-4" /> All news
-          </Link>
-          <div className="mt-6 flex flex-wrap gap-2">
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+            <Link to="/" className="hover:text-foreground hover:underline">Home</Link><ChevronRight className="size-3" aria-hidden="true" />
+            <Link to="/news" className="hover:text-foreground hover:underline">Articles</Link><ChevronRight className="size-3" aria-hidden="true" />
+            <Link to="/news" search={{ category: article.category }} className="font-medium text-foreground hover:underline">{article.category || "News"}</Link>
+          </nav>
+          <div className="mt-3 flex flex-wrap gap-1.5">
             {(article.categories?.length ? article.categories : [article.category]).map((c) => (
               <Link
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className="inline-block rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground hover:bg-accent/30"
+                className="inline-block rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-primary hover:bg-primary/15"
               >
                 {c}
               </Link>
@@ -243,10 +248,11 @@ function NewsDetail() {
             </div>
           ) : null}
             {article.summary?.trim() ? (
-              <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
+            <p className="mt-5 rounded-lg border border-sky-200/80 bg-sky-50 px-4 py-3 text-lg text-primary">
                 {article.summary}
               </p>
             ) : null}
+          {article.status === "published" ? <div className="mt-5"><BannerAd /></div> : null}
           {article.status === "published" ? <ShareBarabaraAI contextType="article" contextId={article.id} title={article.title} /> : null}
           <div className="mt-6 space-y-4 text-foreground/90">
             {renderRichText(article.body)}
@@ -282,9 +288,6 @@ function NewsDetail() {
             ))}
           </div>
 
-          <div className="mt-8">
-            <BannerAd />
-          </div>
           <CommentSection entityType="news" entityId={article.id} />
         </article>
 
@@ -294,7 +297,7 @@ function NewsDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Related articles
               </h2>
-              <ArticleList articles={related} />
+              <ArticleList articles={related.slice(0, 4)} />
               <Link
                 to="/news"
                 search={{ category: article.category }}
@@ -309,7 +312,7 @@ function NewsDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Latest articles
               </h2>
-              <ArticleList articles={latest} />
+              <ArticleList articles={latest.slice(0, 4)} />
               <Link
                 to="/news"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"

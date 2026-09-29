@@ -1,4 +1,4 @@
-import { Check, Copy, Facebook, Linkedin, Send, Star } from "lucide-react";
+import { Check, Copy, Facebook, Linkedin, Send } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -22,6 +22,10 @@ function WhatsAppLogo({ className }: { className?: string }) {
 
 function TelegramLogo({ className }: { className?: string }) {
   return <Send className={className} />;
+}
+
+function GoogleLogo({ className }: { className?: string }) {
+  return <span className={`font-bold text-[#4285f4] ${className ?? ""}`} aria-hidden="true">G</span>;
 }
 
 export function ShareButtons({ title }: { title: string }) {
@@ -84,7 +88,7 @@ export function ShareButtons({ title }: { title: string }) {
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex max-w-full flex-wrap items-center gap-1.5">
       {links.map((l) => (
         <a
           key={l.label}
@@ -92,7 +96,7 @@ export function ShareButtons({ title }: { title: string }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Share on ${l.label}`}
-          className="flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground"
+          className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground sm:size-8"
         >
           <l.icon className="size-4" />
         </a>
@@ -102,7 +106,7 @@ export function ShareButtons({ title }: { title: string }) {
         onClick={copyLink}
         aria-label="Copy link"
         title="Copy link"
-        className="flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground"
+        className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground sm:size-8"
       >
         {copied ? <Check className="size-4 text-safe" /> : <Copy className="size-4" />}
       </button>
@@ -113,10 +117,10 @@ export function ShareButtons({ title }: { title: string }) {
         }
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground"
+        className="flex min-w-0 max-w-[4.5rem] shrink items-center gap-1 rounded-full border border-border px-1.5 py-1 text-[0.62rem] font-medium leading-tight text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground sm:max-w-none sm:px-3 sm:py-1.5 sm:text-xs"
       >
-        <Star className="size-3.5" />{" "}
-        {settings?.google_source_label ?? "Add as a preferred source on Google"}
+        <GoogleLogo className="shrink-0 text-sm" />
+        <span className="min-w-0 whitespace-normal">{settings?.google_source_label ?? "Add as a preferred source on Google"}</span>
       </a>
     </div>
   );
