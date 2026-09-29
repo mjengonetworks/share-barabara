@@ -10,6 +10,7 @@ import {
   MoreVertical,
   Newspaper,
   Pencil,
+  Plus,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { dateTime } from "@/lib/format";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -89,7 +91,7 @@ function ArticlesQueuePage() {
     return allArticles.filter((a) => {
       if (statusFilter !== "all" && a.status !== statusFilter) return false;
       if (categoryFilter !== "all" && a.category !== categoryFilter) return false;
-      if (q && !a.title.toLowerCase().includes(q) && !a.summary.toLowerCase().includes(q))
+      if (q && !a.title.toLowerCase().includes(q) && !(a.summary ?? "").toLowerCase().includes(q))
         return false;
       return true;
     });
@@ -167,6 +169,9 @@ function ArticlesQueuePage() {
       <p className="mt-2 text-muted-foreground">
         Review submissions from contributors. Publishing or rejecting needs moderator rank or above.
       </p>
+      <Button asChild className="mt-4">
+        <Link to="/news"><Plus className="mr-1.5 size-4" /> Add new article</Link>
+      </Button>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>
@@ -255,7 +260,7 @@ function ArticlesQueuePage() {
                     <img
                       src={a.image_url}
                       alt=""
-                      className="size-14 shrink-0 rounded object-cover"
+                      className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
                     />
                   ) : (
                     <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
@@ -345,6 +350,19 @@ function ArticlesQueuePage() {
                 <div className="border-t border-border p-5">
                   {canPublishArticles ? (
                     <div className="space-y-4">
+                      <EditorialAIButton
+                        contentType="article"
+                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        mode="update"
+                        contentId={a.id}
+                        onDraft={(draft) =>
+                          set({
+                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                          })
+                        }
+                      />
                       <div>
                         <Label htmlFor={`at-${a.id}`}>Headline</Label>
                         <Input

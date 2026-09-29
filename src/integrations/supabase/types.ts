@@ -8,6 +8,77 @@ export type Database = {
   };
   public: {
     Tables: {
+      ai_chat_messages: {
+        Row: {
+          citations: Json;
+          content: string;
+          created_at: string;
+          id: string;
+          role: string;
+          thread_id: string;
+          user_id: string;
+        };
+        Insert: {
+          citations?: Json;
+          content: string;
+          created_at?: string;
+          id?: string;
+          role: string;
+          thread_id: string;
+          user_id: string;
+        };
+        Update: {
+          citations?: Json;
+          content?: string;
+          created_at?: string;
+          id?: string;
+          role?: string;
+          thread_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_messages_thread_user_fkey";
+            columns: ["thread_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_chat_threads";
+            referencedColumns: ["id", "user_id"];
+          },
+        ];
+      };
+      ai_chat_threads: {
+        Row: {
+          archived_at: string | null;
+          context_id: string | null;
+          context_type: string;
+          created_at: string;
+          id: string;
+          title: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          archived_at?: string | null;
+          context_id?: string | null;
+          context_type?: string;
+          created_at?: string;
+          id?: string;
+          title?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          context_id?: string | null;
+          context_type?: string;
+          created_at?: string;
+          id?: string;
+          title?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       alert_severities: {
         Row: {
           created_at: string;

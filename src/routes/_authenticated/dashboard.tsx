@@ -15,6 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { listAIChats } from "@/lib/ai/public.functions";
+import { displayReportCount } from "@/lib/report-metrics";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -126,6 +128,12 @@ function DashboardPage() {
     },
   });
 
+  const { data: aiChats = [] } = useQuery({
+    enabled: !!userId,
+    queryKey: ["my-ai-chats", userId],
+    queryFn: () => listAIChats(),
+  });
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-14">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
@@ -152,6 +160,28 @@ function DashboardPage() {
           </div>
         ))}
       </div>
+
+      <section className="mt-10 rounded-lg border border-border bg-card p-5">
+        <h2 className="text-[1.155rem] font-bold">My Share Barabara AI chats</h2>
+        {aiChats.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your saved AI conversations will appear here.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {aiChats.map((chat) => (
+              <li key={chat.id} className="rounded border border-border p-3 text-sm">
+                <span className="font-semibold">
+                  {chat.title ?? `Share Barabara AI · ${chat.context_type}`}
+                </span>
+                <span className="ml-2 text-muted-foreground">
+                  {new Date(chat.updated_at).toLocaleString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild>
@@ -250,7 +280,7 @@ function DashboardPage() {
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {r.county}
-                  {r.road ? ` · ${r.road}` : ""} · {r.fatalities} deaths, {r.casualties} injured
+                  {r.road ? ` · ${r.road}` : ""} · {displayReportCount(r.fatalities)} deaths, {displayReportCount(r.casualties)} injured
                 </p>
               </li>
             ))}

@@ -26,6 +26,7 @@ import { SeverityBadge } from "@/components/site/severity-badge";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
 import { BannerAd } from "@/components/site/banner-ad";
+import { displayReportCount } from "@/lib/report-metrics";
 
 export const Route = createFileRoute("/reports/")({
   validateSearch: (search: Record<string, unknown>): { county?: string; severity?: string } => {
@@ -317,13 +318,13 @@ function ReportsPage() {
                   </p>
                   <div className="mt-3 flex flex-wrap gap-4 text-sm">
                     <span>
-                      <strong>{r.vehicles_involved}</strong> vehicles
+                      <strong>{displayReportCount(r.vehicles_involved)}</strong> vehicles
                     </span>
                     <span>
-                      <strong>{r.casualties}</strong> injured
+                      <strong>{displayReportCount(r.casualties)}</strong> injured
                     </span>
                     <span className="text-destructive">
-                      <strong>{r.fatalities}</strong> deaths
+                      <strong>{displayReportCount(r.fatalities)}</strong> deaths
                     </span>
                   </div>
                   <p className="mt-3 line-clamp-2 text-sm text-foreground/90">{r.description}</p>

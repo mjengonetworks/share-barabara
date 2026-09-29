@@ -65,7 +65,7 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
           className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent"
         >
           {a.image_url ? (
-            <img src={a.image_url} alt={a.title} className="aspect-video w-full object-cover" />
+            <img src={a.image_url} alt={a.title} className="aspect-video w-full object-cover object-center" />
           ) : null}
           <div className="flex flex-1 flex-col p-6">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
@@ -100,7 +100,7 @@ function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
             <img
               src={a.image_url}
               alt={a.title}
-              className="aspect-video w-28 shrink-0 rounded object-cover sm:w-36"
+              className="aspect-video w-28 shrink-0 rounded object-cover object-center sm:w-36"
             />
           ) : (
             <div className="aspect-video w-28 shrink-0 rounded bg-muted sm:w-36" />
@@ -240,7 +240,7 @@ function NewsIndex() {
           </>
         ) : (
           <>
-            <h2 className="text-[1.155rem] font-bold">Latest news</h2>
+            <h2 className="text-lg font-bold">Latest news</h2>
             <div className="mt-5">
               <ArticleGrid articles={latest} />
             </div>
@@ -268,7 +268,7 @@ function NewsIndex() {
 
             {featured.length > 0 ? (
               <div className="mt-12">
-                <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
+                <h2 className="flex items-center gap-2 text-lg font-bold">
                   <Sparkles className="size-6 text-caution" /> Featured
                 </h2>
                 <div className="mt-5">
@@ -290,7 +290,7 @@ function NewsIndex() {
 
             {trending.length > 0 ? (
               <div className="mt-12">
-                <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
+                <h2 className="flex items-center gap-2 text-lg font-bold">
                   <Flame className="size-6 text-destructive" /> Trending
                 </h2>
                 <div className="mt-5">

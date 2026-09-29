@@ -18,10 +18,11 @@ import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
+import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
-    const { data } = await supabase.from("news").select("*").eq("slug", params.slug).maybeSingle();
+    const { data } = await supabase.from("news").select("*").eq("slug", params.slug).eq("status", "published").maybeSingle();
     return data;
   },
   head: ({ loaderData }) => {
@@ -75,6 +76,7 @@ function NewsDetail() {
         .from("news")
         .select("*")
         .eq("slug", slug)
+        .eq("status", "published")
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -104,7 +106,9 @@ function NewsDetail() {
         .from("news")
         .select("id, slug, title, category")
         .eq("category", article!.category)
+        .eq("status", "published")
         .neq("id", article!.id)
+        .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(5);
       if (error) throw error;
@@ -115,6 +119,7 @@ function NewsDetail() {
         .from("news")
         .select("id, slug, title, category")
         .neq("id", article!.id)
+        .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(5);
       if (fallback.error) throw fallback.error;
@@ -202,7 +207,7 @@ function NewsDetail() {
               <img
                 src={article.image_url}
                 alt={article.image_alt || article.title}
-                className="aspect-video w-full rounded-lg border border-border object-cover"
+                className="mx-auto max-h-[70vh] max-w-full rounded-lg border border-border object-contain"
               />
               {article.image_caption || article.image_credit ? (
                 <figcaption className="mt-1.5 text-xs text-muted-foreground">
@@ -237,9 +242,12 @@ function NewsDetail() {
               </div>
             </div>
           ) : null}
-          <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
-            {article.summary}
-          </p>
+            {article.summary?.trim() ? (
+              <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
+                {article.summary}
+              </p>
+            ) : null}
+          {article.status === "published" ? <ShareBarabaraAI contextType="article" contextId={article.id} title={article.title} /> : null}
           <div className="mt-6 space-y-4 text-foreground/90">
             {renderRichText(article.body)}
             {related[0] ? (

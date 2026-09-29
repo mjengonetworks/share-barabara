@@ -40,6 +40,7 @@ function SearchPage() {
       const { data, error } = await supabase
         .from("alerts")
         .select("id, title, county, created_at")
+        .eq("status", "active")
         .ilike("title", `%${term}%`)
         .limit(20);
       if (error) throw error;

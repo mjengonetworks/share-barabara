@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Share Barabara — a road safety website for Kenya (news, crash statistics, hazard alerts, accident reports, comments). Scaffolded and synced via [Lovable](https://lovable.dev): commits pushed to the connected branch sync back into the Lovable editor. **Do not rewrite published git history** (force push, rebase/amend/squash already-pushed commits) — it breaks Lovable's sync and can lose project history.
+Share Barabara — a road safety website for Kenya (news, crash statistics, hazard alerts, accident reports, comments), deployed on Cloudflare Workers with Supabase.
 
 ## Commands
 
@@ -17,13 +17,13 @@ Package manager is **bun** (see `bun.lock`, `bunfig.toml`), though scripts also 
 - `bun run lint` — eslint over the whole repo
 - `bun run format` — prettier --write .
 
-There is no test suite configured in this repo currently.
+The AI security regression suite runs with `bun run test:security` or `npm run test:security`.
 
-`bunfig.toml` enforces a 24h supply-chain guard (`minimumReleaseAge`) on new dependency versions; only a short allow-list of `@lovable.dev/*` packages bypasses it. Adding another exclusion requires user confirmation.
+`bunfig.toml` enforces a 24h supply-chain guard (`minimumReleaseAge`) on new dependency versions.
 
 ## Architecture
 
-**Stack**: TanStack Start (file-based routing via TanStack Router) + React 19 + Vite, styled with Tailwind v4 and shadcn/ui (`new-york` style, see `components.json`). Backend is Supabase (Postgres + Auth), accessed directly from the client with Row Level Security — there are currently no `createServerFn` server functions in the app; all data access goes through the Supabase JS client under RLS policies.
+**Stack**: TanStack Start (file-based routing via TanStack Router) + React 19 + Vite, styled with Tailwind v4 and shadcn/ui (`new-york` style, see `components.json`). Backend services are Cloudflare Workers and Supabase (Postgres + Auth). Public AI retrieval uses a server-side Supabase client under RLS; authenticated server functions handle AI and chat operations.
 
 ### Routing (`src/routes/`)
 
@@ -36,7 +36,7 @@ File-based routing per `src/routes/README.md` — read it before adding routes. 
 
 Several files here are marked "automatically generated. Do not edit it directly." — treat them as generated/regenerable rather than hand-maintained:
 
-- `client.ts` — browser/SSR-shared client (publishable key), session persisted via `previewAuthStorage.ts` (a storage brokered for the Lovable preview iframe). Import as `import { supabase } from "@/integrations/supabase/client"`.
+- `client.ts` — browser/SSR-shared client (publishable key), session persisted via `previewAuthStorage.ts`. Import as `import { supabase } from "@/integrations/supabase/client"`.
 - `client.server.ts` — service-role admin client that **bypasses RLS**. Server-only; must be dynamically imported inside server handlers (`await import(...)`), never imported at the top of a route file or `*.functions.ts` (those ship to the client bundle).
 - `auth-middleware.ts` (`requireSupabaseAuth`) / `auth-attacher.ts` (`attachSupabaseAuth`) — a function-middleware pair for validating/attaching a bearer token on TanStack `serverFn` RPCs. Registered globally in `src/start.ts` but not yet consumed by any server function in the app.
 - `types.ts` — generated Supabase `Database` types, used as the generic on every `createClient<Database>` call.
@@ -58,11 +58,11 @@ Conventions used throughout, follow them for new tables/policies:
 - `handle_new_user()` trigger auto-creates a `profiles` row and a default `member` role on signup (`auth.users` insert).
 - `touch_updated_at()` trigger keeps `updated_at` current; attach it to any new mutable table.
 - Ownership pattern: `*_insert_own`/`*_update_own`/`*_delete_own` policies check `auth.uid() = user_id`, with admins (and moderators, for `accident_reports` review) additionally allowed via `has_role`.
-- New migration files are named `<timestamp>_<uuid>.sql` (Lovable/Supabase convention) — don't reuse or renumber existing ones.
+- New migration files are named `<timestamp>_<uuid>.sql` (Supabase convention) — don't reuse or renumber existing ones.
 
 ### Env vars
 
-`SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` (server) and `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` (client, Vite-injected) plus `SUPABASE_PROJECT_ID`/`VITE_SUPABASE_PROJECT_ID`. `.env` is intentionally committed (Lovable Cloud convention) and contains only the publishable key, not a service-role secret. `SUPABASE_SERVICE_ROLE_KEY` (used by `client.server.ts`) is not present in `.env` — it must be supplied via the deployment environment, not committed.
+`SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` (server) and `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` (client, Vite-injected) plus `SUPABASE_PROJECT_ID`/`VITE_SUPABASE_PROJECT_ID`. `.env` contains only publishable development configuration, not service-role or AI secrets. `SUPABASE_SERVICE_ROLE_KEY` must be supplied via the deployment environment, not committed. Production AI secrets are Cloudflare Worker Secrets.
 
 ### Path alias
 

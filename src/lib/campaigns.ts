@@ -8,7 +8,14 @@ export function campaignStatus(
   endDate: string,
   now = new Date(),
 ): CampaignStatus {
-  const today = now.toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "Africa/Nairobi",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? "";
+  const today = `${part("year")}-${part("month")}-${part("day")}`;
   if (today < startDate) return "upcoming";
   if (today > endDate) return "previous";
   return "ongoing";

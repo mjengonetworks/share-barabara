@@ -9,6 +9,7 @@ import {
   ExternalLink,
   MoreVertical,
   Pencil,
+  Plus,
   ShieldAlert,
   Trash2,
 } from "lucide-react";
@@ -45,6 +46,9 @@ import {
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { NullableNumberField } from "@/components/site/nullable-number-field";
+import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -57,9 +61,9 @@ type ReportDraft = {
   county: string;
   road: string;
   severity: string;
-  vehicles_involved: number;
-  casualties: number;
-  fatalities: number;
+  vehicles_involved: number | null;
+  casualties: number | null;
+  fatalities: number | null;
   editor_note: string;
   image_alt: string;
   image_caption: string;
@@ -125,6 +129,13 @@ function ReportsQueuePage() {
       status: "approved" | "rejected" | "pending";
       draft?: ReportDraft;
     }) => {
+      if (draft) {
+        const breakdownError = casualtyBreakdownError(draft.casualty_breakdown, {
+          dead: draft.fatalities,
+          injured: draft.casualties,
+        });
+        if (breakdownError) throw new Error(breakdownError);
+      }
       const patch = {
         status,
         reviewed_by: user?.id ?? null,
@@ -141,7 +152,7 @@ function ReportsQueuePage() {
             }
           : {}),
       };
-      const { error } = await supabase.from("accident_reports").update(patch).eq("id", id);
+      const { error } = await supabase.from("accident_reports").update(patch as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -176,6 +187,9 @@ function ReportsQueuePage() {
       <p className="mt-2 text-muted-foreground">
         Edit submissions for accuracy and clarity, then approve them.
       </p>
+      <Button asChild className="mt-4">
+        <Link to="/reports"><Plus className="mr-1.5 size-4" /> Add new report</Link>
+      </Button>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>
@@ -279,7 +293,7 @@ function ReportsQueuePage() {
                     <img
                       src={r.image_url}
                       alt=""
-                      className="size-14 shrink-0 rounded object-cover"
+                      className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
                     />
                   ) : (
                     <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
@@ -355,6 +369,32 @@ function ReportsQueuePage() {
               {expanded ? (
                 <div className="border-t border-border p-5">
                   <div className="space-y-4">
+                    <EditorialAIButton
+                      contentType="report"
+                      source={`${d["title"]}\n${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}`}
+                      mode="update"
+                      contentId={r.id}
+                      onDraft={(draft) =>
+                        set({
+                          ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                          ...(typeof draft["description"] === "string"
+                            ? { description: draft["description"] }
+                            : {}),
+                          ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
+                          ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
+                          ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
+                          ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null
+                            ? { vehicles_involved: draft["vehicles_involved"] }
+                            : {}),
+                          ...(typeof draft["casualties"] === "number" || draft["casualties"] === null
+                            ? { casualties: draft["casualties"] }
+                            : {}),
+                          ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null
+                            ? { fatalities: draft["fatalities"] }
+                            : {}),
+                        })
+                      }
+                    />
                     <div>
                       <Label htmlFor={`t-${r.id}`}>Summary</Label>
                       <Input
@@ -403,36 +443,9 @@ function ReportsQueuePage() {
                         </Select>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <Label htmlFor={`v-${r.id}`}>Vehicles</Label>
-                          <Input
-                            id={`v-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.vehicles_involved}
-                            onChange={(e) => set({ vehicles_involved: Number(e.target.value) })}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`i-${r.id}`}>Injured</Label>
-                          <Input
-                            id={`i-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.casualties}
-                            onChange={(e) => set({ casualties: Number(e.target.value) })}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`f-${r.id}`}>Deaths</Label>
-                          <Input
-                            id={`f-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.fatalities}
-                            onChange={(e) => set({ fatalities: Number(e.target.value) })}
-                          />
-                        </div>
+                        <NullableNumberField id={`v-${r.id}`} label="Vehicles" value={d.vehicles_involved} onChange={(value) => set({ vehicles_involved: value })} />
+                        <NullableNumberField id={`i-${r.id}`} label="Injured" value={d.casualties} onChange={(value) => set({ casualties: value })} />
+                        <NullableNumberField id={`f-${r.id}`} label="Deaths" value={d.fatalities} onChange={(value) => set({ fatalities: value })} />
                       </div>
                     </div>
                     <div>

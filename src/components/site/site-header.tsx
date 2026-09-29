@@ -31,9 +31,9 @@ import { useProfileUsernames } from "@/lib/profiles";
 import { NotificationBell } from "@/components/site/notification-bell";
 import { SubscribeButton } from "@/components/site/subscribe-button";
 import { HeaderSearch } from "@/components/site/header-search";
+import { HeaderShareBarabaraAI } from "@/components/site/share-barabara-ai";
 
 const NAV = [
-  { to: "/", label: "Home" },
   { to: "/news", label: "News" },
   { to: "/alerts", label: "Alerts" },
   { to: "/reports", label: "Reports" },
@@ -84,18 +84,17 @@ export function SiteHeader() {
       ref={headerRef}
       className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur"
     >
-      <div className="mx-auto flex h-20 max-w-6xl items-center gap-4 px-4">
+      <div className="mx-auto grid h-20 max-w-6xl grid-cols-[auto,minmax(0,1fr),auto] items-center gap-3 px-4">
         <Link to="/" className="flex items-center" aria-label="Share Barabara home">
           <img src={logoUrl} alt="Share Barabara" className="h-14 w-auto sm:h-16" />
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-1 overflow-x-auto md:flex">
+        <nav className="hidden min-w-0 items-center justify-center gap-0.5 overflow-x-auto md:flex">
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              activeOptions={{ exact: item.to === "/" }}
-              className="whitespace-nowrap rounded px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="whitespace-nowrap rounded px-2 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent lg:px-3"
               activeProps={{ className: "text-foreground" }}
             >
               {item.label}
@@ -105,6 +104,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           <HeaderSearch />
+          <HeaderShareBarabaraAI />
           {user ? (
             <>
               <SubscribeButton />
@@ -192,7 +192,7 @@ export function SiteHeader() {
               key={item.to}
               to={item.to}
               onClick={() => setOpen(false)}
-              className="block rounded px-2 py-2 text-sm font-medium text-muted-foreground"
+                className="block rounded px-2 py-2 text-sm font-medium text-foreground"
               activeProps={{ className: "text-foreground" }}
             >
               {item.label}

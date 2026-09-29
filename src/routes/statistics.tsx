@@ -33,6 +33,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { num } from "@/lib/format";
 import { BannerAd } from "@/components/site/banner-ad";
+import { displayReportCount, knownReportSum } from "@/lib/report-metrics";
 
 export const Route = createFileRoute("/statistics")({
   head: () => ({
@@ -128,8 +129,8 @@ type LiveReport = {
   occurred_at: string;
   county: string;
   severity: string;
-  fatalities: number;
-  casualties: number;
+  fatalities: number | null;
+  casualties: number | null;
   parties_involved: string[];
 };
 
@@ -166,12 +167,14 @@ function useTopRoads(limit = 8) {
         .eq("status", "approved")
         .not("road_id", "is", null);
       if (error) throw error;
-      const totals = new Map<string, { fatalities: number; casualties: number; crashes: number }>();
+      const totals = new Map<string, { fatalities: number; casualties: number; fatalitiesUnknown: boolean; casualtiesUnknown: boolean; crashes: number }>();
       for (const r of reports ?? []) {
         if (!r.road_id) continue;
-        const entry = totals.get(r.road_id) ?? { fatalities: 0, casualties: 0, crashes: 0 };
-        entry.fatalities += r.fatalities;
-        entry.casualties += r.casualties;
+        const entry = totals.get(r.road_id) ?? { fatalities: 0, casualties: 0, fatalitiesUnknown: false, casualtiesUnknown: false, crashes: 0 };
+        if (r.fatalities === null) entry.fatalitiesUnknown = true;
+        else entry.fatalities += r.fatalities;
+        if (r.casualties === null) entry.casualtiesUnknown = true;
+        else entry.casualties += r.casualties;
         entry.crashes += 1;
         totals.set(r.road_id, entry);
       }
@@ -376,7 +379,7 @@ function StatisticsPage() {
   });
 
   const sumBy = (rows: LiveReport[], key: "fatalities" | "casualties") =>
-    rows.reduce((s, r) => s + r[key], 0);
+    knownReportSum(rows.map((r) => r[key])).value;
 
   const pctChange = (curr: number, prior: number) =>
     prior === 0 ? null : Math.round(((curr - prior) / prior) * 1000) / 10;
@@ -406,6 +409,9 @@ function StatisticsPage() {
       <p className="mt-3 max-w-2xl text-muted-foreground">
         Kenyan road traffic crash data and what the Share Barabara community has reported so far,
         updated as it happens.
+      </p>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Reports without confirmed casualty totals are excluded from numeric sums rather than counted as zero.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -740,10 +746,10 @@ function StatisticsPage() {
                 ) : null}
                 <div className="mt-2 flex gap-4 text-sm">
                   <span className="text-destructive">
-                    <strong>{r.fatalities}</strong> deaths
+                    <strong>{r.fatalitiesUnknown ? "Not confirmed" : displayReportCount(r.fatalities)}</strong> deaths
                   </span>
                   <span className="text-caution">
-                    <strong>{r.casualties}</strong> injured
+                    <strong>{r.casualtiesUnknown ? "Not confirmed" : displayReportCount(r.casualties)}</strong> injured
                   </span>
                 </div>
               </Link>

@@ -16,10 +16,12 @@ import { RichTextEditor } from "@/components/site/rich-text-editor";
 import {
   PartyCasualtyInputs,
   type CasualtyBreakdown,
+  withUnspecifiedCasualties,
+  casualtyBreakdownError,
 } from "@/components/site/party-casualty-inputs";
+import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { ImageUploadField } from "@/components/site/image-upload-field";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
@@ -27,11 +29,15 @@ import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { matchOrCreateRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { useRoles } from "@/hooks/useRoles";
+import { submitAccidentReport } from "@/lib/report.functions";
 
 export function ReportForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
+  const { canReview } = useRoles();
   const { data: severities = [] } = useReportSeverities();
   const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
@@ -41,9 +47,9 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
     road: "",
     severity: "minor",
     occurred_at: new Date().toISOString().slice(0, 16),
-    vehicles_involved: 1,
-    casualties: 0,
-    fatalities: 0,
+    vehicles_involved: null as number | null,
+    casualties: null as number | null,
+    fatalities: null as number | null,
     latitude: null as number | null,
     longitude: null as number | null,
     image_url: "",
@@ -58,8 +64,13 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
   const submit = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
+      const breakdownError = casualtyBreakdownError(casualtyBreakdown, {
+        dead: form.fatalities,
+        injured: form.casualties,
+      });
+      if (breakdownError) throw new Error(breakdownError);
       const road_id = await matchOrCreateRoad(form.road, form.county);
-      const { error } = await supabase.from("accident_reports").insert({
+      return submitAccidentReport({ data: {
         ...form,
         image_url: form.image_url.trim() || null,
         image_alt: form.image_alt.trim() || null,
@@ -67,17 +78,19 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         image_credit: form.image_credit.trim() || null,
         road_id,
         parties_involved: partiesInvolved,
-        casualty_breakdown: casualtyBreakdown,
+        casualty_breakdown: withUnspecifiedCasualties(casualtyBreakdown, {
+          dead: form.fatalities,
+          injured: form.casualties,
+        }),
         attachments,
         occurred_at: new Date(form.occurred_at).toISOString(),
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
         is_anonymous: identity.type === "profile" && anonymous,
-      });
-      if (error) throw error;
+      } });
     },
-    onSuccess: () => {
-      toast.success("Report submitted for review, an editor will verify it before it is published");
+    onSuccess: (result) => {
+      toast.success(result.status === "approved" ? "Report published" : "Report submitted for review, an editor will verify it before it is published");
       setForm({
         ...form,
         title: "",
@@ -108,6 +121,28 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         submit.mutate();
       }}
     >
+      {canReview ? (
+        <EditorialAIButton
+          contentType="report"
+          source={`${form["title"]}\n${form["description"]}\nCounty: ${form["county"]}\nRoad: ${form["road"]}`}
+          onDraft={(draft) =>
+            setForm((current) => ({
+              ...current,
+              ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+              ...(typeof draft["description"] === "string" ? { description: draft["description"] } : {}),
+              ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
+              ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
+              ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
+              ...(typeof draft["occurred_at"] === "string" ? { occurred_at: draft["occurred_at"] } : {}),
+              ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null
+                ? { vehicles_involved: draft["vehicles_involved"] }
+                : {}),
+              ...(typeof draft["casualties"] === "number" || draft["casualties"] === null ? { casualties: draft["casualties"] } : {}),
+              ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null ? { fatalities: draft["fatalities"] } : {}),
+            }))
+          }
+        />
+      ) : null}
       <div>
         <Label htmlFor="r-title">Summary</Label>
         <Input
@@ -174,36 +209,9 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <div>
-          <Label htmlFor="r-veh">Vehicles involved</Label>
-          <Input
-            id="r-veh"
-            type="number"
-            min={0}
-            value={form.vehicles_involved}
-            onChange={(e) => setForm({ ...form, vehicles_involved: Number(e.target.value) })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="r-cas">Injured</Label>
-          <Input
-            id="r-cas"
-            type="number"
-            min={0}
-            value={form.casualties}
-            onChange={(e) => setForm({ ...form, casualties: Number(e.target.value) })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="r-fat">Fatalities</Label>
-          <Input
-            id="r-fat"
-            type="number"
-            min={0}
-            value={form.fatalities}
-            onChange={(e) => setForm({ ...form, fatalities: Number(e.target.value) })}
-          />
-        </div>
+        <NullableNumberField id="r-veh" label="Vehicles involved" value={form.vehicles_involved} onChange={(value) => setForm({ ...form, vehicles_involved: value })} />
+        <NullableNumberField id="r-cas" label="Injured" value={form.casualties} onChange={(value) => setForm({ ...form, casualties: value })} />
+        <NullableNumberField id="r-fat" label="Fatalities" value={form.fatalities} onChange={(value) => setForm({ ...form, fatalities: value })} />
       </div>
       <div>
         <Label>Who was involved (optional)</Label>

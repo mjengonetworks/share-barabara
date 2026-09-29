@@ -14,6 +14,7 @@ import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { useRoles } from "@/hooks/useRoles";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { slugify } from "@/lib/format";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
 export function ArticleForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
@@ -106,6 +107,20 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         submit.mutate(canPublishArticles ? "published" : "pending_review");
       }}
     >
+      {canPublishArticles ? (
+        <EditorialAIButton
+          contentType="article"
+          source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
+          onDraft={(draft) =>
+            setForm((current) => ({
+              ...current,
+              ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+              ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+              ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+            }))
+          }
+        />
+      ) : null}
       <div>
         <Label htmlFor="a-title">Headline</Label>
         <Input
@@ -155,10 +170,9 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
       </div>
       <div>
         <Label htmlFor="a-summary">Summary</Label>
-        <Textarea
-          id="a-summary"
-          required
-          rows={2}
+          <Textarea
+            id="a-summary"
+            rows={2}
           maxLength={280}
           value={form.summary}
           onChange={(e) => setForm({ ...form, summary: e.target.value })}

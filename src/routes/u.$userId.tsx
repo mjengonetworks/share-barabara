@@ -225,6 +225,18 @@ function ContributorPage() {
             </Button>
           ) : null}
         </div>
+        <nav aria-label="Profile activity summary" className="mt-6 grid grid-cols-3 gap-3 sm:max-w-xl">
+          {[
+            { label: "Articles", value: articles.length, href: "#profile-articles" },
+            { label: "Reports", value: submitted.length, href: "#profile-reports" },
+            { label: "Alerts", value: alerts.length, href: "#profile-alerts" },
+          ].map((item) => (
+            <a key={item.label} href={item.href} className="rounded-lg border border-border bg-card p-3 text-center transition-colors hover:border-accent">
+              <span className="block font-display text-2xl font-extrabold">{item.value}</span>
+              <span className="text-xs text-muted-foreground">{item.label}</span>
+            </a>
+          ))}
+        </nav>
         <p className="mt-2 text-muted-foreground">
           {profile?.occupation ? `${profile.occupation} · ` : ""}
           {profile?.county ? `${profile.county} · ` : ""}
@@ -322,7 +334,7 @@ function ContributorPage() {
           ))}
         </div>
 
-        <section className="mt-10">
+        <section id="profile-reports" className="mt-10 scroll-mt-24">
           <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
             <CarFront className="size-5 text-accent" /> Accident reports
           </h2>
@@ -367,7 +379,7 @@ function ContributorPage() {
           )}
         </section>
 
-        <section className="mt-10">
+        <section id="profile-articles" className="mt-10 scroll-mt-24">
           <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
             <Newspaper className="size-5 text-accent" /> Articles
           </h2>
@@ -426,7 +438,7 @@ function ContributorPage() {
           </section>
         ) : null}
 
-        <section className="mt-10">
+        <section id="profile-alerts" className="mt-10 scroll-mt-24">
           <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
             <TriangleAlert className="size-5 text-caution" /> Hazard alerts
           </h2>

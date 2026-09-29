@@ -21,6 +21,8 @@ import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
+import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
+import { displayReportCount } from "@/lib/report-metrics";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -28,6 +30,7 @@ export const Route = createFileRoute("/reports/$reportId")({
       .from("accident_reports")
       .select("*")
       .eq("id", params.reportId)
+      .eq("status", "approved")
       .maybeSingle();
     return data;
   },
@@ -82,6 +85,7 @@ function ReportDetail() {
         .from("accident_reports")
         .select("*")
         .eq("id", reportId)
+        .eq("status", "approved")
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -211,7 +215,7 @@ function ReportDetail() {
               <img
                 src={report.image_url}
                 alt={report.image_alt || report.title}
-                className="aspect-video w-full rounded-lg border border-border object-cover"
+                className="mx-auto max-h-[70vh] max-w-full rounded-lg border border-border object-contain"
               />
               {report.image_caption || report.image_credit ? (
                 <figcaption className="mt-1.5 text-xs text-muted-foreground">
@@ -289,22 +293,23 @@ function ReportDetail() {
 
           <div className="mt-6 grid grid-cols-3 gap-4">
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
-              <p className="font-display text-2xl font-extrabold">{report.vehicles_involved}</p>
+              <p className="font-display text-2xl font-extrabold">{displayReportCount(report.vehicles_involved)}</p>
               <p className="mt-1 text-xs text-muted-foreground">Vehicles involved</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
               <p className="font-display text-2xl font-extrabold text-caution">
-                {report.casualties}
+                {displayReportCount(report.casualties)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">Injured</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
               <p className="font-display text-2xl font-extrabold text-destructive">
-                {report.fatalities}
+                {displayReportCount(report.fatalities)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">Deaths</p>
             </div>
           </div>
+          {report.status === "approved" ? <ShareBarabaraAI contextType="report" contextId={report.id} title={report.title} /> : null}
 
           {report.parties_involved.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">

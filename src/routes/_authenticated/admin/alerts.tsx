@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ExternalLink, MoreVertical, Trash2 } from "lucide-react";
+import { ExternalLink, Eye, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +39,10 @@ import { UserLink } from "@/components/site/user-link";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
+import { matchOrCreateRoad } from "@/lib/roads";
+import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
+import { useViewCounts } from "@/hooks/useViewCounts";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
   head: () => ({ meta: [{ title: "Hazard Alerts: Share Barabara Admin" }] }),
@@ -56,6 +59,12 @@ function AlertsAdminPage() {
   const [search, setSearch] = useState("");
   const [editingParties, setEditingParties] = useState<{
     id: string;
+    title: string;
+    description: string;
+    county: string;
+    road: string;
+    hazard_type: string;
+    severity: string;
     parties: string[];
     casualties: CasualtyBreakdown;
   } | null>(null);
@@ -86,6 +95,11 @@ function AlertsAdminPage() {
   }, [allAlerts, county, hazard, severity, search]);
 
   const { data: names = {} } = useProfileNames(alerts.map((a) => a.user_id));
+  const { data: viewCounts = {} } = useViewCounts(
+    "alert_views",
+    "alert_id",
+    alerts.map((a) => a.id),
+  );
 
   const setSeverityMutation = useMutation({
     mutationFn: async ({ id, severity: s }: { id: string; severity: string }) => {
@@ -111,9 +125,17 @@ function AlertsAdminPage() {
   const saveParties = useMutation({
     mutationFn: async () => {
       if (!editingParties) return;
+      const road_id = await matchOrCreateRoad(editingParties.road, editingParties.county);
       const { error } = await supabase
         .from("alerts")
         .update({
+          title: editingParties.title.trim(),
+          description: editingParties.description,
+          county: editingParties.county,
+          road: editingParties.road.trim() || null,
+          road_id,
+          hazard_type: editingParties.hazard_type,
+          severity: editingParties.severity,
           parties_involved: editingParties.parties,
           casualty_breakdown: editingParties.casualties,
         })
@@ -137,6 +159,9 @@ function AlertsAdminPage() {
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Adjust severity or remove alerts that are spam, duplicate or resolved.
       </p>
+      <Button asChild className="mt-4">
+        <Link to="/alerts"><Plus className="mr-1.5 size-4" /> Add new alert</Link>
+      </Button>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>
@@ -208,6 +233,7 @@ function AlertsAdminPage() {
               <TableHead>County</TableHead>
               <TableHead>Severity</TableHead>
               <TableHead>Reported by</TableHead>
+              <TableHead>Views</TableHead>
               <TableHead>Posted</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -246,6 +272,9 @@ function AlertsAdminPage() {
                 <TableCell>
                   <UserLink userId={a.user_id} name={names[a.user_id]} anonymous={a.is_anonymous} />
                 </TableCell>
+                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1"><Eye className="size-3" /> {viewCounts[a.id] ?? 0}</span>
+                </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {dateTime(a.created_at)}
                 </TableCell>
@@ -266,12 +295,18 @@ function AlertsAdminPage() {
                         onClick={() =>
                           setEditingParties({
                             id: a.id,
+                            title: a.title,
+                            description: a.description,
+                            county: a.county,
+                            road: a.road ?? "",
+                            hazard_type: a.hazard_type,
+                            severity: a.severity,
                             parties: a.parties_involved ?? [],
                             casualties: (a.casualty_breakdown as CasualtyBreakdown | null) ?? {},
                           })
                         }
                       >
-                        Who was involved
+                        Edit alert
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
@@ -286,7 +321,7 @@ function AlertsAdminPage() {
             ))}
             {!isLoading && alerts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   Nothing matches these filters.
                 </TableCell>
               </TableRow>
@@ -298,14 +333,53 @@ function AlertsAdminPage() {
       <Dialog open={!!editingParties} onOpenChange={(v) => !v && setEditingParties(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Who was involved</DialogTitle>
+          <DialogTitle>Edit alert</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Often left blank by whoever posted the alert. Fill it in from the description if you
-            know the breakdown, for accurate statistics.
+            Correct the alert details and, where verified, classify the people involved. Existing
+            fields and the current alert schema are reused.
           </p>
           {editingParties ? (
             <>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="edit-alert-title">Title</Label>
+                  <Input id="edit-alert-title" value={editingParties.title} onChange={(e) => setEditingParties({ ...editingParties, title: e.target.value })} />
+                </div>
+                <div>
+                  <Label htmlFor="edit-alert-description">Details</Label>
+                  <RichTextEditor id="edit-alert-description" rows={6} value={editingParties.description} onChange={(v) => setEditingParties({ ...editingParties, description: v })} />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label>County</Label>
+                    <Select value={editingParties.county} onValueChange={(v) => setEditingParties({ ...editingParties, county: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent className="max-h-64">{KENYA_COUNTIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-alert-road">Road or location</Label>
+                    <Input id="edit-alert-road" value={editingParties.road} onChange={(e) => setEditingParties({ ...editingParties, road: e.target.value })} />
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label>Hazard type</Label>
+                    <Select value={editingParties.hazard_type} onValueChange={(v) => setEditingParties({ ...editingParties, hazard_type: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{hazardTypes.map((h) => <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Severity</Label>
+                    <Select value={editingParties.severity} onValueChange={(v) => setEditingParties({ ...editingParties, severity: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{severities.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
                 {PARTIES_INVOLVED.map((p) => (
                   <label key={p.value} className="flex items-center gap-2 text-sm">

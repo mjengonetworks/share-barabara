@@ -26,11 +26,14 @@ import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { matchOrCreateRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { useRoles } from "@/hooks/useRoles";
 
 export function AlertForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
+  const { canReview } = useRoles();
   const { data: hazardTypes = [] } = useHazardTypes();
   const { data: severities = [] } = useAlertSeverities();
   const [anonymous, setAnonymous] = useState(false);
@@ -85,6 +88,23 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         submit.mutate();
       }}
     >
+      {canReview ? (
+        <EditorialAIButton
+          contentType="alert"
+          source={`${form["title"]}\n${form["description"]}\nCounty: ${form["county"]}\nRoad: ${form["road"]}`}
+          onDraft={(draft) =>
+            setForm((current) => ({
+              ...current,
+              ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+              ...(typeof draft["description"] === "string" ? { description: draft["description"] } : {}),
+              ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
+              ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
+              ...(typeof draft["hazard_type"] === "string" ? { hazard_type: draft["hazard_type"] } : {}),
+              ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
+            }))
+          }
+        />
+      ) : null}
       <div>
         <Label htmlFor="a-title">What is happening?</Label>
         <Input

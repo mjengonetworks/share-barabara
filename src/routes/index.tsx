@@ -130,6 +130,14 @@ function Index() {
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-20">
           <div className="hazard-stripe h-1.5 w-24 rounded" />
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-foreground hover:underline">
+                Mjengo Hub
+              </a>
+              <a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-foreground hover:underline">
+                Mjengo Networks
+              </a>
+          </div>
           <h1 className="mt-4 max-w-3xl font-display text-[2.31rem] font-extrabold leading-tight sm:text-[2.8875rem]">
             Every journey home should end at home.
           </h1>
@@ -395,10 +403,6 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10">
-        <FeaturedPageCard slot="home_page" />
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-10">
         <div className="rounded-lg border border-border bg-card p-8 text-center card-elevated">
           <HandHeart className="mx-auto size-8 text-accent" />
           <h2 className="mt-3 text-[1.155rem] font-bold">Support Share Barabara</h2>
@@ -472,6 +476,10 @@ function Index() {
             ))}
           </ul>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <FeaturedPageCard slot="home_page" />
       </section>
     </div>
   );
