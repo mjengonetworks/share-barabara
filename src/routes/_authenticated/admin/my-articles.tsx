@@ -169,7 +169,7 @@ function MyArticlesPage() {
               <DialogHeader>
                 <DialogTitle>New article</DialogTitle>
               </DialogHeader>
-              <ArticleForm onDone={() => setCreating(false)} />
+              <ArticleForm editorial onDone={() => setCreating(false)} />
             </DialogContent>
           </Dialog>
         ) : (

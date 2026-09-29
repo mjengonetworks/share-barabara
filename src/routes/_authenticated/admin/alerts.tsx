@@ -43,6 +43,7 @@ import { matchOrCreateRoad } from "@/lib/roads";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
 import { useViewCounts } from "@/hooks/useViewCounts";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
   head: () => ({ meta: [{ title: "Hazard Alerts: Share Barabara Admin" }] }),
@@ -341,6 +342,50 @@ function AlertsAdminPage() {
           </p>
           {editingParties ? (
             <>
+              {(["generate", "autopopulate"] as const).map((mode) => (
+                <EditorialAIButton
+                  key={mode}
+                  contentType="alert"
+                  mode={mode}
+                  source={`${editingParties.title}\n${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}`}
+                  onDraft={(draft) =>
+                    setEditingParties((current) =>
+                      current
+                        ? {
+                            ...current,
+                            ...(typeof draft.title === "string" ? { title: draft.title } : {}),
+                            ...(typeof draft.description === "string" ? { description: draft.description } : {}),
+                            ...(typeof draft.county === "string" ? { county: draft.county } : {}),
+                            ...(typeof draft.road === "string" ? { road: draft.road } : {}),
+                            ...(typeof draft.hazard_type === "string" ? { hazard_type: draft.hazard_type } : {}),
+                            ...(typeof draft.severity === "string" ? { severity: draft.severity } : {}),
+                          }
+                        : current,
+                    )
+                  }
+                />
+              ))}
+              <EditorialAIButton
+                contentType="alert"
+                mode="update"
+                contentId={editingParties.id}
+                source=""
+                onDraft={(draft) =>
+                  setEditingParties((current) =>
+                    current
+                      ? {
+                          ...current,
+                          ...(typeof draft.title === "string" ? { title: draft.title } : {}),
+                          ...(typeof draft.description === "string" ? { description: draft.description } : {}),
+                          ...(typeof draft.county === "string" ? { county: draft.county } : {}),
+                          ...(typeof draft.road === "string" ? { road: draft.road } : {}),
+                          ...(typeof draft.hazard_type === "string" ? { hazard_type: draft.hazard_type } : {}),
+                          ...(typeof draft.severity === "string" ? { severity: draft.severity } : {}),
+                        }
+                      : current,
+                  )
+                }
+              />
               <div className="space-y-3">
                 <div>
                   <Label htmlFor="edit-alert-title">Title</Label>

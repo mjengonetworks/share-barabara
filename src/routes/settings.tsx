@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, Copy, Gift, UserCog } from "lucide-react";
+import { BadgeCheck, Check, Copy, Gift, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoles, primaryRoleLabel } from "@/hooks/useRoles";
@@ -222,6 +222,20 @@ function SettingsPage() {
       <h1 className="mt-2 flex items-center gap-2 text-[1.7325rem] font-extrabold">
         <UserCog className="size-8 text-accent" /> Profile settings
       </h1>
+
+      <div className="mt-5 flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-semibold text-foreground">Verification &amp; subscriptions</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Review the available profile and page subscription options.
+          </p>
+        </div>
+        <Button asChild variant="outline" className="shrink-0">
+          <Link to="/subscribe">
+            <BadgeCheck className="mr-2 size-4" /> Open subscriptions
+          </Link>
+        </Button>
+      </div>
 
       <form
         className="mt-8 space-y-5 rounded-lg border border-border bg-card p-6 card-elevated"

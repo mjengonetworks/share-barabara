@@ -16,11 +16,13 @@ import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { slugify } from "@/lib/format";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
-export function ArticleForm({ onDone }: { onDone?: () => void }) {
+export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
   const { identity } = useActiveIdentity();
   const queryClient = useQueryClient();
   const { canPublishArticles, canEditSeo } = useRoles();
+  const editorialAccess = editorial && canPublishArticles;
+  const editorialFields = editorial && canEditSeo;
   const { data: categories = [] } = useNewsCategories();
   const [form, setForm] = useState({
     title: "",
@@ -48,7 +50,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
         image_alt: form.image_alt.trim() || null,
         image_caption: form.image_caption.trim() || null,
         image_credit: form.image_credit.trim() || null,
-        ...(canEditSeo
+        ...(editorialFields
           ? {
               seo_title: form.seo_title.trim() || null,
               seo_description: form.seo_description.trim() || null,
@@ -104,22 +106,38 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        submit.mutate(canPublishArticles ? "published" : "pending_review");
+        submit.mutate(editorialAccess ? "published" : "pending_review");
       }}
     >
-      {canPublishArticles ? (
-        <EditorialAIButton
-          contentType="article"
-          source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
-          onDraft={(draft) =>
-            setForm((current) => ({
-              ...current,
-              ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-              ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-              ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-            }))
-          }
-        />
+      {editorialAccess ? (
+        <div className="space-y-4">
+          <EditorialAIButton
+            contentType="article"
+            mode="generate"
+            source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
+            onDraft={(draft) =>
+              setForm((current) => ({
+                ...current,
+                ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+              }))
+            }
+          />
+          <EditorialAIButton
+            contentType="article"
+            mode="autopopulate"
+            source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
+            onDraft={(draft) =>
+              setForm((current) => ({
+                ...current,
+                ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+              }))
+            }
+          />
+        </div>
       ) : null}
       <div>
         <Label htmlFor="a-title">Headline</Label>
@@ -132,16 +150,18 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
           placeholder="e.g. New speed bumps installed on the Nairobi-Nakuru highway"
         />
       </div>
-      <div>
-        <Label>Categories (pick one or more)</Label>
-        <div className="mt-2">
-          <CategoryMultiSelect
-            categories={categories}
-            value={selectedCategories}
-            onChange={setSelectedCategories}
-          />
+      {editorialAccess ? (
+        <div>
+          <Label>Categories (pick one or more)</Label>
+          <div className="mt-2">
+            <CategoryMultiSelect
+              categories={categories}
+              value={selectedCategories}
+              onChange={setSelectedCategories}
+            />
+          </div>
         </div>
-      </div>
+      ) : null}
       <div>
         <Label>Featured image (optional)</Label>
         <div className="mt-2 space-y-2">
@@ -190,7 +210,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
           placeholder="Separate paragraphs with a blank line. Use the toolbar to add bold, italic, links, images or a YouTube video."
         />
       </div>
-      {canEditSeo ? (
+      {editorialFields ? (
         <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             SEO (optional, overrides defaults)
@@ -225,15 +245,15 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
           </div>
         </div>
       ) : null}
-      {!canPublishArticles ? (
+      {!editorialAccess ? (
         <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          {canEditSeo
+          {editorialFields
             ? "Submitted articles are reviewed and may be edited for accuracy by an editor before they appear publicly."
             : "Guest author submissions go straight to review. An editor adds SEO details and image alt text before it's published."}
         </p>
       ) : null}
       <div className="flex flex-wrap gap-3">
-        {canPublishArticles ? (
+        {editorialAccess ? (
           <Button type="submit" disabled={submit.isPending}>
             {submit.isPending ? "Publishing…" : "Publish now"}
           </Button>
@@ -242,7 +262,7 @@ export function ArticleForm({ onDone }: { onDone?: () => void }) {
             {submit.isPending ? "Submitting…" : "Submit for review"}
           </Button>
         )}
-        {canEditSeo ? (
+        {editorialFields ? (
           <Button
             type="button"
             variant="outline"

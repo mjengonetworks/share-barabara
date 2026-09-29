@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
   Building2,
+  BadgeCheck,
   CircleUserRound,
   LayoutDashboard,
   LogOut,
@@ -84,19 +85,19 @@ export function SiteHeader() {
       ref={headerRef}
       className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur"
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-4 md:grid md:h-20 md:grid-cols-[auto,minmax(0,1fr),auto]">
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:grid lg:h-16 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-4">
         <button
-          className="order-first flex size-9 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-muted md:hidden"
+          className="order-first flex size-9 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-muted lg:hidden"
           aria-label="Toggle menu"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
         <Link to="/" className="flex items-center" aria-label="Share Barabara home">
-          <img src={logoUrl} alt="Share Barabara" className="h-9 w-auto sm:h-10 md:h-14 lg:h-16" />
+          <img src={logoUrl} alt="Share Barabara" className="h-11 w-auto sm:h-12 lg:h-12" />
         </Link>
 
-        <nav className="hidden min-w-0 items-center justify-center gap-0.5 overflow-x-auto md:flex">
+        <nav className="hidden min-w-0 items-center justify-center gap-0.5 overflow-x-auto lg:flex">
           {NAV.map((item) => (
             <Link
               key={item.to}
@@ -109,12 +110,12 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2 md:ml-0">
+        <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2 lg:ml-0 lg:justify-self-end">
           <HeaderSearch />
           <HeaderShareBarabaraAI />
           {user ? (
             <>
-              <span className="hidden md:inline-flex"><SubscribeButton /></span>
+              <span className="hidden lg:inline-flex"><SubscribeButton /></span>
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -167,6 +168,11 @@ export function SiteHeader() {
                       <UserCog className="mr-2 size-4" /> Profile settings
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/subscribe">
+                      <BadgeCheck className="mr-2 size-4" /> Verification &amp; subscriptions
+                    </Link>
+                  </DropdownMenuItem>
                   {rank >= ROLE_RANK.guest_author ? (
                     <DropdownMenuItem asChild>
                       <Link to="/admin">
@@ -190,7 +196,7 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <nav className="border-t border-border/60 bg-background px-4 py-3 md:hidden">
+        <nav className="border-t border-border/60 bg-background px-4 py-3 lg:hidden">
           <div className="mx-auto max-w-sm">
             {NAV.map((item) => (
               <Link
@@ -205,14 +211,23 @@ export function SiteHeader() {
             ))}
             <div className="mt-3 border-t border-border/60 pt-3">
               {user ? (
-                <Link
-                  to="/u/$userId"
-                  params={{ userId: ownUsername[user.id] ?? user.id }}
-                  onClick={() => setOpen(false)}
-                  className="flex w-2/3 items-center gap-2 rounded-md border border-primary bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
-                >
-                  <CircleUserRound className="size-4" /> My Profile
-                </Link>
+                <>
+                  <Link
+                    to="/u/$userId"
+                    params={{ userId: ownUsername[user.id] ?? user.id }}
+                    onClick={() => setOpen(false)}
+                    className="flex w-2/3 items-center gap-2 rounded-md border border-primary bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                  >
+                    <CircleUserRound className="size-4" /> My Profile
+                  </Link>
+                  <Link
+                    to="/subscribe"
+                    onClick={() => setOpen(false)}
+                    className="mt-2 flex w-2/3 items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+                  >
+                    <BadgeCheck className="size-4" /> Verification &amp; subscriptions
+                  </Link>
+                </>
               ) : (
                 <Button asChild size="sm" onClick={() => setOpen(false)}>
                   <Link to="/auth">Sign in</Link>

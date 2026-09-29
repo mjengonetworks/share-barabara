@@ -352,6 +352,30 @@ function ArticlesQueuePage() {
                     <div className="space-y-4">
                       <EditorialAIButton
                         contentType="article"
+                        mode="generate"
+                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        onDraft={(draft) =>
+                          set({
+                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                          })
+                        }
+                      />
+                      <EditorialAIButton
+                        contentType="article"
+                        mode="autopopulate"
+                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        onDraft={(draft) =>
+                          set({
+                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                          })
+                        }
+                      />
+                      <EditorialAIButton
+                        contentType="article"
                         source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
                         mode="update"
                         contentId={a.id}

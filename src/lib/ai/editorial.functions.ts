@@ -15,7 +15,9 @@ export type EditorialProposal = {
   changedFields: string[];
 };
 
-const editorialRoles = new Set(["guest_author", "author", "moderator", "editor", "admin"]);
+// role_rank('moderator') includes moderator, editor and admin. Keep this
+// server-side allowlist aligned with that hierarchy.
+const editorialRoles = new Set(["moderator", "editor", "admin"]);
 
 function fieldsFor(contentType: EditorialContentType): string[] {
   return contentType === "article"
@@ -41,16 +43,32 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
   const draft: EditorialDraft = {};
   for (const field of fields) {
     const value = parsed[field];
-    if (typeof value === "string" || typeof value === "number" || value === null) draft[field] = value;
+    if (contentType === "report" && ["vehicles_involved", "casualties", "fatalities"].includes(field)) {
+      if (value === null || (typeof value === "number" && Number.isInteger(value) && value >= 0)) {
+        draft[field] = value;
+      }
+    } else if (typeof value === "string" || typeof value === "number" || value === null) {
+      draft[field] = value;
+    }
   }
   if (Object.keys(draft).length === 0) throw new Error("Editorial AI returned no usable fields");
   return draft;
 }
 
-function editorialPrompt(contentType: EditorialContentType, source: string, instruction?: string) {
+function editorialPrompt(
+  contentType: EditorialContentType,
+  mode: EditorialMode,
+  source: string,
+  instruction?: string,
+) {
   return [
     `Return only valid JSON with these fields: ${fieldsFor(contentType).join(", ")}.`,
-    "Draft from the supplied Share Barabara evidence only. Do not invent facts, coordinates, casualties, timing, closures, or official instructions.",
+    mode === "update"
+      ? "This is an update proposal. Preserve existing valid information unless the new material directly supports a change. Do not rewrite for style alone. Never invent facts, coordinates, casualties, timing, closures, classifications, or official instructions."
+      : "Draft from the supplied Share Barabara evidence only. Do not invent facts, coordinates, casualties, timing, closures, classifications, or official instructions.",
+    contentType === "report"
+      ? "For vehicles_involved, casualties (injured people), and fatalities (deaths): null means not confirmed and must remain null unless the new evidence explicitly confirms a number; zero means confirmed zero. Never turn unknown into zero."
+      : "",
     `Content type: ${contentType}.`,
     instruction?.trim() ? `Editor instruction: ${instruction.trim().slice(0, 2000)}` : "",
     `Evidence:\n${source.slice(0, 12000)}`,
@@ -71,6 +89,31 @@ function recordEvidence(record: Record<string, unknown>, contentType: EditorialC
   return fieldsFor(contentType)
     .map((field) => `${field}: ${record[field] === null || record[field] === undefined ? "Not confirmed" : record[field]}`)
     .join("\n");
+}
+
+function preserveExistingUpdateValues(
+  contentType: EditorialContentType,
+  current: Record<string, string | number | null>,
+  proposed: EditorialDraft,
+) {
+  const preserved = { ...proposed };
+  for (const [field, currentValue] of Object.entries(current)) {
+    const proposedValue = proposed[field];
+    const currentIsKnown =
+      currentValue !== null && (typeof currentValue !== "string" || currentValue.trim().length > 0);
+    if (currentIsKnown && (proposedValue === null || (typeof proposedValue === "string" && !proposedValue.trim()))) {
+      preserved[field] = currentValue;
+    }
+    if (
+      contentType === "report" &&
+      ["vehicles_involved", "casualties", "fatalities"].includes(field) &&
+      currentValue === null &&
+      typeof proposedValue === "number"
+    ) {
+      preserved[field] = null;
+    }
+  }
+  return preserved;
 }
 
 async function resolveEditorialRecord(
@@ -133,14 +176,15 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
         if (!input.contentId) throw new Error("A saved record is required for Update with AI");
         const record = await resolveEditorialRecord(context.supabase, contentType, input.contentId);
         current = currentFields(record, contentType);
-        source = recordEvidence(record, contentType);
+        if (!source) throw new Error("New update material is required");
+        source = `AUTHORITATIVE CURRENT CONTENT:\n${recordEvidence(record, contentType)}\n\nNEW UPDATE MATERIAL:\n${source}`;
       }
       if (!source) throw new Error("Source material is required");
       await enforceAIRateLimit("editorial", context.userId);
       const { completeWithProvider } = await import("./providers.server");
       const result = await completeWithProvider("grok", {
         mode: "editorial",
-        message: editorialPrompt(contentType, source, input.instruction),
+        message: editorialPrompt(contentType, mode, source, input.instruction),
         evidence: [],
         history: [],
       });
@@ -151,7 +195,7 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
             : "Editorial AI is unavailable",
       );
       try {
-        const proposed = parseDraft(contentType, result.answer);
+        const proposed = preserveExistingUpdateValues(contentType, current, parseDraft(contentType, result.answer));
         if (mode === "update") {
           return {
             proposal: {
