@@ -128,7 +128,7 @@ function Index() {
           className="absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-20">
+        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:py-6">
           <div className="flex flex-wrap gap-2">
             <a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer" className="rounded-md border border-primary-foreground/25 bg-primary/75 px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary">
               Mjengo Hub
@@ -138,7 +138,10 @@ function Index() {
             </a>
           </div>
           <div className="mt-4 hazard-stripe h-1.5 w-24 rounded" />
-          <h1 className="mt-4 max-w-3xl font-display text-[2.31rem] font-extrabold leading-tight sm:text-[2.8875rem]">
+          <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+            Share Barabara Kenya
+          </p>
+          <h1 className="mt-2 max-w-5xl font-display text-[2.31rem] font-extrabold leading-tight sm:text-[2.8875rem]">
             Every journey home should end at home.
           </h1>
           <p className="mt-4 max-w-xl text-[12.6px] text-muted-foreground lg:max-w-3xl">
