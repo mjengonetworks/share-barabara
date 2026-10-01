@@ -39,11 +39,12 @@ import { UserLink } from "@/components/site/user-link";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
-import { matchOrCreateRoad } from "@/lib/roads";
+import { findExistingRoad } from "@/lib/roads";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
 import { useViewCounts } from "@/hooks/useViewCounts";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { LocationButton } from "@/components/site/location-button";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
   head: () => ({ meta: [{ title: "Hazard Alerts: Share Barabara Admin" }] }),
@@ -64,6 +65,8 @@ function AlertsAdminPage() {
     description: string;
     county: string;
     road: string;
+    latitude: number | null;
+    longitude: number | null;
     hazard_type: string;
     severity: string;
     parties: string[];
@@ -126,7 +129,7 @@ function AlertsAdminPage() {
   const saveParties = useMutation({
     mutationFn: async () => {
       if (!editingParties) return;
-      const road_id = await matchOrCreateRoad(editingParties.road, editingParties.county);
+      const road_id = await findExistingRoad(editingParties.road);
       const { error } = await supabase
         .from("alerts")
         .update({
@@ -134,6 +137,8 @@ function AlertsAdminPage() {
           description: editingParties.description,
           county: editingParties.county,
           road: editingParties.road.trim() || null,
+          latitude: editingParties.latitude,
+          longitude: editingParties.longitude,
           road_id,
           hazard_type: editingParties.hazard_type,
           severity: editingParties.severity,
@@ -300,6 +305,8 @@ function AlertsAdminPage() {
                             description: a.description,
                             county: a.county,
                             road: a.road ?? "",
+                            latitude: a.latitude,
+                            longitude: a.longitude,
                             hazard_type: a.hazard_type,
                             severity: a.severity,
                             parties: a.parties_involved ?? [],
@@ -407,6 +414,10 @@ function AlertsAdminPage() {
                     <Label htmlFor="edit-alert-road">Road or location</Label>
                     <Input id="edit-alert-road" value={editingParties.road} onChange={(e) => setEditingParties({ ...editingParties, road: e.target.value })} />
                   </div>
+                </div>
+                <div className="rounded border border-dashed border-border bg-muted/30 p-3">
+                  <Label>Point location (optional)</Label>
+                  <LocationButton idPrefix="edit-alert-location" latitude={editingParties.latitude} longitude={editingParties.longitude} onLocate={(latitude, longitude) => setEditingParties({ ...editingParties, latitude, longitude })} />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>

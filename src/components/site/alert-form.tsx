@@ -21,9 +21,10 @@ import { AttachmentsField, type Attachment } from "@/components/site/attachments
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
-import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
+import { useAlertSeverities } from "@/hooks/useTaxonomy";
+import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
-import { matchOrCreateRoad } from "@/lib/roads";
+import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
@@ -34,7 +35,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
   const { canReview } = useRoles();
-  const { data: hazardTypes = [] } = useHazardTypes();
+  const { data: hazardTypes = [] } = useIncidentTaxonomy();
   const { data: severities = [] } = useAlertSeverities();
   const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
@@ -50,11 +51,12 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
   const [partiesInvolved, setPartiesInvolved] = useState<string[]>([]);
   const [casualties, setCasualties] = useState<CasualtyBreakdown>({});
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const hazardLabels = new Map(hazardTypes.map((item) => [item.value, item.label]));
 
   const submit = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
-      const road_id = await matchOrCreateRoad(form.road, form.county);
+      const road_id = await findExistingRoad(form.road);
       const { error } = await supabase.from("alerts").insert({
         ...form,
         road_id,
@@ -158,6 +160,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
             <SelectContent>
               {hazardTypes.map((h) => (
                 <SelectItem key={h.value} value={h.value}>
+                  {h.parent_value ? `${hazardLabels.get(h.parent_value) ?? h.parent_value} · ` : ""}
                   {h.label}
                 </SelectItem>
               ))}

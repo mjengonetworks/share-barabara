@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
@@ -15,6 +16,10 @@ import { useRoles } from "@/hooks/useRoles";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { slugify } from "@/lib/format";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { RoadInput } from "@/components/site/road-input";
+import { LocationButton } from "@/components/site/location-button";
+import { useArticleLocationSchema } from "@/hooks/useArticleLocation";
+import { KENYA_COUNTIES } from "@/lib/constants";
 
 export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
@@ -24,6 +29,15 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
   const editorialAccess = editorial && canPublishArticles;
   const editorialFields = editorial && canEditSeo;
   const { data: categories = [] } = useNewsCategories();
+  const { data: articleLocationAvailable = false } = useArticleLocationSchema();
+  const [location, setLocation] = useState({
+    label: "",
+    type: "named_place",
+    county: "",
+    road: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
+  });
   const [form, setForm] = useState({
     title: "",
     summary: "",
@@ -55,6 +69,16 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
               seo_title: form.seo_title.trim() || null,
               seo_description: form.seo_description.trim() || null,
               seo_keywords: form.seo_keywords.trim() || null,
+            }
+          : {}),
+        ...(articleLocationAvailable
+          ? {
+              location_label: location.label.trim() || null,
+              location_type: location.type || null,
+              county: location.county || null,
+              road: location.road.trim() || null,
+              latitude: location.latitude,
+              longitude: location.longitude,
             }
           : {}),
         category: selectedCategories[0] ?? "News",
@@ -94,6 +118,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
         seo_keywords: "",
       });
       setSelectedCategories(["News"]);
+      setLocation({ label: "", type: "named_place", county: "", road: "", latitude: null, longitude: null });
       queryClient.invalidateQueries({ queryKey: ["my-articles"] });
       queryClient.invalidateQueries({ queryKey: ["news"] });
       onDone?.();
@@ -115,7 +140,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             contentType="article"
             mode="generate"
             source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
-            onDraft={(draft) =>
+            onDraft={(draft) => {
               setForm((current) => ({
                 ...current,
                 ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -124,14 +149,17 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
                 ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
                 ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
                 ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-              }))
-            }
+              }));
+              if (typeof draft["category"] === "string" && draft["category"].trim()) {
+                setSelectedCategories([draft["category"]]);
+              }
+            }}
           />
           <EditorialAIButton
             contentType="article"
             mode="autopopulate"
             source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
-            onDraft={(draft) =>
+            onDraft={(draft) => {
               setForm((current) => ({
                 ...current,
                 ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -140,9 +168,27 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
                 ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
                 ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
                 ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-              }))
-            }
+              }));
+              if (typeof draft["category"] === "string" && draft["category"].trim()) {
+                setSelectedCategories([draft["category"]]);
+              }
+            }}
           />
+        </div>
+      ) : null}
+      {articleLocationAvailable ? (
+        <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Location (optional)</p>
+            <p className="mt-1 text-xs text-muted-foreground">Add only a place supported by your source. A point is never required for an Article.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div><Label htmlFor="article-location-label">Place or feature</Label><Input id="article-location-label" value={location.label} onChange={(event) => setLocation({ ...location, label: event.target.value })} placeholder="e.g. Salgaa junction" /></div>
+            <div><Label>Location type</Label><Select value={location.type} onValueChange={(value) => setLocation({ ...location, type: value })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{[["county", "County"], ["named_place", "Named place"], ["road", "Road"], ["point", "Point"], ["feature", "Geographic feature"]].map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label>County (optional)</Label><Select value={location.county || "none"} onValueChange={(value) => setLocation({ ...location, county: value === "none" ? "" : value })}><SelectTrigger><SelectValue placeholder="Select a county" /></SelectTrigger><SelectContent className="max-h-64"><SelectItem value="none">No county</SelectItem>{KENYA_COUNTIES.map((county) => <SelectItem key={county} value={county}>{county}</SelectItem>)}</SelectContent></Select></div>
+            <RoadInput value={location.road} onChange={(road) => setLocation({ ...location, road })} id="article-location-road" label="Road (optional)" />
+          </div>
+          <LocationButton idPrefix="article-location" latitude={location.latitude} longitude={location.longitude} onLocate={(latitude, longitude) => setLocation({ ...location, latitude, longitude })} />
         </div>
       ) : null}
       <div>

@@ -9,6 +9,7 @@ type ReportSubmission = {
   description: string;
   county: string;
   road: string;
+  incident_type?: string | null;
   severity: string;
   occurred_at: string;
   vehicles_involved: number | null;

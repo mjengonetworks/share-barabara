@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PublicPageHero } from "@/components/site/public-page-hero";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -33,7 +34,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { num } from "@/lib/format";
 import { BannerAd } from "@/components/site/banner-ad";
-import { displayReportCount, knownReportSum } from "@/lib/report-metrics";
+import { displayReportCount } from "@/lib/report-metrics";
+import { percentageChange, reportMonthBuckets, sumKnown } from "@/lib/statistics.mjs";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
 
 export const Route = createFileRoute("/statistics")({
   head: () => ({
@@ -84,7 +87,9 @@ function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
   return useQuery({
     queryKey: ["group-counts", table, column],
     queryFn: async () => {
-      const { data, error } = await supabase.from(table).select(column);
+      let query = supabase.from(table).select(column);
+      if (table === "accident_reports") query = query.eq("status", "approved");
+      const { data, error } = await query;
       if (error) throw error;
       const rows = (data ?? []) as unknown as Record<string, string>[];
       const counts: Record<string, number> = {};
@@ -109,18 +114,25 @@ function usePartiesCasualtyCounts() {
     queryFn: async () => {
       const [{ data: alerts, error: e1 }, { data: reports, error: e2 }] = await Promise.all([
         supabase.from("alerts").select("casualty_breakdown"),
-        supabase.from("accident_reports").select("casualty_breakdown"),
+        supabase.from("accident_reports").select("casualty_breakdown").eq("status", "approved"),
       ]);
       if (e1) throw e1;
       if (e2) throw e2;
       const counts: Record<string, number> = {};
+      const unknown: Record<string, boolean> = {};
       for (const row of [...(alerts ?? []), ...(reports ?? [])]) {
         const breakdown = row.casualty_breakdown as CasualtyBreakdownRow;
         for (const [party, c] of Object.entries(breakdown ?? {})) {
-          counts[party] = (counts[party] ?? 0) + (c.dead ?? 0) + (c.injured ?? 0);
+          for (const value of [c.dead, c.injured]) {
+            if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+              counts[party] = (counts[party] ?? 0) + value;
+            } else {
+              unknown[party] = true;
+            }
+          }
         }
       }
-      return counts;
+      return { counts, unknown };
     },
   });
 }
@@ -319,14 +331,13 @@ function StatisticsPage() {
   }>("road_class_stats", "fatalities", false);
 
   const { data: alertsCount } = useLiveCount("alerts", "alerts");
-  const { data: reportsFiledCount } = useLiveCount("reports-filed", "accident_reports");
-  const { data: reportsApprovedCount } = useLiveCount("reports-approved", "accident_reports", [
+  const { data: reportsFiledCount } = useLiveCount("reports-approved", "accident_reports", [
     "status",
     "approved",
   ]);
   const { data: hazardCounts = {} } = useGroupCounts("alerts", "hazard_type");
   const { data: reportSeverityCounts = {} } = useGroupCounts("accident_reports", "severity");
-  const { data: partiesCounts = {} } = usePartiesCasualtyCounts();
+  const { data: partyStats = { counts: {}, unknown: {} } } = usePartiesCasualtyCounts();
 
   const currentYear = new Date().getFullYear();
   const availableYears = yearly
@@ -379,20 +390,14 @@ function StatisticsPage() {
   });
 
   const sumBy = (rows: LiveReport[], key: "fatalities" | "casualties") =>
-    knownReportSum(rows.map((r) => r[key])).value;
+    sumKnown(rows.map((r) => r[key])).value;
 
-  const pctChange = (curr: number, prior: number) =>
-    prior === 0 ? null : Math.round(((curr - prior) / prior) * 1000) / 10;
-
-  const liveMonthly = MONTHS.map((label, i) => {
-    const rows = thisYearReports.filter((r) => new Date(r.occurred_at).getMonth() === i);
-    return {
-      label,
-      accidents: rows.length,
-      fatalities: sumBy(rows, "fatalities"),
-      injuries: sumBy(rows, "casualties"),
-    };
-  });
+  const liveMonthly = reportMonthBuckets(thisYearReports, currentYear).map((bucket, i) => ({
+    label: MONTHS[i],
+    accidents: bucket.reports,
+    fatalities: bucket.fatalities.value,
+    injuries: bucket.injuries.value,
+  }));
 
   const liveSeverityMix = ["minor", "serious", "fatal"].map((value) => ({
     value,
@@ -401,15 +406,12 @@ function StatisticsPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Share Barabara
-      </p>
-      <h1 className="mt-2 text-[1.7325rem] font-extrabold">Live statistics</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">
-        Kenyan road traffic crash data and what the Share Barabara community has reported so far,
-        updated as it happens.
-      </p>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Road-safety data"
+        title="Statistics"
+        description="Explore the available road-safety evidence and the separate picture of what Share Barabara users have reported. Each dataset is labelled by its source and coverage."
+      />
       <p className="mt-2 text-xs text-muted-foreground">
         Reports without confirmed casualty totals are excluded from numeric sums rather than counted as zero.
       </p>
@@ -431,16 +433,7 @@ function StatisticsPage() {
           <p className="font-display text-3xl font-extrabold">
             {reportsFiledCount === undefined ? "…" : num(reportsFiledCount)}
           </p>
-          <p className="mt-1 text-sm text-brand-blue underline">Accident reports filed</p>
-        </Link>
-        <Link
-          to="/reports"
-          className="rounded-lg border border-border bg-card p-6 transition-colors card-elevated hover:border-accent"
-        >
-          <p className="font-display text-3xl font-extrabold text-safe">
-            {reportsApprovedCount === undefined ? "…" : num(reportsApprovedCount)}
-          </p>
-          <p className="mt-1 text-sm text-brand-blue underline">Reports verified &amp; published</p>
+          <p className="mt-1 text-sm text-brand-blue underline">Approved reports published</p>
         </Link>
       </div>
 
@@ -488,18 +481,21 @@ function StatisticsPage() {
             Who was involved
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Dead and injured, from casualty counts filed on alerts and reports.
+            Known dead and injured, from casualty counts filed on public alerts and approved reports.
           </p>
           <ul className="mt-4 space-y-2">
             {PARTIES_INVOLVED.map((p) => {
-              const total = Object.values(partiesCounts).reduce((s, v) => s + v, 0) || 1;
-              const count = partiesCounts[p.value] ?? 0;
+              const total = Object.values(partyStats.counts).reduce((s, v) => s + v, 0) || 1;
+              const count = partyStats.counts[p.value] ?? 0;
               const pct = Math.round((count / total) * 100);
               return (
                 <li key={p.value}>
                   <div className="flex items-baseline justify-between text-sm">
                     <span>{p.label}</span>
-                    <span className="font-semibold">{count}</span>
+                    <span className="font-semibold">
+                      {count}
+                      {partyStats.unknown[p.value] ? " + unknown" : ""}
+                    </span>
                   </div>
                   <div className="mt-1 h-2 w-full overflow-hidden rounded bg-muted">
                     <div className="h-full bg-accent" style={{ width: `${pct}%` }} />
@@ -518,13 +514,13 @@ function StatisticsPage() {
             <span className="relative inline-flex size-2.5 rounded-full bg-destructive" />
           </span>
           <p className="text-xs font-semibold uppercase tracking-widest text-destructive">
-            Live · counted from verified reports as they're filed
+            Live · counted from approved Share Barabara reports
           </p>
         </div>
         <h2 className="mt-2 text-[1.7325rem] font-extrabold">{currentYear} so far</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Our own count, not a government release — built straight from accident reports filed and
-          verified on Share Barabara.
+          Share Barabara reported data only — not Kenya's official national road-safety total. The
+          figures below count approved reports and exclude unknown casualty values from numeric sums.
         </p>
 
         <div className="mt-6 flex flex-wrap items-end gap-2">
@@ -592,20 +588,20 @@ function StatisticsPage() {
                 tone: "text-foreground",
               },
               {
-                label: "Deaths",
+                label: "Known deaths",
                 curr: sumBy(thisYearReports, "fatalities"),
                 prior: sumBy(lastYearToDateReports, "fatalities"),
                 tone: "text-destructive",
               },
               {
-                label: "Injuries",
+                label: "Known injuries",
                 curr: sumBy(thisYearReports, "casualties"),
                 prior: sumBy(lastYearToDateReports, "casualties"),
                 tone: "text-caution",
               },
             ] as const
           ).map((s) => {
-            const change = pctChange(s.curr, s.prior);
+            const change = percentageChange(s.curr, s.prior);
             return (
               <div
                 key={s.label}
@@ -727,7 +723,7 @@ function StatisticsPage() {
         <section className="mt-14 border-t border-border pt-10">
           <h2 className="text-[1.155rem] font-bold">Most dangerous roads</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Ranked by fatalities in verified accident reports. Click through to a road's own profile
+            Ranked by fatalities in approved accident reports. Click through to a road's own profile
             for every alert and report filed against it.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -785,9 +781,10 @@ function StatisticsPage() {
           ) : null}
         </div>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Indicative national figures compiled for public awareness. Roughly thirteen people die on
-          Kenyan roads every single day, and most of them are outside a car when it happens. Only
-          the yearly fatality trend below currently has data back to{" "}
+          These are legacy stored aggregate records with no source provenance in the repository.
+          They are not presented as confirmed official or government statistics. No Share Barabara
+          report count is used to create this series. The yearly fatality trend currently has data
+          back to{" "}
           {availableYears.at(-1) ?? "2019"}; the breakdown charts fill in as more years are entered.
         </p>
       </div>
@@ -820,11 +817,6 @@ function StatisticsPage() {
               label: "Slight injuries",
               value: num(latest.slight_injuries),
               tone: "text-foreground",
-            },
-            {
-              label: "Deaths per day",
-              value: Math.round(latest.fatalities / 365),
-              tone: "text-destructive",
             },
             {
               label: "Change vs previous year",
@@ -1145,6 +1137,7 @@ function StatisticsPage() {
           </p>
         </div>
       </section>
+      <MjengoPreviews context="statistics" />
     </div>
   );
 }

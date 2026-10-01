@@ -49,6 +49,7 @@ import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs";
+import { LocationButton } from "@/components/site/location-button";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -60,6 +61,8 @@ type ReportDraft = {
   description: string;
   county: string;
   road: string;
+  latitude: number | null;
+  longitude: number | null;
   severity: string;
   vehicles_involved: number | null;
   casualties: number | null;
@@ -263,6 +266,8 @@ function ReportsQueuePage() {
             description: r.description,
             county: r.county,
             road: r.road ?? "",
+            latitude: r.latitude,
+            longitude: r.longitude,
             severity: r.severity,
             vehicles_involved: r.vehicles_involved,
             casualties: r.casualties,
@@ -467,6 +472,10 @@ function ReportsQueuePage() {
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div className="sm:col-span-2 rounded border border-dashed border-border bg-muted/30 p-3">
+                        <Label>Point location (optional)</Label>
+                        <LocationButton idPrefix={`report-${r.id}-location`} latitude={d.latitude} longitude={d.longitude} onLocate={(latitude, longitude) => set({ latitude, longitude })} />
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <NullableNumberField id={`v-${r.id}`} label="Vehicles" value={d.vehicles_involved} onChange={(value) => set({ vehicles_involved: value })} />

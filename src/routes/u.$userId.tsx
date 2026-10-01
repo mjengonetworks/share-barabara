@@ -9,6 +9,7 @@ import { SeverityBadge } from "@/components/site/severity-badge";
 import { StarRatingWidget } from "@/components/site/star-rating";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { LevelInfoDialog } from "@/components/site/level-info-dialog";
+import { UserAvatar } from "@/components/site/user-avatar";
 import { Button } from "@/components/ui/button";
 import { useRoleLabels, primaryRoleLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,7 +51,7 @@ function ContributorPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, display_name, county, avatar_url, created_at, occupation, bio, byline_title, road_safety_message, mjengo_networks_url, mjengo_hub_url, referral_points")
         .eq(UUID_RE.test(routeParam) ? "id" : "username", routeParam)
         .maybeSingle();
       if (error) throw error;
@@ -81,7 +82,7 @@ function ContributorPage() {
       return data;
     },
   });
-  const isVerified =
+  const hasActiveSubscription =
     !!subscription?.active &&
     (!subscription.expires_at || new Date(subscription.expires_at) > new Date());
 
@@ -119,10 +120,11 @@ function ContributorPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("*")
+        .select("id, title, county, road, hazard_type, severity, status, created_at")
         .eq("user_id", userId!)
+        .eq("status", "active")
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(20);
       if (error) throw error;
       return data;
     },
@@ -134,25 +136,11 @@ function ContributorPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
-        .select("*")
+        .select("id, title, county, road, severity, occurred_at, status")
         .eq("user_id", userId!)
+        .eq("status", "approved")
         .order("occurred_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: reviewed = [] } = useQuery({
-    queryKey: ["user-reviewed", userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("accident_reports")
-        .select("*")
-        .eq("reviewed_by", userId!)
-        .order("reviewed_at", { ascending: false })
-        .limit(50);
+        .limit(20);
       if (error) throw error;
       return data;
     },
@@ -168,7 +156,7 @@ function ContributorPage() {
         .eq("author_id", userId!)
         .eq("status", "published")
         .order("published_at", { ascending: false })
-        .limit(50);
+        .limit(20);
       if (error) throw error;
       return data;
     },
@@ -180,10 +168,10 @@ function ContributorPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("comments")
-        .select("*")
+        .select("id, entity_type, body, created_at")
         .eq("user_id", userId!)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(20);
       if (error) throw error;
       return data;
     },
@@ -204,19 +192,22 @@ function ContributorPage() {
   }
 
   return (
-    <div className={isVerified ? "bg-muted/40" : undefined}>
+    <div className={hasActiveSubscription ? "bg-muted/40" : undefined}>
       <div className="mx-auto max-w-5xl px-4 py-10">
         <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
           {role}
         </p>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <h1 className="mt-2 flex items-center gap-2 text-[1.7325rem] font-extrabold">
-            {name}
+            <UserAvatar url={profile?.avatar_url} name={name} className="size-14 sm:size-16" />
+            <span>{name}</span>
             {isStaff ? (
               <BadgeCheck className="size-7 text-accent" aria-label="Staff member" />
             ) : null}
-            {isVerified ? (
-              <BadgeCheck className="size-7 text-brand-blue" aria-label="Subscribed member" />
+            {hasActiveSubscription ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue/10 px-2 py-1 text-xs font-semibold text-brand-blue">
+                <BadgeCheck className="size-4" aria-hidden="true" /> Subscribed member
+              </span>
             ) : null}
           </h1>
           {!!userId && viewer?.id === userId ? (
@@ -320,7 +311,6 @@ function ContributorPage() {
           {[
             { label: "Alerts", value: alerts.length },
             { label: "Reports filed", value: submitted.length },
-            { label: "Reports approved", value: reviewed.length },
             { label: "Articles", value: articles.length },
             { label: "Comments", value: comments.length },
           ].map((s) => (
@@ -421,22 +411,6 @@ function ContributorPage() {
             </>
           )}
         </section>
-
-        {reviewed.length > 0 ? (
-          <section className="mt-10">
-            <h2 className="text-[1.155rem] font-bold">Reports approved and edited</h2>
-            <ul className="mt-4 space-y-3">
-              {reviewed.map((r) => (
-                <li key={r.id} className="rounded-lg border border-border bg-card p-4">
-                  <span className="font-semibold">{r.title}</span>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {r.county} · approved {r.reviewed_at ? timeAgo(r.reviewed_at) : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
 
         <section id="profile-alerts" className="mt-10 scroll-mt-24">
           <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
