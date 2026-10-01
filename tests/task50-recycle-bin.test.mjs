@@ -8,7 +8,7 @@ const migration = read("supabase/migrations/20261001120000_recycle_bin_review.sq
 
 test("Task 50 migration is review-only and covers eligible content types", () => {
   assert.match(migration, /TASK 50 REVIEW-ONLY MIGRATION/);
-  for (const type of ["alert", "report", "article", "feed_post", "comment", "video", "infrastructure_issue", "campaign"]) {
+  for (const type of ["alert", "report", "article", "feed_post", "comment", "video", "infrastructure_issue", "campaign", "page"]) {
     assert.match(migration, new RegExp(`'${type}'`));
   }
   assert.match(migration, /snapshot JSONB NOT NULL/);
@@ -36,10 +36,10 @@ test("restore preserves source rows and permanent delete guards replies", () => 
 });
 
 test("public policies exclude soft-deleted content", () => {
-  for (const table of ["news", "alerts", "accident_reports", "comments", "videos", "infrastructure_issues", "campaigns", "feed_posts"]) {
+  for (const table of ["news", "alerts", "accident_reports", "comments", "videos", "infrastructure_issues", "campaigns", "feed_posts", "pages"]) {
     assert.match(migration, new RegExp(`ON public\\.${table} FOR SELECT`));
   }
-  assert.ok((migration.match(/deleted_at IS NULL/g) ?? []).length >= 8);
+  assert.ok((migration.match(/deleted_at IS NULL/g) ?? []).length >= 9);
   assert.match(migration, /comments_public_read_active ON public\.comments/);
 });
 
@@ -66,6 +66,7 @@ test("eligible legacy hard-delete handlers use the recycle-bin RPC seam", () => 
     "src/routes/_authenticated/admin/articles.tsx",
     "src/routes/_authenticated/admin/comments.tsx",
     "src/routes/_authenticated/admin/videos.tsx",
+    "src/routes/_authenticated/admin/pages.tsx",
     "src/components/site/comment-section.tsx",
   ]) {
     assert.match(read(path), /moveToRecycleBin/);

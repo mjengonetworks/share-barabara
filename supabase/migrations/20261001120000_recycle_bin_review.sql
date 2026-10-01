@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS public.recycle_bin_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   content_type TEXT NOT NULL CHECK (content_type IN (
     'alert', 'report', 'article', 'feed_post', 'comment', 'video',
-    'infrastructure_issue', 'campaign'
+    'infrastructure_issue', 'campaign', 'page'
   )),
   content_id UUID NOT NULL,
   owner_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -105,6 +105,10 @@ ALTER TABLE IF EXISTS public.feed_posts
   ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS deleted_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS deletion_origin TEXT;
+ALTER TABLE IF EXISTS public.pages
+  ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS deleted_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS deletion_origin TEXT;
 
 CREATE INDEX IF NOT EXISTS alerts_deleted_idx ON public.alerts (deleted_at) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS reports_deleted_idx ON public.accident_reports (deleted_at) WHERE deleted_at IS NULL;
@@ -114,6 +118,7 @@ CREATE INDEX IF NOT EXISTS videos_deleted_idx ON public.videos (deleted_at) WHER
 CREATE INDEX IF NOT EXISTS infrastructure_deleted_idx ON public.infrastructure_issues (deleted_at) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS campaigns_deleted_idx ON public.campaigns (deleted_at) WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS feed_posts_deleted_idx ON public.feed_posts (deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS pages_deleted_idx ON public.pages (deleted_at) WHERE deleted_at IS NULL;
 
 CREATE OR REPLACE FUNCTION public.recycle_bin_source(
   _content_type TEXT,
@@ -133,6 +138,7 @@ BEGIN
     WHEN 'video' THEN SELECT to_jsonb(x), x.user_id, x.title INTO _snapshot, _owner_id, _title FROM public.videos x WHERE x.id = _content_id;
     WHEN 'infrastructure_issue' THEN SELECT to_jsonb(x), x.user_id, x.title INTO _snapshot, _owner_id, _title FROM public.infrastructure_issues x WHERE x.id = _content_id;
     WHEN 'campaign' THEN SELECT to_jsonb(x), x.created_by, x.title INTO _snapshot, _owner_id, _title FROM public.campaigns x WHERE x.id = _content_id;
+    WHEN 'page' THEN SELECT to_jsonb(x), x.owner_id, x.name INTO _snapshot, _owner_id, _title FROM public.pages x WHERE x.id = _content_id;
     ELSE RAISE EXCEPTION 'Unsupported recycle-bin content type';
   END CASE;
   IF _snapshot IS NULL THEN RAISE EXCEPTION 'Content not found'; END IF;
@@ -154,6 +160,7 @@ BEGIN
     WHEN 'video' THEN UPDATE public.videos SET deleted_at = now(), deleted_by = _actor, deletion_origin = _origin WHERE id = _content_id;
     WHEN 'infrastructure_issue' THEN UPDATE public.infrastructure_issues SET deleted_at = now(), deleted_by = _actor, deletion_origin = _origin WHERE id = _content_id;
     WHEN 'campaign' THEN UPDATE public.campaigns SET deleted_at = now(), deleted_by = _actor, deletion_origin = _origin WHERE id = _content_id;
+    WHEN 'page' THEN UPDATE public.pages SET deleted_at = now(), deleted_by = _actor, deletion_origin = _origin WHERE id = _content_id;
   END CASE;
 END;
 $$;
@@ -201,6 +208,7 @@ BEGIN
     WHEN 'video' THEN UPDATE public.videos SET deleted_at = NULL, deleted_by = NULL, deletion_origin = NULL WHERE id = item.content_id;
     WHEN 'infrastructure_issue' THEN UPDATE public.infrastructure_issues SET deleted_at = NULL, deleted_by = NULL, deletion_origin = NULL WHERE id = item.content_id;
     WHEN 'campaign' THEN UPDATE public.campaigns SET deleted_at = NULL, deleted_by = NULL, deletion_origin = NULL WHERE id = item.content_id;
+    WHEN 'page' THEN UPDATE public.pages SET deleted_at = NULL, deleted_by = NULL, deletion_origin = NULL WHERE id = item.content_id;
   END CASE;
   UPDATE public.recycle_bin_items SET status = 'restored', restored_at = now(), restored_by = actor WHERE id = _item_id;
   INSERT INTO public.recycle_bin_history(recycle_bin_item_id, actor_id, action, previous_state, new_state)
@@ -232,6 +240,7 @@ BEGIN
     WHEN 'video' THEN DELETE FROM public.videos WHERE id = item.content_id;
     WHEN 'infrastructure_issue' THEN DELETE FROM public.infrastructure_issues WHERE id = item.content_id;
     WHEN 'campaign' THEN DELETE FROM public.campaigns WHERE id = item.content_id;
+    WHEN 'page' THEN DELETE FROM public.pages WHERE id = item.content_id;
   END CASE;
   UPDATE public.recycle_bin_items SET status = 'permanently_deleted', permanently_deleted_at = now(), permanently_deleted_by = actor WHERE id = _item_id;
   INSERT INTO public.recycle_bin_history(recycle_bin_item_id, actor_id, action, previous_state, new_state)
@@ -268,6 +277,9 @@ CREATE POLICY infrastructure_issues_read ON public.infrastructure_issues FOR SEL
 DROP POLICY IF EXISTS campaigns_public_read ON public.campaigns;
 CREATE POLICY campaigns_public_read ON public.campaigns FOR SELECT
   USING (deleted_at IS NULL AND (end_date >= CURRENT_DATE OR report_published OR public.has_min_role(auth.uid(), 'editor')));
+DROP POLICY IF EXISTS pages_public_read ON public.pages;
+CREATE POLICY pages_public_read ON public.pages FOR SELECT
+  USING (deleted_at IS NULL);
 DROP POLICY IF EXISTS feed_posts_public_published_read ON public.feed_posts;
 CREATE POLICY feed_posts_public_published_read ON public.feed_posts FOR SELECT
   USING (deleted_at IS NULL AND (status = 'published' OR public.has_min_role(auth.uid(), 'moderator')));

@@ -9,6 +9,7 @@ export const RECYCLE_CONTENT_TYPES = [
   { value: "video", label: "Videos" },
   { value: "infrastructure_issue", label: "Infrastructure issues" },
   { value: "campaign", label: "Campaigns" },
+  { value: "page", label: "Pages" },
 ];
 
 export function recycleContentLabel(type) {
