@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Newspaper,
   Quote,
+  ArchiveRestore,
   ShieldAlert,
   ShoppingBag,
   Sparkles,
@@ -176,6 +177,7 @@ const SECTIONS: NavSection[] = [
         minRank: ROLE_RANK.moderator,
       },
       { to: "/admin/notification-health", label: "Notification Health", icon: Activity, minRank: ROLE_RANK.admin },
+      { to: "/admin/recycle-bin", label: "Recycle Bin", icon: ArchiveRestore, minRank: ROLE_RANK.admin },
       { to: "/admin/featured", label: "Featured Picks", icon: Sparkles, minRank: ROLE_RANK.editor },
       {
         to: "/admin/categories",

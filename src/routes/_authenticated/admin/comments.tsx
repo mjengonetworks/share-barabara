@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { timeAgo } from "@/lib/format";
@@ -40,8 +41,7 @@ function CommentsAdminPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("comments").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("comment", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Comment deleted");

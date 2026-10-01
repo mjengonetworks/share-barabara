@@ -460,6 +460,16 @@ function SettingsPage() {
         ) : null}
       </div>
       <BlockedAccounts />
+      <div className="mt-8 rounded-lg border border-border bg-card p-6 card-elevated">
+        <h2 className="text-lg font-bold">Deleted content</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Review content you deleted, restore it, or permanently remove it after confirmation.
+          Staff removals are kept separate.
+        </p>
+        <Link to="/recycle-bin" className="mt-4 inline-flex text-sm font-semibold text-brand-blue underline">
+          Open My Recycle Bin
+        </Link>
+      </div>
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
 import { longDate, slugify } from "@/lib/format";
@@ -179,8 +180,7 @@ function CampaignsAdminPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("campaigns").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("campaign", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Campaign removed");

@@ -34,6 +34,7 @@ import {
   type CasualtyBreakdown,
 } from "@/components/site/party-casualty-inputs";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { SeverityBadge } from "@/components/site/severity-badge";
@@ -116,8 +117,7 @@ function AlertsAdminPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("alerts").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("alert", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Alert removed");

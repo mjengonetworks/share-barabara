@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { useVotes } from "@/hooks/useVotes";
@@ -96,8 +97,7 @@ export function CommentSection({ entityType, entityId }: Props) {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("comments").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("comment", id, "Deleted by the author");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
     onError: (e: Error) => toast.error(e.message),

@@ -19,6 +19,7 @@ import { Route as MerchRouteImport } from './routes/merch'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PartnerWithUsRouteImport } from './routes/partner-with-us'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RecycleBinRouteImport } from './routes/recycle-bin'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SitemapRouteImport } from './routes/sitemap'
@@ -64,6 +65,7 @@ import { Route as AuthenticatedAdminNotificationHealthRouteImport } from './rout
 import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin/pages'
 import { Route as AuthenticatedAdminPartnerEnquiriesRouteImport } from './routes/_authenticated/admin/partner-enquiries'
 import { Route as AuthenticatedAdminQuoteRouteImport } from './routes/_authenticated/admin/quote'
+import { Route as AuthenticatedAdminRecycleBinRouteImport } from './routes/_authenticated/admin/recycle-bin'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin/requests'
 import { Route as AuthenticatedAdminSocialLinksRouteImport } from './routes/_authenticated/admin/social-links'
@@ -117,6 +119,11 @@ const PartnerWithUsRoute = PartnerWithUsRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecycleBinRoute = RecycleBinRouteImport.update({
+  id: '/recycle-bin',
+  path: '/recycle-bin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -362,6 +369,12 @@ const AuthenticatedAdminQuoteRoute = AuthenticatedAdminQuoteRouteImport.update({
   path: '/quote',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminRecycleBinRoute =
+  AuthenticatedAdminRecycleBinRouteImport.update({
+    id: '/recycle-bin',
+    path: '/recycle-bin',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminReportsRoute =
   AuthenticatedAdminReportsRouteImport.update({
     id: '/reports',
@@ -402,6 +415,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
   '/privacy': typeof PrivacyRoute
+  '/recycle-bin': typeof RecycleBinRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/sitemap': typeof SitemapRoute
@@ -446,6 +460,7 @@ export interface FileRoutesByFullPath {
   '/admin/pages': typeof AuthenticatedAdminPagesRoute
   '/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
+  '/admin/recycle-bin': typeof AuthenticatedAdminRecycleBinRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
@@ -463,6 +478,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
   '/privacy': typeof PrivacyRoute
+  '/recycle-bin': typeof RecycleBinRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/sitemap': typeof SitemapRoute
@@ -506,6 +522,7 @@ export interface FileRoutesByTo {
   '/admin/pages': typeof AuthenticatedAdminPagesRoute
   '/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
+  '/admin/recycle-bin': typeof AuthenticatedAdminRecycleBinRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
@@ -525,6 +542,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
   '/privacy': typeof PrivacyRoute
+  '/recycle-bin': typeof RecycleBinRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/sitemap': typeof SitemapRoute
@@ -569,6 +587,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRoute
   '/_authenticated/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/_authenticated/admin/quote': typeof AuthenticatedAdminQuoteRoute
+  '/_authenticated/admin/recycle-bin': typeof AuthenticatedAdminRecycleBinRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
@@ -588,6 +607,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/partner-with-us'
     | '/privacy'
+    | '/recycle-bin'
     | '/search'
     | '/settings'
     | '/sitemap'
@@ -632,6 +652,7 @@ export interface FileRouteTypes {
     | '/admin/pages'
     | '/admin/partner-enquiries'
     | '/admin/quote'
+    | '/admin/recycle-bin'
     | '/admin/reports'
     | '/admin/requests'
     | '/admin/social-links'
@@ -649,6 +670,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/partner-with-us'
     | '/privacy'
+    | '/recycle-bin'
     | '/search'
     | '/settings'
     | '/sitemap'
@@ -692,6 +714,7 @@ export interface FileRouteTypes {
     | '/admin/pages'
     | '/admin/partner-enquiries'
     | '/admin/quote'
+    | '/admin/recycle-bin'
     | '/admin/reports'
     | '/admin/requests'
     | '/admin/social-links'
@@ -710,6 +733,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/partner-with-us'
     | '/privacy'
+    | '/recycle-bin'
     | '/search'
     | '/settings'
     | '/sitemap'
@@ -754,6 +778,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/pages'
     | '/_authenticated/admin/partner-enquiries'
     | '/_authenticated/admin/quote'
+    | '/_authenticated/admin/recycle-bin'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/requests'
     | '/_authenticated/admin/social-links'
@@ -773,6 +798,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   PartnerWithUsRoute: typeof PartnerWithUsRoute
   PrivacyRoute: typeof PrivacyRoute
+  RecycleBinRoute: typeof RecycleBinRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   SitemapRoute: typeof SitemapRoute
@@ -866,6 +892,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recycle-bin': {
+      id: '/recycle-bin'
+      path: '/recycle-bin'
+      fullPath: '/recycle-bin'
+      preLoaderRoute: typeof RecycleBinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -1183,6 +1216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminQuoteRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/recycle-bin': {
+      id: '/_authenticated/admin/recycle-bin'
+      path: '/recycle-bin'
+      fullPath: '/admin/recycle-bin'
+      preLoaderRoute: typeof AuthenticatedAdminRecycleBinRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/reports': {
       id: '/_authenticated/admin/reports'
       path: '/reports'
@@ -1241,6 +1281,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRoute
   AuthenticatedAdminPartnerEnquiriesRoute: typeof AuthenticatedAdminPartnerEnquiriesRoute
   AuthenticatedAdminQuoteRoute: typeof AuthenticatedAdminQuoteRoute
+  AuthenticatedAdminRecycleBinRoute: typeof AuthenticatedAdminRecycleBinRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminSocialLinksRoute: typeof AuthenticatedAdminSocialLinksRoute
@@ -1274,6 +1315,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminPartnerEnquiriesRoute:
       AuthenticatedAdminPartnerEnquiriesRoute,
     AuthenticatedAdminQuoteRoute: AuthenticatedAdminQuoteRoute,
+    AuthenticatedAdminRecycleBinRoute: AuthenticatedAdminRecycleBinRoute,
     AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
     AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
     AuthenticatedAdminSocialLinksRoute: AuthenticatedAdminSocialLinksRoute,
@@ -1325,6 +1367,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   PartnerWithUsRoute: PartnerWithUsRoute,
   PrivacyRoute: PrivacyRoute,
+  RecycleBinRoute: RecycleBinRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   SitemapRoute: SitemapRoute,

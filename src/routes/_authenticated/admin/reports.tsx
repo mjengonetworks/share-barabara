@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfileNames } from "@/lib/profiles";
 import { useViewCounts } from "@/hooks/useViewCounts";
@@ -169,8 +170,7 @@ function ReportsQueuePage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("accident_reports").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("report", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Report deleted");

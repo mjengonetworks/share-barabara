@@ -151,3 +151,10 @@ keys, runtime bindings, migration application, and real-device delivery are veri
 verification is SQL/RLS review and application, Cloudflare scheduled-worker configuration, browser
 subscription tests, and live push-service acceptance/device-display checks. Do not execute SQL,
 deploy, provision SearXNG, or begin Task 25 as part of this task.
+
+Task 50 — Dual Recycle Bin System is TESTING / VERIFICATION. The review-only recycle-bin migration,
+owner/admin-separated UI, append-only history, server-authoritative soft deletion, guarded restoration,
+retention metadata, permanent-delete confirmation, and public visibility filters are implemented.
+Remaining verification is migration/RLS review and application, conversion of any remaining legacy hard
+delete handlers, browser testing of owner/admin permissions and parent-child safety, and live retention
+policy configuration. Do not execute SQL, deploy, provision SearXNG, or begin Task 25 as part of this task.
