@@ -10,6 +10,9 @@ import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/site/article-form";
 import { BannerAd } from "@/components/site/banner-ad";
+import { PublicPageHero } from "@/components/site/public-page-hero";
+import heroRoad from "@/assets/hero-road.jpg";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import {
   Dialog,
   DialogContent,
@@ -26,16 +29,16 @@ export const Route = createFileRoute("/news/")({
   },
   head: () => ({
     meta: [
-      { title: "Road Safety News in Kenya: Share Barabara" },
+      { title: "News & Articles | Share Barabara" },
       {
         name: "description",
         content:
-          "Latest Kenyan road safety news: enforcement operations, policy changes, black spot works and awareness campaigns, with open community discussion.",
+          "News and articles about Kenyan road safety, transport, infrastructure and the people working to make every journey safer.",
       },
-      { property: "og:title", content: "Road Safety News in Kenya" },
+      { property: "og:title", content: "News & Articles | Share Barabara" },
       {
         property: "og:description",
-        content: "Enforcement, policy, infrastructure and awareness news for Kenyan road users.",
+        content: "Road safety reporting, transport insight and community stories for Kenyan road users.",
       },
     ],
   }),
@@ -203,20 +206,18 @@ function NewsIndex() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-            Newsroom
-          </p>
-          <h1 className="mt-2 text-[1.7325rem] font-extrabold">Road safety news</h1>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Enforcement operations, policy shifts, infrastructure works and campaigns affecting how
-            Kenyans travel. Every story is open for discussion.
-          </p>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Newsroom"
+        title="News & Articles"
+        description="Road safety reporting, transport insight and community stories about how Kenyans travel and how we can make every journey safer."
+        image={heroRoad}
+      />
+      {user && canWrite ? (
+        <div className="mt-4 flex justify-end">
+          <WriteButton signedIn={!!user} canWrite={canWrite} />
         </div>
-        <WriteButton signedIn={!!user} canWrite={canWrite} />
-      </div>
+      ) : null}
 
       <div className="mt-10">
         {category ? (
@@ -224,7 +225,7 @@ function NewsIndex() {
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-[1.155rem] font-bold">{category}</h2>
               <Link to="/news" className="text-sm font-semibold text-brand-blue underline">
-                All news
+                All News & Articles
               </Link>
             </div>
             {filteredLoading ? <p className="mt-6 text-muted-foreground">Loading…</p> : null}
@@ -317,8 +318,9 @@ function NewsIndex() {
             <div id="all-articles" className="mt-12 scroll-mt-24">
               <h2 className="text-[1.155rem] font-bold">More articles</h2>
               {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
-              <ArticleCompactList articles={all} />
-            </div>
+            <ArticleCompactList articles={all} />
+            <MjengoPreviews context="articles" />
+          </div>
           </>
         )}
       </div>

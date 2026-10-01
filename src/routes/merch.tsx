@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { PublicPageHero } from "@/components/site/public-page-hero";
 
 export const Route = createFileRoute("/merch")({
   head: () => ({
@@ -64,18 +65,13 @@ function MerchPage() {
   const cart = useCart();
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-            Shop
-          </p>
-          <h1 className="mt-2 text-[1.7325rem] font-extrabold">Share Barabara merch</h1>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Pens, reflector jackets, t-shirts and hoodies carrying the message: every journey home
-            should end at home. Proceeds support Share Barabara campaigns.
-          </p>
-        </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Shop Share Barabara"
+        title="Merchandise for safer journeys"
+        description="Wear and share the message that every journey home should end at home. Browse available Share Barabara merchandise and support our campaigns."
+      />
+      <div className="mt-4 flex justify-end">
         <CartSheet cart={cart} />
       </div>
 

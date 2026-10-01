@@ -30,6 +30,7 @@ import {
   SisterPlatformPreviews,
   TaxonomyDiscovery,
 } from "@/components/site/discovery-sections";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Live road hazard alerts, crash statistics, news and safety guidance for Kenya's roads. Report hazards, file accident reports and join the conversation.",
+          "Live road hazard alerts, crash statistics, articles and safety guidance for Kenya's roads. Report hazards, file accident reports and join the conversation.",
       },
       { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
       {
@@ -206,7 +207,7 @@ function Index() {
       <section className="border-y border-border bg-secondary/40">
         <div className="mx-auto max-w-6xl px-4 py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-[1.44375rem] font-bold">Road safety news</h2>
+            <h2 className="text-[1.44375rem] font-bold">News &amp; Articles</h2>
             <div className="flex gap-3">
               <Button asChild size="sm">
                 <Link to="/news">Write article</Link>
@@ -450,6 +451,7 @@ function Index() {
             </div>
             <div className="mt-4"><TaxonomyDiscovery kind="reports" /></div>
           </div>
+          <MjengoPreviews context="home" />
           <SisterPlatformPreviews />
         </div>
       </section>

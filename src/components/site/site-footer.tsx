@@ -78,7 +78,7 @@ export function SiteFooter() {
           />
           <p className="mt-3 text-sm text-primary-foreground/75">
             {settings?.footer_tagline ??
-              "Share Barabara: promoting safer roads for all. News, hazard alerts, open crash statistics and reports from the community."}
+              "Share Barabara: promoting safer roads for all. Articles, hazard alerts, open crash statistics and reports from the community."}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="flex items-center gap-2 rounded border border-primary-foreground/20 px-3 py-2 text-xs text-primary-foreground/60">
@@ -108,7 +108,7 @@ export function SiteFooter() {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Explore</p>
           <ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">
             <li>
-              <Link to="/news">News</Link>
+              <Link to="/news">News &amp; Articles</Link>
             </li>
             <li>
               <Link to="/alerts">Alerts</Link>

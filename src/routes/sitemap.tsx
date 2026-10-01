@@ -12,7 +12,7 @@ const SECTIONS = [
     title: "Explore",
     links: [
       { to: "/", label: "Home" },
-      { to: "/news", label: "News" },
+      { to: "/news", label: "News & Articles" },
       { to: "/alerts", label: "Alerts" },
       { to: "/reports", label: "Reports" },
       { to: "/statistics", label: "Statistics" },

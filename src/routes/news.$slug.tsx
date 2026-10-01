@@ -169,7 +169,7 @@ function NewsDetail() {
       <div className="mx-auto max-w-3xl px-4 py-20">
         <h1 className="text-[1.155rem] font-bold">Story not found</h1>
         <Link to="/news" className="mt-4 inline-block underline">
-          Back to news
+          Back to News &amp; Articles
         </Link>
       </div>
     );
@@ -181,7 +181,7 @@ function NewsDetail() {
         <article className="min-w-0">
           <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
             <Link to="/" className="hover:text-foreground hover:underline">Home</Link><ChevronRight className="size-3" aria-hidden="true" />
-            <Link to="/news" className="hover:text-foreground hover:underline">Articles</Link><ChevronRight className="size-3" aria-hidden="true" />
+            <Link to="/news" className="hover:text-foreground hover:underline">News &amp; Articles</Link><ChevronRight className="size-3" aria-hidden="true" />
             <Link to="/news" search={{ category: article.category }} className="font-medium text-foreground hover:underline">{article.category || "News"}</Link>
           </nav>
           <div className="mt-3 flex flex-wrap gap-1.5">

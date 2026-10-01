@@ -16,6 +16,7 @@ import { campaignStatus } from "@/lib/campaigns";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
+import { PublicPageHero } from "@/components/site/public-page-hero";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -153,14 +154,12 @@ function CampaignsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Campaigns
-      </p>
-      <h1 className="mt-2 text-[1.7325rem] font-extrabold">Share Barabara</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">
-        Our road safety campaigns, and how to get involved or support them.
-      </p>
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Community action"
+        title="Road-safety campaigns"
+        description="Explore Share Barabara campaigns, community activities and practical ways to support safer journeys across Kenya."
+      />
 
       <section className="mt-10 rounded-lg border border-border bg-card p-6 card-elevated">
         <h2 className="flex items-center gap-2 text-[0.9625rem] font-bold">

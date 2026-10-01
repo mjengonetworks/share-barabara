@@ -87,12 +87,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Share Barabara: Road Safety in Kenya" },
       {
         name: "description",
-        content: "Road safety for Kenya: live hazard alerts, crash statistics, news and guidance.",
+        content: "Road safety for Kenya: live hazard alerts, crash statistics, news and articles.",
       },
       { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
       {
         property: "og:description",
-        content: "Live hazard alerts, crash statistics, news and guidance for Kenyan roads.",
+        content: "Live hazard alerts, crash statistics, news and articles for Kenyan roads.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Share Barabara" },
@@ -110,7 +110,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "alternate",
         type: "application/rss+xml",
-        title: "Share Barabara: Latest News & Reports",
+        title: "Share Barabara: Latest News & Articles",
         href: "/feed.xml",
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

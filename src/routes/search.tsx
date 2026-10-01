@@ -24,9 +24,9 @@ function SearchPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, summary, published_at")
+        .select("id, slug, title, summary, category, published_at")
         .eq("status", "published")
-        .ilike("title", `%${term}%`)
+        .or(`title.ilike.%${term}%,summary.ilike.%${term}%,category.ilike.%${term}%`)
         .limit(20);
       if (error) throw error;
       return data;
@@ -86,7 +86,7 @@ function SearchPage() {
 
       {news.length > 0 ? (
         <section className="mt-8">
-          <h2 className="text-lg font-bold">News</h2>
+          <h2 className="text-lg font-bold">News &amp; Articles</h2>
           <ul className="mt-3 space-y-2">
             {news.map((n) => (
               <li key={n.id}>
