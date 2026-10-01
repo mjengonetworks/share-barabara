@@ -158,3 +158,10 @@ retention metadata, permanent-delete confirmation, and public visibility filters
 Remaining verification is migration/RLS review and application, conversion of any remaining legacy hard
 delete handlers, browser testing of owner/admin permissions and parent-child safety, and live retention
 policy configuration. Do not execute SQL, deploy, provision SearXNG, or begin Task 25 as part of this task.
+
+Task 51 — Production Database Migration Readiness is TESTING / VERIFICATION. The repository migration
+chain, known-applied report/campaign patch, protected subscription boundary, dependency order, conflict
+gates, backup/rollback plan and exact read-only Supabase inspection queries are documented. No live
+database inspection or migration execution was performed because local configuration has no privileged
+metadata access. Remaining work is running the read-only queries, confirming applied versions, taking a
+backup, reviewing each migration against production, and executing the approved sequence manually.
