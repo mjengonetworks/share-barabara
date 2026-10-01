@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleRssFeedRequest } from "./lib/rss-feed";
+import { serverEnv } from "./lib/runtime-env.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -61,5 +62,13 @@ export default {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
+  },
+  async scheduled(_controller: unknown, env: unknown, ctx: { waitUntil?: (promise: Promise<unknown>) => void }) {
+    (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
+    if (serverEnv("WEB_PUSH_ENABLED") !== "true") return;
+    const { dispatchPendingPushJobs } = await import("./lib/push-dispatcher.server");
+    const work = dispatchPendingPushJobs(25).catch((error) => console.error("Web Push dispatch failed", error));
+    if (ctx.waitUntil) ctx.waitUntil(work);
+    else await work;
   },
 };

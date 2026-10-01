@@ -23,7 +23,7 @@ import { UserLink } from "@/components/site/user-link";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { timeAgo } from "@/lib/format";
 
-type Props = { entityType: "news" | "alert" | "report"; entityId: string };
+type Props = { entityType: "news" | "alert" | "report" | "feed_post"; entityId: string };
 
 type CommentRow = {
   id: string;

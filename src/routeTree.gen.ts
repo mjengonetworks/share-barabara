@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
+import { Route as ContributorsRouteImport } from './routes/contributors'
+import { Route as FeedRouteImport } from './routes/feed'
 import { Route as MerchRouteImport } from './routes/merch'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PartnerWithUsRouteImport } from './routes/partner-with-us'
@@ -51,12 +53,14 @@ import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminCommentsRouteImport } from './routes/_authenticated/admin/comments'
 import { Route as AuthenticatedAdminCrashStatisticsRouteImport } from './routes/_authenticated/admin/crash-statistics'
 import { Route as AuthenticatedAdminFeaturedRouteImport } from './routes/_authenticated/admin/featured'
+import { Route as AuthenticatedAdminFeedRouteImport } from './routes/_authenticated/admin/feed'
 import { Route as AuthenticatedAdminFooterRouteImport } from './routes/_authenticated/admin/footer'
 import { Route as AuthenticatedAdminInfrastructureIssuesRouteImport } from './routes/_authenticated/admin/infrastructure-issues'
 import { Route as AuthenticatedAdminMerchItemsRouteImport } from './routes/_authenticated/admin/merch-items'
 import { Route as AuthenticatedAdminMerchOrdersRouteImport } from './routes/_authenticated/admin/merch-orders'
 import { Route as AuthenticatedAdminMyArticlesRouteImport } from './routes/_authenticated/admin/my-articles'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
+import { Route as AuthenticatedAdminNotificationHealthRouteImport } from './routes/_authenticated/admin/notification-health'
 import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin/pages'
 import { Route as AuthenticatedAdminPartnerEnquiriesRouteImport } from './routes/_authenticated/admin/partner-enquiries'
 import { Route as AuthenticatedAdminQuoteRouteImport } from './routes/_authenticated/admin/quote'
@@ -83,6 +87,16 @@ const AboutRoute = AboutRouteImport.update({
 const CampaignsRoute = CampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContributorsRoute = ContributorsRouteImport.update({
+  id: '/contributors',
+  path: '/contributors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MerchRoute = MerchRouteImport.update({
@@ -285,6 +299,11 @@ const AuthenticatedAdminFeaturedRoute =
     path: '/featured',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminFeedRoute = AuthenticatedAdminFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminFooterRoute =
   AuthenticatedAdminFooterRouteImport.update({
     id: '/footer',
@@ -319,6 +338,12 @@ const AuthenticatedAdminNewsletterRoute =
   AuthenticatedAdminNewsletterRouteImport.update({
     id: '/newsletter',
     path: '/newsletter',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminNotificationHealthRoute =
+  AuthenticatedAdminNotificationHealthRouteImport.update({
+    id: '/notification-health',
+    path: '/notification-health',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminPagesRoute = AuthenticatedAdminPagesRouteImport.update({
@@ -371,6 +396,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/campaigns': typeof CampaignsRouteWithChildren
+  '/contributors': typeof ContributorsRoute
+  '/feed': typeof FeedRoute
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -408,12 +435,14 @@ export interface FileRoutesByFullPath {
   '/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/admin/crash-statistics': typeof AuthenticatedAdminCrashStatisticsRoute
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
+  '/admin/feed': typeof AuthenticatedAdminFeedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
   '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
   '/admin/pages': typeof AuthenticatedAdminPagesRoute
   '/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
@@ -428,6 +457,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/campaigns': typeof CampaignsRouteWithChildren
+  '/contributors': typeof ContributorsRoute
+  '/feed': typeof FeedRoute
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -464,12 +495,14 @@ export interface FileRoutesByTo {
   '/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/admin/crash-statistics': typeof AuthenticatedAdminCrashStatisticsRoute
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
+  '/admin/feed': typeof AuthenticatedAdminFeedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
   '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
   '/admin/pages': typeof AuthenticatedAdminPagesRoute
   '/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/admin/quote': typeof AuthenticatedAdminQuoteRoute
@@ -486,6 +519,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/campaigns': typeof CampaignsRouteWithChildren
+  '/contributors': typeof ContributorsRoute
+  '/feed': typeof FeedRoute
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -523,12 +558,14 @@ export interface FileRoutesById {
   '/_authenticated/admin/comments': typeof AuthenticatedAdminCommentsRoute
   '/_authenticated/admin/crash-statistics': typeof AuthenticatedAdminCrashStatisticsRoute
   '/_authenticated/admin/featured': typeof AuthenticatedAdminFeaturedRoute
+  '/_authenticated/admin/feed': typeof AuthenticatedAdminFeedRoute
   '/_authenticated/admin/footer': typeof AuthenticatedAdminFooterRoute
   '/_authenticated/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/_authenticated/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/_authenticated/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/_authenticated/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/_authenticated/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
   '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRoute
   '/_authenticated/admin/partner-enquiries': typeof AuthenticatedAdminPartnerEnquiriesRoute
   '/_authenticated/admin/quote': typeof AuthenticatedAdminQuoteRoute
@@ -545,6 +582,8 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/campaigns'
+    | '/contributors'
+    | '/feed'
     | '/merch'
     | '/notifications'
     | '/partner-with-us'
@@ -582,12 +621,14 @@ export interface FileRouteTypes {
     | '/admin/comments'
     | '/admin/crash-statistics'
     | '/admin/featured'
+    | '/admin/feed'
     | '/admin/footer'
     | '/admin/infrastructure-issues'
     | '/admin/merch-items'
     | '/admin/merch-orders'
     | '/admin/my-articles'
     | '/admin/newsletter'
+    | '/admin/notification-health'
     | '/admin/pages'
     | '/admin/partner-enquiries'
     | '/admin/quote'
@@ -602,6 +643,8 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/campaigns'
+    | '/contributors'
+    | '/feed'
     | '/merch'
     | '/notifications'
     | '/partner-with-us'
@@ -638,12 +681,14 @@ export interface FileRouteTypes {
     | '/admin/comments'
     | '/admin/crash-statistics'
     | '/admin/featured'
+    | '/admin/feed'
     | '/admin/footer'
     | '/admin/infrastructure-issues'
     | '/admin/merch-items'
     | '/admin/merch-orders'
     | '/admin/my-articles'
     | '/admin/newsletter'
+    | '/admin/notification-health'
     | '/admin/pages'
     | '/admin/partner-enquiries'
     | '/admin/quote'
@@ -659,6 +704,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/campaigns'
+    | '/contributors'
+    | '/feed'
     | '/merch'
     | '/notifications'
     | '/partner-with-us'
@@ -696,12 +743,14 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/comments'
     | '/_authenticated/admin/crash-statistics'
     | '/_authenticated/admin/featured'
+    | '/_authenticated/admin/feed'
     | '/_authenticated/admin/footer'
     | '/_authenticated/admin/infrastructure-issues'
     | '/_authenticated/admin/merch-items'
     | '/_authenticated/admin/merch-orders'
     | '/_authenticated/admin/my-articles'
     | '/_authenticated/admin/newsletter'
+    | '/_authenticated/admin/notification-health'
     | '/_authenticated/admin/pages'
     | '/_authenticated/admin/partner-enquiries'
     | '/_authenticated/admin/quote'
@@ -718,6 +767,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   CampaignsRoute: typeof CampaignsRouteWithChildren
+  ContributorsRoute: typeof ContributorsRoute
+  FeedRoute: typeof FeedRoute
   MerchRoute: typeof MerchRoute
   NotificationsRoute: typeof NotificationsRoute
   PartnerWithUsRoute: typeof PartnerWithUsRoute
@@ -773,6 +824,20 @@ declare module '@tanstack/react-router' {
       path: '/campaigns'
       fullPath: '/campaigns'
       preLoaderRoute: typeof CampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contributors': {
+      id: '/contributors'
+      path: '/contributors'
+      fullPath: '/contributors'
+      preLoaderRoute: typeof ContributorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/merch': {
@@ -1041,6 +1106,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFeaturedRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/feed': {
+      id: '/_authenticated/admin/feed'
+      path: '/feed'
+      fullPath: '/admin/feed'
+      preLoaderRoute: typeof AuthenticatedAdminFeedRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/footer': {
       id: '/_authenticated/admin/footer'
       path: '/footer'
@@ -1081,6 +1153,13 @@ declare module '@tanstack/react-router' {
       path: '/newsletter'
       fullPath: '/admin/newsletter'
       preLoaderRoute: typeof AuthenticatedAdminNewsletterRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/notification-health': {
+      id: '/_authenticated/admin/notification-health'
+      path: '/notification-health'
+      fullPath: '/admin/notification-health'
+      preLoaderRoute: typeof AuthenticatedAdminNotificationHealthRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/pages': {
@@ -1151,12 +1230,14 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminCommentsRoute: typeof AuthenticatedAdminCommentsRoute
   AuthenticatedAdminCrashStatisticsRoute: typeof AuthenticatedAdminCrashStatisticsRoute
   AuthenticatedAdminFeaturedRoute: typeof AuthenticatedAdminFeaturedRoute
+  AuthenticatedAdminFeedRoute: typeof AuthenticatedAdminFeedRoute
   AuthenticatedAdminFooterRoute: typeof AuthenticatedAdminFooterRoute
   AuthenticatedAdminInfrastructureIssuesRoute: typeof AuthenticatedAdminInfrastructureIssuesRoute
   AuthenticatedAdminMerchItemsRoute: typeof AuthenticatedAdminMerchItemsRoute
   AuthenticatedAdminMerchOrdersRoute: typeof AuthenticatedAdminMerchOrdersRoute
   AuthenticatedAdminMyArticlesRoute: typeof AuthenticatedAdminMyArticlesRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
+  AuthenticatedAdminNotificationHealthRoute: typeof AuthenticatedAdminNotificationHealthRoute
   AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRoute
   AuthenticatedAdminPartnerEnquiriesRoute: typeof AuthenticatedAdminPartnerEnquiriesRoute
   AuthenticatedAdminQuoteRoute: typeof AuthenticatedAdminQuoteRoute
@@ -1179,6 +1260,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminCrashStatisticsRoute:
       AuthenticatedAdminCrashStatisticsRoute,
     AuthenticatedAdminFeaturedRoute: AuthenticatedAdminFeaturedRoute,
+    AuthenticatedAdminFeedRoute: AuthenticatedAdminFeedRoute,
     AuthenticatedAdminFooterRoute: AuthenticatedAdminFooterRoute,
     AuthenticatedAdminInfrastructureIssuesRoute:
       AuthenticatedAdminInfrastructureIssuesRoute,
@@ -1186,6 +1268,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminMerchOrdersRoute: AuthenticatedAdminMerchOrdersRoute,
     AuthenticatedAdminMyArticlesRoute: AuthenticatedAdminMyArticlesRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
+    AuthenticatedAdminNotificationHealthRoute:
+      AuthenticatedAdminNotificationHealthRoute,
     AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRoute,
     AuthenticatedAdminPartnerEnquiriesRoute:
       AuthenticatedAdminPartnerEnquiriesRoute,
@@ -1235,6 +1319,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   CampaignsRoute: CampaignsRouteWithChildren,
+  ContributorsRoute: ContributorsRoute,
+  FeedRoute: FeedRoute,
   MerchRoute: MerchRoute,
   NotificationsRoute: NotificationsRoute,
   PartnerWithUsRoute: PartnerWithUsRoute,

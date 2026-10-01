@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { UserAvatar } from "@/components/site/user-avatar";
 import { ImageUploadField } from "@/components/site/image-upload-field";
+import { BlockedAccounts } from "@/components/site/blocked-accounts";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -237,6 +238,18 @@ function SettingsPage() {
         </Button>
       </div>
 
+      <div className="mt-5 flex flex-col gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-semibold text-foreground">Notification settings</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Choose alert locations, categories, delivery channels, and temporary mutes.
+          </p>
+        </div>
+        <Button asChild variant="outline" className="shrink-0">
+          <Link to="/notifications">Manage notifications</Link>
+        </Button>
+      </div>
+
       <form
         className="mt-8 space-y-5 rounded-lg border border-border bg-card p-6 card-elevated"
         onSubmit={(e) => {
@@ -446,6 +459,7 @@ function SettingsPage() {
           </div>
         ) : null}
       </div>
+      <BlockedAccounts />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import {
   BarChart3,
   Bell,
+  Activity,
   Building,
   Building2,
   Construction,
@@ -104,6 +105,7 @@ const SECTIONS: NavSection[] = [
         icon: MessageSquare,
         minRank: ROLE_RANK.moderator,
       },
+      { to: "/admin/feed", label: "Feed Posts", icon: MessageSquare, minRank: ROLE_RANK.moderator },
       { to: "/admin/videos", label: "Videos", icon: Video, minRank: ROLE_RANK.moderator },
       { to: "/admin/requests", label: "Requests", icon: Inbox, minRank: ROLE_RANK.moderator },
     ],
@@ -173,10 +175,11 @@ const SECTIONS: NavSection[] = [
         icon: BarChart3,
         minRank: ROLE_RANK.moderator,
       },
+      { to: "/admin/notification-health", label: "Notification Health", icon: Activity, minRank: ROLE_RANK.admin },
       { to: "/admin/featured", label: "Featured Picks", icon: Sparkles, minRank: ROLE_RANK.editor },
       {
         to: "/admin/categories",
-        label: "Categories & Filters",
+        label: "Taxonomy",
         icon: LayoutGrid,
         minRank: ROLE_RANK.editor,
       },

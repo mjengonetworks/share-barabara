@@ -14,7 +14,6 @@ export function NotificationBell() {
         aria-label="Notifications"
         onClick={() => {
           setOpen((v) => !v);
-          if (!open) markAllRead();
         }}
         className="relative rounded p-2 hover:bg-muted"
       >
@@ -29,13 +28,16 @@ export function NotificationBell() {
         <div className="fixed bottom-4 left-4 right-4 z-50 max-h-[calc(100vh-5rem)] overflow-hidden rounded-lg border border-border bg-card shadow-xl sm:absolute sm:bottom-auto sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80">
           <div className="flex items-center justify-between border-b border-border p-3">
             <p className="text-sm font-semibold">Notifications</p>
-            <Link
-              to="/notifications"
-              className="text-xs text-brand-blue underline"
-              onClick={() => setOpen(false)}
-            >
-              See all
-            </Link>
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 ? (
+                <button className="text-xs text-muted-foreground underline" onClick={() => markAllRead()}>
+                  Mark all read
+                </button>
+              ) : null}
+              <Link to="/notifications" className="text-xs text-brand-blue underline" onClick={() => setOpen(false)}>
+                See all
+              </Link>
+            </div>
           </div>
           <ul className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
