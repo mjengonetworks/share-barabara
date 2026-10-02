@@ -18,11 +18,12 @@ function validAudit() {
   };
 }
 
-test("Task 59 keeps production reconciliation blocked without the real export", () => {
-  assert.match(reconciliation, /BLOCKED pending the actual 2 October 2026 production audit export/);
+test("Task 59 records the validated audit while keeping execution blocked", () => {
+  assert.match(reconciliation, /AUDIT COMPLETE — MIGRATION EXECUTION STILL BLOCKED/);
+  assert.match(reconciliation, /Generated: `2026-10-02T17:00:59\.245302\+00:00`/);
   assert.match(reconciliation, /20260929120000_report_unknown_campaign_review\.sql/);
-  assert.match(reconciliation, /must not be rerun/);
-  assert.match(readiness, /UNCONFIRMED/);
+  assert.match(reconciliation, /do not replay/);
+  assert.match(readiness, /Production\s+reconciliation is complete at the catalog-evidence level/);
 });
 
 test("Task 59 preserves the protected subscription boundary and ordered chain", () => {
@@ -47,7 +48,7 @@ test("Task 59 importer validates raw and single-column audit exports", () => {
 });
 
 test("Task 59 does not authorize SQL execution or treat history absence as proof", () => {
-  assert.match(reconciliation, /does not connect to Supabase or\s+execute SQL/i);
-  assert.match(reconciliation, /history absence alone/);
+  assert.match(reconciliation, /No SQL was executed/);
+  assert.match(reconciliation, /history absence alone|history.*absence.*not/i);
   assert.match(reconciliation, /Rollback is not deletion of migration-history rows/);
 });

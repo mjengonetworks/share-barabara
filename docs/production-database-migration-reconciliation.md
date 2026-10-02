@@ -1,134 +1,174 @@
 # Task 59 — Production Database Migration Reconciliation
 
-Status: **BLOCKED pending the actual 2 October 2026 production audit export**.
+Status: **AUDIT COMPLETE — MIGRATION EXECUTION STILL BLOCKED**
 
-## Production input status
+No SQL was executed and no production data was changed. The supplied export
+was read directly from the owner's local Downloads path with the existing
+Task 59 validator. The export itself is deliberately not copied into the
+repository.
 
-The requested export, `Pasted text(20261002-170112).txt`, is not available in
-the repository or mounted workspace. The canonical import target
-`docs/database-audits/production-schema-audit-2026-10-02.json` is therefore not
-present. No production-specific migration can be classified as applied,
-partially applied, unapplied, or conflicting from this workspace.
+## A. Production audit input
 
-The earlier readiness document is repository analysis only and is not being
-treated as the production audit. The previously reported
-`20260929120000_report_unknown_campaign_review.sql` remains **KNOWN APPLIED by
-prior repository evidence, but production history and schema effects are
-UNCONFIRMED in this task**. It must not be rerun without comparing its actual
-history row, columns, constraints, policies and function definition.
+Validated input:
 
-## Safe import path
+- `share_barabara_production_schema_audit_2026-10-02.json`
+- Audit name: `share_barabara_production_schema_audit`
+- Audit version: `task53.v1`
+- Generated: `2026-10-02T17:00:59.245302+00:00`
+- PostgreSQL server: `17.6`
+- Read-only marker: `true`
 
-The importer is `scripts/import-production-schema-audit.mjs`. It accepts:
+The audit's migration history contains the baseline through
+`20260827190108_merch_cart_and_variants`. It does not contain the later AI,
+report/campaign, or Task 26–50 review migration versions. That absence is not
+treated as proof of non-application; the classifications below also use the
+catalog objects, definitions, columns, policies, triggers and constraints
+returned by the audit.
 
-- the raw JSON object returned by the SQL Editor;
-- a one-row export containing `production_schema_audit`;
-- a wrapper containing `data` and `production_schema_audit`;
-- a `.txt` file whose contents are valid JSON.
+Migration-history absence alone is not proof that a migration is unapplied.
 
-Run locally after receiving the real export:
+## B. Reconciliation summary
 
-```text
-node scripts/import-production-schema-audit.mjs "Pasted text(20261002-170112).txt"
-node scripts/analyze-production-schema-audit.mjs docs/database-audits/production-schema-audit-2026-10-02.json
-```
+| Migration | Classification | Evidence and decision |
+|---|---|---|
+| `20260927120000_share_barabara_ai.sql` | **Partially applied / history missing; do not replay** | `ai_chat_threads` and `ai_chat_messages` exist with the expected columns, constraints, indexes, owner-only RLS policies and thread trigger. The migration-history row is absent, so the deployment record must be reconciled separately. Existing Article/Alert public policies also need a deliberate policy-definition review before any history repair. |
+| `20260929120000_report_unknown_campaign_review.sql` | **Applied effects present / history missing; do not replay** | `accident_reports` has nullable `vehicles_involved`, `casualties` and `fatalities`, and the three expected nonnegative `NOT VALID` checks. `reports_insert_own` matches the approved policy. `sync_past_campaign_reports()` exists with fixed `search_path` and restricted routine grants, but its live definition includes `FOR UPDATE SKIP LOCKED`, which is not in the repository file. Treat this as live drift or a later hardening patch, not permission to rerun. |
+| `20260930100000_statistics_modernization_review.sql` | **Not applied** | All three required tables (`statistics_datasets`, `statistics_observations`, `statistics_update_proposals`) are absent from the audit catalog/object checks. No public statistics migration effects were found. |
+| `20260930110000_alert_notification_preferences_review.sql` | **Conflicting partial state** | The base preference table and a `notify_nearby_users_on_alert()` function exist, but the required preference columns, match index, notification provenance/dedupe columns and replacement policies are absent. The live function is the older radius-only implementation and does not match Task 27's publication, content-filter or dedupe contract. |
+| `20260930120000_contributor_leaderboard_review.sql` | **Not applied** | `get_contributor_leaderboard()` is absent. Existing profiles/votes are prerequisites only; they do not prove the RPC/index migration ran. |
+| `20260930130000_admin_taxonomy_review.sql` | **Not applied** | Existing lookup tables are present, but the expected lifecycle/display additions and active/order indexes are not evidenced. Existing editor policies remain the baseline policies. |
+| `20260930140000_location_architecture_review.sql` | **Partially prepared, migration not applied** | Alerts and reports already have optional county/road/road_id/latitude/longitude fields from the baseline. Articles do not have the new location fields, and the expected location indexes/constraints are not evidenced. No PostGIS extension is installed. |
+| `20260930150000_theft_vandalism_taxonomy_review.sql` | **Not applied** | `hazard_types` has no `parent_value`; `news_categories` has no `parent_name`; `accident_reports` has no `incident_type`; the parent-self constraint is absent. Existing taxonomy rows must not be reinterpreted or backfilled automatically. |
+| `20260930160000_notification_customization_review.sql` | **Not applied; blocked by Task 27/43** | `notification_hazard_type_matches()` and the category/account notification trigger replacements are absent. Existing notification preferences contain only the legacy fields. |
+| `20260930170000_push_delivery_reliability_review.sql` | **Not applied** | `push_subscriptions`, `notification_delivery_jobs`, `notification_delivery_attempts` and `enqueue_notification_push_job()` are absent. Push remains disabled regardless of application code. |
+| `20261001100000_feed_community_review.sql` | **Not applied with a direct constraint conflict** | `feed_posts`, `feed_post_reports` and `feed_blocks` are absent. The existing `votes_entity_type_check` only allows `alert`, `report` and `comment`; it does not allow the Feed entity types required by the migration. Do not replace it until the Feed schema and existing vote data are reviewed. |
+| `20261001110000_release_blocker_remediation_review.sql` | **Not applied** | `moderation_action_history` is absent. It also depends on the missing Feed tables and must not be run independently. |
+| `20261001120000_recycle_bin_review.sql` | **Not applied** | `recycle_bin_items`, `recycle_bin_history`, restore/permanent-delete functions and the expected owner index are absent. No source-table soft-delete columns were returned for the eligible content tables. This must remain last. |
+| `20260929130000_subscription_payments_schema_review.sql` | **PROTECTED / EXCLUDED** | Not reconciled into this execution plan. The repository file and subscription implementation remain protected and unmodified. |
 
-The importer validates the audit name, read-only marker and required catalog
-arrays before writing the canonical JSON. It does not connect to Supabase or
-execute SQL.
+## C. Confirmed production prerequisites and security observations
 
-The subscription migration is **PROTECTED / EXCLUDED** from this reconciliation
-and from every proposed execution sequence.
+The export confirms these existing objects are available as prerequisites:
 
-## Repository migration inventory and dependency order
+- `news` (23 rows), `alerts` (13), `accident_reports` (12), `comments` (14),
+  `votes` (15), `notifications` (63), `notification_preferences` (10),
+  `profiles` (23), `content_requests` (1), `campaigns` (1), `roads` (14),
+  and the existing taxonomy lookup tables.
+- RLS is enabled on the relevant existing tables.
+- `notification_preferences` has owner-only `ALL` access for authenticated
+  users. It currently stores private latitude/longitude, but not the Task 27
+  extended matching controls.
+- `notifications` has owner-only read/update policies. No public read policy
+  was observed.
+- Existing public content policies expose published News, active Alerts and
+  approved Reports; later Task 50 soft-delete exclusions are not present.
+- `notify_nearby_users_on_alert()` is `SECURITY DEFINER` with
+  `search_path=public`, but its live body is the older implementation and
+  inserts notifications without Task 27 provenance/dedupe fields.
+- `sync_past_campaign_reports()` is `SECURITY DEFINER` with
+  `search_path=public`; `EXECUTE` was returned for `postgres` and
+  `service_role`, not `anon` or `authenticated`. Its live `FOR UPDATE SKIP
+  LOCKED` behavior differs from the repository patch and needs a recorded
+  source-of-truth decision.
+- Extensions include `pg_cron` and `uuid-ossp`; `postgis` and `pg_net` were
+  not returned. No migration in this plan should assume PostGIS or a push
+  network extension.
 
-Production status for every row below is **BLOCKED / UNCONFIRMED** until the
-actual export is processed. Existing object presence must not be treated as
-proof that its migration was fully applied.
+## D. Migration conflicts and non-idempotent risks
 
-| Order | Task | Migration | Repository purpose and hard dependency |
-|---:|---|---|---|
-| 1 | 54 / AI foundation | `20260927120000_share_barabara_ai.sql` | AI chat tables/RLS and public Article/Alert policy hardening; requires existing `news`, `alerts`, auth and role assumptions. |
-| — | Known exception | `20260929120000_report_unknown_campaign_review.sql` | Previously reported applied; do not replay. Reconcile history and all schema effects first. |
-| — | Protected | `20260929130000_subscription_payments_schema_review.sql` | Excluded. Never stage, edit or execute as part of Task 59. |
-| 2 | 26 | `20260930100000_statistics_modernization_review.sql` | Statistics datasets/observations/proposals, provenance and publication guards; requires role helpers and existing statistics compatibility. |
-| 3 | 27 | `20260930110000_alert_notification_preferences_review.sql` | Existing preference-row extensions and active-alert notification matching; requires alerts, notifications, coordinates and existing preference policies/triggers. |
-| 4 | 29 | `20260930120000_contributor_leaderboard_review.sql` | Leaderboard RPC and indexes; requires profiles, votes and the existing reputation formula. |
-| 5 | 30 | `20260930130000_admin_taxonomy_review.sql` | Taxonomy lifecycle/display fields and staff RLS; requires all existing taxonomy lookup tables. |
-| 6 | 31 | `20260930140000_location_architecture_review.sql` | Optional Article location fields and coordinate checks/indexes; requires content tables and existing location columns. |
-| 7 | 43 | `20260930150000_theft_vandalism_taxonomy_review.sql` | Parent/subtype taxonomy metadata, incident type and seeded values; requires Task 30 shape and duplicate-value review. |
-| 8 | 44 | `20260930160000_notification_customization_review.sql` | Category/channel/mute/exclusion fields and notification trigger replacements; requires Tasks 27 and 43. |
-| 9 | 47 | `20260930170000_push_delivery_reliability_review.sql` | Push subscriptions, outbox jobs/attempts and enqueue trigger; requires Task 44 and separate VAPID/worker readiness. |
-| 10 | 46 | `20261001100000_feed_community_review.sql` | Feed posts/reports/blocks, vote constraint extension and discussion notifications; requires comments, votes, notifications and preference functions. |
-| 11 | 49 | `20261001110000_release_blocker_remediation_review.sql` | Comment moderation state, append-only history and Feed notification/block policy replacements; requires Task 46 and content-request roles. |
-| 12 | 50 | `20261001120000_recycle_bin_review.sql` | Soft deletion, recycle-bin history and restore/permanent-delete functions; requires source tables and Task 49 moderation state. Must be last. |
+1. The AI and report/campaign schema effects exist without matching history
+   rows. Do not rerun either file. Reconcile the migration ledger and preserve
+   the live function definition until its origin is established.
+2. Task 27 would replace an existing notification function and add constraints
+   and columns to a live table. It must be split or reviewed if the production
+   migration runner cannot safely apply its plain `ADD CONSTRAINT` statements.
+3. Task 30 uses data updates and plain constraints/policies. Existing lookup
+   rows and policy definitions must be compared before execution.
+4. Task 43 inserts taxonomy values with `ON CONFLICT (value/name) DO NOTHING`,
+   but its parent columns and labels must exist first. It does not provide a
+   historical mapping.
+5. Task 44 replaces notification behavior and updates existing preferences;
+   it must not run against the legacy Task 27 function state without a backup
+   and definition review.
+6. Task 46's vote constraint has an incompatible existing definition. Existing
+   votes must be checked before a reviewed constraint replacement.
+7. Task 49 replaces moderation and notification policies and cannot run until
+   Feed tables exist.
+8. Task 50 changes public visibility and adds `SECURITY DEFINER` deletion/
+   restoration functions. Its owner, fixed search path, grants, source-table
+   columns and all old policies must be checked before execution.
 
-Historical migrations through `20260904130000_*.sql` are also not production-
-confirmed here and must be handled by the project's authoritative migration
-history, not by replaying filenames from this report.
+## E. Safe dependency-aware order
 
-## Static risks found without production input
+The following is a plan, not authorization to execute:
 
-- Task 26 and several later files use plain `CREATE POLICY`; an existing
-  policy with the same name can abort execution.
-- Task 27, 30, 31, 43 and 44 contain `ALTER TABLE` or data-changing statements
-  whose safety depends on actual columns, existing values and policy state.
-- Task 43 seeds taxonomy rows without a universal duplicate-safe conflict
-  strategy; existing machine values must be compared before execution.
-- Task 44 and Task 47 replace notification functions/triggers. Existing
-  definitions must be captured and reviewed, not overwritten solely because a
-  `CREATE OR REPLACE` succeeds.
-- Task 46 replaces the votes constraint and creates Feed policies/triggers;
-  existing comments, votes and notification behavior are prerequisites.
-- Task 49 and Task 50 replace public visibility policies. These are release
-  blockers if old policies could expose removed, private or soft-deleted rows.
-- Task 50 SECURITY DEFINER functions require owner, fixed `search_path`, safe
-  function bodies and restricted EXECUTE grants. No production conclusion is
-  possible without the exported function definitions and grants.
-- Subscription payment objects are intentionally outside this plan.
+1. Record the existing baseline as applied through `20260827190108` and
+   separately reconcile the already-present AI/report effects. Do not replay
+   `20260927120000` or `20260929120000`.
+2. Take a Supabase backup/snapshot and preserve the exported audit as a release
+   artifact outside the application repository.
+3. Apply Task 26 Statistics only after its three tables, role helper
+   assumptions, RLS and publication constraints pass a fresh gate.
+4. Apply Task 27 preference/dedupe changes after reviewing the existing
+   `notification_preferences` columns, policies and live alert trigger.
+5. Apply Task 29 leaderboard RPC/index changes.
+6. Apply Task 30 taxonomy lifecycle changes.
+7. Apply Task 31 optional Article location and coordinate constraints.
+8. Apply Task 43 Theft/Vandalism parent/subtype metadata and seeds.
+9. Apply Task 44 notification customization and trigger replacements.
+10. Apply Task 47 push tables/outbox only after Task 44 and worker/VAPID
+    readiness are separately approved. Do not enable dispatch automatically.
+11. Apply Task 46 Feed schema and vote constraint replacement after checking
+    existing vote data.
+12. Apply Task 49 moderation history and Feed moderation policy changes.
+13. Apply Task 50 recycle-bin fields, policies and functions last.
 
-## Reconciliation procedure after import
+Run one migration at a time. After each write, verify its history row, object
+definitions, RLS and a representative application smoke test before continuing.
 
-For each migration, compare the audit's migration history, columns, table
-owners/RLS, policy expressions, trigger definitions, function definitions and
-grants against the repository SQL. Classify only after comparison:
+## F. Backup, rollback and verification precautions
 
-- **already applied**: exact history evidence plus compatible object review;
-- **partially applied**: some effects exist but history or required effects do
-  not match;
-- **not applied**: history absent and no required effects exist, never from
-  history absence alone;
-- **conflicting**: an existing object has incompatible semantics or a required
-  statement would collide;
-- **requires further verification**: insufficient definition/data evidence.
+- Take a Supabase snapshot/backup and record its timestamp before the first
+  write.
+- Export the catalog audit and affected table row counts as release evidence.
+- Back up existing policies, trigger/function definitions and notification
+  rows before Tasks 27, 44, 46, 49 and 50.
+- Do not delete migration-history rows as rollback. If a migration fails, stop,
+  retain the error and restore the approved backup or write a separately
+  reviewed forward-fix migration.
+- Rollback is not deletion of migration-history rows.
+- Test Task 50 restore/purge functions only with disposable records first.
+- Keep push dispatch disabled until VAPID bindings, scheduler/worker setup and
+  real-device delivery are verified.
 
-The known report/campaign migration must be checked for its actual history row,
-nullable count columns, constraints, insert policy, synchronization function,
-function grants and trigger behavior before the chain proceeds.
+## G. Exact next owner-approved SQL action
 
-## Safe execution plan once unblocked
+No feature migration is approved by this report. The next SQL action requiring
+owner approval is:
 
-1. Preserve the exported audit JSON and take a Supabase backup/snapshot.
-2. Resolve the baseline and known-applied history; do not replay the known
-   report/campaign migration.
-3. Review/apply the AI foundation migration if its objects are absent and
-   compatible.
-4. Apply Tasks 26, 27, 29, 30, 31, 43, 44, 47, 46, 49 and 50 in that order,
-   one migration at a time, only after its gate passes.
-5. After every migration, verify its history row and smoke-test RLS, triggers,
-   functions and public/private visibility before continuing.
-6. Keep push dispatch disabled until VAPID bindings, worker scheduling and
-   real-device delivery are separately verified.
-7. Do not include or execute the protected subscription migration.
+> Take a production Supabase backup/snapshot, record its timestamp, and then
+> approve a separately reviewed first write for Task 26 only after the AI and
+> report/campaign effects are recorded as already present and not replayed.
 
-Rollback is not deletion of migration-history rows. If a migration fails,
-stop, retain the error and audit snapshot, and use a reviewed forward-fix or
-restore the approved backup. Task 50 restore/permanent-delete functions must
-be tested with disposable records before real content is changed.
+Before that first write, the owner must resolve the missing migration-history
+entries and the live `sync_past_campaign_reports()` definition drift with the
+database/release owner. If that ledger decision is not made, stop at backup
+and do not execute Task 26.
 
-## Owner action required
+The first post-migration verification must confirm the three Statistics tables,
+their RLS/publication guards, and that no legacy aggregate row was backfilled
+or silently marked authoritative.
 
-Provide the actual exported JSON/text file, without credentials. Place it
-anywhere locally and run the importer above, or provide the file path. Until
-then, production reconciliation remains blocked and no migration should be
-executed based on this report.
+## H. Owner actions remaining
+
+1. Keep the exported audit JSON as an external release artifact; it is not
+   committed here.
+2. Resolve the AI/report migration-history discrepancy and function drift.
+3. Approve the backup/snapshot and the one-at-a-time execution plan.
+4. Execute only the approved migration, with post-migration catalog and browser
+   checks after each step.
+5. Perform the later live/browser/device checks for Statistics, notifications,
+   taxonomy, Feed, moderation, push and Recycle Bin.
+
+Task 59 is therefore **reconciled but not production-approved**. No SQL was
+executed by Codex.

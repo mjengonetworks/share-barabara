@@ -35,9 +35,23 @@ comparison utility; it deliberately reports missing evidence as
 - **PROTECTED / EXCLUDED** — subscription payment work; it is not part of the
 application sequence in this document.
 
-Task 59 confirms that the actual 2 October 2026 production export is not
-available in the workspace. Production-specific reconciliation therefore
-remains blocked; see `docs/production-database-migration-reconciliation.md`.
+Task 59 processed the actual 2 October 2026 production export supplied by the
+owner. The export is not committed to the repository. Production
+reconciliation is complete at the catalog-evidence level, but migration
+execution remains blocked pending backup, ledger reconciliation and owner
+approval; see `docs/production-database-migration-reconciliation.md`.
+
+## Task 59 production evidence summary
+
+The validated audit was generated at `2026-10-02T17:00:59.245302+00:00` on
+PostgreSQL `17.6`. Its migration history stops at the baseline
+`20260827190108_merch_cart_and_variants`. Catalog evidence shows the AI chat
+objects and the report/campaign patch effects already exist despite their
+history rows being absent. The later Statistics, Feed, push-delivery,
+moderation-history and Recycle Bin objects are absent. Existing legacy
+notification and vote objects create direct compatibility gates for Tasks 27
+and 46. These findings are reconciled in the Task 59 document; they are not
+authorization to execute SQL.
 
 ## Task 58 migration inventory
 

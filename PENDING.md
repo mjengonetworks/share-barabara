@@ -207,15 +207,14 @@ deployment was performed. Do not mark production-verified.
 
 Task 58 — Share Barabara Production Database Audit & Migration Readiness is TESTING / VERIFICATION. The repository
 migration chain, protected subscription boundary, known-applied report/campaign exception, feature
-dependencies, conflict gates, backup precautions and exact owner action are being consolidated in
-docs/production-database-migration-readiness.md. No production metadata was queried, no SQL was executed,
-and no production data was changed. The existing single-result read-only audit query remains the required
-next step; applied status for all migrations other than the documented 20260929120000 exception is
-unconfirmed until its JSON export is reviewed.
+dependencies, conflict gates, backup precautions and exact owner action remain documented in
+docs/production-database-migration-readiness.md. No SQL was executed and no production data was changed.
 
 Task 59 — Share Barabara Production Database Migration Reconciliation is TESTING / VERIFICATION.
-The requested 2 October 2026 production audit export was not available in the workspace, so no
-production-specific migration was classified or inferred. A safe importer/validator and a blocked
-reconciliation report are present. The actual exported JSON must still be imported and compared before
-any migration execution plan can be approved. No SQL was executed, no production data changed, and the
-protected subscription work remains excluded.
+The owner-supplied 2 October 2026 audit export was validated and reconciled against the pending
+migrations. The repository audit is complete, but production verification after each write,
+backup/snapshot approval, migration-ledger reconciliation and owner approval remain pending. The
+reconciliation report records the mixed production state, including present AI/report effects,
+missing later feature objects, notification/vote conflicts and the dependency-aware execution plan.
+No SQL was executed, no production data changed, the audit JSON was not committed, and protected
+subscription work remains excluded.
