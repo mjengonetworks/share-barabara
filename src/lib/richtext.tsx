@@ -103,7 +103,16 @@ const MATH_BLOCK_RE = /^\$\$([\s\S]+)\$\$$/;
 const IMAGE_BLOCK_RE = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)$/;
 
 export function splitRichTextBlocks(content: string): string[] {
-  return content.replace(/\r\n?/g, "\n").split(/\n\s*\n/).filter((b) => b.trim().length > 0);
+  // Older editorial records occasionally contain paragraph tags even though
+  // the stored field is otherwise markdown-lite. Convert only those block
+  // boundaries to text blocks; never render arbitrary stored HTML.
+  const normalized = content
+    .replace(/\r\n?/g, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p\s*>/gi, "\n\n")
+    .replace(/<p(?:\s[^>]*)?>/gi, "")
+    .replace(/<\/?(?:div|section|article)(?:\s[^>]*)?>/gi, "\n\n");
+  return normalized.split(/\n\s*\n/).filter((b) => b.trim().length > 0);
 }
 
 /** Renders rich-text-lite content as paragraphs, inline formatting, block
@@ -151,7 +160,7 @@ export function renderRichText(content: string): ReactNode {
       return <List key={i} className="list-inside list-disc space-y-1">{listItems.map((item, index) => <li key={index}>{parseInline(item[1] ?? "", `${i}-${index}`)}</li>)}</List>;
     }
     return (
-      <p key={i} className="whitespace-pre-wrap">
+      <p key={i} className="whitespace-pre-wrap leading-7">
         {parseInline(trimmed, String(i))}
       </p>
     );

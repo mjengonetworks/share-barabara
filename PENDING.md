@@ -183,3 +183,14 @@ Grok/xAI remains locked to Generate and Update, and the public AI path remains G
 provider and malformed-response diagnostics are surfaced without secrets. Remaining verification is
 deployment/runtime binding confirmation and mocked/live provider checks; no migration or deployment was
 performed. Keep the Contributors Directory & Sitewide Discovery task pending.
+
+Task 56 — Share Barabara Public Website Repair is TESTING / VERIFICATION. Public navigation now presents
+News & Articles, Alerts, Reports, Statistics, Media & Feed and Campaigns while preserving /feed and the
+/contributors directory. Article rendering safely separates legacy paragraph markup, related-article
+content is centered, article cards use accessible responsive aspect-ratio presentation, unsold ads link
+to Partner With Us, ecosystem copy no longer uses sister-platform language, and Media & Feed has a
+source-attributed Mjengo/social surface. Public Quick AI Summary can use bounded published article text
+when server-side row resolution or external retrieval is unavailable, without claiming outside
+verification. Remaining verification is browser/device visual review, configured social-link review,
+Mjengo upstream freshness, and deployed public-AI runtime checks. No SQL, deployment, secret change or
+SearXNG provisioning was performed.

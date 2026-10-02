@@ -35,12 +35,11 @@ import { HeaderSearch } from "@/components/site/header-search";
 import { HeaderShareBarabaraAI } from "@/components/site/share-barabara-ai";
 
 const NAV = [
-  { to: "/feed", label: "Feed" },
   { to: "/news", label: "News & Articles" },
   { to: "/alerts", label: "Alerts" },
   { to: "/reports", label: "Reports" },
   { to: "/statistics", label: "Statistics" },
-  { to: "/contributors", label: "Contributors" },
+  { to: "/feed", label: "Media & Feed" },
   { to: "/campaigns", label: "Campaigns" },
   { to: "/videos", label: "Videos" },
   { to: "/merch", label: "Merch" },

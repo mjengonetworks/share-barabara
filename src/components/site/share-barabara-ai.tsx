@@ -17,6 +17,7 @@ type Props = {
   contextId: string;
   title?: string;
   mode?: "summary" | "chat";
+  sourceText?: string;
 };
 
 function Answer({ message }: { message: Message }) {
@@ -67,7 +68,7 @@ function errorText(result: PublicAIResult) {
   return "There is not enough supported information to answer safely.";
 }
 
-export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary" }: Props) {
+export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary", sourceText }: Props) {
   const { user } = useAuth();
   const [summary, setSummary] = useState<PublicAIResult | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -80,7 +81,7 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
 
   async function summarize() {
     setBusy(true); setError(null);
-    try { setSummary(await callQuickAISummary({ data: { message: title ?? "Summarize this content", contextType, contextId } })); }
+    try { setSummary(await callQuickAISummary({ data: { message: title ?? "Summarize this content", contextType, contextId, ...(sourceText ? { sourceText } : {}) } })); }
     catch { setError("Share Barabara AI is temporarily unavailable."); }
     finally { setBusy(false); }
   }

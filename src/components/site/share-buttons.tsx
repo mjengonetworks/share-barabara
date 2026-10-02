@@ -117,7 +117,7 @@ export function ShareButtons({ title }: { title: string }) {
         }
         target="_blank"
         rel="noopener noreferrer"
-        className="flex min-w-0 max-w-[4.5rem] shrink items-center gap-1 rounded-full border border-border px-1.5 py-1 text-[0.62rem] font-medium leading-tight text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground sm:max-w-none sm:px-3 sm:py-1.5 sm:text-xs"
+        className="flex min-w-0 max-w-[13rem] shrink items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-[0.68rem] font-medium leading-tight text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground sm:px-3 sm:text-xs"
       >
         <GoogleLogo className="shrink-0 text-sm" />
         <span className="min-w-0 whitespace-normal">{settings?.google_source_label ?? "Add as a preferred source on Google"}</span>

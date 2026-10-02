@@ -2,21 +2,22 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Building2, ExternalLink, MapPin, Play, Radio } from "lucide-react";
 import { getMjengoContent, type MjengoArticlePreview, type MjengoProjectPreview } from "@/lib/mjengo.functions";
 
-type Context = "home" | "articles" | "alerts" | "reports" | "statistics" | "media";
+type Context = "home" | "articles" | "alerts" | "reports" | "statistics" | "media" | "feed";
 
 const contextCopy: Record<Context, { eyebrow: string; title: string; description: string }> = {
-  home: { eyebrow: "From Mjengo Hub", title: "Infrastructure stories and projects to watch", description: "Selected public content from our sister platform, clearly attributed and linked to the original source." },
+  home: { eyebrow: "From Mjengo Hub", title: "Infrastructure stories and projects to watch", description: "Selected public content from Mjengo Hub, clearly attributed and linked to the original source." },
   articles: { eyebrow: "Built environment context", title: "More from Mjengo Hub", description: "Infrastructure and real-estate reporting from Mjengo Hub, presented as external source material." },
   alerts: { eyebrow: "Infrastructure context", title: "Projects connected to the roads we use", description: "Follow infrastructure reporting and project updates from Mjengo Hub. These are external source previews, not Share Barabara alerts." },
   reports: { eyebrow: "Built environment context", title: "Construction and transport context", description: "External reporting and project tracking that may help place community reports in context." },
-  statistics: { eyebrow: "External context", title: "Infrastructure reporting from Mjengo Hub", description: "Additional context from a sister platform. This does not change or supplement the official/statistical definitions above." },
-  media: { eyebrow: "Sister platform media", title: "Infrastructure media from Mjengo Hub", description: "Publicly linked Mjengo Hub videos and project previews. Playback remains on the source platform." },
+  statistics: { eyebrow: "External context", title: "Infrastructure reporting from Mjengo Hub", description: "Additional context from Mjengo Hub. This does not change or supplement the official/statistical definitions above." },
+  media: { eyebrow: "Mjengo Hub media", title: "Infrastructure media from Mjengo Hub", description: "Publicly linked Mjengo Hub videos and project previews. Playback remains on the source platform." },
+  feed: { eyebrow: "External source previews", title: "Infrastructure and project updates", description: "Published Mjengo Hub articles, public media and project previews, shown with source attribution and links to the original content." },
 };
 
 function ArticleCard({ item }: { item: MjengoArticlePreview }) {
   return <a href={item.canonicalUrl} target="_blank" rel="noopener noreferrer" className="group overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-accent">
     {item.imageUrl ? <img src={item.imageUrl} alt="" loading="lazy" className="aspect-[16/9] w-full object-cover" /> : <div className="flex aspect-[16/9] items-center justify-center bg-primary/5 text-primary/50" aria-hidden="true"><Building2 className="size-8" /></div>}
-    <div className="p-4"><p className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">Mjengo Hub · {item.category}</p><h3 className="mt-1 line-clamp-2 font-bold leading-snug group-hover:underline">{item.title}</h3>{item.summary ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{item.summary}</p> : null}<span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue">Read source <ArrowUpRight className="size-3.5" /></span></div>
+    <div className="p-4"><p className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">Mjengo Hub · {item.category}</p><h3 className="mt-1 line-clamp-2 font-bold leading-snug group-hover:underline">{item.title}</h3>{item.summary ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{item.summary}</p> : null}{item.author ? <p className="mt-2 text-xs text-muted-foreground">By {item.author}</p> : null}<span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue">Read source <ArrowUpRight className="size-3.5" /></span></div>
   </a>;
 }
 

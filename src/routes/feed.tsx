@@ -18,9 +18,11 @@ import { UserLink } from "@/components/site/user-link";
 import { timeAgo } from "@/lib/format";
 import { FEED_LIMIT, feedSort, normalizeFeedBody, trendCounts } from "@/lib/feed.mjs";
 import { createFeedPost } from "@/lib/feed.functions";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { SocialFollowSection } from "@/components/site/social-follow-section";
 
 export const Route = createFileRoute("/feed")({
-  head: () => ({ meta: [{ title: "Feed: Share Barabara" }, { name: "description", content: "A public conversation about safer roads, transport and community issues in Kenya." }] }),
+  head: () => ({ meta: [{ title: "Media & Feed: Share Barabara" }, { name: "description", content: "Community conversations, public media and infrastructure updates from Share Barabara and clearly attributed sources." }] }),
   validateSearch: (search: Record<string, unknown>) => ({ sort: search.sort === "popular" || search.sort === "trending" ? search.sort : "latest" }),
   component: FeedPage,
 });
@@ -131,7 +133,7 @@ function FeedPage() {
   const visiblePosts = sortedPosts.filter((post) => !blocked.has(post.author_id));
 
   return <div className="mx-auto max-w-6xl px-4 py-8">
-    <header className="mb-8"><p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Community conversation</p><h1 className="mt-1 text-3xl font-extrabold">Share Barabara Feed</h1><p className="mt-2 max-w-2xl text-muted-foreground">Road users, contributors and the Share Barabara newsroom discussing safer roads, transport and the infrastructure around us.</p></header>
+    <header className="mb-8"><p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Media &amp; community</p><h1 className="mt-1 text-3xl font-extrabold">Media &amp; Feed</h1><p className="mt-2 max-w-2xl text-muted-foreground">Road users, contributors and the Share Barabara newsroom discussing safer roads, transport and the infrastructure around us.</p></header>
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
       <main className="min-w-0">
         {user ? <section className="rounded-lg border border-border bg-card p-5 card-elevated"><div className="flex items-center gap-2"><Send className="size-5 text-accent" /><h2 className="font-bold">Start a conversation</h2></div><Textarea className="mt-4" rows={4} maxLength={4000} value={body} onChange={(event) => setBody(event.target.value)} placeholder="What are road users seeing, discussing or learning today? Use #topics to help people discover it." /><div className="mt-3 flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">Posts are reviewed for safety and community standards before publication.</span><Button disabled={submit.isPending || body.trim().length < 3} onClick={() => submit.mutate()}>{submit.isPending ? "Posting…" : "Post"}</Button></div></section> : <section className="rounded-lg border border-dashed border-border bg-muted/30 p-5"><p className="font-semibold">Join the conversation</p><p className="mt-1 text-sm text-muted-foreground"><Link to="/auth" className="font-semibold underline">Sign in</Link> to create posts, vote and reply. Everyone can read the public Feed.</p></section>}
@@ -143,6 +145,7 @@ function FeedPage() {
       </main>
       <aside className="space-y-5"><section className="rounded-lg border border-border bg-card p-5"><div className="flex items-center gap-2"><Hash className="size-5 text-accent" /><h2 className="font-bold">Trending topics</h2></div>{trends.length ? <ul className="mt-4 space-y-3">{trends.map((trend) => <li key={trend.tag} className="flex items-center justify-between gap-3"><span className="font-semibold text-brand-blue">#{trend.tag}</span><span className="text-xs text-muted-foreground">{trend.count} post{trend.count === 1 ? "" : "s"}</span></li>)}</ul> : <p className="mt-3 text-sm text-muted-foreground">Topics will appear as the community posts and discusses.</p>}</section><section className="rounded-lg border border-border bg-card p-5"><h2 className="font-bold">Community standards</h2><p className="mt-2 text-sm text-muted-foreground">Keep reports factual, protect people’s privacy, and do not share dangerous instructions or unverified accusations. Moderators may hide content while reviewing reports.</p>{rank >= 3 ? <Link to="/admin/comments" className="mt-3 inline-block text-sm font-semibold text-brand-blue underline">Open moderation tools</Link> : null}</section></aside>
     </div>
+    <div className="mt-12 space-y-10"><SocialFollowSection /><MjengoPreviews context="feed" /></div>
     <Dialog open={!!reportTarget} onOpenChange={(open) => { if (!open) setReportTarget(null); }}><DialogContent><DialogHeader><DialogTitle>Report Feed post</DialogTitle></DialogHeader><Textarea rows={4} value={reportReason} onChange={(event) => setReportReason(event.target.value)} placeholder="Tell moderators what needs attention" /><Button variant="destructive" disabled={report.isPending || reportReason.trim().length < 3} onClick={() => report.mutate()}>{report.isPending ? "Sending…" : "Send report"}</Button></DialogContent></Dialog>
   </div>;
 }

@@ -54,9 +54,9 @@ export function ArticlePreviewCard({ article }: { article: ArticlePreview }) {
       className="group overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
     >
       {article.image_url ? (
-        <img src={article.image_url} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+        <img src={article.image_url} alt={article.title} loading="lazy" className="aspect-video w-full object-cover" />
       ) : (
-        <div className="flex aspect-[4/3] items-center justify-center bg-primary/5 text-primary/50" aria-hidden="true">
+        <div className="flex aspect-video items-center justify-center bg-primary/5 text-primary/50" aria-hidden="true">
           <Newspaper className="size-9" />
         </div>
       )}
@@ -99,7 +99,7 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
       className="group overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
     >
       {report.image_url ? (
-        <img src={report.image_url} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+        <img src={report.image_url} alt={report.title} loading="lazy" className="aspect-video w-full object-cover" />
       ) : null}
       <div className="p-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -141,15 +141,15 @@ export function TaxonomyDiscovery({ kind }: { kind: "alerts" | "reports" }) {
 
 export function SisterPlatformPreviews() {
   return (
-    <section className="grid gap-4 sm:grid-cols-2" aria-label="Sister platforms">
+    <section className="grid gap-4 sm:grid-cols-2" aria-label="Share Barabara ecosystem platforms">
       <ExternalPreview
         name="Mjengo Hub"
-        description="Construction news, projects and industry conversations from across Kenya and East Africa."
+        description="A construction and infrastructure information platform covering news, projects and developments in Kenya and beyond."
         href="https://mjengohub.co.ke"
       />
       <ExternalPreview
         name="Mjengo Networks"
-        description="The wider network connecting people, organisations and opportunities across the built environment."
+        description="A professional and business networking platform connecting people, organisations and opportunities across the built environment."
         href="https://mjengonetworks.co.ke"
       />
     </section>
@@ -165,7 +165,7 @@ function ExternalPreview({ name, description, href }: { name: string; descriptio
         </span>
         <div className="min-w-0">
           <p className="font-bold">{name}</p>
-          <p className="text-xs text-primary-foreground/70">Sister platform</p>
+          <p className="text-xs text-primary-foreground/70">Across our ecosystem</p>
         </div>
         <ExternalLink className="ml-auto size-4 shrink-0" aria-hidden="true" />
       </div>
@@ -267,7 +267,7 @@ export function DiscoverySections({ focus, currentId }: { focus: Focus; currentI
       {trendingArticles.length > 0 ? <DiscoveryGroup title="Trending articles" to="/news" items={trendingArticles} render={(item) => <ArticlePreviewCard article={item} />} icon={<Flame className="size-5 text-destructive" />} /> : null}
       <BannerAd placement={`${focus}-discovery-mid`} />
       <section>
-        <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Across the network</p><h2 className="mt-1 text-xl font-bold">Explore sister platforms</h2></div></div>
+        <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Across our ecosystem</p><h2 className="mt-1 text-xl font-bold">Explore our platforms</h2></div></div>
         <SisterPlatformPreviews />
       </section>
     </div>

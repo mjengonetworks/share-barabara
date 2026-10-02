@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Megaphone } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -50,12 +51,13 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
   }
 
   return (
-    <div data-ad-placement={placement} className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 ${className}`}>
+    <div data-ad-placement={placement} className={`flex flex-wrap items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 ${className}`}>
       <Megaphone className="size-6 text-accent" />
       <div className="min-w-0 flex-1">
-        <p className="font-semibold">Your Ad Here</p>
+        <p className="font-semibold uppercase tracking-wide">YOUR AD HERE</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Reach road users and the wider built environment community.</p>
       </div>
-      <span className="shrink-0 rounded-md border border-border px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">Visit Advertiser</span>
+      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Partner With Us</Link>
     </div>
   );
 }

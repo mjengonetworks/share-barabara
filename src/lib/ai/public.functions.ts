@@ -12,6 +12,7 @@ type Input = {
   contextId?: string;
   threadId?: string;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
+  sourceText?: string;
 };
 type AuthContext = { userId: string; supabase: SupabaseClient<Database> };
 
@@ -32,6 +33,7 @@ function validate(input: unknown): Input {
     contextType,
     ...(typeof value["contextId"] === "string" ? { contextId: value["contextId"] } : {}),
     ...(typeof value["threadId"] === "string" ? { threadId: value["threadId"] } : {}),
+    ...(typeof value["sourceText"] === "string" ? { sourceText: clampText(value["sourceText"], 12000) } : {}),
     history: Array.isArray(value["history"])
       ? value["history"]
           .slice(-MAX_HISTORY_MESSAGES)
@@ -58,6 +60,13 @@ async function runPublicAI(input: Input, userId?: string): Promise<PublicAIResul
     input.message,
   );
   let finalEvidence = evidence;
+  // The article detail page already has the published body. This bounded
+  // fallback keeps a useful article-grounded summary working when a public
+  // row cannot be resolved by the server runtime, without claiming external
+  // verification or trusting the text as instructions.
+  if (!finalEvidence.length && input.sourceText && input.contextType !== "general") {
+    finalEvidence = [{ id: input.contextId ?? "article-context", kind: input.contextType, title: input.message, text: input.sourceText }];
+  }
   let externalCitations: PublicAIResult["citations"] = [];
   let provenance: PublicAIResult["provenance"] = "share_barabara";
   const localAssessment = assessLocalEvidence(input.message, evidence, input.contextType ?? "general");

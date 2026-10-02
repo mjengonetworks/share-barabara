@@ -14,6 +14,7 @@ export type MjengoArticlePreview = {
   publishedAt: string | null;
   imageUrl: string | null;
   canonicalUrl: string;
+  author: string | null;
 };
 
 export type MjengoProjectPreview = {
@@ -83,6 +84,7 @@ function parseRss(xml: string): MjengoArticlePreview[] {
       publishedAt: field(block, "pubDate") || null,
       imageUrl: safeUrl(image, [MEDIA_ORIGIN]),
       canonicalUrl,
+      author: field(block, "dc:creator") || field(block, "author") || null,
     });
     if (rows.length >= MAX_ITEMS * 3) break;
   }

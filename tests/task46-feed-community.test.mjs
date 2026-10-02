@@ -11,7 +11,7 @@ const admin = read("src/routes/_authenticated/admin/feed.tsx");
 
 test("Feed route and prominent main navigation exist", () => {
   assert.match(route, /createFileRoute\("\/feed"\)/);
-  assert.match(header, /to: "\/feed", label: "Feed"/);
+  assert.match(header, /to: "\/feed", label: "Media & Feed"/);
   assert.match(route, /Sort:|latest|popular|trending/);
 });
 
