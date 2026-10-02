@@ -7,9 +7,9 @@ import {
   type EditorialContentType,
   type EditorialMode,
   type EditorialProposal,
+  type EditorialValue,
 } from "@/lib/ai/editorial.functions";
 
-type EditorialValue = string | number | null;
 
 const callGenerateEditorialDraft = generateEditorialDraft as unknown as (args: {
   data: unknown;
@@ -28,12 +28,14 @@ export function EditorialAIButton({
   onDraft,
   mode = "autopopulate",
   contentId,
+  current,
 }: {
   contentType: EditorialContentType;
   source: string;
   onDraft: (draft: Record<string, EditorialValue>) => void;
   mode?: EditorialMode;
   contentId?: string;
+  current?: Record<string, EditorialValue>;
 }) {
   const [busy, setBusy] = useState(false);
   const [proposal, setProposal] = useState<EditorialProposal | null>(null);
@@ -67,7 +69,7 @@ export function EditorialAIButton({
         return;
       }
       const result = await callGenerateEditorialDraft({
-        data: { contentType, source: combinedSource, mode, ...(contentId ? { contentId } : {}) },
+        data: { contentType, source: combinedSource, mode, ...(contentId ? { contentId } : {}), ...(mode === "update" && current ? { current } : {}) },
       });
       if (mode === "update") {
         if (!result.proposal) throw new Error("No proposal returned");

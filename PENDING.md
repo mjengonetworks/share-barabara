@@ -194,3 +194,13 @@ when server-side row resolution or external retrieval is unavailable, without cl
 verification. Remaining verification is browser/device visual review, configured social-link review,
 Mjengo upstream freshness, and deployed public-AI runtime checks. No SQL, deployment, secret change or
 SearXNG provisioning was performed.
+
+Task 57 — Editorial AI Contracts & Update Existing is TESTING / VERIFICATION. The owner-supplied News
+Article and Accident Report prompts are preserved verbatim as separate source documents, with a distinct
+Alert contract derived from its actual fields. Generate remains Grok/xAI, Auto-Populate remains Groq, and
+Update Existing is available below Auto-Populate on Article, Report and Alert editors. Updates read the
+current unsaved form state, produce structured field-level proposals, preserve omitted/unknown values, and
+require explicit human application and normal save/publish actions. SEO and supported featured-image metadata
+are validated, and Featured Image follows SEO in rich editors. Remaining verification is Cloudflare runtime
+credential/model confirmation, live provider checks, and browser review of all editorial forms; no SQL or
+deployment was performed. Do not mark production-verified.

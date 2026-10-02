@@ -405,6 +405,7 @@ function ReportsQueuePage() {
                       source={`${d["title"]}\n${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}`}
                       mode="update"
                       contentId={r.id}
+                      current={d}
                       onDraft={(draft) =>
                         set({
                           ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -504,38 +505,6 @@ function ReportsQueuePage() {
                     </div>
                     <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        Featured image details
-                      </p>
-                      <div>
-                        <Label htmlFor={`rimg-alt-${r.id}`}>Alt text</Label>
-                        <Input
-                          id={`rimg-alt-${r.id}`}
-                          value={d.image_alt}
-                          onChange={(e) => set({ image_alt: e.target.value })}
-                          placeholder="Describes the image for screen readers and search engines"
-                        />
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <Label htmlFor={`rimg-cap-${r.id}`}>Caption</Label>
-                          <Input
-                            id={`rimg-cap-${r.id}`}
-                            value={d.image_caption}
-                            onChange={(e) => set({ image_caption: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`rimg-cred-${r.id}`}>Credit / source</Label>
-                          <Input
-                            id={`rimg-cred-${r.id}`}
-                            value={d.image_credit}
-                            onChange={(e) => set({ image_credit: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                         SEO (optional, overrides defaults)
                       </p>
                       <div>
@@ -564,6 +533,14 @@ function ReportsQueuePage() {
                           onChange={(e) => set({ seo_keywords: e.target.value })}
                           placeholder="comma, separated, keywords"
                         />
+                      </div>
+                    </div>
+                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Featured image details</p>
+                      <div><Label htmlFor={`rimg-alt-${r.id}`}>Alt text</Label><Input id={`rimg-alt-${r.id}`} value={d.image_alt} onChange={(e) => set({ image_alt: e.target.value })} placeholder="Describes the image for screen readers and search engines" /></div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div><Label htmlFor={`rimg-cap-${r.id}`}>Caption</Label><Input id={`rimg-cap-${r.id}`} value={d.image_caption} onChange={(e) => set({ image_caption: e.target.value })} /></div>
+                        <div><Label htmlFor={`rimg-cred-${r.id}`}>Credit / source</Label><Input id={`rimg-cred-${r.id}`} value={d.image_credit} onChange={(e) => set({ image_credit: e.target.value })} /></div>
                       </div>
                     </div>
                     <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">

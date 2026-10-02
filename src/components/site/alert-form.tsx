@@ -111,6 +111,16 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
               }
             />
           ))}
+          <EditorialAIButton
+            contentType="alert"
+            mode="update"
+            source={`${form["title"]}\n${form["description"]}\nCounty: ${form["county"]}\nRoad: ${form["road"]}`}
+            current={form}
+            onDraft={(draft) => setForm((current) => ({
+              ...current,
+              ...Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== "" && value !== null)),
+            }))}
+          />
         </div>
       ) : null}
       <div>

@@ -377,6 +377,7 @@ function AlertsAdminPage() {
                 mode="update"
                 contentId={editingParties.id}
                 source=""
+                current={editingParties}
                 onDraft={(draft) =>
                   setEditingParties((current) =>
                     current

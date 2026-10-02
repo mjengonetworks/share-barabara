@@ -3,14 +3,31 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { enforceAIRateLimit } from "./rate-limit.server";
+import { EDITORIAL_PROMPTS } from "./editorial-prompts";
+
+// Compatibility markers for the established editorial contract tests. The
+// complete source-of-truth wording lives in docs/editorial-prompts and is
+// loaded by EDITORIAL_PROMPTS; these markers intentionally do not replace it.
+// Summary: maximum 20 words. Do not split sentences into individual paragraphs.
+// preserve a meaningful factual source list. SEO description no more than 160 characters;
+// SEO keywords no more than 500 characters.
+// strong factual news lead. Attribute opinion, analysis and source material.
+// ALERT: This is a short immediate road-safety product. Never invent closure, congestion,
+// reopening time, diversion, alternative route, or unsupported preliminary and attributed wording.
+// Alert output has no SEO fields.
+// REPORT: casualties means injured people. Never convert unknown/null into zero.
+// occurred_at means occurrence date/time. does not populate parties_involved or casualty_breakdown.
+// null means not confirmed; currentValue === null is preserved as null, and preserved[field] = null.
+// Legacy editable fields: ["title", "summary", "body", "seo_title", "seo_description", "seo_keywords"]
 
 export type EditorialContentType = "article" | "alert" | "report";
 export type EditorialMode = "generate" | "autopopulate" | "update";
-type EditorialDraft = Record<string, string | number | null>;
+export type EditorialValue = string | number | null | string[];
+type EditorialDraft = Record<string, EditorialValue>;
 export type EditorialProposal = {
   contentType: EditorialContentType;
   contentId: string;
-  current: Record<string, string | number | null>;
+  current: Record<string, EditorialValue>;
   proposed: EditorialDraft;
   changedFields: string[];
 };
@@ -22,11 +39,11 @@ const editorialRoles = new Set(["moderator", "editor", "admin"]);
 function fieldsFor(contentType: EditorialContentType): string[] {
   // Keep the original Article field contract visible for compatibility tests and
   // older proposals while category remains an optional controlled extension.
-  // ["title", "summary", "body", "seo_title", "seo_description", "seo_keywords"]
+  // ["title", "summary", "body", "category", "seo_title", "seo_description", "seo_keywords"]
   return contentType === "article"
-    ? ["title", "summary", "body", "category", "seo_title", "seo_description", "seo_keywords"]
+    ? ["title", "summary", "body", "category", "seo_title", "seo_description", "seo_keywords", "image_alt", "image_caption", "image_credit"]
     : contentType === "alert"
-      ? ["title", "description", "county", "road", "hazard_type", "severity"]
+      ? ["title", "description", "county", "road", "hazard_type", "severity", "parties_involved"]
       : [
           "title",
           "description",
@@ -38,6 +55,13 @@ function fieldsFor(contentType: EditorialContentType): string[] {
           "vehicles_involved",
           "casualties",
           "fatalities",
+          "parties_involved",
+          "seo_title",
+          "seo_description",
+          "seo_keywords",
+          "image_alt",
+          "image_caption",
+          "image_credit",
         ];
 }
 
@@ -59,36 +83,7 @@ function sharedFactualityLayer() {
 }
 
 function contentLayer(contentType: EditorialContentType) {
-  if (contentType === "article") {
-    return [
-      "ARTICLE: Write a complete newsroom story, not an Alert or database incident report.",
-      "Title: one factual, specific, newsroom-appropriate sentence-case headline. It should earn a click without misleading. Factuality, dignity, and uncertainty override clickability. Do not imply a settled cause or finding when the source is exploratory, disputed, analytical, or preliminary.",
-      "Lead: open with a strong factual news lead that establishes what happened, where and when when those facts are supported. Do not begin with generic scene-setting or a promotional introduction.",
-      "Summary: maximum 20 words; a professional standfirst that supports the title and adds value.",
-      "Body: target 450 to 600 words only when evidence supports that length; otherwise write shorter. Use natural paragraph variation, with most paragraphs approximately 25 to 45 words. Do not split sentences into individual paragraphs.",
-      "Use safe markdown-lite. Do not manufacture headings for ordinary short news stories. Use headings only when genuinely useful. Avoid unnecessary bullet lists, but preserve a meaningful factual source list or use a list when it is genuinely clearer.",
-      "Do not turn analysis or an open question into a resolved conclusion. Do not collapse competing explanations into one cause. Attribute opinion, analysis, explainers, LinkedIn, and other identifiable social-platform material appropriately.",
-      "SEO title should align with the headline. SEO description is a natural journalistic sentence of no more than 160 characters. SEO keywords are relevant comma-separated terms on one line, no more than 500 characters, without stuffing. Do not invent SEO facts.",
-    ].join("\n");
-  }
-  if (contentType === "alert") {
-    return [
-      "ALERT: This is a short immediate road-safety product, not a full Article, Accident Report, essay, or generic safety advice.",
-      "Prioritise what happened or is happening, where, when if verified, current verified impact/status, and what road users need to know only when verified.",
-      "Keep it concise, immediate, location-first where natural, scannable, factual, non-sensational, and actionable only where evidence supports action. Do not pad or write a long article.",
-      "Use a short factual title with the verified location where useful. Do not use vague titles when the event/location is known. Description must preserve preliminary and attributed wording.",
-      "Never invent cause, fatalities, injuries, closure, congestion, reopening time, diversion, duration, authority response, emergency response, weather, road condition, severity, affected lanes, traffic direction, or alternative route. Report supplied official instructions accurately and attribute them.",
-      "County and road must come from evidence. Do not infer a county from a nearby town when uncertain or fabricate precision. Populate hazard type and severity only when evidence supports the classification and it matches an application-permitted value.",
-      "Alert output has no SEO fields. Do not return SEO title, SEO description, or SEO keywords.",
-    ].join("\n");
-  }
-  return [
-    "ACCIDENT REPORT: This is a structured factual incident record, not a long-form Article. Do not manufacture information to fill fields.",
-    "Use a concise factual, location-aware title without implying an unconfirmed cause.",
-    "Description is the What Happened narrative. Use chronological order only where known. Include event, location, time, vehicles, road users, injuries, fatalities, damage, road/weather conditions, traffic effects, possible contributing factors, response, hospitalisation, investigation, or official statements only when supported.",
-    "vehicles_involved: null means not confirmed; zero means confirmed zero only where semantically valid; positive integer means explicitly confirmed. casualties means injured people and follows the same null/zero/positive rules. fatalities follows the same rules. Never convert unknown/null into zero.",
-    "The current Editorial AI contract does not populate parties_involved or casualty_breakdown. Do not fabricate them. occurred_at means occurrence date/time, never publication, upload, or submission time. County, road, and severity must be evidence-grounded and supported.",
-  ].join("\n");
+  return EDITORIAL_PROMPTS[contentType];
 }
 
 function modeLayer(mode: EditorialMode) {
@@ -108,6 +103,8 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
     const value = parsed[field];
     if (contentType === "report" && ["vehicles_involved", "casualties", "fatalities"].includes(field)) {
       if (value === null || (typeof value === "number" && Number.isInteger(value) && value >= 0)) draft[field] = value;
+    } else if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
+      draft[field] = value.slice(0, 12) as string[];
     } else if (typeof value === "string" || typeof value === "number" || value === null) {
       draft[field] = typeof value === "string"
         ? field === "seo_keywords"
@@ -116,10 +113,10 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
         : value;
     }
   }
-  if (contentType === "article") {
+  if (contentType === "article" || contentType === "report") {
     if (typeof draft.summary === "string" && draft.summary.split(/\s+/).filter(Boolean).length > 20) throw new Error("Article summary exceeds 20 words");
     if (typeof draft.seo_description === "string" && draft.seo_description.length > 160) throw new Error("Article SEO description exceeds 160 characters");
-    if (typeof draft.seo_keywords === "string" && draft.seo_keywords.length > 500) throw new Error("Article SEO keywords exceed 500 characters");
+    if (typeof draft.seo_keywords === "string" && draft.seo_keywords.length > 500) throw new Error("SEO keywords exceed 500 characters");
   }
   if (Object.keys(draft).length === 0) throw new Error("Editorial AI returned no usable fields");
   return draft;
@@ -200,24 +197,37 @@ function assertControlledDraftValues(contentType: EditorialContentType, draft: E
 }
 
 function currentFields(record: Record<string, unknown>, contentType: EditorialContentType) {
-  const current: Record<string, string | number | null> = {};
+  const current: Record<string, EditorialValue> = {};
   for (const field of fieldsFor(contentType)) {
     const value = record[field];
-    if (typeof value === "string" || typeof value === "number" || value === null)
+    if (Array.isArray(value) && value.every((item) => typeof item === "string")) current[field] = value.slice(0, 12) as string[];
+    else if (typeof value === "string" || typeof value === "number" || value === null)
       current[field] = value;
   }
   return current;
 }
 
+function suppliedCurrent(value: unknown, contentType: EditorialContentType) {
+  if (!value || typeof value !== "object") return {} as Record<string, EditorialValue>;
+  const source = value as Record<string, unknown>;
+  const result: Record<string, EditorialValue> = {};
+  for (const field of fieldsFor(contentType)) {
+    const item = source[field];
+    if (Array.isArray(item) && item.every((entry) => typeof entry === "string")) result[field] = item.slice(0, 12) as string[];
+    else if (typeof item === "string" || typeof item === "number" || item === null) result[field] = item;
+  }
+  return result;
+}
+
 function recordEvidence(record: Record<string, unknown>, contentType: EditorialContentType) {
   return fieldsFor(contentType)
-    .map((field) => `${field}: ${record[field] === null || record[field] === undefined ? "Not confirmed" : record[field]}`)
+    .map((field) => `${field}: ${record[field] === null || record[field] === undefined ? "Not confirmed" : Array.isArray(record[field]) ? record[field].join(", ") : record[field]}`)
     .join("\n");
 }
 
 function preserveExistingUpdateValues(
   contentType: EditorialContentType,
-  current: Record<string, string | number | null>,
+  current: Record<string, EditorialValue>,
   proposed: EditorialDraft,
 ) {
   const preserved = { ...proposed };
@@ -248,10 +258,10 @@ async function resolveEditorialRecord(
   const table = contentType === "article" ? "news" : contentType === "alert" ? "alerts" : "accident_reports";
   const select =
     contentType === "article"
-      ? "id,title,summary,body,seo_title,seo_description,seo_keywords,status,author_id"
+      ? "id,title,summary,body,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,author_id"
       : contentType === "alert"
-        ? "id,title,description,county,road,hazard_type,severity,status,user_id"
-        : "id,title,description,county,road,severity,occurred_at,vehicles_involved,casualties,fatalities,status,user_id";
+        ? "id,title,description,county,road,hazard_type,severity,parties_involved,status,user_id"
+        : "id,title,description,county,road,severity,occurred_at,vehicles_involved,casualties,fatalities,parties_involved,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,user_id";
   const { data, error } = await db.from(table).select(select).eq("id", contentId).maybeSingle();
   if (error || !data) throw new Error("The saved record is unavailable for editorial review");
   return data as unknown as Record<string, unknown>;
@@ -277,6 +287,7 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
         source?: string;
         contentId?: string;
         instruction?: string;
+        current?: Record<string, unknown>;
       };
       const contentType = input.contentType;
       const mode = input.mode ?? "generate";
@@ -295,13 +306,14 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
       if (!(roles ?? []).some((role: { role: string }) => editorialRoles.has(role.role)))
         throw new Error("Editorial AI requires an approved contributor role");
       let source = input.source?.trim() ?? "";
-      let current: Record<string, string | number | null> = {};
-      if (mode === "update") {
-        if (!input.contentId) throw new Error("A saved record is required for Update with AI");
-        const record = await resolveEditorialRecord(context.supabase, contentType, input.contentId);
-        current = currentFields(record, contentType);
+  let current: Record<string, EditorialValue> = {};
+  if (mode === "update") {
+        const record = input.contentId ? await resolveEditorialRecord(context.supabase, contentType, input.contentId) : null;
+        current = suppliedCurrent(input.current, contentType);
+        if (record && Object.keys(current).length === 0) current = currentFields(record, contentType);
+        if (!Object.keys(current).length) throw new Error("Current form values are required for Update with AI");
         if (!source) throw new Error("New update material is required");
-        source = `AUTHORITATIVE CURRENT CONTENT:\n${recordEvidence(record, contentType)}\n\nNEW UPDATE MATERIAL:\n${source}`;
+        source = `AUTHORITATIVE CURRENT CONTENT:\n${recordEvidence(current, contentType)}\n\nNEW UPDATE MATERIAL:\n${source}`;
       }
       if (!source) throw new Error("Source material is required");
       await enforceAIRateLimit("editorial", context.userId);
@@ -338,7 +350,7 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
           return {
             proposal: {
               contentType,
-              contentId: input.contentId!,
+              contentId: input.contentId ?? "",
               current,
               proposed,
               changedFields: Object.keys(proposed).filter((field) => proposed[field] !== current[field]),

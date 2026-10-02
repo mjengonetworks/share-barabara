@@ -385,6 +385,7 @@ function ArticlesQueuePage() {
                         source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
                         mode="update"
                         contentId={a.id}
+                        current={d}
                         onDraft={(draft) =>
                           set({
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -434,38 +435,6 @@ function ArticlesQueuePage() {
                       </div>
                       <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                          Featured image details
-                        </p>
-                        <div>
-                          <Label htmlFor={`aimg-alt-${a.id}`}>Alt text</Label>
-                          <Input
-                            id={`aimg-alt-${a.id}`}
-                            value={d.image_alt}
-                            onChange={(e) => set({ image_alt: e.target.value })}
-                            placeholder="Describes the image for screen readers and search engines"
-                          />
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div>
-                            <Label htmlFor={`aimg-cap-${a.id}`}>Caption</Label>
-                            <Input
-                              id={`aimg-cap-${a.id}`}
-                              value={d.image_caption}
-                              onChange={(e) => set({ image_caption: e.target.value })}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor={`aimg-cred-${a.id}`}>Credit / source</Label>
-                            <Input
-                              id={`aimg-cred-${a.id}`}
-                              value={d.image_credit}
-                              onChange={(e) => set({ image_credit: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                           SEO (optional, overrides defaults)
                         </p>
                         <div>
@@ -496,6 +465,11 @@ function ArticlesQueuePage() {
                             placeholder="comma, separated, keywords"
                           />
                         </div>
+                      </div>
+                      <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Featured image details</p>
+                        <div><Label htmlFor={`aimg-alt-${a.id}`}>Alt text</Label><Input id={`aimg-alt-${a.id}`} value={d.image_alt} onChange={(e) => set({ image_alt: e.target.value })} placeholder="Describes the image for screen readers and search engines" /></div>
+                        <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor={`aimg-cap-${a.id}`}>Caption</Label><Input id={`aimg-cap-${a.id}`} value={d.image_caption} onChange={(e) => set({ image_caption: e.target.value })} /></div><div><Label htmlFor={`aimg-cred-${a.id}`}>Credit / source</Label><Input id={`aimg-cred-${a.id}`} value={d.image_credit} onChange={(e) => set({ image_credit: e.target.value })} /></div></div>
                       </div>
                     </div>
                   ) : (

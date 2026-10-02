@@ -174,6 +174,16 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
               }
             }}
           />
+          <EditorialAIButton
+            contentType="article"
+            mode="update"
+            source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
+            current={form}
+            onDraft={(draft) => setForm((current) => ({
+              ...current,
+              ...Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== "" && value !== null)),
+            }))}
+          />
         </div>
       ) : null}
       {articleLocationAvailable ? (
@@ -214,32 +224,6 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
           </div>
         </div>
       ) : null}
-      <div>
-        <Label>Featured image (optional)</Label>
-        <div className="mt-2 space-y-2">
-          <ImageUploadField
-            value={form.image_url}
-            onChange={(url) => setForm({ ...form, image_url: url })}
-          />
-          <Input
-            value={form.image_alt}
-            onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
-            placeholder="Alt text (describes the image for screen readers and search engines)"
-          />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Input
-              value={form.image_caption}
-              onChange={(e) => setForm({ ...form, image_caption: e.target.value })}
-              placeholder="Caption (optional)"
-            />
-            <Input
-              value={form.image_credit}
-              onChange={(e) => setForm({ ...form, image_credit: e.target.value })}
-              placeholder="Credit / source (optional)"
-            />
-          </div>
-        </div>
-      </div>
       <div>
         <Label htmlFor="a-summary">Summary</Label>
           <Textarea
@@ -297,6 +281,17 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
           </div>
         </div>
       ) : null}
+      <div>
+        <Label>Featured image (optional)</Label>
+        <div className="mt-2 space-y-2">
+          <ImageUploadField value={form.image_url} onChange={(url) => setForm({ ...form, image_url: url })} />
+          <Input value={form.image_alt} onChange={(e) => setForm({ ...form, image_alt: e.target.value })} placeholder="Alt text (describes the image for screen readers and search engines)" />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Input value={form.image_caption} onChange={(e) => setForm({ ...form, image_caption: e.target.value })} placeholder="Caption (optional)" />
+            <Input value={form.image_credit} onChange={(e) => setForm({ ...form, image_credit: e.target.value })} placeholder="Credit / source (optional)" />
+          </div>
+        </div>
+      </div>
       {!editorialAccess ? (
         <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
           {editorialFields

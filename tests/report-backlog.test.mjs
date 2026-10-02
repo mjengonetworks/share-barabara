@@ -107,7 +107,7 @@ test("all Article, Alert and Report editors render the three editorial workflows
   for (const form of [articleForm, alertForm, reportForm]) {
     assert.match(form, /mode="generate"|\["generate", "autopopulate"\]/);
     assert.match(form, /mode="autopopulate"|\["generate", "autopopulate"\]/);
-    assert.doesNotMatch(form, /mode="update"/);
+    assert.match(form, /mode="update"/);
   }
   for (const editor of [articles, alerts, reports]) {
     assert.match(editor, /mode="generate"|\["generate", "autopopulate"\]/);

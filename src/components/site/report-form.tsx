@@ -152,6 +152,16 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
               }
             />
           ))}
+          <EditorialAIButton
+            contentType="report"
+            mode="update"
+            source={`${form["title"]}\n${form["description"]}\nCounty: ${form["county"]}\nRoad: ${form["road"]}`}
+            current={form}
+            onDraft={(draft) => setForm((current) => ({
+              ...current,
+              ...Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== "" && value !== null)),
+            }))}
+          />
         </div>
       ) : null}
       <div>
@@ -275,32 +285,6 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         />
       </div>
       <div>
-        <Label>Featured image (optional)</Label>
-        <div className="mt-2 space-y-2">
-          <ImageUploadField
-            value={form.image_url}
-            onChange={(url) => setForm({ ...form, image_url: url })}
-          />
-          <Input
-            value={form.image_alt}
-            onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
-            placeholder="Alt text (describes the image for screen readers and search engines)"
-          />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Input
-              value={form.image_caption}
-              onChange={(e) => setForm({ ...form, image_caption: e.target.value })}
-              placeholder="Caption (optional)"
-            />
-            <Input
-              value={form.image_credit}
-              onChange={(e) => setForm({ ...form, image_credit: e.target.value })}
-              placeholder="Credit / source (optional)"
-            />
-          </div>
-        </div>
-      </div>
-      <div>
         <Label htmlFor="r-desc">What happened?</Label>
         <RichTextEditor
           id="r-desc"
@@ -310,6 +294,17 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
           onChange={(v) => setForm({ ...form, description: v })}
           placeholder="Weather, road conditions, contributing factors and the response by emergency services. Use the toolbar to add photos or a video."
         />
+      </div>
+      <div>
+        <Label>Featured image (optional)</Label>
+        <div className="mt-2 space-y-2">
+          <ImageUploadField value={form.image_url} onChange={(url) => setForm({ ...form, image_url: url })} />
+          <Input value={form.image_alt} onChange={(e) => setForm({ ...form, image_alt: e.target.value })} placeholder="Alt text (describes the image for screen readers and search engines)" />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Input value={form.image_caption} onChange={(e) => setForm({ ...form, image_caption: e.target.value })} placeholder="Caption (optional)" />
+            <Input value={form.image_credit} onChange={(e) => setForm({ ...form, image_credit: e.target.value })} placeholder="Credit / source (optional)" />
+          </div>
+        </div>
       </div>
       <div>
         <Label>More images or videos (optional)</Label>
