@@ -174,3 +174,12 @@ repository migrations without treating missing history as proof of non-applicati
 executed and no production data was changed. Remaining work is pasting the inspection query into
 Supabase, exporting the JSON result, reviewing conflicts, confirming backup readiness and approving
 the migration sequence manually. The protected subscription migration remains excluded.
+
+Task 54 — Urgent Editorial AI Repair is TESTING / VERIFICATION. The Cloudflare request environment is
+now bound for normal requests, editorial instructions are delivered as a server system instruction,
+source material remains explicitly untrusted user evidence, and editorial provider calls request
+provider-enforced JSON output before server-side field validation. Groq remains locked to Auto-Populate,
+Grok/xAI remains locked to Generate and Update, and the public AI path remains Groq. Safe configuration,
+provider and malformed-response diagnostics are surfaced without secrets. Remaining verification is
+deployment/runtime binding confirmation and mocked/live provider checks; no migration or deployment was
+performed. Keep the Contributors Directory & Sitewide Discovery task pending.

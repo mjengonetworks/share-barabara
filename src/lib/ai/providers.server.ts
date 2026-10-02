@@ -33,6 +33,7 @@ export async function completeWithProvider(
     evidence: Evidence[];
     history?: Array<{ role: "user" | "assistant"; content: string }>;
     mode: "public" | "editorial";
+    systemInstruction?: string;
   },
 ) {
   const config = providerConfig(provider);
@@ -49,10 +50,16 @@ export async function completeWithProvider(
         temperature: 0.2,
         max_tokens: 1200,
         messages: [
-          { role: "system", content: systemPrompt(input.mode, input.evidence) },
+          {
+            role: "system",
+            content: [systemPrompt(input.mode, input.evidence), input.systemInstruction?.trim()].filter(Boolean).join("\n\n"),
+          },
           ...(input.history ?? []).slice(-12),
           { role: "user", content: input.message },
         ],
+        // Editorial callers parse the response as JSON. Enforce that contract
+        // at the provider boundary instead of relying on prompt compliance.
+        ...(input.mode === "editorial" ? { response_format: { type: "json_object" } } : {}),
       }),
     });
     if (!response.ok) {

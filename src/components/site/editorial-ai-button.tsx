@@ -79,8 +79,8 @@ export function EditorialAIButton({
       } else {
         throw new Error("No draft returned");
       }
-    } catch {
-      toast.error("Editorial AI could not prepare a proposal.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Editorial AI could not prepare a proposal.");
     } finally {
       setBusy(false);
     }

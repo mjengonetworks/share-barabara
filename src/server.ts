@@ -49,6 +49,10 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Cloudflare exposes secrets and bindings on the request handler's env
+      // argument. Keep the existing server-only runtimeEnv seam supplied for
+      // every request, not only scheduled push dispatches.
+      (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
       const rssResponse = await handleRssFeedRequest(request);
       if (rssResponse) return rssResponse;
 
