@@ -25,6 +25,9 @@ export function unwrapAuditExport(value) {
   if (value && typeof value === "object" && value.data?.production_schema_audit) {
     return unwrapAuditExport(value.data.production_schema_audit);
   }
+  if (value && typeof value === "object" && Array.isArray(value.data)) {
+    return unwrapAuditExport(value.data);
+  }
   return value;
 }
 

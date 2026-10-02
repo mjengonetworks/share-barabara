@@ -33,7 +33,11 @@ comparison utility; it deliberately reports missing evidence as
   trigger, index or column already exists, but its definition has not been
   compared with the repository migration.
 - **PROTECTED / EXCLUDED** — subscription payment work; it is not part of the
-  application sequence in this document.
+application sequence in this document.
+
+Task 59 confirms that the actual 2 October 2026 production export is not
+available in the workspace. Production-specific reconciliation therefore
+remains blocked; see `docs/production-database-migration-reconciliation.md`.
 
 ## Task 58 migration inventory
 
