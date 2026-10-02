@@ -204,3 +204,11 @@ require explicit human application and normal save/publish actions. SEO and supp
 are validated, and Featured Image follows SEO in rich editors. Remaining verification is Cloudflare runtime
 credential/model confirmation, live provider checks, and browser review of all editorial forms; no SQL or
 deployment was performed. Do not mark production-verified.
+
+Task 58 — Share Barabara Production Database Audit & Migration Readiness is TESTING / VERIFICATION. The repository
+migration chain, protected subscription boundary, known-applied report/campaign exception, feature
+dependencies, conflict gates, backup precautions and exact owner action are being consolidated in
+docs/production-database-migration-readiness.md. No production metadata was queried, no SQL was executed,
+and no production data was changed. The existing single-result read-only audit query remains the required
+next step; applied status for all migrations other than the documented 20260929120000 exception is
+unconfirmed until its JSON export is reviewed.
