@@ -218,3 +218,11 @@ reconciliation report records the mixed production state, including present AI/r
 missing later feature objects, notification/vote conflicts and the dependency-aware execution plan.
 No SQL was executed, no production data changed, the audit JSON was not committed, and protected
 subscription work remains excluded.
+
+Task 60 — Share Barabara Production Recovery, AI Functionality, Project Publishing and Deployment Audit is
+TESTING / VERIFICATION. The repository-side audit covers the current AI action paths, deployment evidence,
+project-publishing scope, Task 59 migration dependencies and recent public UI state. A safe primary-navigation
+cleanup removes the duplicate Videos item while preserving /videos, footer and sitemap access. Production
+deployment version, live AI behavior, project-publishing ownership/schema, and database migration readiness
+remain unverified or owner-approved work as explicitly documented in the Task 60 reports. No SQL, deployment,
+secret change or subscription work was performed.
