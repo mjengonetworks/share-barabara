@@ -39,9 +39,14 @@ async function hmac(key: Uint8Array, data: Uint8Array) {
   return new Uint8Array(await crypto.subtle.sign("HMAC", cryptoKey, data));
 }
 
-async function hkdf(ikm: Uint8Array, salt: Uint8Array, info: Uint8Array, length: number) {
-  const key = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
-  return new Uint8Array(await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt, info }, key, length * 8));
+async function hkdfExpand(prk: Uint8Array, info: Uint8Array, length: number) {
+  const output: Uint8Array[] = [];
+  let previous = new Uint8Array();
+  for (let counter = 1; output.reduce((total, part) => total + part.length, 0) < length; counter += 1) {
+    previous = await hmac(prk, concat(previous, info, new Uint8Array([counter])));
+    output.push(previous);
+  }
+  return concat(...output).slice(0, length);
 }
 
 async function encryptPayload(subscription: { p256dh: string; auth: string }, payload: Uint8Array) {
@@ -52,12 +57,14 @@ async function encryptPayload(subscription: { p256dh: string; auth: string }, pa
   const serverPublic = new Uint8Array(await crypto.subtle.exportKey("raw", serverKeys.publicKey));
   const clientKey = await crypto.subtle.importKey("raw", clientPublic, { name: "ECDH", namedCurve: "P-256" }, false, []);
   const shared = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: clientKey }, serverKeys.privateKey, 256));
-  const keyInfo = concat(textEncoder.encode("WebPush: info\0"), clientPublic, serverPublic);
-  const prk = await hmac(authSecret, shared);
-  const ikm = await hkdf(prk, new Uint8Array(32), keyInfo, 32);
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const cek = await hkdf(ikm, salt, textEncoder.encode("Content-Encoding: aes128gcm\0"), 16);
-  const nonce = await hkdf(ikm, salt, textEncoder.encode("Content-Encoding: nonce\0"), 12);
+  // RFC 8291/8188: authenticate the ECDH secret, derive the content IKM,
+  // then extract with the per-message salt before deriving CEK and nonce.
+  const authPrk = await hmac(authSecret, shared);
+  const ikm = await hkdfExpand(authPrk, textEncoder.encode("Content-Encoding: auth\0"), 32);
+  const messagePrk = await hmac(salt, ikm);
+  const cek = await hkdfExpand(messagePrk, textEncoder.encode("Content-Encoding: aes128gcm\0"), 16);
+  const nonce = await hkdfExpand(messagePrk, textEncoder.encode("Content-Encoding: nonce\0"), 12);
   const contentKey = await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]);
   const padded = concat(payload, new Uint8Array([2]));
   const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, contentKey, padded));
@@ -83,6 +90,7 @@ async function vapidAuthorization(endpoint: URL) {
   const publicValue = serverEnv("WEB_PUSH_VAPID_PUBLIC_KEY");
   const subject = serverEnv("WEB_PUSH_VAPID_SUBJECT");
   if (!privateValue || !publicValue || !subject) throw new Error("Web Push VAPID configuration is incomplete");
+  if (!/^(https:|mailto:)/i.test(subject)) throw new Error("Web Push VAPID subject must be an https URL or mailto address");
   const privateKey = await crypto.subtle.importKey("pkcs8", derPrivateKey(base64UrlBytes(privateValue), base64UrlBytes(publicValue)), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
   const now = Math.floor(Date.now() / 1000);
   const header = base64Url(textEncoder.encode(JSON.stringify({ typ: "JWT", alg: "ES256" })));

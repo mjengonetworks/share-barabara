@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ALERT_RADIUS_CHOICES_KM, isValidCoordinate, normalizeRadiusKm } from "@/lib/alert-notification.mjs";
 import { activeTaxonomyRows, NOTIFICATION_CUSTOMIZATION_FIELDS, NOTIFICATION_CUSTOMIZATION_SELECT, normalizeNotificationPreferenceRow, preferenceSummary } from "@/lib/notification-preferences.mjs";
-import { registerWebPushSubscription, removeWebPushSubscription, webPushConfigured } from "@/lib/web-push";
+import { currentWebPushSubscription, registerWebPushSubscription, removeWebPushSubscription, webPushConfigured } from "@/lib/web-push";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({ meta: [
@@ -156,6 +156,17 @@ function NotificationsPage() {
   const browserSupported = typeof window !== "undefined" && "Notification" in window;
   const pushConfigured = webPushConfigured();
 
+  useEffect(() => {
+    if (!user || !pushConfigured) return;
+    let active = true;
+    void currentWebPushSubscription(user.id).then((result) => {
+      if (active) setPushRegistered(result.enabled);
+    }).catch(() => {
+      if (active) setPushRegistered(false);
+    });
+    return () => { active = false; };
+  }, [user, pushConfigured]);
+
   async function requestBrowserPermission() {
     if (!browserSupported) return;
     const permission = await Notification.requestPermission();
@@ -167,9 +178,9 @@ function NotificationsPage() {
     try {
       const result = await registerWebPushSubscription(user.id);
         if (result.enabled) {
+          await save.mutateAsync({ ...p, pushEnabled: true });
           setPushRegistered(true);
           set({ pushEnabled: true });
-          save.mutate({ ...p, pushEnabled: true });
           toast.success("Background push is enabled for this device");
         }
       else toast.message("Background push is not available on this device yet");
@@ -184,7 +195,7 @@ function NotificationsPage() {
         await removeWebPushSubscription(user.id);
         setPushRegistered(false);
         set({ pushEnabled: false });
-        save.mutate({ ...p, pushEnabled: false });
+        await save.mutateAsync({ ...p, pushEnabled: false });
         toast.success("Background push removed for this device");
       }
     catch (error) { toast.error(error instanceof Error ? error.message : "Could not remove background push"); }
@@ -209,7 +220,7 @@ function NotificationsPage() {
       <SettingRow id="browser-enabled" label="Browser notifications" description={browserSupported ? "Foreground notifications while this site is open and browser permission is granted." : "This browser does not expose the Notification API."}><Switch id="browser-enabled" checked={p.browserEnabled && browserSupported} disabled={!browserSupported} onCheckedChange={(v) => set({ browserEnabled: v })} /></SettingRow>
       {browserSupported && Notification.permission !== "granted" ? <Button type="button" variant="outline" size="sm" onClick={requestBrowserPermission}>Allow browser notifications</Button> : null}
       <SettingRow id="email-enabled" label="Email notifications" description="Not available yet; no email provider is configured."><Switch id="email-enabled" checked={false} disabled /></SettingRow>
-      <SettingRow id="push-enabled" label="Background push notifications" description={pushConfigured ? "Enable this device for genuine background Web Push. Other devices on your account remain separate." : "Not activated yet; a VAPID public key and server dispatcher are still required; no service-worker push delivery is active yet."}><Switch id="push-enabled" checked={pushRegistered || p.pushEnabled} disabled={!pushConfigured || pushBusy} onCheckedChange={(v) => { if (v) void enablePush(); else void disablePush(); }} /></SettingRow>
+      <SettingRow id="push-enabled" label="Background push notifications" description={pushConfigured ? "Enable this device for genuine background Web Push. Other devices on your account remain separate." : "Not activated yet; a VAPID public key and server dispatcher are still required; no service-worker push delivery is active yet."}><Switch id="push-enabled" checked={pushRegistered} disabled={!pushConfigured || pushBusy} onCheckedChange={(v) => { if (v) void enablePush(); else void disablePush(); }} /></SettingRow>
       {pushConfigured ? <div className="flex gap-2"><Button type="button" variant="outline" size="sm" disabled={pushBusy} onClick={enablePush}>{pushBusy ? "Updating…" : "Register this device"}</Button><Button type="button" variant="ghost" size="sm" disabled={pushBusy} onClick={disablePush}>Remove this device</Button></div> : null}
     </div></section>
 

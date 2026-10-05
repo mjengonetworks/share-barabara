@@ -43,6 +43,17 @@ export async function registerWebPushSubscription(userId: string) {
   return { enabled: true, endpoint: record.endpoint };
 }
 
+export async function currentWebPushSubscription(userId: string) {
+  if (!webPushConfigured()) return { enabled: false, endpoint: null as string | null };
+  const registration = await navigator.serviceWorker.getRegistration("/");
+  const subscription = await registration?.pushManager.getSubscription();
+  if (!subscription) return { enabled: false, endpoint: null as string | null };
+  const { data, error } = await (supabase.from("push_subscriptions") as any)
+    .select("endpoint").eq("user_id", userId).eq("endpoint", subscription.endpoint).eq("status", "active").maybeSingle();
+  if (error || !data) return { enabled: false, endpoint: subscription.endpoint };
+  return { enabled: true, endpoint: data.endpoint as string };
+}
+
 export async function removeWebPushSubscription(userId: string) {
   if (!("serviceWorker" in navigator)) return;
   const registration = await navigator.serviceWorker.getRegistration("/");

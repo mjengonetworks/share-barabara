@@ -15,6 +15,10 @@ test("review migration creates owner-scoped subscriptions and an idempotent outb
   assert.match(sql, /UNIQUE \(notification_id, channel\)/);
   assert.match(sql, /AFTER INSERT ON public\.notifications/);
   assert.match(sql, /ON CONFLICT \(notification_id, channel\) DO NOTHING/);
+  assert.match(sql, /FOR UPDATE SKIP LOCKED/);
+  assert.match(sql, /claim_notification_delivery_jobs/);
+  assert.match(sql, /attempt_number integer NOT NULL/);
+  assert.match(sql, /locked_at <= now\(\) - interval '5 minutes'/);
   assert.match(sql, /Do not execute/i);
 });
 
@@ -51,6 +55,7 @@ test("dispatcher is server-only, preference-aware, retry-bounded, and rejects pr
   assert.match(crypto, /Private push endpoint rejected/);
   assert.match(crypto, /AES-GCM/);
   assert.match(crypto, /ECDH/);
+  assert.match(crypto, /Content-Encoding: auth/);
   assert.doesNotMatch(crypto, /VITE_WEB_PUSH_VAPID_PRIVATE/);
 });
 
@@ -70,10 +75,27 @@ test("scheduled dispatch and admin diagnostics are configuration and role gated"
   assert.match(server, /WEB_PUSH_ENABLED/);
   assert.match(server, /dispatchPendingPushJobs/);
   assert.match(wrangler, /crons/);
+  assert.match(server, /claim_notification_delivery_jobs|dispatchPendingPushJobs/);
   assert.match(admin, /ROLE_RANK\.admin/);
   assert.match(admin, /notification_delivery_jobs/);
   assert.match(admin, /push_subscriptions/);
   assert.doesNotMatch(admin, /select\("[^\"]*(endpoint|p256dh|auth)[^\"]*"\)/);
+});
+
+test("runtime contract covers ownership, retries, invalid endpoints, and secret-safe configuration", () => {
+  const client = read("src/lib/web-push.ts");
+  const dispatcher = read("src/lib/push-dispatcher.server.ts");
+  const docs = read("docs/task47-push-delivery.md");
+  assert.match(client, /\.eq\("user_id", userId\)/);
+  assert.match(client, /onConflict: "endpoint"/);
+  assert.match(client, /\.delete\(\)\.eq\("user_id", userId\)/);
+  assert.match(dispatcher, /status: "retrying"/);
+  assert.match(dispatcher, /status: result\.permanent \? "invalid" : "active"/);
+  assert.match(dispatcher, /upsert\(/);
+  assert.match(dispatcher, /attempt_number: job\.attempts/);
+  assert.match(docs, /WEB_PUSH_VAPID_PRIVATE_KEY/);
+  assert.match(docs, /VITE_WEB_PUSH_PUBLIC_KEY/);
+  assert.doesNotMatch(docs, /[A-Za-z0-9_-]{40,}/);
 });
 
 test("Task 47 does not add email, SearXNG, or Task 25 execution", () => {
