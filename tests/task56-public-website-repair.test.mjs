@@ -25,6 +25,9 @@ const feedSource = read("src/routes/feed.tsx");
 const duplicateMigration = read("supabase/migrations/20261005120000_accident_duplicate_merge_review.sql");
 const reportsAdmin = read("src/routes/_authenticated/admin/reports.tsx");
 const statisticsSource = read("src/routes/statistics.tsx");
+const discoveryFunction = read("src/lib/incident-discovery.functions.ts");
+const discoveryPanel = read("src/components/site/incident-discovery-panel.tsx");
+const discoveryMigration = read("supabase/migrations/20261005130000_incident_discovery_candidates_review.sql");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -143,6 +146,17 @@ test("public Statistics exposes source provenance without treating missing datas
   assert.match(statisticsSource, /last_verified_at/);
   assert.match(statisticsSource, /No published external datasets are available yet/);
   assert.match(statisticsSource, /approved Share Barabara reports/);
+});
+
+test("external incident discovery creates bounded admin drafts and never auto-publishes", () => {
+  assert.match(discoveryFunction, /searchExternal/);
+  assert.match(discoveryFunction, /slice\(0, 5\)/);
+  assert.match(discoveryFunction, /incident_discovery_candidates/);
+  assert.match(discoveryFunction, /status: "no_candidates"/);
+  assert.match(discoveryMigration, /status TEXT NOT NULL DEFAULT 'draft'/);
+  assert.match(discoveryMigration, /editors review incident discovery drafts/);
+  assert.match(discoveryPanel, /never publish automatically/);
+  assert.match(read("src/routes/_authenticated/admin/reports.tsx"), /IncidentDiscoveryPanel/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {

@@ -52,6 +52,7 @@ import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs";
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
+import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -210,6 +211,7 @@ function ReportsQueuePage() {
       <p className="mt-2 text-muted-foreground">
         Edit submissions for accuracy and clarity, then approve them.
       </p>
+      <IncidentDiscoveryPanel />
       <Button asChild className="mt-4">
         <Link to="/reports"><Plus className="mr-1.5 size-4" /> Add new report</Link>
       </Button>
