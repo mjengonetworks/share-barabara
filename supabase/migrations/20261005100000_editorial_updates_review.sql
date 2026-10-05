@@ -20,6 +20,27 @@ create index if not exists editorial_updates_parent_published_idx
 create index if not exists editorial_updates_author_idx
   on public.editorial_updates (author_id, updated_at desc);
 
+create or replace function public.validate_editorial_update_parent()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.parent_type = 'alert' and not exists (select 1 from public.alerts where id = new.parent_id) then
+    raise exception 'Editorial update alert parent does not exist';
+  end if;
+  if new.parent_type = 'report' and not exists (select 1 from public.accident_reports where id = new.parent_id) then
+    raise exception 'Editorial update report parent does not exist';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists editorial_updates_parent_validation on public.editorial_updates;
+create trigger editorial_updates_parent_validation
+before insert or update of parent_type, parent_id on public.editorial_updates
+for each row execute function public.validate_editorial_update_parent();
+
 create or replace function public.touch_editorial_update()
 returns trigger
 language plpgsql

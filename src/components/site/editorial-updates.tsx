@@ -4,9 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { renderRichText } from "@/lib/richtext";
 import { longDateWithDay } from "@/lib/format";
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
+import { useProfileNames } from "@/lib/profiles";
+import { UserLink } from "@/components/site/user-link";
 
 type Update = {
   id: string;
+  author_id: string;
   title: string | null;
   body: string;
   attachments: AttachmentRow[] | null;
@@ -18,7 +21,7 @@ export function EditorialUpdates({ parentType, parentId }: { parentType: "alert"
     queryKey: ["editorial-updates", parentType, parentId],
     queryFn: async () => {
       const { data, error } = await (supabase.from("editorial_updates") as any)
-        .select("id,title,body,attachments,published_at")
+        .select("id,title,body,attachments,published_at,author_id")
         .eq("parent_type", parentType)
         .eq("parent_id", parentId)
         .eq("status", "published")
@@ -32,6 +35,8 @@ export function EditorialUpdates({ parentType, parentId }: { parentType: "alert"
     },
   });
 
+  const { data: authorNames = {} } = useProfileNames(updates.map((update) => update.author_id));
+
   if (updates.length === 0) return null;
 
   return (
@@ -44,7 +49,8 @@ export function EditorialUpdates({ parentType, parentId }: { parentType: "alert"
           <article key={update.id} className="relative pb-7 last:pb-0">
             <span className="absolute -left-[1.56rem] top-1 size-3 rounded-full border-2 border-background bg-accent sm:-left-[1.94rem]" />
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              {update.published_at ? longDateWithDay(update.published_at) : "Update"}
+              {update.published_at ? longDateWithDay(update.published_at) : "Update"} · By{" "}
+              <UserLink userId={update.author_id} name={authorNames[update.author_id] ?? "Share Barabara editor"} />
             </p>
             {update.title ? <h3 className="mt-1 text-base font-bold">{update.title}</h3> : null}
             <div className="mt-2 space-y-3 text-sm leading-6 text-foreground/90">{renderRichText(update.body)}</div>

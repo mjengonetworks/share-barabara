@@ -92,8 +92,10 @@ test("Alerts and Reports share a published-only editorial updates chronology", (
   assert.match(updatesMigration, /status text not null default 'draft'/);
   assert.match(updatesMigration, /status = 'published'/);
   assert.match(updatesMigration, /set search_path = public/);
+  assert.match(updatesMigration, /validate_editorial_update_parent/);
   assert.match(updatesComponent, /parentType: "alert" \| "report"/);
   assert.match(updatesComponent, /renderRichText\(update.body\)/);
+  assert.match(updatesComponent, /UserLink/);
   assert.match(read("src/routes/alerts.$alertId.tsx"), /EditorialUpdates parentType="alert"/);
   assert.match(read("src/routes/reports.$reportId.tsx"), /EditorialUpdates parentType="report"/);
   assert.match(updatesManager, /mode="generate"/);
