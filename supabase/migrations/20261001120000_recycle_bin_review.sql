@@ -1,4 +1,4 @@
--- TASK 50 REVIEW-ONLY MIGRATION
+﻿-- TASK 50 REVIEW-ONLY MIGRATION
 -- Do not execute until the existing review migrations are applied and the
 -- live policies/functions have been inspected. This keeps user/admin deletion
 -- separate from moderation removal: moderation remains in its existing audit
@@ -256,10 +256,33 @@ DROP POLICY IF EXISTS news_public_read ON public.news;
 DROP POLICY IF EXISTS news_public_read_published ON public.news;
 CREATE POLICY news_public_read_published ON public.news FOR SELECT
   USING (deleted_at IS NULL AND status = 'published');
+
+DROP POLICY IF EXISTS news_read ON public.news;
+CREATE POLICY news_read ON public.news FOR SELECT
+  USING (
+    deleted_at IS NULL
+    AND (
+      status = 'published'
+      OR auth.uid() = author_id
+      OR public.has_min_role(auth.uid(), 'moderator')
+    )
+  );
 DROP POLICY IF EXISTS alerts_public_read ON public.alerts;
 DROP POLICY IF EXISTS alerts_public_read_active ON public.alerts;
 CREATE POLICY alerts_public_read_active ON public.alerts FOR SELECT
   USING (deleted_at IS NULL AND status = 'active');
+
+DROP POLICY IF EXISTS alerts_authenticated_read ON public.alerts;
+CREATE POLICY alerts_authenticated_read ON public.alerts
+  FOR SELECT TO authenticated
+  USING (
+    deleted_at IS NULL
+    AND (
+      status = 'active'
+      OR auth.uid() = user_id
+      OR public.has_min_role(auth.uid(), 'moderator')
+    )
+  );
 DROP POLICY IF EXISTS reports_public_read ON public.accident_reports;
 DROP POLICY IF EXISTS reports_read_approved ON public.accident_reports;
 CREATE POLICY reports_read_approved ON public.accident_reports FOR SELECT
@@ -282,4 +305,24 @@ CREATE POLICY pages_public_read ON public.pages FOR SELECT
   USING (deleted_at IS NULL);
 DROP POLICY IF EXISTS feed_posts_public_published_read ON public.feed_posts;
 CREATE POLICY feed_posts_public_published_read ON public.feed_posts FOR SELECT
-  USING (deleted_at IS NULL AND (status = 'published' OR public.has_min_role(auth.uid(), 'moderator')));
+  USING (
+    deleted_at IS NULL
+    AND (
+      (
+        status = 'published'
+        AND (
+          auth.uid() IS NULL
+          OR NOT EXISTS (
+            SELECT 1
+            FROM public.feed_blocks b
+            WHERE b.blocker_id = auth.uid()
+              AND b.blocked_id = feed_posts.author_id
+          )
+        )
+      )
+      OR author_id = auth.uid()
+      OR public.has_min_role(auth.uid(), 'moderator')
+    )
+  );
+
+

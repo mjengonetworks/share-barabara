@@ -1,4 +1,4 @@
--- REVIEW ONLY: Task 49 Release Blocker Remediation & Migration Hardening.
+﻿-- REVIEW ONLY: Task 49 Release Blocker Remediation & Migration Hardening.
 -- Do not execute until the prior review migrations have been checked against
 -- the live schema and their applied status is known.
 
@@ -61,7 +61,12 @@ CREATE POLICY moderation_history_staff_read ON public.moderation_action_history
 CREATE OR REPLACE FUNCTION public.prevent_comment_moderation_self_edit()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  IF NEW.moderation_status IS DISTINCT FROM OLD.moderation_status
+  IF (
+       NEW.moderation_status IS DISTINCT FROM OLD.moderation_status
+       OR NEW.moderation_reason IS DISTINCT FROM OLD.moderation_reason
+       OR NEW.moderated_by IS DISTINCT FROM OLD.moderated_by
+       OR NEW.moderated_at IS DISTINCT FROM OLD.moderated_at
+     )
      AND NOT public.has_min_role(auth.uid(), 'moderator') THEN
     RAISE EXCEPTION 'Only moderators may change comment moderation state';
   END IF;
@@ -255,3 +260,4 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+

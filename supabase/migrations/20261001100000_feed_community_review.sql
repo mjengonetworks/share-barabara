@@ -1,4 +1,4 @@
--- TASK 46 REVIEW-ONLY MIGRATION
+﻿-- TASK 46 REVIEW-ONLY MIGRATION
 -- Do not execute until the Feed schema, RLS, moderation workflow and live UI
 -- have been reviewed together. Existing Articles, Alerts, Reports, comments
 -- and votes remain the authoritative records for those content types.
@@ -96,6 +96,11 @@ BEGIN
   IF NEW.entity_type <> 'feed_post' THEN RETURN NEW; END IF;
   SELECT author_id INTO post_owner FROM public.feed_posts WHERE id = NEW.entity_id;
   IF post_owner IS NULL OR post_owner = NEW.user_id THEN RETURN NEW; END IF;
+  IF NOT COALESCE((
+    SELECT notifications_enabled AND community_enabled AND in_app_enabled
+    FROM public.notification_preferences
+    WHERE user_id = post_owner
+  ), true) THEN RETURN NEW; END IF;
   INSERT INTO public.notifications (user_id, type, title, body, source_type, source_id, dedupe_key)
   VALUES (post_owner, 'comment_reply', 'Someone joined your Feed discussion', left(NEW.body, 80), 'feed_post', NEW.entity_id, 'feed-comment:' || NEW.id)
   ON CONFLICT DO NOTHING;
@@ -131,3 +136,4 @@ BEGIN
   ON CONFLICT DO NOTHING;
   RETURN NEW;
 END; $$;
+

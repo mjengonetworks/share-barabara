@@ -1,4 +1,4 @@
--- TASK 30 REVIEW ONLY: safer lifecycle and labels for existing taxonomies.
+﻿-- TASK 30 REVIEW ONLY: safer lifecycle and labels for existing taxonomies.
 -- Do not execute as part of Task 30 development.
 --
 -- The content tables intentionally remain TEXT and have no foreign keys. This
@@ -79,8 +79,11 @@ CREATE POLICY "report_severities_editor_update" ON public.report_severities FOR 
   WITH CHECK (public.has_min_role(auth.uid(), 'editor'));
 
 DROP POLICY IF EXISTS "page_categories_admin_delete" ON public.page_categories;
+DROP POLICY IF EXISTS "page_categories_admin_insert" ON public.page_categories;
+DROP POLICY IF EXISTS "page_categories_admin_update" ON public.page_categories;
 CREATE POLICY "page_categories_editor_insert" ON public.page_categories FOR INSERT TO authenticated
   WITH CHECK (public.has_min_role(auth.uid(), 'editor'));
 CREATE POLICY "page_categories_editor_update" ON public.page_categories FOR UPDATE TO authenticated
   USING (public.has_min_role(auth.uid(), 'editor'))
   WITH CHECK (public.has_min_role(auth.uid(), 'editor'));
+

@@ -1,4 +1,4 @@
--- REVIEW ONLY: Task 29 Contributor Leaderboard.
+﻿-- REVIEW ONLY: Task 29 Contributor Leaderboard.
 -- Do not execute until the function, public output, RLS assumptions, and
 -- performance have been reviewed against the live Supabase schema.
 
@@ -31,16 +31,18 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 WITH contributor_content AS (
-  SELECT user_id, id FROM public.alerts
-  UNION
-  SELECT user_id, id FROM public.accident_reports
-  UNION
-  SELECT user_id, id FROM public.comments
+  SELECT user_id, id, 'alert'::text AS entity_type FROM public.alerts
+  UNION ALL
+  SELECT user_id, id, 'report'::text AS entity_type FROM public.accident_reports
+  UNION ALL
+  SELECT user_id, id, 'comment'::text AS entity_type FROM public.comments
 ),
 vote_totals AS (
   SELECT content.user_id, COALESCE(SUM(votes.value), 0)::integer AS vote_points
   FROM contributor_content AS content
-  LEFT JOIN public.votes AS votes ON votes.entity_id = content.id
+  LEFT JOIN public.votes AS votes
+    ON votes.entity_id = content.id
+   AND votes.entity_type = content.entity_type
   GROUP BY content.user_id
 ),
 score_rows AS (
@@ -106,3 +108,4 @@ CREATE INDEX IF NOT EXISTS contributor_votes_entity_idx
   ON public.votes (entity_id);
 CREATE INDEX IF NOT EXISTS contributor_profiles_active_idx
   ON public.profiles (suspended, id);
+
