@@ -16,6 +16,8 @@ const publicAI = read("src/lib/ai/public.functions.ts");
 const newsletter = read("src/components/site/newsletter-form.tsx");
 const newsIndex = read("src/routes/news.index.tsx");
 const headerSource = read("src/components/site/site-header.tsx");
+const updatesMigration = read("supabase/migrations/20261005100000_editorial_updates_review.sql");
+const updatesComponent = read("src/components/site/editorial-updates.tsx");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -80,6 +82,17 @@ test("mobile navigation has an accessible compact disclosure and full-width acco
   assert.match(headerSource, /aria-controls="mobile-site-navigation"/);
   assert.match(headerSource, /id="mobile-site-navigation" aria-label="Mobile navigation"/);
   assert.doesNotMatch(headerSource, /className="flex w-2\/3/);
+});
+
+test("Alerts and Reports share a published-only editorial updates chronology", () => {
+  assert.match(updatesMigration, /parent_type text not null check \(parent_type in \('alert', 'report'\)\)/);
+  assert.match(updatesMigration, /status text not null default 'draft'/);
+  assert.match(updatesMigration, /status = 'published'/);
+  assert.match(updatesMigration, /set search_path = public/);
+  assert.match(updatesComponent, /parentType: "alert" \| "report"/);
+  assert.match(updatesComponent, /renderRichText\(update.body\)/);
+  assert.match(read("src/routes/alerts.$alertId.tsx"), /EditorialUpdates parentType="alert"/);
+  assert.match(read("src/routes/reports.$reportId.tsx"), /EditorialUpdates parentType="report"/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {

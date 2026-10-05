@@ -24,6 +24,7 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { displayReportCount } from "@/lib/report-metrics";
 import { DiscoverySections } from "@/components/site/discovery-sections";
+import { EditorialUpdates } from "@/components/site/editorial-updates";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -327,6 +328,8 @@ function ReportDetail() {
           </div>
 
           <AttachmentGallery attachments={report.attachments as AttachmentRow[]} />
+
+          <EditorialUpdates parentType="report" parentId={report.id} />
 
           {report.editor_note ? (
             <p className="mt-6 rounded border-l-4 border-accent bg-muted/50 p-4 text-sm">

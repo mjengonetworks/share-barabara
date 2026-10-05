@@ -80,7 +80,7 @@ test("mobile account navigation resolves a display name and has a partial drawer
   const header = await source("src/components/site/site-header.tsx");
   assert.match(header, /useProfileNames/);
   assert.match(header, /ownNames\[user\.id\].*Profile name unavailable/);
-  assert.match(header, /w-\[min\(82vw,22rem\)\]/);
+  assert.match(header, /w-\[min\(88vw,22rem\)\]/);
   assert.match(header, /bg-black\/45/);
 });
 

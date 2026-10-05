@@ -22,6 +22,7 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { DiscoverySections } from "@/components/site/discovery-sections";
+import { EditorialUpdates } from "@/components/site/editorial-updates";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   head: () => ({
@@ -207,6 +208,8 @@ function AlertDetail() {
           </div>
 
           <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />
+
+          <EditorialUpdates parentType="alert" parentId={alert.id} />
 
           <div className="mt-6">
             <VoteButtons
