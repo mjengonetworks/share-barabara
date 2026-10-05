@@ -41,6 +41,8 @@ test("hashtags and trend ordering are bounded and deterministic", async () => {
   assert.deepEqual(extractFeedHashtags("#RoadSafety #roadsafety #Theft"), ["roadsafety", "theft"]);
   assert.deepEqual(trendCounts([{ hashtags: ["roadsafety", "roadsafety"] }, { hashtags: ["theft"] }]), [{ tag: "roadsafety", count: 2 }, { tag: "theft", count: 1 }]);
   assert.equal(feedSort([{ id: "a", score: 1, created_at: "2026-01-01" }, { id: "b", score: 3, created_at: "2025-01-01" }], "popular")[0].id, "b");
+  assert.equal(feedSort([{ id: "a", score: 1, created_at: "2026-01-01" }, { id: "b", score: 3, created_at: "2025-01-01" }], "top")[0].id, "b");
+  assert.equal(feedSort([{ id: "a", score: 1, comment_count: 0, created_at: "2026-01-01" }, { id: "b", score: 1, comment_count: 2, created_at: "2025-01-01" }], "hot")[0].id, "b");
 });
 
 test("Feed RLS is owner-scoped and public reads are published-only unless privileged", () => {

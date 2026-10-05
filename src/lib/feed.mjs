@@ -10,10 +10,10 @@ export function extractFeedHashtags(body) {
   return [...new Set(tags.map((tag) => tag.slice(1).toLowerCase()))].slice(0, MAX_HASHTAGS);
 }
 
-export function feedSort(rows, sort = "latest") {
+export function feedSort(rows, sort = "new") {
   return [...rows].sort((a, b) => {
-    if (sort === "popular") return (b.score ?? 0) - (a.score ?? 0) || String(b.created_at).localeCompare(String(a.created_at));
-    if (sort === "trending") return ((b.score ?? 0) + (b.comment_count ?? 0) * 2) - ((a.score ?? 0) + (a.comment_count ?? 0) * 2) || String(b.created_at).localeCompare(String(a.created_at));
+    if (sort === "top" || sort === "popular") return (b.score ?? 0) - (a.score ?? 0) || String(b.created_at).localeCompare(String(a.created_at));
+    if (sort === "hot" || sort === "trending") return ((b.score ?? 0) + (b.comment_count ?? 0) * 2) - ((a.score ?? 0) + (a.comment_count ?? 0) * 2) || String(b.created_at).localeCompare(String(a.created_at));
     return String(b.created_at).localeCompare(String(a.created_at));
   });
 }

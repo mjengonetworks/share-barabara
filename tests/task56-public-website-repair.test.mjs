@@ -21,6 +21,7 @@ const updatesComponent = read("src/components/site/editorial-updates.tsx");
 const updatesManager = read("src/components/site/editorial-updates-manager.tsx");
 const newsletterServer = read("src/lib/newsletter.functions.ts");
 const newsletterAdmin = read("src/routes/_authenticated/admin/newsletter.tsx");
+const feedSource = read("src/routes/feed.tsx");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -116,6 +117,12 @@ test("newsletter delivery is server-side, role-gated, batched, and secret-safe",
   assert.match(newsletterServer, /escapeHtml/);
   assert.match(newsletterAdmin, /sendNewsletter/);
   assert.doesNotMatch(newsletterAdmin, /process\.env|serverEnv\(/);
+});
+
+test("Media & Feed exposes the requested New, Top, and Hot discovery sort", () => {
+  assert.match(feedSource, /\["new", "top", "hot"\]/);
+  assert.match(read("src/lib/feed.mjs"), /sort === "top"/);
+  assert.match(read("src/lib/feed.mjs"), /sort === "hot"/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {
