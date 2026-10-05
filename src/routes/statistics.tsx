@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin } from "lucide-react";
+import { ExternalLink, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { Label } from "@/components/ui/label";
@@ -262,6 +262,25 @@ function NoYearData({ year }: { year: number }) {
   );
 }
 
+function usePublishedStatisticsProvenance() {
+  return useQuery({
+    queryKey: ["published-statistics-provenance"],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("statistics_datasets") as any)
+        .select("id,title,metric,source_organization,source_url,methodology,last_verified_at")
+        .eq("publication_status", "published")
+        .order("last_verified_at", { ascending: false })
+        .limit(12);
+      if (error) {
+        if (/statistics_datasets|relation|does not exist/i.test(error.message ?? "")) return [];
+        throw error;
+      }
+      return (data ?? []) as Array<{ id: string; title: string; metric: string; source_organization: string; source_url: string | null; methodology: string | null; last_verified_at: string | null }>;
+    },
+    staleTime: 60_000,
+  });
+}
+
 function StatisticsPage() {
   const navigate = useNavigate();
   const { data: hazardTypes = [] } = useHazardTypes();
@@ -365,6 +384,7 @@ function StatisticsPage() {
   const victimsForYear = victims.filter((v) => v.year === activeYear);
   const totalVictims = victimsForYear.reduce((sum, v) => sum + v.fatalities, 0) || 1;
   const { data: liveReports = [] } = useLiveYearReports();
+  const { data: provenance = [] } = usePublishedStatisticsProvenance();
   const [liveCounty, setLiveCounty] = useState("all");
   const [liveSeverity, setLiveSeverity] = useState("all");
   const [liveParty, setLiveParty] = useState("all");
@@ -415,6 +435,14 @@ function StatisticsPage() {
       <p className="mt-2 text-xs text-muted-foreground">
         Reports without confirmed casualty totals are excluded from numeric sums rather than counted as zero.
       </p>
+
+      <section className="mt-6 rounded-lg border border-border bg-card p-5 card-elevated" aria-labelledby="statistics-sources-heading">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><h2 id="statistics-sources-heading" className="text-lg font-bold">Sources and provenance</h2><p className="mt-1 text-sm text-muted-foreground">Published datasets identify their owner, methodology and last verification. Share Barabara community reports remain labelled separately.</p></div>
+          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold">{provenance.length} published dataset{provenance.length === 1 ? "" : "s"}</span>
+        </div>
+        {provenance.length ? <div className="mt-4 grid gap-3 sm:grid-cols-2">{provenance.map((dataset) => <article key={dataset.id} className="rounded border border-border p-3"><p className="font-semibold">{dataset.title}</p><p className="mt-1 text-xs text-muted-foreground">{dataset.metric} · {dataset.source_organization}{dataset.last_verified_at ? ` · verified ${new Date(dataset.last_verified_at).toLocaleDateString("en-KE", { timeZone: "Africa/Nairobi" })}` : ""}</p>{dataset.methodology ? <p className="mt-2 text-sm text-muted-foreground">{dataset.methodology}</p> : null}{dataset.source_url ? <a href={dataset.source_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue underline">Open source <ExternalLink className="size-3" /></a> : null}</article>)}</div> : <p className="mt-4 rounded border border-dashed border-border p-4 text-sm text-muted-foreground">No published external datasets are available yet. The live report section below uses approved Share Barabara reports and does not pretend they are official national statistics.</p>}
+      </section>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         <Link

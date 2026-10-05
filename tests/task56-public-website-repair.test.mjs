@@ -24,6 +24,7 @@ const newsletterAdmin = read("src/routes/_authenticated/admin/newsletter.tsx");
 const feedSource = read("src/routes/feed.tsx");
 const duplicateMigration = read("supabase/migrations/20261005120000_accident_duplicate_merge_review.sql");
 const reportsAdmin = read("src/routes/_authenticated/admin/reports.tsx");
+const statisticsSource = read("src/routes/statistics.tsx");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -134,6 +135,14 @@ test("staff can merge duplicate reports into an approved canonical incident", ()
   assert.match(duplicateMigration, /notifications/);
   assert.match(reportsAdmin, /Merge this report into the selected canonical incident/);
   assert.match(reportsAdmin, /merge_duplicate_report/);
+});
+
+test("public Statistics exposes source provenance without treating missing datasets as zero", () => {
+  assert.match(statisticsSource, /statistics_datasets/);
+  assert.match(statisticsSource, /source_organization/);
+  assert.match(statisticsSource, /last_verified_at/);
+  assert.match(statisticsSource, /No published external datasets are available yet/);
+  assert.match(statisticsSource, /approved Share Barabara reports/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {
