@@ -30,15 +30,12 @@ import { useIncidentTaxonomy, useReportIncidentTypeSchema } from "@/hooks/useInc
 import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
-import { EditorialAIButton } from "@/components/site/editorial-ai-button";
-import { useRoles } from "@/hooks/useRoles";
 import { submitAccidentReport } from "@/lib/report.functions";
 
 export function ReportForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
-  const { canReview } = useRoles();
   const { data: severities = [] } = useReportSeverities();
   const { data: incidentTypes = [] } = useIncidentTaxonomy();
   const { data: reportIncidentTypeAvailable = false } = useReportIncidentTypeSchema();
@@ -127,43 +124,6 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         submit.mutate();
       }}
     >
-      {canReview ? (
-        <div className="space-y-4">
-          {(["generate", "autopopulate"] as const).map((mode) => (
-            <EditorialAIButton
-              key={mode}
-              contentType="report"
-              mode={mode}
-              source={`${form["title"]}\n${form["description"]}\nCounty: ${form["county"]}\nRoad: ${form["road"]}`}
-              onDraft={(draft) =>
-                setForm((current) => ({
-                  ...current,
-                  ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                  ...(typeof draft["description"] === "string" ? { description: draft["description"] } : {}),
-                  ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
-                  ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
-                  ...(typeof draft["incident_type"] === "string" ? { incident_type: draft["incident_type"] } : {}),
-                  ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
-                  ...(typeof draft["occurred_at"] === "string" ? { occurred_at: draft["occurred_at"] } : {}),
-                  ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null ? { vehicles_involved: draft["vehicles_involved"] } : {}),
-                  ...(typeof draft["casualties"] === "number" || draft["casualties"] === null ? { casualties: draft["casualties"] } : {}),
-                  ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null ? { fatalities: draft["fatalities"] } : {}),
-                }))
-              }
-            />
-          ))}
-          <EditorialAIButton
-            contentType="report"
-            mode="update"
-            source={`${form["title"]}\n${form["description"]}\nCounty: ${form["county"]}\nRoad: ${form["road"]}`}
-            current={form}
-            onDraft={(draft) => setForm((current) => ({
-              ...current,
-              ...Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== "" && value !== null)),
-            }))}
-          />
-        </div>
-      ) : null}
       <div>
         <Label htmlFor="r-title">Summary</Label>
         <Input

@@ -54,7 +54,10 @@ export function SiteHeader() {
   const { data: ownUsername = {} } = useProfileUsernames(user ? [user.id] : []);
   const { data: ownNames = {} } = useProfileNames(user ? [user.id] : []);
   const { rank } = useRoles();
-  const profileName = user ? ownNames[user.id]?.trim() || "My Profile" : "My Profile";
+  const profileName = user ? ownNames[user.id]?.trim() || "Profile name unavailable" : "Profile";
+  const activeIdentityName = identity.type === "page"
+    ? activePage?.name?.trim() || "Page unavailable"
+    : profileName;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const headerRef = useRef<HTMLElement>(null);
 
@@ -124,7 +127,7 @@ export function SiteHeader() {
                   <button
                     aria-label="Profile menu"
                     title={
-                      activePage ? `Browsing as ${activePage.name}` : "Browsing as your profile"
+                      `Browsing as ${activeIdentityName}`
                     }
                     className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-foreground"
                   >
@@ -146,7 +149,7 @@ export function SiteHeader() {
                     }
                   >
                     <DropdownMenuRadioItem value="profile">
-                      <CircleUserRound className="mr-2 size-4" /> Your profile
+                      <CircleUserRound className="mr-2 size-4" /> {profileName}
                     </DropdownMenuRadioItem>
                     {myPages.map((p) => (
                       <DropdownMenuRadioItem key={p.id} value={p.id}>

@@ -91,8 +91,8 @@ test("Editorial AI is server-authorized and separated from contributor forms", a
   assert.match(article, /CategoryMultiSelect/);
   assert.match(article, /mode="generate"/);
   assert.match(article, /mode="autopopulate"/);
-  assert.match(alert, /\["generate", "autopopulate"\]/);
-  assert.match(report, /\["generate", "autopopulate"\]/);
+  assert.doesNotMatch(alert, /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i);
+  assert.doesNotMatch(report, /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i);
   assert.doesNotMatch(article, /EditorialAIButton[\s\S]{0,80}canEditSeo/);
 });
 
@@ -104,10 +104,13 @@ test("all Article, Alert and Report editors render the three editorial workflows
   const alerts = await source("src/routes/_authenticated/admin/alerts.tsx");
   const reports = await source("src/routes/_authenticated/admin/reports.tsx");
 
-  for (const form of [articleForm, alertForm, reportForm]) {
+  for (const form of [articleForm]) {
     assert.match(form, /mode="generate"|\["generate", "autopopulate"\]/);
     assert.match(form, /mode="autopopulate"|\["generate", "autopopulate"\]/);
     assert.match(form, /mode="update"/);
+  }
+  for (const publicForm of [alertForm, reportForm]) {
+    assert.doesNotMatch(publicForm, /EditorialAIButton|mode="generate"|mode="autopopulate"|mode="update"/);
   }
   for (const editor of [articles, alerts, reports]) {
     assert.match(editor, /mode="generate"|\["generate", "autopopulate"\]/);
