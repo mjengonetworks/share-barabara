@@ -93,8 +93,9 @@ test("alerts keep their existing active/public semantics while reports require a
   assert.match(source, /supabase\.from\("accident_reports"\)\.select\("casualty_breakdown"\)\.eq\("status", "approved"\)/);
 });
 
-test("the runtime page stays on legacy tables before migration activation", async () => {
+test("the runtime page preserves legacy tables and optionally reads published provenance", async () => {
   const source = await readFile(new URL("../src/routes/statistics.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /statistics_(datasets|observations|update_proposals)/);
+  assert.match(source, /statistics_datasets/);
   assert.match(source, /yearly_stats/);
+  assert.match(source, /No published external datasets are available yet/);
 });
