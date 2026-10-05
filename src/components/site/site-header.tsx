@@ -94,6 +94,8 @@ export function SiteHeader() {
         <button
           className="order-first flex size-9 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-muted lg:hidden"
           aria-label="Toggle menu"
+          aria-expanded={open}
+          aria-controls="mobile-site-navigation"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -203,7 +205,7 @@ export function SiteHeader() {
       {open ? (
         <>
           <div className="fixed inset-0 top-14 z-40 bg-black/45 lg:hidden" aria-hidden="true" />
-          <nav className="absolute left-0 top-full z-50 w-[min(82vw,22rem)] border-r border-t border-border/60 bg-background px-4 py-3 shadow-xl lg:hidden">
+          <nav id="mobile-site-navigation" aria-label="Mobile navigation" className="absolute left-0 top-full z-50 w-[min(88vw,22rem)] border-r border-t border-border/60 bg-background px-4 py-3 shadow-xl lg:hidden">
           <div className="max-w-sm">
             {NAV.map((item) => (
               <Link
@@ -223,14 +225,14 @@ export function SiteHeader() {
                     to="/u/$userId"
                     params={{ userId: ownUsername[user.id] ?? user.id }}
                     onClick={() => setOpen(false)}
-                    className="flex w-2/3 items-center gap-2 rounded-md border border-primary bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                    className="flex w-full items-center gap-2 rounded-md border border-primary bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
                   >
                     <CircleUserRound className="size-4" /> <span className="truncate">{profileName}</span>
                   </Link>
                   <Link
                     to="/subscribe"
                     onClick={() => setOpen(false)}
-                    className="mt-2 flex w-2/3 items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+                    className="mt-2 flex w-full items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
                   >
                     <BadgeCheck className="size-4" /> Verification &amp; subscriptions
                   </Link>

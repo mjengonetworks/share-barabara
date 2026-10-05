@@ -15,6 +15,7 @@ const article = read("src/routes/news.$slug.tsx");
 const publicAI = read("src/lib/ai/public.functions.ts");
 const newsletter = read("src/components/site/newsletter-form.tsx");
 const newsIndex = read("src/routes/news.index.tsx");
+const headerSource = read("src/components/site/site-header.tsx");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -72,6 +73,13 @@ test("public article surfaces have a lead story, newsletter capture, and honest 
   assert.match(newsletter, /already subscribed/);
   assert.match(newsletter, /valid email address/);
   assert.match(newsletter, /error\?\.code === "23505"/);
+});
+
+test("mobile navigation has an accessible compact disclosure and full-width account actions", () => {
+  assert.match(headerSource, /aria-expanded=\{open\}/);
+  assert.match(headerSource, /aria-controls="mobile-site-navigation"/);
+  assert.match(headerSource, /id="mobile-site-navigation" aria-label="Mobile navigation"/);
+  assert.doesNotMatch(headerSource, /className="flex w-2\/3/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {
