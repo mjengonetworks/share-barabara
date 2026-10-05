@@ -19,6 +19,8 @@ const headerSource = read("src/components/site/site-header.tsx");
 const updatesMigration = read("supabase/migrations/20261005100000_editorial_updates_review.sql");
 const updatesComponent = read("src/components/site/editorial-updates.tsx");
 const updatesManager = read("src/components/site/editorial-updates-manager.tsx");
+const newsletterServer = read("src/lib/newsletter.functions.ts");
+const newsletterAdmin = read("src/routes/_authenticated/admin/newsletter.tsx");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -101,6 +103,17 @@ test("Alerts and Reports share a published-only editorial updates chronology", (
   assert.match(updatesManager, /status === "published"/);
   assert.match(read("src/routes/_authenticated/admin/alerts.tsx"), /EditorialUpdatesManager/);
   assert.match(read("src/routes/_authenticated/admin/reports.tsx"), /EditorialUpdatesManager/);
+});
+
+test("newsletter delivery is server-side, role-gated, batched, and secret-safe", () => {
+  assert.match(newsletterServer, /RESEND_API_KEY/);
+  assert.match(newsletterServer, /RESEND_FROM_EMAIL/);
+  assert.match(newsletterServer, /roleRank\.editor/);
+  assert.match(newsletterServer, /api\.resend\.com\/emails\/batch/);
+  assert.match(newsletterServer, /for \(let offset = 0; offset < recipients\.length; offset \+= 100\)/);
+  assert.match(newsletterServer, /escapeHtml/);
+  assert.match(newsletterAdmin, /sendNewsletter/);
+  assert.doesNotMatch(newsletterAdmin, /process\.env|serverEnv\(/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {
