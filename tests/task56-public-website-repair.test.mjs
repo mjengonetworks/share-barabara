@@ -13,6 +13,8 @@ const discovery = read("src/components/site/discovery-sections.tsx");
 const share = read("src/components/site/share-buttons.tsx");
 const article = read("src/routes/news.$slug.tsx");
 const publicAI = read("src/lib/ai/public.functions.ts");
+const newsletter = read("src/components/site/newsletter-form.tsx");
+const newsIndex = read("src/routes/news.index.tsx");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -62,6 +64,14 @@ test("Google preferred-source control is compact rather than circular", () => {
   assert.match(share, /google_source_url/);
   assert.match(share, /rounded-md border border-border/);
   assert.doesNotMatch(share, /google_source_label[^\n]*rounded-full/);
+});
+
+test("public article surfaces have a lead story, newsletter capture, and honest subscription states", () => {
+  assert.match(newsIndex, /index === 0 \? "md:col-span-2"/);
+  assert.match(article, /NewsletterForm/);
+  assert.match(newsletter, /already subscribed/);
+  assert.match(newsletter, /valid email address/);
+  assert.match(newsletter, /error\?\.code === "23505"/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {

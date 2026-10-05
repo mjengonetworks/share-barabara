@@ -60,22 +60,22 @@ type ArticleCard = {
 function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      {articles.map((a) => (
+      {articles.map((a, index) => (
         <Link
           key={a.id}
           to="/news/$slug"
           params={{ slug: a.slug }}
-          className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent"
+          className={`group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent ${index === 0 ? "md:col-span-2" : ""}`}
         >
           {a.image_url ? (
-            <img src={a.image_url} alt={a.title} className="aspect-video w-full object-cover object-center" />
+            <img src={a.image_url} alt={a.title} className={`w-full object-cover object-center ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`} />
           ) : null}
           <div className="flex flex-1 flex-col p-6">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
               <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
               {a.featured ? <span className="text-caution">Featured</span> : null}
             </div>
-            <h2 className="mt-3 text-[0.9625rem] font-bold text-brand-blue group-hover:underline">
+            <h2 className={`mt-3 font-bold text-brand-blue group-hover:underline ${index === 0 ? "text-xl sm:text-2xl" : "text-[0.9625rem]"}`}>
               {a.title}
             </h2>
             <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
@@ -241,7 +241,7 @@ function NewsIndex() {
           </>
         ) : (
           <>
-            <h2 className="text-lg font-bold">Latest news</h2>
+            <h2 className="text-lg font-bold">Latest News &amp; Articles</h2>
             <div className="mt-5">
               <ArticleGrid articles={latest} />
             </div>

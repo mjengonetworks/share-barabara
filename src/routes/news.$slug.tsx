@@ -19,6 +19,7 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
+import { NewsletterForm } from "@/components/site/newsletter-form";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 
 export const Route = createFileRoute("/news/$slug")({
@@ -293,6 +294,15 @@ function NewsDetail() {
         </article>
 
         <aside className="space-y-8">
+          <div className="rounded-lg border border-accent/40 bg-accent/10 p-5 card-elevated">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Stay informed
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Get important road-safety stories and community updates in your inbox.
+            </p>
+            <NewsletterForm className="mt-4" />
+          </div>
           {related.length > 0 ? (
             <div className="rounded-lg border border-border bg-card p-5 card-elevated">
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">

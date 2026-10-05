@@ -25,7 +25,14 @@ function TelegramLogo({ className }: { className?: string }) {
 }
 
 function GoogleLogo({ className }: { className?: string }) {
-  return <span className={`font-bold text-[#4285f4] ${className ?? ""}`} aria-hidden="true">G</span>;
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path fill="#4285F4" d="M21.35 12.27c0-.72-.06-1.42-.18-2.09H12v3.96h5.23a4.47 4.47 0 0 1-1.94 2.93v2.42h3.14c1.84-1.69 2.92-4.18 2.92-7.22Z" />
+      <path fill="#34A853" d="M12 21.7c2.63 0 4.84-.87 6.45-2.35l-3.14-2.42c-.87.58-1.98.92-3.31.92-2.54 0-4.7-1.72-5.47-4.03H3.28v2.5A9.74 9.74 0 0 0 12 21.7Z" />
+      <path fill="#FBBC05" d="M6.53 13.82A5.85 5.85 0 0 1 6.22 12c0-.63.11-1.25.31-1.82v-2.5H3.28A9.76 9.76 0 0 0 2.25 12c0 1.57.38 3.05 1.03 4.32l3.25-2.5Z" />
+      <path fill="#EA4335" d="M12 6.15c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.83 3.24 14.63 2.3 12 2.3a9.74 9.74 0 0 0-8.72 5.38l3.25 2.5C7.3 7.87 9.46 6.15 12 6.15Z" />
+    </svg>
+  );
 }
 
 export function ShareButtons({ title }: { title: string }) {
@@ -119,7 +126,7 @@ export function ShareButtons({ title }: { title: string }) {
         rel="noopener noreferrer"
         className="flex min-w-0 max-w-[13rem] shrink items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-[0.68rem] font-medium leading-tight text-muted-foreground transition-colors hover:border-accent hover:text-accent-foreground sm:px-3 sm:text-xs"
       >
-        <GoogleLogo className="shrink-0 text-sm" />
+        <GoogleLogo className="size-4 shrink-0" />
         <span className="min-w-0 whitespace-normal">{settings?.google_source_label ?? "Add as a preferred source on Google"}</span>
       </a>
     </div>
