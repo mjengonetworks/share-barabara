@@ -159,6 +159,18 @@ test("external incident discovery creates bounded admin drafts and never auto-pu
   assert.match(read("src/routes/_authenticated/admin/reports.tsx"), /IncidentDiscoveryPanel/);
 });
 
+test("public search covers approved content without exposing drafts", () => {
+  const search = read("src/routes/search.tsx");
+  assert.match(search, /escapeIlike/);
+  assert.match(search, /body\.ilike/);
+  assert.match(search, /hazard_type\.ilike/);
+  assert.match(search, /incident_type\.ilike/);
+  assert.match(search, /from\("feed_posts"\)/);
+  assert.match(search, /eq\("status", "published"\)/);
+  assert.match(search, /eq\("moderation_status", "approved"\)/);
+  assert.match(search, /Media &amp; Feed/);
+});
+
 test("article AI can use bounded published article text without claiming external verification", () => {
   assert.match(publicAI, /sourceText\?: string/);
   assert.match(publicAI, /input\.sourceText/);
