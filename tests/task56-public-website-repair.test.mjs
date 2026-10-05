@@ -18,6 +18,7 @@ const newsIndex = read("src/routes/news.index.tsx");
 const headerSource = read("src/components/site/site-header.tsx");
 const updatesMigration = read("supabase/migrations/20261005100000_editorial_updates_review.sql");
 const updatesComponent = read("src/components/site/editorial-updates.tsx");
+const updatesManager = read("src/components/site/editorial-updates-manager.tsx");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -93,6 +94,13 @@ test("Alerts and Reports share a published-only editorial updates chronology", (
   assert.match(updatesComponent, /renderRichText\(update.body\)/);
   assert.match(read("src/routes/alerts.$alertId.tsx"), /EditorialUpdates parentType="alert"/);
   assert.match(read("src/routes/reports.$reportId.tsx"), /EditorialUpdates parentType="report"/);
+  assert.match(updatesManager, /mode="generate"/);
+  assert.match(updatesManager, /mode="autopopulate"/);
+  assert.match(updatesManager, /mode="update"/);
+  assert.match(updatesManager, /AttachmentsField/);
+  assert.match(updatesManager, /status === "published"/);
+  assert.match(read("src/routes/_authenticated/admin/alerts.tsx"), /EditorialUpdatesManager/);
+  assert.match(read("src/routes/_authenticated/admin/reports.tsx"), /EditorialUpdatesManager/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {

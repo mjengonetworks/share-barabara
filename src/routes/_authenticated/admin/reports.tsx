@@ -51,6 +51,7 @@ import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs";
 import { LocationButton } from "@/components/site/location-button";
+import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -535,6 +536,12 @@ function ReportsQueuePage() {
                         />
                       </div>
                     </div>
+                    <EditorialUpdatesManager
+                      parentType="report"
+                      parentId={r.id}
+                      parentTitle={d.title}
+                      parentBody={d.description}
+                    />
                     <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Featured image details</p>
                       <div><Label htmlFor={`rimg-alt-${r.id}`}>Alt text</Label><Input id={`rimg-alt-${r.id}`} value={d.image_alt} onChange={(e) => set({ image_alt: e.target.value })} placeholder="Describes the image for screen readers and search engines" /></div>

@@ -1,8 +1,9 @@
+import { FileText } from "lucide-react";
 import { YouTubeEmbed, extractYouTubeId } from "@/lib/richtext";
 
 export type AttachmentRow = {
   url: string;
-  type: "image" | "video";
+  type: "image" | "video" | "document";
   caption?: string;
   credit?: string;
 };
@@ -15,7 +16,11 @@ export function AttachmentGallery({ attachments }: { attachments: AttachmentRow[
     <div className="mt-6 grid gap-4 sm:grid-cols-2">
       {attachments.map((a, i) => (
         <figure key={`${a.url}-${i}`}>
-          {a.type === "video" && extractYouTubeId(a.url) ? (
+          {a.type === "document" ? (
+            <a href={a.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-lg border border-border p-4 text-sm font-semibold text-brand-blue hover:border-accent hover:underline">
+              <FileText className="size-5" /> Open attached document
+            </a>
+          ) : a.type === "video" && extractYouTubeId(a.url) ? (
             <YouTubeEmbed url={a.url} />
           ) : a.type === "video" ? (
             <video

@@ -46,6 +46,7 @@ import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
 import { useViewCounts } from "@/hooks/useViewCounts";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { LocationButton } from "@/components/site/location-button";
+import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
   head: () => ({ meta: [{ title: "Hazard Alerts: Share Barabara Admin" }] }),
@@ -460,6 +461,12 @@ function AlertsAdminPage() {
                 parties={editingParties.parties}
                 value={editingParties.casualties}
                 onChange={(v) => setEditingParties({ ...editingParties, casualties: v })}
+              />
+              <EditorialUpdatesManager
+                parentType="alert"
+                parentId={editingParties.id}
+                parentTitle={editingParties.title}
+                parentBody={editingParties.description}
               />
               <Button disabled={saveParties.isPending} onClick={() => saveParties.mutate()}>
                 {saveParties.isPending ? "Saving…" : "Save"}
