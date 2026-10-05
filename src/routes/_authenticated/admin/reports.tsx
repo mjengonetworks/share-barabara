@@ -91,6 +91,7 @@ function ReportsQueuePage() {
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, ReportDraft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [canonicalIds, setCanonicalIds] = useState<Record<string, string>>({});
 
   const { data: allReports = [], isLoading } = useQuery({
     queryKey: ["admin-reports"],
@@ -176,6 +177,24 @@ function ReportsQueuePage() {
     onSuccess: () => {
       toast.success("Report deleted");
       setExpandedId(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mergeDuplicate = useMutation({
+    mutationFn: async ({ duplicateId, canonicalId }: { duplicateId: string; canonicalId: string }) => {
+      if (!canonicalId || canonicalId === duplicateId) throw new Error("Choose a different approved canonical report.");
+      const { error } = await (supabase.rpc as any)("merge_duplicate_report", {
+        _duplicate_report_id: duplicateId,
+        _canonical_report_id: canonicalId,
+        _note: "Duplicate report merged into the approved canonical incident.",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Duplicate merged into the canonical report");
       queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
       queryClient.invalidateQueries({ queryKey: ["reports"] });
     },
@@ -585,6 +604,9 @@ function ReportsQueuePage() {
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="flex min-w-64 flex-1 items-end gap-2 rounded border border-dashed border-border p-2">
+                      <div className="min-w-0 flex-1"><Label>Duplicate of approved report</Label><Select value={canonicalIds[r.id] ?? "none"} onValueChange={(value) => setCanonicalIds((current) => ({ ...current, [r.id]: value === "none" ? "" : value }))}><SelectTrigger><SelectValue placeholder="Choose canonical report" /></SelectTrigger><SelectContent className="max-w-[32rem]"><SelectItem value="none">Not a duplicate</SelectItem>{allReports.filter((candidate) => candidate.id !== r.id && candidate.status === "approved").map((candidate) => <SelectItem key={candidate.id} value={candidate.id}>{candidate.title}</SelectItem>)}</SelectContent></Select></div><Button type="button" variant="outline" disabled={!canonicalIds[r.id] || mergeDuplicate.isPending} onClick={() => { if (window.confirm("Merge this report into the selected canonical incident? The duplicate will no longer publish.")) mergeDuplicate.mutate({ duplicateId: r.id, canonicalId: canonicalIds[r.id] }); }}>Merge</Button>
+                    </div>
                     <Button
                       disabled={save.isPending}
                       onClick={() => save.mutate({ id: r.id, status: "approved", draft: d })}

@@ -22,6 +22,8 @@ const updatesManager = read("src/components/site/editorial-updates-manager.tsx")
 const newsletterServer = read("src/lib/newsletter.functions.ts");
 const newsletterAdmin = read("src/routes/_authenticated/admin/newsletter.tsx");
 const feedSource = read("src/routes/feed.tsx");
+const duplicateMigration = read("supabase/migrations/20261005120000_accident_duplicate_merge_review.sql");
+const reportsAdmin = read("src/routes/_authenticated/admin/reports.tsx");
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
@@ -123,6 +125,15 @@ test("Media & Feed exposes the requested New, Top, and Hot discovery sort", () =
   assert.match(feedSource, /\["new", "top", "hot"\]/);
   assert.match(read("src/lib/feed.mjs"), /sort === "top"/);
   assert.match(read("src/lib/feed.mjs"), /sort === "hot"/);
+});
+
+test("staff can merge duplicate reports into an approved canonical incident", () => {
+  assert.match(duplicateMigration, /merge_duplicate_report/);
+  assert.match(duplicateMigration, /has_min_role\(auth\.uid\(\), 'editor'\)/);
+  assert.match(duplicateMigration, /canonical_row\.status <> 'approved'/);
+  assert.match(duplicateMigration, /notifications/);
+  assert.match(reportsAdmin, /Merge this report into the selected canonical incident/);
+  assert.match(reportsAdmin, /merge_duplicate_report/);
 });
 
 test("article AI can use bounded published article text without claiming external verification", () => {
