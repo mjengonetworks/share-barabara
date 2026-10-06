@@ -70,20 +70,20 @@ using (status = 'published');
 drop policy if exists "staff can read all editorial updates" on public.editorial_updates;
 create policy "staff can read all editorial updates"
 on public.editorial_updates for select to authenticated
-using (public.has_min_role('editor'));
+using (public.has_min_role((select auth.uid()), 'editor'));
 drop policy if exists "staff can create editorial updates" on public.editorial_updates;
 create policy "staff can create editorial updates"
 on public.editorial_updates for insert to authenticated
-with check (public.has_min_role('editor') and author_id = (select auth.uid()));
+with check (public.has_min_role((select auth.uid()), 'editor') and author_id = (select auth.uid()));
 drop policy if exists "staff can edit editorial updates" on public.editorial_updates;
 create policy "staff can edit editorial updates"
 on public.editorial_updates for update to authenticated
-using (public.has_min_role('editor'))
-with check (public.has_min_role('editor'));
+using (public.has_min_role((select auth.uid()), 'editor'))
+with check (public.has_min_role((select auth.uid()), 'editor'));
 drop policy if exists "staff can delete editorial updates" on public.editorial_updates;
 create policy "staff can delete editorial updates"
 on public.editorial_updates for delete to authenticated
-using (public.has_min_role('editor'));
+using (public.has_min_role((select auth.uid()), 'editor'));
 
 grant select on public.editorial_updates to anon, authenticated;
 grant insert, update, delete on public.editorial_updates to authenticated;
