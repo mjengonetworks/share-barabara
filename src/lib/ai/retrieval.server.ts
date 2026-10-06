@@ -103,12 +103,13 @@ export async function resolvePublicEvidence(type: PublicContextType, id?: string
       terms.map(async (term) => {
         const escaped = term.replace(/[%_]/g, "\\$&").slice(0, 40);
         const pattern = `%${escaped}%`;
-        const [articles, alerts, reports] = await Promise.all([
+        const [articles, alerts, reports, community] = await Promise.all([
           db.from("news").select("id,slug,title,summary,category").eq("status", "published").or(`title.ilike.${pattern},summary.ilike.${pattern}`).limit(4),
           db.from("alerts").select("id,title,description,county,road,status").eq("status", "active").or(`title.ilike.${pattern},description.ilike.${pattern},county.ilike.${pattern},road.ilike.${pattern}`).limit(4),
           db.from("accident_reports").select("id,title,description,county,road,occurred_at,status").eq("status", "approved").or(`title.ilike.${pattern},description.ilike.${pattern},county.ilike.${pattern},road.ilike.${pattern}`).limit(4),
+          db.from("feed_posts").select("id,body,created_at").eq("status", "published").eq("moderation_status", "approved").ilike("body", pattern).limit(4),
         ]);
-        return { articles: articles.data ?? [], alerts: alerts.data ?? [], reports: reports.data ?? [] };
+        return { articles: articles.data ?? [], alerts: alerts.data ?? [], reports: reports.data ?? [], community: community.data ?? [] };
       }),
     );
     const seen = new Set<string>();
@@ -126,6 +127,11 @@ export async function resolvePublicEvidence(type: PublicContextType, id?: string
       if (!seen.has(`report:${row.id}`)) {
         seen.add(`report:${row.id}`);
         evidence.push({ id: row.id, kind: "report", title: row.title, href: `/reports/${row.id}`, text: clampText(`${row.description}\nCounty: ${row.county}\nRoad: ${row.road ?? ""}\nOccurred: ${row.occurred_at}`, 2200) });
+      }
+    for (const row of matches.flatMap((match) => match.community))
+      if (!seen.has(`community:${row.id}`)) {
+        seen.add(`community:${row.id}`);
+        evidence.push({ id: row.id, kind: "community", title: "Share Barabara community discussion", href: "/feed", sourceClass: "social_or_user_generated", verificationState: "unverified", text: clampText(`Community post (unverified user-generated evidence):\n${row.body}\nPosted: ${row.created_at}`, 2200) });
       }
   }
   return finish(evidence);

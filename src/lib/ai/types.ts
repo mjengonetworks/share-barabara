@@ -2,7 +2,7 @@ export type PublicContextType = "article" | "alert" | "report" | "general";
 
 export type Evidence = {
   id: string;
-  kind: "article" | "alert" | "report";
+  kind: "article" | "alert" | "report" | "community";
   title: string;
   text: string;
   href?: string;

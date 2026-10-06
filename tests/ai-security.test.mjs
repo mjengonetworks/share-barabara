@@ -24,6 +24,14 @@ test("Public AI applies approved Report filtering", () => {
   assert.match(retrieval, /from\("accident_reports"\)[\s\S]*?eq\("status", "approved"\)/);
 });
 
+test("general Public AI can use only approved published Feed evidence", () => {
+  assert.match(retrieval, /from\("feed_posts"\)/);
+  assert.match(retrieval, /eq\("status", "published"\)/);
+  assert.match(retrieval, /eq\("moderation_status", "approved"\)/);
+  assert.match(retrieval, /social_or_user_generated/);
+  assert.match(retrieval, /\/feed/);
+});
+
 test("AI evidence excludes private and editorial metadata", () => {
   assert.doesNotMatch(
     retrieval,
