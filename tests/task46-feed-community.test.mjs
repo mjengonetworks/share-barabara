@@ -88,6 +88,14 @@ test("Feed community events connect to existing notifications", () => {
   assert.match(migration, /community_enabled AND in_app_enabled/);
 });
 
+test("authors can safely edit or recycle only their pending Feed posts", () => {
+  assert.match(route, /update\(\{ body: clean, hashtags: extractFeedHashtags\(clean\) \}\)/);
+  assert.match(route, /eq\("author_id", user\.id\)/);
+  assert.match(route, /eq\("status", "pending"\)/);
+  assert.match(route, /moveToRecycleBin\("feed_post"/);
+  assert.match(route, /Edit pending post/);
+});
+
 test("no private profile data is selected for public Feed cards", () => {
   assert.match(route, /useProfileNames/);
   assert.match(route, /useProfileUsernames/);
