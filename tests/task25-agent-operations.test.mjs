@@ -22,6 +22,8 @@ test("discovery remains provider-neutral, bounded and draft-only", () => {
   assert.match(fn, /searchExternal/);
   assert.match(fn, /incident_discovery_candidates/);
   assert.match(fn, /source_id/);
+  assert.match(fn, /duplicateScore/);
+  assert.match(fn, /duplicate_of_report_id/);
   assert.match(ui, /never publishes an incident/);
   assert.match(ui, /incident_monitor_sources/);
   assert.doesNotMatch(fn, /auto.?publish|auto.?approve/i);
