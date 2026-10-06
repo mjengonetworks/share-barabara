@@ -57,8 +57,10 @@ export default {
       if (requestUrl.pathname === "/api/web-push-config" && request.method === "GET") {
         const enabled = serverEnv("WEB_PUSH_ENABLED") === "true";
         const publicKey = serverEnv("WEB_PUSH_VAPID_PUBLIC_KEY") ?? "";
+        const subject = serverEnv("WEB_PUSH_VAPID_SUBJECT") ?? "";
+        const subjectValid = /^(https:|mailto:)/i.test(subject);
         return Response.json(
-          { enabled: enabled && Boolean(publicKey), publicKey: enabled && publicKey ? publicKey : null },
+          { enabled: enabled && Boolean(publicKey) && subjectValid, publicKey: enabled && publicKey ? publicKey : null, subjectValid },
           { headers: { "cache-control": "no-store" } },
         );
       }

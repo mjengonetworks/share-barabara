@@ -79,6 +79,8 @@ test("scheduled dispatch and admin diagnostics are configuration and role gated"
   assert.match(wrangler, /WEB_PUSH_ENABLED/);
   assert.match(server, /api\/web-push-config/);
   assert.match(server, /WEB_PUSH_VAPID_PUBLIC_KEY/);
+  assert.match(server, /WEB_PUSH_VAPID_SUBJECT/);
+  assert.match(server, /subjectValid/);
   assert.doesNotMatch(server, /WEB_PUSH_VAPID_PRIVATE_KEY/);
   assert.match(admin, /ROLE_RANK\.admin/);
   assert.match(admin, /notification_delivery_jobs/);
