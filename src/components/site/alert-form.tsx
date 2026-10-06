@@ -18,7 +18,6 @@ import {
   type CasualtyBreakdown,
 } from "@/components/site/party-casualty-inputs";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { useAlertSeverities } from "@/hooks/useTaxonomy";
@@ -27,6 +26,7 @@ import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
+import { submitAlert } from "@/lib/alert.functions";
 
 export function AlertForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
@@ -54,7 +54,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
       const road_id = await findExistingRoad(form.road);
-      const { error } = await supabase.from("alerts").insert({
+      await submitAlert({ data: {
         ...form,
         road_id,
         parties_involved: partiesInvolved,
@@ -63,8 +63,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
         is_anonymous: identity.type === "profile" && anonymous,
-      });
-      if (error) throw error;
+      } });
     },
     onSuccess: () => {
       toast.success("Alert published, thank you");

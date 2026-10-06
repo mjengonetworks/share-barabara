@@ -1,5 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { suggestIncidentDuplicates } from "@/lib/incident-duplicates";
+
+// The shared scorer replaces the legacy duplicateScore implementation while
+// preserving the discovery contract: suggestions are review-only.
 
 const DEFAULT_QUERIES = [
   "Kenya road crash collision highway closure",
@@ -11,18 +15,6 @@ async function fingerprint(value: string) {
   const bytes = new TextEncoder().encode(value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim());
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-function duplicateScore(candidate: { title: string; excerpt: string }, report: { id: string; title: string; description: string | null; county: string | null; road: string | null }) {
-  const candidateTerms = new Set(`${candidate.title} ${candidate.excerpt}`.toLowerCase().split(/[^a-z0-9]+/).filter((term) => term.length >= 4));
-  const reportTerms = new Set(`${report.title} ${report.description ?? ""}`.toLowerCase().split(/[^a-z0-9]+/).filter((term) => term.length >= 4));
-  const overlap = [...candidateTerms].filter((term) => reportTerms.has(term)).length;
-  const textScore = overlap / Math.max(1, Math.min(candidateTerms.size, reportTerms.size));
-  const haystack = `${candidate.title} ${candidate.excerpt}`.toLowerCase();
-  const locationTerms = [report.county, report.road].filter(Boolean).map((value) => String(value).toLowerCase()).filter((value) => value.length >= 4);
-  const locationScore = locationTerms.length > 0 && locationTerms.some((value) => haystack.includes(value)) ? 0.2 : 0;
-  const score = Math.min(0.99, textScore * 0.8 + locationScore);
-  return score >= 0.72 ? { id: report.id, score, reason: locationScore ? "Strong text overlap with a matching published location." : "Strong text overlap with an approved incident report." } : null;
 }
 
 export const discoverRoadSafetyCandidates = createServerFn({ method: "POST" })
@@ -69,15 +61,14 @@ export const discoverRoadSafetyCandidates = createServerFn({ method: "POST" })
     }
     const { data: inserted, error } = await supabaseAdmin.from("incident_discovery_candidates").upsert(candidates, { onConflict: "source_url", ignoreDuplicates: true }).select("id,source_url,source_title,source_excerpt");
     if (error) throw error;
-    const { data: approvedReports } = await supabaseAdmin.from("accident_reports").select("id,title,description,county,road").eq("status", "approved").limit(250);
     for (const candidate of inserted ?? []) {
-      const match = (approvedReports ?? []).map((report) => duplicateScore(candidate, report)).filter((value): value is { id: string; score: number; reason: string } => !!value).sort((a, b) => b.score - a.score)[0];
-      if (!match) continue;
-      await supabaseAdmin.from("incident_discovery_candidates").update({ duplicate_of_report_id: match.id }).eq("id", candidate.id);
-      // These explanatory fields are additive and may not exist until the
-      // source-operations migration is applied; never make discovery fail for
-      // that optional enrichment.
-      await supabaseAdmin.from("incident_discovery_candidates").update({ duplicate_confidence: Number(match.score.toFixed(4)), duplicate_reason: match.reason }).eq("id", candidate.id);
+      const suggestions = await suggestIncidentDuplicates(supabaseAdmin, { type: "discovery_candidate", id: candidate.id, title: candidate.source_title, body: candidate.source_excerpt, sourceUrl: candidate.source_url });
+      if (suggestions > 0) {
+        const { data: best } = await supabaseAdmin.from("incident_duplicate_suggestions").select("target_id,confidence,reasons,target_type").eq("candidate_type", "discovery_candidate").eq("candidate_id", candidate.id).eq("target_type", "report").eq("status", "suggested").order("confidence", { ascending: false }).limit(1).maybeSingle();
+        if (best?.target_id) {
+          await supabaseAdmin.from("incident_discovery_candidates").update({ duplicate_of_report_id: best.target_id, duplicate_confidence: best.confidence, duplicate_reason: Array.isArray(best.reasons) ? best.reasons.join("; ") : "Cross-content duplicate suggestion." }).eq("id", candidate.id);
+        }
+      }
     }
     if (runId) {
       await supabaseAdmin.from("incident_monitor_runs").update({ completed_at: new Date().toISOString(), status: "succeeded", candidates_created: inserted?.length ?? 0 }).eq("id", runId);

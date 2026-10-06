@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CasualtyBreakdown } from "@/components/site/party-casualty-inputs";
+import { suggestIncidentDuplicates } from "@/lib/incident-duplicates";
 
 type ReportSubmission = {
   title: string;
@@ -65,10 +66,18 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
 
       // The generated types still reflect the pre-nullability schema. Keep the
       // compatibility cast at this boundary until Supabase types are regenerated.
-      const { error } = await context.supabase
+      const { data: report, error } = await context.supabase
         .from("accident_reports")
-        .insert(payload as never);
+        .insert(payload as never)
+        .select("id,title,description,county,road,occurred_at,latitude,longitude,status")
+        .single();
       if (error) throw error;
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await suggestIncidentDuplicates(supabaseAdmin, { type: "report", id: report.id, title: report.title, body: report.description, county: report.county, road: report.road, occurredAt: report.occurred_at, latitude: report.latitude, longitude: report.longitude });
+      } catch {
+        // Duplicate review is additive and must not reject a valid submission.
+      }
       return { status: payload.status };
     },
   );
