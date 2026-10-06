@@ -1,5 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 
+type WebPushConfig = { enabled: boolean; publicKey: string | null };
+
+let runtimeConfigPromise: Promise<WebPushConfig> | undefined;
+
+export async function loadWebPushConfig(): Promise<WebPushConfig> {
+  const buildConfig = {
+    enabled: import.meta.env.VITE_WEB_PUSH_ENABLED === "true",
+    publicKey: import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY || null,
+  };
+  if (buildConfig.enabled && buildConfig.publicKey) return buildConfig;
+  if (!runtimeConfigPromise) {
+    runtimeConfigPromise = fetch("/api/web-push-config", { credentials: "same-origin" })
+      .then(async (response) => {
+        if (!response.ok) return { enabled: false, publicKey: null };
+        const data = await response.json() as Partial<WebPushConfig>;
+        return { enabled: data.enabled === true && typeof data.publicKey === "string", publicKey: typeof data.publicKey === "string" ? data.publicKey : null };
+      })
+      .catch(() => ({ enabled: false, publicKey: null }));
+  }
+  return runtimeConfigPromise;
+}
+
 export function webPushConfigured() {
   return import.meta.env.VITE_WEB_PUSH_ENABLED === "true" && Boolean(import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY)
     && typeof navigator !== "undefined" && "serviceWorker" in navigator
@@ -22,13 +44,14 @@ function subscriptionRecord(subscription: PushSubscription) {
 }
 
 export async function registerWebPushSubscription(userId: string) {
-  if (!webPushConfigured()) return { enabled: false, reason: "not_configured" as const };
+  const config = await loadWebPushConfig();
+  if (!config.enabled || !config.publicKey || typeof navigator === "undefined" || !("serviceWorker" in navigator) || typeof window === "undefined" || !("PushManager" in window)) return { enabled: false, reason: "not_configured" as const };
   const registration = await navigator.serviceWorker.register("/sw.js");
   const permission = await Notification.requestPermission();
   if (permission !== "granted") return { enabled: false, reason: permission as "denied" | "default" };
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: decodeBase64Url(import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY),
+    applicationServerKey: decodeBase64Url(config.publicKey),
   });
   const record = subscriptionRecord(subscription);
   if (!record.p256dh || !record.auth) throw new Error("The browser returned an incomplete push subscription.");
@@ -44,7 +67,8 @@ export async function registerWebPushSubscription(userId: string) {
 }
 
 export async function currentWebPushSubscription(userId: string) {
-  if (!webPushConfigured()) return { enabled: false, endpoint: null as string | null };
+  const config = await loadWebPushConfig();
+  if (!config.enabled || !config.publicKey || typeof navigator === "undefined" || !("serviceWorker" in navigator)) return { enabled: false, endpoint: null as string | null };
   const registration = await navigator.serviceWorker.getRegistration("/");
   const subscription = await registration?.pushManager.getSubscription();
   if (!subscription) return { enabled: false, endpoint: null as string | null };

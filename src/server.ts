@@ -53,6 +53,15 @@ export default {
       // argument. Keep the existing server-only runtimeEnv seam supplied for
       // every request, not only scheduled push dispatches.
       (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
+      const requestUrl = new URL(request.url);
+      if (requestUrl.pathname === "/api/web-push-config" && request.method === "GET") {
+        const enabled = serverEnv("WEB_PUSH_ENABLED") === "true";
+        const publicKey = serverEnv("WEB_PUSH_VAPID_PUBLIC_KEY") ?? "";
+        return Response.json(
+          { enabled: enabled && Boolean(publicKey), publicKey: enabled && publicKey ? publicKey : null },
+          { headers: { "cache-control": "no-store" } },
+        );
+      }
       const rssResponse = await handleRssFeedRequest(request);
       if (rssResponse) return rssResponse;
 

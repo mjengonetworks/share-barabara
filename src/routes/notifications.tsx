@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ALERT_RADIUS_CHOICES_KM, isValidCoordinate, normalizeRadiusKm } from "@/lib/alert-notification.mjs";
 import { activeTaxonomyRows, NOTIFICATION_CUSTOMIZATION_FIELDS, NOTIFICATION_CUSTOMIZATION_SELECT, normalizeNotificationPreferenceRow, preferenceSummary } from "@/lib/notification-preferences.mjs";
-import { currentWebPushSubscription, registerWebPushSubscription, removeWebPushSubscription, webPushConfigured } from "@/lib/web-push";
+import { currentWebPushSubscription, loadWebPushConfig, registerWebPushSubscription, removeWebPushSubscription } from "@/lib/web-push";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({ meta: [
@@ -154,18 +154,23 @@ function NotificationsPage() {
   const filteredRoads = roads.filter((road) => `${road.name} ${road.county ?? ""}`.toLowerCase().includes(roadSearch.toLowerCase())).slice(0, 30);
   const summary = preferenceSummary(p, activeTaxonomy);
   const browserSupported = typeof window !== "undefined" && "Notification" in window;
-  const pushConfigured = webPushConfigured();
+  const [pushConfigured, setPushConfigured] = useState(false);
 
   useEffect(() => {
-    if (!user || !pushConfigured) return;
+    if (!user) return;
     let active = true;
-    void currentWebPushSubscription(user.id).then((result) => {
-      if (active) setPushRegistered(result.enabled);
+    void loadWebPushConfig().then((config) => {
+      if (!active) return;
+      setPushConfigured(config.enabled && Boolean(config.publicKey));
+      if (!config.enabled || !config.publicKey) return;
+      return currentWebPushSubscription(user.id).then((result) => {
+        if (active) setPushRegistered(result.enabled);
+      });
     }).catch(() => {
-      if (active) setPushRegistered(false);
+      if (active) { setPushConfigured(false); setPushRegistered(false); }
     });
     return () => { active = false; };
-  }, [user, pushConfigured]);
+  }, [user]);
 
   async function requestBrowserPermission() {
     if (!browserSupported) return;

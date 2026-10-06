@@ -76,10 +76,22 @@ test("scheduled dispatch and admin diagnostics are configuration and role gated"
   assert.match(server, /dispatchPendingPushJobs/);
   assert.match(wrangler, /crons/);
   assert.match(server, /claim_notification_delivery_jobs|dispatchPendingPushJobs/);
+  assert.match(wrangler, /WEB_PUSH_ENABLED/);
+  assert.match(server, /api\/web-push-config/);
+  assert.match(server, /WEB_PUSH_VAPID_PUBLIC_KEY/);
+  assert.doesNotMatch(server, /WEB_PUSH_VAPID_PRIVATE_KEY/);
   assert.match(admin, /ROLE_RANK\.admin/);
   assert.match(admin, /notification_delivery_jobs/);
   assert.match(admin, /push_subscriptions/);
   assert.doesNotMatch(admin, /select\("[^\"]*(endpoint|p256dh|auth)[^\"]*"\)/);
+});
+
+test("browser push can use the runtime public key without exposing private material", () => {
+  const client = read("src/lib/web-push.ts");
+  assert.match(client, /loadWebPushConfig/);
+  assert.match(client, /api\/web-push-config/);
+  assert.match(client, /applicationServerKey: decodeBase64Url\(config\.publicKey\)/);
+  assert.doesNotMatch(client, /WEB_PUSH_VAPID_PRIVATE_KEY|SUPABASE_SERVICE_ROLE/);
 });
 
 test("runtime contract covers ownership, retries, invalid endpoints, and secret-safe configuration", () => {
