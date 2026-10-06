@@ -194,3 +194,13 @@ test("Feed remains a public route and does not invent external social URLs", () 
   assert.match(read("src/components/site/social-follow-section.tsx"), /from\("social_links"\)/);
   assert.match(read("src/components/site/social-follow-section.tsx"), /safeSocialUrl/);
 });
+
+test("Media & Feed surfaces existing featured videos without creating fake embeds", () => {
+  const route = read("src/routes/feed.tsx");
+  assert.match(route, /from\("videos"\)/);
+  assert.match(route, /eq\("status", "featured"\)/);
+  assert.match(route, /youtubeId/);
+  assert.match(route, /Featured road-safety media/);
+  assert.match(route, /Browse media/);
+  assert.match(route, /Featured media will appear here/);
+});
