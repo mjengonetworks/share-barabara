@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { getAIChat, listAIChats } from "@/lib/ai/public.functions";
 import { displayReportCount } from "@/lib/report-metrics";
+import { SafeAIRenderer } from "@/components/site/safe-ai-renderer";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -226,7 +227,7 @@ function DashboardPage() {
             {(selectedChat.data?.messages ?? []).map((message: { id: string; role: string; content: string }) => (
               <div key={message.id} className={`rounded-lg border border-border p-3 text-sm ${message.role === "user" ? "ml-8 bg-muted/40" : "mr-8 bg-card"}`}>
                 <p className="mb-1 text-[0.68rem] font-bold uppercase tracking-widest text-muted-foreground">{message.role === "user" ? "You" : "Share Barabara AI"}</p>
-                <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                <SafeAIRenderer content={message.content} />
               </div>
             ))}
           </div>

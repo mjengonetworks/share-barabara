@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { publicAIChat, quickAISummary } from "@/lib/ai/public.functions";
 import { aiReturnTo, focusAISurface } from "@/lib/ai/return-to-ai";
 import type { PublicContextType, PublicAIResult } from "@/lib/ai/types";
+import { SafeAIRenderer } from "@/components/site/safe-ai-renderer";
 
 const callQuickAISummary = quickAISummary as unknown as (args: { data: unknown }) => Promise<PublicAIResult>;
 const callPublicAIChat = publicAIChat as unknown as (args: { data: unknown }) => Promise<PublicAIResult & { threadId?: string }>;
@@ -24,7 +25,7 @@ function Answer({ message }: { message: Message }) {
   return (
     <div className={message.role === "user" ? "ml-auto max-w-[85%] rounded-lg bg-accent/20 p-3 text-sm" : "max-w-[92%] rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4 text-sm"}>
       {message.role === "assistant" ? <p className="mb-2 text-[0.68rem] font-bold uppercase tracking-widest text-accent">SHARE BARABARA AI</p> : null}
-      <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+      <SafeAIRenderer content={message.content} />
       {message.citations?.length ? (
         <div className="mt-3 border-t border-primary-foreground/20 pt-2 text-xs">
           <p className="font-semibold">External sources</p>
@@ -102,7 +103,7 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
       <div className="flex items-center gap-2"><Bot className="size-5 text-accent" /><p className="text-xs font-bold uppercase tracking-widest text-accent">SHARE BARABARA AI</p></div>
       {mode === "chat" ? <p className="mt-2 text-sm text-primary-foreground/80">Chat with Share Barabara AI about this alert.</p> : null}
       {mode === "summary" && !summary ? <Button className="mt-4 border-accent/70 bg-transparent text-primary-foreground hover:bg-accent hover:text-accent-foreground" variant="outline" onClick={summarize} disabled={busy}><Sparkles className="mr-2 size-4" />{busy ? "Preparing summary…" : "Quick AI Summary"}</Button> : null}
-      {mode === "summary" && summary ? (summaryAvailable ? <div className="mt-4 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4"><p className="whitespace-pre-wrap text-sm leading-relaxed">{summary.answer}</p></div> : <p className="mt-4 text-sm text-primary-foreground/75">{errorText(summary)}</p>) : null}
+      {mode === "summary" && summary ? (summaryAvailable ? <div className="mt-4 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4 text-sm"><SafeAIRenderer content={summary.answer!} /></div> : <p className="mt-4 text-sm text-primary-foreground/75">{errorText(summary)}</p>) : null}
       {mode === "chat" || summaryAvailable ? (
         user ? <div className="mt-5 space-y-3">{messages.map((item, index) => <Answer key={`${item.role}-${index}`} message={item} />)}<Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask Share Barabara AI…" /></div> : <p className="mt-4 text-sm text-primary-foreground/75"><Link className="font-semibold text-accent underline" to="/auth" search={{ returnTo: aiReturnTo("content") }}>Sign in to Chat</Link>{" "}to continue with Share Barabara AI.</p>
       ) : null}

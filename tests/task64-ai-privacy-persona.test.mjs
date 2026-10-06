@@ -70,7 +70,7 @@ test("My Chats can reopen owner-scoped saved conversations", async () => {
   assert.match(publicAI, /Chat thread not found/);
   assert.match(dashboard, /getAIChat/);
   assert.match(dashboard, /Open chat/);
-  assert.match(dashboard, /whitespace-pre-wrap/);
+  assert.match(dashboard, /SafeAIRenderer/);
 });
 
 test("signup confirmation preserves a validated AI/content return surface", async () => {
@@ -78,4 +78,18 @@ test("signup confirmation preserves a validated AI/content return surface", asyn
   assert.match(auth, /const confirmation = new URL\("\/auth", window\.location\.origin\)/);
   assert.match(auth, /confirmation\.searchParams\.set\("returnTo", safeInternalReturnTo\(returnTo\)/);
   assert.match(auth, /emailRedirectTo: confirmation\.toString\(\)/);
+});
+
+test("AI output uses one safe structured renderer without HTML injection", async () => {
+  const [renderer, ai, dashboard] = await Promise.all([
+    read("src/components/site/safe-ai-renderer.tsx"),
+    read("src/components/site/share-barabara-ai.tsx"),
+    read("src/routes/_authenticated/dashboard.tsx"),
+  ]);
+  assert.match(renderer, /SafeAIRenderer/);
+  assert.match(renderer, /strong|em|code/);
+  assert.match(renderer, /list-inside/);
+  assert.doesNotMatch(renderer, /dangerouslySetInnerHTML/);
+  assert.match(ai, /SafeAIRenderer/);
+  assert.match(dashboard, /SafeAIRenderer/);
 });
