@@ -19,7 +19,7 @@ CREATE TABLE public.subscription_plans (
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (subject_type, tier),
-  UNIQUE (id, subject_type, tier)
+  UNIQUE (id, subject_type)
 );
 
 COMMENT ON TABLE public.subscription_plans IS
