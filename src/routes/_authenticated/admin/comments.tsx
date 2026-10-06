@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { timeAgo } from "@/lib/format";
@@ -48,6 +49,11 @@ function CommentsAdminPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-comments"] });
       queryClient.invalidateQueries({ queryKey: ["comments"] });
     },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const recycle = useMutation({
+    mutationFn: async (id: string) => moveToRecycleBin("comment", id, "Moved to the Recycle Bin by an administrator"),
+    onSuccess: () => { toast.success("Comment moved to the Recycle Bin"); queryClient.invalidateQueries({ queryKey: ["admin-comments"] }); queryClient.invalidateQueries({ queryKey: ["comments"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -118,11 +124,12 @@ function CommentsAdminPage() {
                     size="sm"
                     variant="ghost"
                     className="text-destructive"
-                    disabled={moderate.isPending}
+                    disabled={moderate.isPending || recycle.isPending}
                     onClick={() => moderate.mutate({ id: c.id, status: c.moderation_status === "removed" ? "published" : "removed" })}
                   >
                     {c.moderation_status === "removed" ? "Restore" : "Remove"}
                   </Button>
+                  <Button size="sm" variant="ghost" disabled={moderate.isPending || recycle.isPending} onClick={() => recycle.mutate(c.id)}>Recycle</Button>
                 </TableCell>
               </TableRow>
             ))}
