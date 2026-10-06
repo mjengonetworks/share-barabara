@@ -80,9 +80,10 @@ export default {
   },
   async scheduled(_controller: unknown, env: unknown, ctx: { waitUntil?: (promise: Promise<unknown>) => void }) {
     (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
-    if (serverEnv("WEB_PUSH_ENABLED") !== "true") return;
-    const { dispatchPendingPushJobs } = await import("./lib/push-dispatcher.server");
-    const work = dispatchPendingPushJobs(25).catch((error) => console.error("Web Push dispatch failed", error));
+    const work = Promise.allSettled([
+      ...(serverEnv("WEB_PUSH_ENABLED") === "true" ? [import("./lib/push-dispatcher.server").then(({ dispatchPendingPushJobs }) => dispatchPendingPushJobs(25))] : []),
+      import("./lib/incident-monitor.server").then(({ runDueIncidentMonitorSources }) => runDueIncidentMonitorSources(3)),
+    ]).then((results) => { for (const result of results) if (result.status === "rejected") console.error("Scheduled operations failed", result.reason); });
     if (ctx.waitUntil) ctx.waitUntil(work);
     else await work;
   },

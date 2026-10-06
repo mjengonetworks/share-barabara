@@ -28,7 +28,7 @@ export const discoverRoadSafetyCandidates = createServerFn({ method: "POST" })
     const sourceId = typeof data?.sourceId === "string" ? data.sourceId : null;
     let monitoredSources: Array<{ id: string; name: string; base_url: string; keywords: string[] }> = [];
     try {
-      const sourceQuery = context.supabase.from("incident_monitor_sources").select("id,name,base_url,keywords").eq("enabled", true);
+      const sourceQuery = context.supabase.from("incident_monitor_sources").select("id,name,base_url,source_class,keywords,check_interval_minutes,consecutive_failures").eq("enabled", true);
       const { data: rows, error } = sourceId ? await sourceQuery.eq("id", sourceId) : await sourceQuery;
       if (!error) monitoredSources = (rows ?? []) as typeof monitoredSources;
     } catch {
@@ -36,6 +36,12 @@ export const discoverRoadSafetyCandidates = createServerFn({ method: "POST" })
       // queries remain available without pretending source monitoring exists.
     }
     const selectedSource = monitoredSources.find((source) => source.id === sourceId);
+    if (sourceId && selectedSource) {
+      const { data: run, error: runError } = await supabaseAdmin.from("incident_monitor_runs").insert({ source_id: selectedSource.id, started_at: new Date().toISOString(), status: "running" }).select("id").maybeSingle();
+      if (runError || !run?.id) throw new Error(runError?.message ?? "This source is already being checked.");
+      const { executeIncidentMonitorRun } = await import("@/lib/incident-monitor.server");
+      return executeIncidentMonitorRun(selectedSource, run.id);
+    }
     const queries = (selectedSource?.keywords?.length ? selectedSource.keywords : Array.isArray(data?.queries) ? data!.queries : DEFAULT_QUERIES).map((query) => String(query).trim().slice(0, 180)).filter(Boolean).slice(0, 5);
     const startedAt = new Date().toISOString();
     let runId: string | null = null;
