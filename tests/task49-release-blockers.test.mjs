@@ -45,6 +45,14 @@ test("moderation history is append-only and staff-readable", () => {
   assert.match(migration, /audit_comment_moderation/);
 });
 
+test("admin comment moderation preserves reversible state and audit history", () => {
+  const comments = read("src/routes/_authenticated/admin/comments.tsx");
+  assert.match(comments, /moderation_status/);
+  assert.match(comments, /Restore/);
+  assert.match(comments, /moderation_reason/);
+  assert.doesNotMatch(comments, /moveToRecycleBin/);
+});
+
 test("AI moderation fails closed into human review", () => {
   assert.match(moderation, /completeWithProvider\("groq"/);
   assert.match(moderation, /invalid action/);
