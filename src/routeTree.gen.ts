@@ -15,6 +15,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as ContributorsRouteImport } from './routes/contributors'
 import { Route as FeedRouteImport } from './routes/feed'
+import { Route as MediaRouteImport } from './routes/media'
 import { Route as MerchRouteImport } from './routes/merch'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PartnerWithUsRouteImport } from './routes/partner-with-us'
@@ -100,6 +101,11 @@ const ContributorsRoute = ContributorsRouteImport.update({
 const FeedRoute = FeedRouteImport.update({
   id: '/feed',
   path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MediaRoute = MediaRouteImport.update({
+  id: '/media',
+  path: '/media',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MerchRoute = MerchRouteImport.update({
@@ -418,6 +424,7 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/contributors': typeof ContributorsRoute
   '/feed': typeof FeedRoute
+  '/media': typeof MediaRoute
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -482,6 +489,7 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/contributors': typeof ContributorsRoute
   '/feed': typeof FeedRoute
+  '/media': typeof MediaRoute
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -547,6 +555,7 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/contributors': typeof ContributorsRoute
   '/feed': typeof FeedRoute
+  '/media': typeof MediaRoute
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -613,6 +622,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/contributors'
     | '/feed'
+    | '/media'
     | '/merch'
     | '/notifications'
     | '/partner-with-us'
@@ -677,6 +687,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/contributors'
     | '/feed'
+    | '/media'
     | '/merch'
     | '/notifications'
     | '/partner-with-us'
@@ -741,6 +752,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/contributors'
     | '/feed'
+    | '/media'
     | '/merch'
     | '/notifications'
     | '/partner-with-us'
@@ -807,6 +819,7 @@ export interface RootRouteChildren {
   CampaignsRoute: typeof CampaignsRouteWithChildren
   ContributorsRoute: typeof ContributorsRoute
   FeedRoute: typeof FeedRoute
+  MediaRoute: typeof MediaRoute
   MerchRoute: typeof MerchRoute
   NotificationsRoute: typeof NotificationsRoute
   PartnerWithUsRoute: typeof PartnerWithUsRoute
@@ -877,6 +890,13 @@ declare module '@tanstack/react-router' {
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/media': {
+      id: '/media'
+      path: '/media'
+      fullPath: '/media'
+      preLoaderRoute: typeof MediaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/merch': {
@@ -1386,6 +1406,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampaignsRoute: CampaignsRouteWithChildren,
   ContributorsRoute: ContributorsRoute,
   FeedRoute: FeedRoute,
+  MediaRoute: MediaRoute,
   MerchRoute: MerchRoute,
   NotificationsRoute: NotificationsRoute,
   PartnerWithUsRoute: PartnerWithUsRoute,
