@@ -159,6 +159,16 @@ test("external incident discovery creates bounded admin drafts and never auto-pu
   assert.match(read("src/routes/_authenticated/admin/reports.tsx"), /IncidentDiscoveryPanel/);
 });
 
+test("discovery drafts can be linked to an approved canonical incident", () => {
+  const panel = read("src/components/site/incident-discovery-panel.tsx");
+  const migration = read("supabase/migrations/20261005130000_incident_discovery_candidates_review.sql");
+  assert.match(panel, /Choose approved canonical incident/);
+  assert.match(panel, /duplicate_of_report_id/);
+  assert.match(panel, /Link to canonical/);
+  assert.match(panel, /eq\("status", "approved"\)/);
+  assert.match(migration, /duplicate_of_report_id UUID REFERENCES public\.accident_reports/);
+});
+
 test("public search covers approved content without exposing drafts", () => {
   const search = read("src/routes/search.tsx");
   assert.match(search, /escapeIlike/);
