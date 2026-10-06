@@ -72,3 +72,10 @@ test("My Chats can reopen owner-scoped saved conversations", async () => {
   assert.match(dashboard, /Open chat/);
   assert.match(dashboard, /whitespace-pre-wrap/);
 });
+
+test("signup confirmation preserves a validated AI/content return surface", async () => {
+  const auth = await read("src/routes/auth.index.tsx");
+  assert.match(auth, /const confirmation = new URL\("\/auth", window\.location\.origin\)/);
+  assert.match(auth, /confirmation\.searchParams\.set\("returnTo", safeInternalReturnTo\(returnTo\)/);
+  assert.match(auth, /emailRedirectTo: confirmation\.toString\(\)/);
+});
