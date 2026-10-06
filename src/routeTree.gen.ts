@@ -56,6 +56,7 @@ import { Route as AuthenticatedAdminCrashStatisticsRouteImport } from './routes/
 import { Route as AuthenticatedAdminFeaturedRouteImport } from './routes/_authenticated/admin/featured'
 import { Route as AuthenticatedAdminFeedRouteImport } from './routes/_authenticated/admin/feed'
 import { Route as AuthenticatedAdminFooterRouteImport } from './routes/_authenticated/admin/footer'
+import { Route as AuthenticatedAdminIncidentSourcesRouteImport } from './routes/_authenticated/admin/incident-sources'
 import { Route as AuthenticatedAdminInfrastructureIssuesRouteImport } from './routes/_authenticated/admin/infrastructure-issues'
 import { Route as AuthenticatedAdminMerchItemsRouteImport } from './routes/_authenticated/admin/merch-items'
 import { Route as AuthenticatedAdminMerchOrdersRouteImport } from './routes/_authenticated/admin/merch-orders'
@@ -317,6 +318,12 @@ const AuthenticatedAdminFooterRoute =
     path: '/footer',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminIncidentSourcesRoute =
+  AuthenticatedAdminIncidentSourcesRouteImport.update({
+    id: '/incident-sources',
+    path: '/incident-sources',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminInfrastructureIssuesRoute =
   AuthenticatedAdminInfrastructureIssuesRouteImport.update({
     id: '/infrastructure-issues',
@@ -451,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/admin/feed': typeof AuthenticatedAdminFeedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/admin/incident-sources': typeof AuthenticatedAdminIncidentSourcesRoute
   '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
@@ -513,6 +521,7 @@ export interface FileRoutesByTo {
   '/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/admin/feed': typeof AuthenticatedAdminFeedRoute
   '/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/admin/incident-sources': typeof AuthenticatedAdminIncidentSourcesRoute
   '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
@@ -578,6 +587,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/featured': typeof AuthenticatedAdminFeaturedRoute
   '/_authenticated/admin/feed': typeof AuthenticatedAdminFeedRoute
   '/_authenticated/admin/footer': typeof AuthenticatedAdminFooterRoute
+  '/_authenticated/admin/incident-sources': typeof AuthenticatedAdminIncidentSourcesRoute
   '/_authenticated/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRoute
   '/_authenticated/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/_authenticated/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/admin/featured'
     | '/admin/feed'
     | '/admin/footer'
+    | '/admin/incident-sources'
     | '/admin/infrastructure-issues'
     | '/admin/merch-items'
     | '/admin/merch-orders'
@@ -705,6 +716,7 @@ export interface FileRouteTypes {
     | '/admin/featured'
     | '/admin/feed'
     | '/admin/footer'
+    | '/admin/incident-sources'
     | '/admin/infrastructure-issues'
     | '/admin/merch-items'
     | '/admin/merch-orders'
@@ -769,6 +781,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/featured'
     | '/_authenticated/admin/feed'
     | '/_authenticated/admin/footer'
+    | '/_authenticated/admin/incident-sources'
     | '/_authenticated/admin/infrastructure-issues'
     | '/_authenticated/admin/merch-items'
     | '/_authenticated/admin/merch-orders'
@@ -1153,6 +1166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFooterRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/incident-sources': {
+      id: '/_authenticated/admin/incident-sources'
+      path: '/incident-sources'
+      fullPath: '/admin/incident-sources'
+      preLoaderRoute: typeof AuthenticatedAdminIncidentSourcesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/infrastructure-issues': {
       id: '/_authenticated/admin/infrastructure-issues'
       path: '/infrastructure-issues'
@@ -1272,6 +1292,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminFeaturedRoute: typeof AuthenticatedAdminFeaturedRoute
   AuthenticatedAdminFeedRoute: typeof AuthenticatedAdminFeedRoute
   AuthenticatedAdminFooterRoute: typeof AuthenticatedAdminFooterRoute
+  AuthenticatedAdminIncidentSourcesRoute: typeof AuthenticatedAdminIncidentSourcesRoute
   AuthenticatedAdminInfrastructureIssuesRoute: typeof AuthenticatedAdminInfrastructureIssuesRoute
   AuthenticatedAdminMerchItemsRoute: typeof AuthenticatedAdminMerchItemsRoute
   AuthenticatedAdminMerchOrdersRoute: typeof AuthenticatedAdminMerchOrdersRoute
@@ -1303,6 +1324,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminFeaturedRoute: AuthenticatedAdminFeaturedRoute,
     AuthenticatedAdminFeedRoute: AuthenticatedAdminFeedRoute,
     AuthenticatedAdminFooterRoute: AuthenticatedAdminFooterRoute,
+    AuthenticatedAdminIncidentSourcesRoute:
+      AuthenticatedAdminIncidentSourcesRoute,
     AuthenticatedAdminInfrastructureIssuesRoute:
       AuthenticatedAdminInfrastructureIssuesRoute,
     AuthenticatedAdminMerchItemsRoute: AuthenticatedAdminMerchItemsRoute,
