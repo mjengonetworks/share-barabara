@@ -193,6 +193,26 @@ function OverviewPage() {
     "created_at",
   );
   const alerts = useContentStats("alerts", "active", "created_at", "alert_views", "created_at");
+  const { data: reviewQueue = {} } = useQuery<Record<string, number | null>>({
+    queryKey: ["admin-review-queue"],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const count = async (table: string, status: string) => {
+        const { count: value, error } = await (supabase.from(table) as any).select("id", { count: "exact", head: true }).eq("status", status);
+        if (error) return null;
+        return value ?? 0;
+      };
+      const [articles, articleDrafts, reports, alerts, feed, updates] = await Promise.all([
+        count("news", "pending_review"),
+        count("news", "draft"),
+        count("accident_reports", "pending"),
+        count("alerts", "pending"),
+        count("feed_posts", "pending"),
+        count("editorial_updates", "draft"),
+      ]);
+      return { articles, articleDrafts, reports, alerts, feed, updates };
+    },
+  });
 
   const { data: trendingArticles = [] } = useQuery({
     queryKey: ["admin-trending-articles", period, articlesLimit],
@@ -328,6 +348,16 @@ function OverviewPage() {
       <p className="mt-3 text-xs text-muted-foreground">
         Refreshes automatically every 30 seconds.
       </p>
+
+      <section className="mt-8 rounded-lg border border-border bg-card p-5 card-elevated" aria-labelledby="admin-review-heading">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Workspace</p><h2 id="admin-review-heading" className="mt-1 text-lg font-bold">Items requiring review</h2><p className="mt-1 text-sm text-muted-foreground">Live queue counts from the current moderation and editorial tables. An em dash means the optional table is not available.</p></div>
+          <div className="flex flex-wrap gap-2"><Button asChild size="sm"><Link to="/admin/articles">Add News Article</Link></Button><Button asChild size="sm" variant="outline"><Link to="/admin/alerts">Add Alert</Link></Button><Button asChild size="sm" variant="outline"><Link to="/admin/reports">Add Accident Report</Link></Button></div>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[{ label: "Articles pending review", key: "articles", to: "/admin/articles" }, { label: "Article drafts", key: "articleDrafts", to: "/admin/articles" }, { label: "Reports pending review", key: "reports", to: "/admin/reports" }, { label: "Alerts pending review", key: "alerts", to: "/admin/alerts" }, { label: "Feed posts pending", key: "feed", to: "/admin/feed" }, { label: "Editorial updates in draft", key: "updates", to: "/admin/alerts" }].map((item) => <Link key={item.key} to={item.to} className="rounded border border-border p-3 transition-colors hover:border-accent"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</p><p className="mt-2 font-display text-2xl font-extrabold">{reviewQueue[item.key] === null || reviewQueue[item.key] === undefined ? "—" : num(reviewQueue[item.key]!)}</p></Link>)}
+        </div>
+      </section>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <div className="rounded-lg border border-border bg-card p-5 card-elevated">

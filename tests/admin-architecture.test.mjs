@@ -46,3 +46,14 @@ test("editorial AI is wired to admin editors while public submission forms remai
   assert.match(editorial, /Editorial AI requires an approved contributor role/);
   assert.match(editorial, /mode === "autopopulate" \? "groq" : "grok"/);
 });
+
+test("admin dashboard exposes data-backed review queues and authoring shortcuts", async () => {
+  const dashboard = await read("src/routes/_authenticated/admin/index.tsx");
+  assert.match(dashboard, /admin-review-queue/);
+  assert.match(dashboard, /Items requiring review/);
+  assert.match(dashboard, /Add News Article/);
+  assert.match(dashboard, /Add Alert/);
+  assert.match(dashboard, /Add Accident Report/);
+  assert.match(dashboard, /editorial_updates/);
+  assert.match(dashboard, /\? "—"/);
+});
