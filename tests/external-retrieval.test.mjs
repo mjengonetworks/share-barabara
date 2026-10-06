@@ -77,6 +77,13 @@ test("provider seams and local-first flow remain intact", () => {
   assert.match(publicAI, /completeWithProvider\("groq"/);
 });
 
+test("public local evidence includes only published editorial updates", () => {
+  assert.match(retrieval, /editorial_updates/);
+  assert.match(retrieval, /\.eq\("status", "published"\)/);
+  assert.match(retrieval, /kind: "update"/);
+  assert.match(retrieval, /parent_type/);
+});
+
 test("citations use original destinations and engine metadata stays internal", () => {
   assert.match(external, /validateCitation\(\{ title: source\.title, url: source\.url/);
   assert.match(external, /providerMetadata/);

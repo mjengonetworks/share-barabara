@@ -103,13 +103,14 @@ export async function resolvePublicEvidence(type: PublicContextType, id?: string
       terms.map(async (term) => {
         const escaped = term.replace(/[%_]/g, "\\$&").slice(0, 40);
         const pattern = `%${escaped}%`;
-        const [articles, alerts, reports, community] = await Promise.all([
+        const [articles, alerts, reports, updates, community] = await Promise.all([
           db.from("news").select("id,slug,title,summary,category").eq("status", "published").or(`title.ilike.${pattern},summary.ilike.${pattern}`).limit(4),
           db.from("alerts").select("id,title,description,county,road,status").eq("status", "active").or(`title.ilike.${pattern},description.ilike.${pattern},county.ilike.${pattern},road.ilike.${pattern}`).limit(4),
           db.from("accident_reports").select("id,title,description,county,road,occurred_at,status").eq("status", "approved").or(`title.ilike.${pattern},description.ilike.${pattern},county.ilike.${pattern},road.ilike.${pattern}`).limit(4),
+          db.from("editorial_updates").select("id,parent_type,parent_id,title,body,published_at").eq("status", "published").or(`title.ilike.${pattern},body.ilike.${pattern}`).limit(4),
           db.from("feed_posts").select("id,body,created_at").eq("status", "published").eq("moderation_status", "approved").ilike("body", pattern).limit(4),
         ]);
-        return { articles: articles.data ?? [], alerts: alerts.data ?? [], reports: reports.data ?? [], community: community.data ?? [] };
+        return { articles: articles.data ?? [], alerts: alerts.data ?? [], reports: reports.data ?? [], updates: updates.data ?? [], community: community.data ?? [] };
       }),
     );
     const seen = new Set<string>();
@@ -127,6 +128,11 @@ export async function resolvePublicEvidence(type: PublicContextType, id?: string
       if (!seen.has(`report:${row.id}`)) {
         seen.add(`report:${row.id}`);
         evidence.push({ id: row.id, kind: "report", title: row.title, href: `/reports/${row.id}`, text: clampText(`${row.description}\nCounty: ${row.county}\nRoad: ${row.road ?? ""}\nOccurred: ${row.occurred_at}`, 2200) });
+      }
+    for (const row of matches.flatMap((match) => match.updates))
+      if (!seen.has(`update:${row.id}`)) {
+        seen.add(`update:${row.id}`);
+        evidence.push({ id: row.id, kind: "update", title: row.title ?? "Editorial update", href: row.parent_type === "alert" ? `/alerts/${row.parent_id}` : `/reports/${row.parent_id}`, publishedAt: row.published_at, text: clampText(`Published Editorial Update for ${row.parent_type} ${row.parent_id}:\n${row.body}`, 2600) });
       }
     for (const row of matches.flatMap((match) => match.community))
       if (!seen.has(`community:${row.id}`)) {
