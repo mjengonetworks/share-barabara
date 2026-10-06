@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { listAIChats } from "@/lib/ai/public.functions";
+import { getAIChat, listAIChats } from "@/lib/ai/public.functions";
 import { displayReportCount } from "@/lib/report-metrics";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -43,6 +43,7 @@ function DashboardPage() {
   const { rank } = useRoles();
   const userId = user?.id;
   const [creatingPage, setCreatingPage] = useState(false);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
   const { data: profile } = useQuery({
     enabled: !!userId,
@@ -155,6 +156,11 @@ function DashboardPage() {
     queryKey: ["my-ai-chats", userId],
     queryFn: () => listAIChats(),
   });
+  const selectedChat = useQuery({
+    enabled: !!selectedChatId,
+    queryKey: ["my-ai-chat", selectedChatId],
+    queryFn: () => getAIChat({ data: { threadId: selectedChatId } }),
+  });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-14">
@@ -195,18 +201,37 @@ function DashboardPage() {
         ) : (
           <ul className="mt-3 space-y-2">
             {aiChats.map((chat) => (
-              <li key={chat.id} className="rounded border border-border p-3 text-sm">
+              <li key={chat.id} className="flex flex-wrap items-center justify-between gap-3 rounded border border-border p-3 text-sm">
+                <button type="button" className="min-w-0 text-left" onClick={() => setSelectedChatId(chat.id)}>
                 <span className="font-semibold">
                   {chat.title ?? `Share Barabara AI · ${chat.context_type}`}
                 </span>
                 <span className="ml-2 text-muted-foreground">
                   {new Date(chat.updated_at).toLocaleString()}
                 </span>
+                </button>
+                <Button type="button" size="sm" variant="outline" onClick={() => setSelectedChatId(chat.id)}>Open chat</Button>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      <Dialog open={!!selectedChatId} onOpenChange={(open) => { if (!open) setSelectedChatId(null); }}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>{selectedChat.data?.thread.title ?? "Share Barabara AI chat"}</DialogTitle></DialogHeader>
+          {selectedChat.isLoading ? <p className="text-sm text-muted-foreground">Loading conversation…</p> : null}
+          {selectedChat.error ? <p className="text-sm text-destructive">This conversation could not be loaded.</p> : null}
+          <div className="space-y-3">
+            {(selectedChat.data?.messages ?? []).map((message: { id: string; role: string; content: string }) => (
+              <div key={message.id} className={`rounded-lg border border-border p-3 text-sm ${message.role === "user" ? "ml-8 bg-muted/40" : "mr-8 bg-card"}`}>
+                <p className="mb-1 text-[0.68rem] font-bold uppercase tracking-widest text-muted-foreground">{message.role === "user" ? "You" : "Share Barabara AI"}</p>
+                <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild>

@@ -208,3 +208,29 @@ export const listAIChats = createServerFn({ method: "GET" })
     if (error) throw new Error("Unable to load chats");
     return data ?? [];
   });
+
+export const getAIChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ data, context }: { data: unknown; context: AuthContext }) => {
+    const threadId = typeof data === "object" && data !== null && typeof (data as Record<string, unknown>).threadId === "string"
+      ? (data as Record<string, unknown>).threadId as string
+      : "";
+    if (!threadId) throw new Error("Chat thread is required");
+    const db = context.supabase as SupabaseClient;
+    const { data: thread, error: threadError } = await db
+      .from("ai_chat_threads")
+      .select("id,title,context_type,context_id,created_at,updated_at")
+      .eq("id", threadId)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (threadError || !thread) throw new Error("Chat thread not found");
+    const { data: messages, error: messageError } = await db
+      .from("ai_chat_messages")
+      .select("id,role,content,citations,created_at")
+      .eq("thread_id", threadId)
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: true })
+      .limit(MAX_HISTORY_MESSAGES * 2);
+    if (messageError) throw new Error("Unable to load chat messages");
+    return { thread, messages: messages ?? [] };
+  });

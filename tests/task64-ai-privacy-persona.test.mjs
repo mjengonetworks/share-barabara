@@ -59,3 +59,16 @@ test("public chat remains authenticated and rate limited while summaries stay pu
   assert.match(source, /enforceAIRateLimit\("chat", userId\)/);
   assert.match(source, /enforceAIRateLimit\("summary"\)/);
 });
+
+test("My Chats can reopen owner-scoped saved conversations", async () => {
+  const [publicAI, dashboard] = await Promise.all([
+    read("src/lib/ai/public.functions.ts"),
+    read("src/routes/_authenticated/dashboard.tsx"),
+  ]);
+  assert.match(publicAI, /getAIChat = createServerFn/);
+  assert.match(publicAI, /eq\("user_id", context\.userId\)/);
+  assert.match(publicAI, /Chat thread not found/);
+  assert.match(dashboard, /getAIChat/);
+  assert.match(dashboard, /Open chat/);
+  assert.match(dashboard, /whitespace-pre-wrap/);
+});
