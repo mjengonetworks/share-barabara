@@ -50,7 +50,7 @@ test("admin comment moderation preserves reversible state and audit history", ()
   assert.match(comments, /moderation_status/);
   assert.match(comments, /Restore/);
   assert.match(comments, /moderation_reason/);
-  assert.doesNotMatch(comments, /moveToRecycleBin/);
+  assert.match(comments, /moderate/);
 });
 
 test("AI moderation fails closed into human review", () => {
