@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { StatisticsProposalsPanel } from "@/components/site/statistics-proposals-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/crash-statistics")({
   head: () => ({ meta: [{ title: "Crash Statistics: Share Barabara Admin" }] }),
@@ -317,6 +318,8 @@ function CrashStatisticsPage() {
         ordinary contributors cannot. The Task 26 review migration adds the provenance and
         human-review workflow without changing historical rows, but is not active yet.
       </p>
+
+      <StatisticsProposalsPanel />
 
       <Tabs defaultValue="yearly" className="mt-6">
         <TabsList className="flex-wrap">

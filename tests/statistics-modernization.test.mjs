@@ -99,3 +99,17 @@ test("the runtime page preserves legacy tables and optionally reads published pr
   assert.match(source, /yearly_stats/);
   assert.match(source, /No published external datasets are available yet/);
 });
+
+test("statistics admin has review-only evidence proposals", async () => {
+  const [admin, panel, migration] = await Promise.all([
+    readFile(new URL("../src/routes/_authenticated/admin/crash-statistics.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/site/statistics-proposals-panel.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../supabase/migrations/20260930100000_statistics_modernization_review.sql", import.meta.url), "utf8"),
+  ]);
+  assert.match(admin, /StatisticsProposalsPanel/);
+  assert.match(panel, /statistics_update_proposals/);
+  assert.match(panel, /Accepted proposals do not publish or alter statistics automatically/);
+  assert.match(panel, /JSON\.parse/);
+  assert.match(panel, /eq\("status", "pending"\)/);
+  assert.match(migration, /statistics_proposals_editor_update/);
+});
