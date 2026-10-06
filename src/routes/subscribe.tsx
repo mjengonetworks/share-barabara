@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { BadgeCheck, PenLine, ShieldOff, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { SUBSCRIPTION_BILLING_PERIOD, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/subscribe")({
   head: () => ({
@@ -43,6 +46,29 @@ const EXISTING_BENEFITS = [
 
 function SubscribePage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const accounts = useQuery({
+    enabled: !!user,
+    queryKey: ["my-subscription-accounts", user?.id],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("subscription_accounts") as any)
+        .select("id,subject_type,status,current_period_end,cancel_at_period_end")
+        .order("created_at", { ascending: false });
+      if (error) {
+        if (/subscription_accounts|relation|does not exist/i.test(error.message ?? "")) return [];
+        throw error;
+      }
+      return data ?? [];
+    },
+  });
+  const cancel = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.rpc as any)("request_subscription_cancellation", { _subscription_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Cancellation request recorded for the end of this billing period"); void queryClient.invalidateQueries({ queryKey: ["my-subscription-accounts", user?.id] }); },
+    onError: () => toast.error("Subscription cancellation is not available yet."),
+  });
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 text-center">
@@ -102,6 +128,8 @@ function SubscribePage() {
           )}
         </p>
       </div>
+
+      {user && accounts.data?.length ? <section className="mt-8 rounded-lg border border-border bg-card p-5 text-left" aria-labelledby="subscription-status-heading"><h2 id="subscription-status-heading" className="text-lg font-bold">Your subscription status</h2><div className="mt-3 space-y-3">{accounts.data.map((account: { id: string; subject_type: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean }) => <article key={account.id} className="flex flex-wrap items-center justify-between gap-3 rounded border border-border p-3"><div><p className="font-semibold">{account.subject_type === "page" ? "Page" : "Profile"} subscription</p><p className="mt-1 text-sm text-muted-foreground">Status: <span className="font-semibold capitalize">{account.status}</span>{account.current_period_end ? ` · period ends ${new Date(account.current_period_end).toLocaleDateString("en-KE", { timeZone: "Africa/Nairobi" })}` : ""}</p>{account.cancel_at_period_end ? <p className="mt-1 text-xs text-caution-foreground">Cancellation is scheduled at period end.</p> : null}</div>{account.status === "active" && !account.cancel_at_period_end ? <Button size="sm" variant="outline" disabled={cancel.isPending} onClick={() => { if (window.confirm("Cancel renewal at the end of the current billing period?")) cancel.mutate(account.id); }}>Cancel renewal</Button> : null}</article>)}</div></section> : null}
 
       <Button asChild variant="outline" className="mt-8">
         <Link to="/campaigns" hash="donate">

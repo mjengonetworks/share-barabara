@@ -204,3 +204,14 @@ test("Media & Feed surfaces existing featured videos without creating fake embed
   assert.match(route, /Browse media/);
   assert.match(route, /Featured media will appear here/);
 });
+
+test("subscription UI reads lifecycle state and requests cancellation safely", () => {
+  const route = read("src/routes/subscribe.tsx");
+  const migration = read("supabase/migrations/20260929130000_subscription_payments_schema_review.sql");
+  assert.match(route, /subscription_accounts/);
+  assert.match(route, /request_subscription_cancellation/);
+  assert.match(route, /cancel_at_period_end/);
+  assert.match(route, /period ends/);
+  assert.match(route, /Online purchase and payment confirmation/);
+  assert.match(migration, /request_subscription_cancellation/);
+});
