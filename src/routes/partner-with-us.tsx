@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PublicPageHero } from "@/components/site/public-page-hero";
 
 export const Route = createFileRoute("/partner-with-us")({
   head: () => ({
@@ -100,28 +101,14 @@ function PartnerPage() {
   });
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Advertise with Share Barabara
-      </p>
-      <h1 className="mt-2 max-w-2xl text-[1.7325rem] font-extrabold leading-tight sm:text-[2.31rem]">
-        Put your brand behind every journey home.
-      </h1>
-      <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-        Share Barabara, part of Mjengo Networks Limited, is Kenya's community-driven road safety
-        platform: live hazard alerts, verified crash reports and open statistics built by the people
-        who use these roads every day. Partnering with us puts your brand in front of an audience
-        that already trusts us to help them get home safely, and associates it with the niche
-        authority we have built in road safety.
-      </p>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Button asChild size="lg">
-          <a href="#enquiry">Start an enquiry</a>
-        </Button>
-        <Button asChild size="lg" variant="outline">
-          <Link to="/campaigns">See our campaigns</Link>
-        </Button>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Partner with Share Barabara"
+        title="Put your brand behind every journey home"
+        description="Explore thoughtful partnership, campaign and advertising opportunities with a community road-safety platform built for Kenya."
+        primaryCta={{ label: "Start an enquiry", to: "/partner-with-us#enquiry" }}
+        secondaryCta={{ label: "See our campaigns", to: "/campaigns" }}
+      />
 
       <section className="mt-14">
         <h2 className="text-[1.155rem] font-bold">Why advertise with us</h2>

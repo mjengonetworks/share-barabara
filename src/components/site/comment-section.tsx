@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { useVotes } from "@/hooks/useVotes";
@@ -22,8 +23,9 @@ import { useProfileNames, useProfileUsernames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { timeAgo } from "@/lib/format";
+import { createComment, reportComment } from "@/lib/comment.functions";
 
-type Props = { entityType: "news" | "alert" | "report"; entityId: string };
+type Props = { entityType: "news" | "alert" | "report" | "feed_post"; entityId: string };
 
 type CommentRow = {
   id: string;
@@ -71,15 +73,7 @@ export function CommentSection({ entityType, entityId }: Props) {
   const post = useMutation({
     mutationFn: async ({ text, parentId }: { text: string; parentId: string | null }) => {
       if (!user) throw new Error("Sign in first");
-      const { error } = await supabase.from("comments").insert({
-        entity_type: entityType,
-        entity_id: entityId,
-        body: text.trim(),
-        user_id: user.id,
-        page_id: identity.type === "page" ? identity.pageId : null,
-        parent_comment_id: parentId,
-      });
-      if (error) throw error;
+      await createComment({ data: { entityType, entityId, body: text, pageId: identity.type === "page" ? identity.pageId : null, parentId } });
     },
     onSuccess: (_data, vars) => {
       if (vars.parentId) {
@@ -96,8 +90,7 @@ export function CommentSection({ entityType, entityId }: Props) {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("comments").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("comment", id, "Deleted by the author");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
     onError: (e: Error) => toast.error(e.message),
@@ -106,14 +99,8 @@ export function CommentSection({ entityType, entityId }: Props) {
   const report = useMutation({
     mutationFn: async ({ commentId, reason }: { commentId: string; reason: string }) => {
       if (!user) throw new Error("Sign in first");
-      const { error } = await supabase.from("content_requests").insert({
-        user_id: user.id,
-        entity_type: "comment",
-        entity_id: commentId,
-        request_type: "report",
-        message: reason.trim(),
-      });
-      if (error) throw error;
+      const result = await reportComment({ data: { commentId, reason } });
+      if (result.duplicate) throw new Error("You have already reported this comment; it is in the moderation queue.");
     },
     onSuccess: () => {
       toast.success("Reported to our moderators");
@@ -123,13 +110,15 @@ export function CommentSection({ entityType, entityId }: Props) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const topLevel = comments.filter((c) => !c.parent_comment_id);
+  // If a parent is removed or recycled, keep its legitimate replies visible
+  // as a new thread root instead of orphaning the discussion.
+  const topLevel = comments.filter((c) => !c.parent_comment_id || !comments.some((parent) => parent.id === c.parent_comment_id));
   const repliesOf = (parentId: string) => comments.filter((c) => c.parent_comment_id === parentId);
 
   function renderComment(c: CommentRow, depth: number) {
     const s = scores[c.id] ?? { net: 0, mine: 0 };
     return (
-      <li key={c.id} className={depth > 0 ? "ml-6 mt-3 border-l border-border pl-4" : ""}>
+      <li key={c.id} className={depth > 0 ? "ml-3 mt-3 border-l border-border pl-3 sm:ml-6 sm:pl-4" : ""}>
         <div className="rounded border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm">
@@ -216,7 +205,7 @@ export function CommentSection({ entityType, entityId }: Props) {
             </div>
           ) : null}
         </div>
-        {repliesOf(c.id).length > 0 ? (
+        {depth < 4 && repliesOf(c.id).length > 0 ? (
           <ul>{repliesOf(c.id).map((r) => renderComment(r, depth + 1))}</ul>
         ) : null}
       </li>

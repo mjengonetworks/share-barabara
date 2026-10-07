@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-type EntityType = "alert" | "report" | "comment";
+type EntityType = "alert" | "report" | "comment" | "feed_post";
 
 /** Vote scores for a batch of entities of the same type, plus a toggle-vote mutator. */
 export function useVotes(entityType: EntityType, entityIds: string[]) {

@@ -65,6 +65,27 @@ function insertBlock(
   });
 }
 
+/** Keep a pasted plain-text paragraph as a block in the app's markdown-lite
+ * storage. Existing blank lines are retained; single line breaks are treated
+ * as paragraph boundaries unless the lines are clearly part of a list. */
+function normalizePastedText(text: string) {
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  const blocks: string[] = [];
+  let current: string[] = [];
+  const flush = () => {
+    if (current.length) blocks.push(current.join("\n").trim());
+    current = [];
+  };
+  for (const line of lines) {
+    if (!line.trim()) { flush(); continue; }
+    const isList = /^\s*(?:[-*+] |\d+[.)] )/.test(line);
+    if (current.length && !isList) flush();
+    current.push(line);
+  }
+  flush();
+  return blocks.filter(Boolean).join("\n\n");
+}
+
 export function RichTextEditor({ id, value, onChange, rows = 8, placeholder, required }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -213,6 +234,21 @@ export function RichTextEditor({ id, value, onChange, rows = 8, placeholder, req
           rows={rows}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onPaste={(event) => {
+            const pasted = event.clipboardData.getData("text/plain");
+            if (!pasted || !ref.current) return;
+            event.preventDefault();
+            const start = ref.current.selectionStart;
+            const end = ref.current.selectionEnd;
+            const normalized = normalizePastedText(pasted);
+            onChange(value.slice(0, start) + normalized + value.slice(end));
+            requestAnimationFrame(() => {
+              if (!ref.current) return;
+              const cursor = start + normalized.length;
+              ref.current.focus();
+              ref.current.setSelectionRange(cursor, cursor);
+            });
+          }}
           placeholder={placeholder}
           className="rounded-t-none border-0 focus-visible:ring-0"
         />

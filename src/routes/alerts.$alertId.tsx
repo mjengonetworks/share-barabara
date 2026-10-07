@@ -20,6 +20,9 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
+import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
+import { DiscoverySections } from "@/components/site/discovery-sections";
+import { EditorialUpdates } from "@/components/site/editorial-updates";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   head: () => ({
@@ -65,6 +68,7 @@ function AlertDetail() {
         .from("alerts")
         .select("*")
         .eq("id", alertId)
+        .eq("status", "active")
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -93,7 +97,9 @@ function AlertDetail() {
         .from("alerts")
         .select("id, title, severity, county")
         .eq("county", alert!.county)
+        .eq("status", "active")
         .neq("id", alert!.id)
+        .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(5);
       if (error) throw error;
@@ -183,8 +189,7 @@ function AlertDetail() {
               pageName={alert.page_id ? pages[alert.page_id]?.name : undefined}
             />
           </p>
-
-          <div className="mt-3">
+            <div className="mt-3">
             <ShareButtons title={alert.title} />
           </div>
 
@@ -204,6 +209,8 @@ function AlertDetail() {
 
           <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />
 
+          <EditorialUpdates parentType="alert" parentId={alert.id} />
+
           <div className="mt-6">
             <VoteButtons
               net={scores[alert.id]?.net ?? 0}
@@ -219,10 +226,11 @@ function AlertDetail() {
             parties={alert.parties_involved}
           />
 
-          <div className="mt-8">
-            <BannerAd />
-          </div>
-          <CommentSection entityType="alert" entityId={alert.id} />
+            <div className="mt-8">
+              <BannerAd placement="alert-primary-content" />
+            </div>
+            {alert.status === "active" ? <ShareBarabaraAI mode="chat" contextType="alert" contextId={alert.id} title={alert.title} /> : null}
+            <CommentSection entityType="alert" entityId={alert.id} />
         </article>
 
         <aside className="space-y-8">
@@ -256,6 +264,7 @@ function AlertDetail() {
           ) : null}
         </aside>
       </div>
+      <DiscoverySections focus="alert" currentId={alert.id} />
     </div>
   );
 }

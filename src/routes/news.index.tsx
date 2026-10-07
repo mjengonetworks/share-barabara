@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Flame, Sparkles } from "lucide-react";
+import { Flame, Newspaper, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
@@ -10,6 +10,9 @@ import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/site/article-form";
 import { BannerAd } from "@/components/site/banner-ad";
+import { PublicPageHero } from "@/components/site/public-page-hero";
+import heroRoad from "@/assets/hero-road.jpg";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import {
   Dialog,
   DialogContent,
@@ -26,16 +29,16 @@ export const Route = createFileRoute("/news/")({
   },
   head: () => ({
     meta: [
-      { title: "Road Safety News in Kenya: Share Barabara" },
+      { title: "News & Articles | Share Barabara" },
       {
         name: "description",
         content:
-          "Latest Kenyan road safety news: enforcement operations, policy changes, black spot works and awareness campaigns, with open community discussion.",
+          "News and articles about Kenyan road safety, transport, infrastructure and the people working to make every journey safer.",
       },
-      { property: "og:title", content: "Road Safety News in Kenya" },
+      { property: "og:title", content: "News & Articles | Share Barabara" },
       {
         property: "og:description",
-        content: "Enforcement, policy, infrastructure and awareness news for Kenyan road users.",
+        content: "Road safety reporting, transport insight and community stories for Kenyan road users.",
       },
     ],
   }),
@@ -57,22 +60,26 @@ type ArticleCard = {
 function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      {articles.map((a) => (
+      {articles.map((a, index) => (
         <Link
           key={a.id}
           to="/news/$slug"
           params={{ slug: a.slug }}
-          className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent"
+          className={`group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent ${index === 0 ? "md:col-span-2" : ""}`}
         >
           {a.image_url ? (
-            <img src={a.image_url} alt={a.title} className="aspect-video w-full object-cover" />
-          ) : null}
+            <img src={a.image_url} alt={a.title} className={`w-full object-cover object-center ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`} />
+          ) : (
+            <div className={`flex w-full items-center justify-center bg-primary/5 text-primary/50 ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`} aria-hidden="true">
+              <Newspaper className="size-9" />
+            </div>
+          )}
           <div className="flex flex-1 flex-col p-6">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
               <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
               {a.featured ? <span className="text-caution">Featured</span> : null}
             </div>
-            <h2 className="mt-3 text-[0.9625rem] font-bold text-brand-blue group-hover:underline">
+            <h2 className={`mt-3 font-bold text-brand-blue group-hover:underline ${index === 0 ? "text-xl sm:text-2xl" : "text-[0.9625rem]"}`}>
               {a.title}
             </h2>
             <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
@@ -100,7 +107,7 @@ function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
             <img
               src={a.image_url}
               alt={a.title}
-              className="aspect-video w-28 shrink-0 rounded object-cover sm:w-36"
+              className="aspect-video w-28 shrink-0 rounded object-cover object-center sm:w-36"
             />
           ) : (
             <div className="aspect-video w-28 shrink-0 rounded bg-muted sm:w-36" />
@@ -152,7 +159,7 @@ function NewsIndex() {
         .from("news")
         .select("id, slug, title, summary, category, source, published_at, featured, image_url")
         .order("published_at", { ascending: false })
-        .limit(3);
+        .limit(4);
       if (error) throw error;
       return data;
     },
@@ -203,20 +210,18 @@ function NewsIndex() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-            Newsroom
-          </p>
-          <h1 className="mt-2 text-[1.7325rem] font-extrabold">Road safety news</h1>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Enforcement operations, policy shifts, infrastructure works and campaigns affecting how
-            Kenyans travel. Every story is open for discussion.
-          </p>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Newsroom"
+        title="News & Articles"
+        description="Road safety reporting, transport insight and community stories about how Kenyans travel and how we can make every journey safer."
+        image={heroRoad}
+      />
+      {user && canWrite ? (
+        <div className="mt-4 flex justify-end">
+          <WriteButton signedIn={!!user} canWrite={canWrite} />
         </div>
-        <WriteButton signedIn={!!user} canWrite={canWrite} />
-      </div>
+      ) : null}
 
       <div className="mt-10">
         {category ? (
@@ -224,7 +229,7 @@ function NewsIndex() {
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-[1.155rem] font-bold">{category}</h2>
               <Link to="/news" className="text-sm font-semibold text-brand-blue underline">
-                All news
+                All News & Articles
               </Link>
             </div>
             {filteredLoading ? <p className="mt-6 text-muted-foreground">Loading…</p> : null}
@@ -240,7 +245,7 @@ function NewsIndex() {
           </>
         ) : (
           <>
-            <h2 className="text-[1.155rem] font-bold">Latest news</h2>
+            <h2 className="text-lg font-bold">Latest News &amp; Articles</h2>
             <div className="mt-5">
               <ArticleGrid articles={latest} />
             </div>
@@ -268,7 +273,7 @@ function NewsIndex() {
 
             {featured.length > 0 ? (
               <div className="mt-12">
-                <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
+                <h2 className="flex items-center gap-2 text-lg font-bold">
                   <Sparkles className="size-6 text-caution" /> Featured
                 </h2>
                 <div className="mt-5">
@@ -290,7 +295,7 @@ function NewsIndex() {
 
             {trending.length > 0 ? (
               <div className="mt-12">
-                <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
+                <h2 className="flex items-center gap-2 text-lg font-bold">
                   <Flame className="size-6 text-destructive" /> Trending
                 </h2>
                 <div className="mt-5">
@@ -317,8 +322,9 @@ function NewsIndex() {
             <div id="all-articles" className="mt-12 scroll-mt-24">
               <h2 className="text-[1.155rem] font-bold">More articles</h2>
               {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
-              <ArticleCompactList articles={all} />
-            </div>
+            <ArticleCompactList articles={all} />
+            <MjengoPreviews context="articles" />
+          </div>
           </>
         )}
       </div>

@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import {
   BarChart3,
   Bell,
+  Activity,
   Building,
   Building2,
   Construction,
@@ -9,12 +10,14 @@ import {
   FileText,
   Handshake,
   Inbox,
+  RadioTower,
   LayoutGrid,
   Mail,
   Megaphone,
   MessageSquare,
   Newspaper,
   Quote,
+  ArchiveRestore,
   ShieldAlert,
   ShoppingBag,
   Sparkles,
@@ -77,7 +80,7 @@ const SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Moderation queue",
+    label: "Content & moderation",
     items: [
       { to: "/admin/articles", label: "Articles", icon: Newspaper, minRank: ROLE_RANK.moderator },
       {
@@ -104,8 +107,17 @@ const SECTIONS: NavSection[] = [
         icon: MessageSquare,
         minRank: ROLE_RANK.moderator,
       },
+      { to: "/admin/feed", label: "Feed Posts", icon: MessageSquare, minRank: ROLE_RANK.moderator },
       { to: "/admin/videos", label: "Videos", icon: Video, minRank: ROLE_RANK.moderator },
       { to: "/admin/requests", label: "Requests", icon: Inbox, minRank: ROLE_RANK.moderator },
+    ],
+  },
+  {
+    label: "Road safety operations",
+    items: [
+      { to: "/admin/incident-sources", label: "Incident Sources", icon: RadioTower, minRank: ROLE_RANK.editor },
+      { to: "/admin/crash-statistics", label: "Crash Statistics", icon: BarChart3, minRank: ROLE_RANK.moderator },
+      { to: "/admin/categories", label: "Taxonomy", icon: LayoutGrid, minRank: ROLE_RANK.editor },
     ],
   },
   {
@@ -164,22 +176,12 @@ const SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Administration",
+    label: "System management",
     items: [
       { to: "/admin/users", label: "Users & Roles", icon: Users, minRank: ROLE_RANK.moderator },
-      {
-        to: "/admin/crash-statistics",
-        label: "Crash Statistics",
-        icon: BarChart3,
-        minRank: ROLE_RANK.moderator,
-      },
+      { to: "/admin/notification-health", label: "Notification Health", icon: Activity, minRank: ROLE_RANK.admin },
+      { to: "/admin/recycle-bin", label: "Recycle Bin", icon: ArchiveRestore, minRank: ROLE_RANK.admin },
       { to: "/admin/featured", label: "Featured Picks", icon: Sparkles, minRank: ROLE_RANK.editor },
-      {
-        to: "/admin/categories",
-        label: "Categories & Filters",
-        icon: LayoutGrid,
-        minRank: ROLE_RANK.editor,
-      },
     ],
   },
 ];

@@ -20,6 +20,7 @@ import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
 import { longDate, slugify } from "@/lib/format";
@@ -119,7 +120,7 @@ function CampaignsAdminPage() {
     if (!c) return;
     setReportOpenId(id);
     setReportForm({
-      report_content: c.report_content ?? c.description,
+      report_content: c.report_content ?? "",
       report_image_url: c.report_image_url ?? c.image_url ?? "",
       report_published: c.report_published,
     });
@@ -179,8 +180,7 @@ function CampaignsAdminPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("campaigns").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("campaign", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Campaign removed");
@@ -354,7 +354,7 @@ function CampaignsAdminPage() {
                     <p className="text-xs text-muted-foreground">
                       Hidden from the public until the event is over AND you tick "Published" below
                       — a lapsed campaign with no published report simply won't appear on the site.
-                      Defaults to the event description until you write up what actually happened.
+                      Starts blank when no report content exists, so you can decide what should become a report.
                     </p>
                     <div>
                       <Label>Report banner (optional)</Label>

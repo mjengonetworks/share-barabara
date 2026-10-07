@@ -4,10 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ROLE_RANK, useRoles } from "@/hooks/useRoles";
-import { timeAgo, longDate } from "@/lib/format";
+import { timeAgo, longDate, dateTime } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { Button } from "@/components/ui/button";
 import { PageForm } from "@/components/site/page-form";
+import { UserAvatar } from "@/components/site/user-avatar";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getAIChat, listAIChats } from "@/lib/ai/public.functions";
+import { displayReportCount } from "@/lib/report-metrics";
+import { SafeAIRenderer } from "@/components/site/safe-ai-renderer";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -40,6 +44,7 @@ function DashboardPage() {
   const { rank } = useRoles();
   const userId = user?.id;
   const [creatingPage, setCreatingPage] = useState(false);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
   const { data: profile } = useQuery({
     enabled: !!userId,
@@ -47,7 +52,7 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, display_name, avatar_url, county, bio, occupation, created_at")
         .eq("id", userId!)
         .maybeSingle();
       if (error) throw error;
@@ -61,11 +66,12 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("*")
+        .select("id, title, county, road, severity, status, created_at")
         .eq("user_id", userId!)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(20);
       if (error) throw error;
-      return data;
+      return (data ?? []).slice(0, 20);
     },
   });
 
@@ -75,11 +81,12 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
-        .select("*")
+        .select("id, title, county, road, severity, status, occurred_at, fatalities, casualties")
         .eq("user_id", userId!)
-        .order("occurred_at", { ascending: false });
+        .order("occurred_at", { ascending: false })
+        .limit(20);
       if (error) throw error;
-      return data;
+      return (data ?? []).slice(0, 20);
     },
   });
 
@@ -89,11 +96,12 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("*")
+        .select("id, slug, title, category, status, created_at")
         .eq("author_id", userId!)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(20);
       if (error) throw error;
-      return data;
+      return (data ?? []).slice(0, 20);
     },
   });
 
@@ -103,7 +111,7 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("comments")
-        .select("*")
+        .select("id, entity_type, body, created_at")
         .eq("user_id", userId!)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -118,12 +126,41 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pages")
-        .select("*")
+        .select("id, name, slug, category, verified, created_at")
         .eq("owner_id", userId!)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(20);
       if (error) throw error;
-      return data;
+      return (data ?? []).slice(0, 20);
     },
+  });
+
+  const { data: counts } = useQuery({
+    enabled: !!userId,
+    queryKey: ["my-activity-counts", userId],
+    queryFn: async () => {
+      const results = await Promise.all([
+        supabase.from("alerts").select("id", { count: "exact", head: true }).eq("user_id", userId!),
+        supabase.from("accident_reports").select("id", { count: "exact", head: true }).eq("user_id", userId!),
+        supabase.from("news").select("id", { count: "exact", head: true }).eq("author_id", userId!),
+        supabase.from("comments").select("id", { count: "exact", head: true }).eq("user_id", userId!),
+        supabase.from("pages").select("id", { count: "exact", head: true }).eq("owner_id", userId!),
+      ]);
+      const failure = results.find((result) => result.error);
+      if (failure?.error) throw failure.error;
+      return results.map((result) => result.count ?? 0);
+    },
+  });
+
+  const { data: aiChats = [] } = useQuery({
+    enabled: !!userId,
+    queryKey: ["my-ai-chats", userId],
+    queryFn: () => listAIChats(),
+  });
+  const selectedChat = useQuery({
+    enabled: !!selectedChatId,
+    queryKey: ["my-ai-chat", selectedChatId],
+    queryFn: () => getAIChat({ data: { threadId: selectedChatId } }),
   });
 
   return (
@@ -131,9 +168,12 @@ function DashboardPage() {
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Your account
       </p>
-      <h1 className="mt-2 text-[1.7325rem] font-extrabold">
-        Habari, {profile?.display_name ?? "road user"}
-      </h1>
+      <div className="mt-2 flex items-center gap-3">
+        <UserAvatar url={profile?.avatar_url} name={profile?.display_name} className="size-12" />
+        <h1 className="text-[1.7325rem] font-extrabold">
+          Habari, {profile?.display_name ?? "road user"}
+        </h1>
+      </div>
       <p className="mt-3 text-muted-foreground">
         {profile?.county ? `Based in ${profile.county}. ` : ""}Thanks for helping keep Kenyan roads
         safer.
@@ -141,10 +181,10 @@ function DashboardPage() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: "Alerts posted", value: alerts.length },
-          { label: "Reports filed", value: reports.length },
-          { label: "Articles written", value: articles.length },
-          { label: "Comments", value: comments.length },
+          { label: "Alerts posted", value: counts?.[0] ?? 0 },
+          { label: "Reports filed", value: counts?.[1] ?? 0 },
+          { label: "Articles written", value: counts?.[2] ?? 0 },
+          { label: "Comments", value: counts?.[3] ?? 0 },
         ].map((s) => (
           <div key={s.label} className="rounded-lg border border-border bg-card p-6 card-elevated">
             <p className="font-display text-3xl font-extrabold">{s.value}</p>
@@ -152,6 +192,47 @@ function DashboardPage() {
           </div>
         ))}
       </div>
+
+      <section className="mt-10 rounded-lg border border-border bg-card p-5">
+        <h2 className="text-[1.155rem] font-bold">My Share Barabara AI chats</h2>
+        {aiChats.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your saved AI conversations will appear here.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {aiChats.map((chat) => (
+              <li key={chat.id} className="flex flex-wrap items-center justify-between gap-3 rounded border border-border p-3 text-sm">
+                <button type="button" className="min-w-0 text-left" onClick={() => setSelectedChatId(chat.id)}>
+                <span className="font-semibold">
+                  {chat.title ?? `Share Barabara AI · ${chat.context_type}`}
+                </span>
+                <span className="ml-2 text-muted-foreground">
+                  {dateTime(chat.updated_at)}
+                </span>
+                </button>
+                <Button type="button" size="sm" variant="outline" onClick={() => setSelectedChatId(chat.id)}>Open chat</Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <Dialog open={!!selectedChatId} onOpenChange={(open) => { if (!open) setSelectedChatId(null); }}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>{selectedChat.data?.thread.title ?? "Share Barabara AI chat"}</DialogTitle></DialogHeader>
+          {selectedChat.isLoading ? <p className="text-sm text-muted-foreground">Loading conversation…</p> : null}
+          {selectedChat.error ? <p className="text-sm text-destructive">This conversation could not be loaded.</p> : null}
+          <div className="space-y-3">
+            {(selectedChat.data?.messages ?? []).map((message: { id: string; role: string; content: string }) => (
+              <div key={message.id} className={`rounded-lg border border-border p-3 text-sm ${message.role === "user" ? "ml-8 bg-muted/40" : "mr-8 bg-card"}`}>
+                <p className="mb-1 text-[0.68rem] font-bold uppercase tracking-widest text-muted-foreground">{message.role === "user" ? "You" : "Share Barabara AI"}</p>
+                <SafeAIRenderer content={message.content} />
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild>
@@ -183,6 +264,9 @@ function DashboardPage() {
             <Link to="/admin">Admin dashboard</Link>
           </Button>
         ) : null}
+        <Button asChild variant="ghost">
+          <Link to="/notifications">Notification preferences</Link>
+        </Button>
       </div>
 
       <section className="mt-12">
@@ -206,6 +290,9 @@ function DashboardPage() {
                     {timeAgo(a.created_at)}
                   </span>
                 </div>
+                <span className="mt-2 inline-block rounded bg-safe/15 px-2 py-0.5 text-xs font-semibold text-safe">
+                  {a.status}
+                </span>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {a.county}
                   {a.road ? ` · ${a.road}` : ""}
@@ -250,7 +337,7 @@ function DashboardPage() {
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {r.county}
-                  {r.road ? ` · ${r.road}` : ""} · {r.fatalities} deaths, {r.casualties} injured
+                  {r.road ? ` · ${r.road}` : ""} · {displayReportCount(r.fatalities)} deaths, {displayReportCount(r.casualties)} injured
                 </p>
               </li>
             ))}

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { timeAgo } from "@/lib/format";
@@ -28,7 +29,7 @@ function CommentsAdminPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("comments")
-        .select("*")
+        .select("id,body,created_at,user_id,entity_type,entity_id,moderation_status,moderation_reason")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -38,16 +39,21 @@ function CommentsAdminPage() {
 
   const { data: names = {} } = useProfileNames(comments.map((c) => c.user_id));
 
-  const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("comments").delete().eq("id", id);
+  const moderate = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "published" | "removed" }) => {
+      const { error } = await (supabase.from("comments") as any).update({ moderation_status: status, moderation_reason: status === "removed" ? "Removed during staff moderation review." : "Restored during staff moderation review." }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Comment deleted");
+      toast.success("Comment moderation status updated");
       queryClient.invalidateQueries({ queryKey: ["admin-comments"] });
       queryClient.invalidateQueries({ queryKey: ["comments"] });
     },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const recycle = useMutation({
+    mutationFn: async (id: string) => moveToRecycleBin("comment", id, "Moved to the Recycle Bin by an administrator"),
+    onSuccess: () => { toast.success("Comment moved to the Recycle Bin"); queryClient.invalidateQueries({ queryKey: ["admin-comments"] }); queryClient.invalidateQueries({ queryKey: ["comments"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -58,7 +64,7 @@ function CommentsAdminPage() {
       </p>
       <h1 className="mt-1 text-[1.44375rem] font-extrabold">Comments</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
-        Remove spam, abuse or off-topic comments across articles, alerts and reports.
+        Review reported or problematic comments without erasing the discussion record. Moderation decisions are recorded in the protected audit history.
       </p>
 
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
@@ -70,6 +76,7 @@ function CommentsAdminPage() {
               <TableHead>Comment</TableHead>
               <TableHead>By</TableHead>
               <TableHead>On</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Posted</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -106,6 +113,9 @@ function CommentsAdminPage() {
                     </span>
                   )}
                 </TableCell>
+                <TableCell>
+                  <div className="text-xs"><span className={c.moderation_status === "removed" ? "font-semibold text-destructive" : "font-semibold text-safe"}>{c.moderation_status ?? "published"}</span>{c.moderation_reason ? <p className="mt-1 max-w-xs text-muted-foreground">{c.moderation_reason}</p> : null}</div>
+                </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {timeAgo(c.created_at)}
                 </TableCell>
@@ -114,17 +124,18 @@ function CommentsAdminPage() {
                     size="sm"
                     variant="ghost"
                     className="text-destructive"
-                    disabled={remove.isPending}
-                    onClick={() => remove.mutate(c.id)}
+                    disabled={moderate.isPending || recycle.isPending}
+                    onClick={() => moderate.mutate({ id: c.id, status: c.moderation_status === "removed" ? "published" : "removed" })}
                   >
-                    Delete
+                    {c.moderation_status === "removed" ? "Restore" : "Remove"}
                   </Button>
+                  <Button size="sm" variant="ghost" disabled={moderate.isPending || recycle.isPending} onClick={() => recycle.mutate(c.id)}>Recycle</Button>
                 </TableCell>
               </TableRow>
             ))}
             {!isLoading && comments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                   No comments found.
                 </TableCell>
               </TableRow>

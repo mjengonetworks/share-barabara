@@ -18,20 +18,21 @@ import {
   type CasualtyBreakdown,
 } from "@/components/site/party-casualty-inputs";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
-import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
+import { useAlertSeverities } from "@/hooks/useTaxonomy";
+import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
-import { matchOrCreateRoad } from "@/lib/roads";
+import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
+import { submitAlert } from "@/lib/alert.functions";
 
 export function AlertForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
-  const { data: hazardTypes = [] } = useHazardTypes();
+  const { data: hazardTypes = [] } = useIncidentTaxonomy();
   const { data: severities = [] } = useAlertSeverities();
   const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
@@ -47,12 +48,13 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
   const [partiesInvolved, setPartiesInvolved] = useState<string[]>([]);
   const [casualties, setCasualties] = useState<CasualtyBreakdown>({});
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const hazardLabels = new Map(hazardTypes.map((item) => [item.value, item.label]));
 
   const submit = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
-      const road_id = await matchOrCreateRoad(form.road, form.county);
-      const { error } = await supabase.from("alerts").insert({
+      const road_id = await findExistingRoad(form.road);
+      await submitAlert({ data: {
         ...form,
         road_id,
         parties_involved: partiesInvolved,
@@ -61,8 +63,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
         is_anonymous: identity.type === "profile" && anonymous,
-      });
-      if (error) throw error;
+      } });
     },
     onSuccess: () => {
       toast.success("Alert published, thank you");
@@ -132,6 +133,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
             <SelectContent>
               {hazardTypes.map((h) => (
                 <SelectItem key={h.value} value={h.value}>
+                  {h.parent_value ? `${hazardLabels.get(h.parent_value) ?? h.parent_value} · ` : ""}
                   {h.label}
                 </SelectItem>
               ))}

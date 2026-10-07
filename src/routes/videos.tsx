@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PublicPageHero } from "@/components/site/public-page-hero";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
 
 export const Route = createFileRoute("/videos")({
   head: () => ({
@@ -145,15 +147,12 @@ function VideosPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Watch
-      </p>
-      <h1 className="mt-2 text-[1.7325rem] font-extrabold">Road safety videos</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">
-        Videos promoting road safety and the Share Barabara culture, from Mjengo Hub and curated
-        from the community.
-      </p>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Watch"
+        title="Road-safety videos"
+        description="Watch road-safety and transport stories from Mjengo Hub and the Share Barabara community."
+      />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
@@ -260,6 +259,7 @@ function VideosPage() {
           )}
         </aside>
       </div>
+      <MjengoPreviews context="media" />
     </div>
   );
 }

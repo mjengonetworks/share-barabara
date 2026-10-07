@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoles } from "@/hooks/useRoles";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
@@ -136,8 +137,7 @@ function MyArticlesPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("news").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("article", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Article deleted");
@@ -169,7 +169,7 @@ function MyArticlesPage() {
               <DialogHeader>
                 <DialogTitle>New article</DialogTitle>
               </DialogHeader>
-              <ArticleForm onDone={() => setCreating(false)} />
+              <ArticleForm editorial onDone={() => setCreating(false)} />
             </DialogContent>
           </Dialog>
         ) : (

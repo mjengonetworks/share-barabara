@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { PageForm } from "@/components/site/page-form";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
@@ -56,8 +57,7 @@ function PagesAdminPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("pages").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("page", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Page removed");

@@ -4,6 +4,7 @@ import { CarFront, MapPin, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { timeAgo, longDate } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
+import { displayReportCount, knownReportSum } from "@/lib/report-metrics";
 
 export const Route = createFileRoute("/roads/$slug")({
   head: () => ({
@@ -82,8 +83,8 @@ function RoadProfilePage() {
     );
   }
 
-  const totalDeaths = reports.reduce((s, r) => s + r.fatalities, 0);
-  const totalInjured = reports.reduce((s, r) => s + r.casualties, 0);
+  const totalDeaths = knownReportSum(reports.map((r) => r.fatalities));
+  const totalInjured = knownReportSum(reports.map((r) => r.casualties));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -104,11 +105,11 @@ function RoadProfilePage() {
           <p className="mt-1 text-sm text-muted-foreground">Alerts recorded</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-5 card-elevated">
-          <p className="font-display text-3xl font-extrabold text-destructive">{totalDeaths}</p>
+          <p className="font-display text-3xl font-extrabold text-destructive">{totalDeaths.hasUnknown ? "Not confirmed" : totalDeaths.value}</p>
           <p className="mt-1 text-sm text-muted-foreground">Deaths reported</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-5 card-elevated">
-          <p className="font-display text-3xl font-extrabold text-caution">{totalInjured}</p>
+          <p className="font-display text-3xl font-extrabold text-caution">{totalInjured.hasUnknown ? "Not confirmed" : totalInjured.value}</p>
           <p className="mt-1 text-sm text-muted-foreground">Injuries reported</p>
         </div>
       </div>
@@ -166,7 +167,7 @@ function RoadProfilePage() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {r.fatalities} deaths, {r.casualties} injured
+                  {displayReportCount(r.fatalities)} deaths, {displayReportCount(r.casualties)} injured
                 </p>
               </li>
             ))}

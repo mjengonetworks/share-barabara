@@ -8,15 +8,88 @@ export type Database = {
   };
   public: {
     Tables: {
+      ai_chat_messages: {
+        Row: {
+          citations: Json;
+          content: string;
+          created_at: string;
+          id: string;
+          role: string;
+          thread_id: string;
+          user_id: string;
+        };
+        Insert: {
+          citations?: Json;
+          content: string;
+          created_at?: string;
+          id?: string;
+          role: string;
+          thread_id: string;
+          user_id: string;
+        };
+        Update: {
+          citations?: Json;
+          content?: string;
+          created_at?: string;
+          id?: string;
+          role?: string;
+          thread_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_messages_thread_user_fkey";
+            columns: ["thread_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_chat_threads";
+            referencedColumns: ["id", "user_id"];
+          },
+        ];
+      };
+      ai_chat_threads: {
+        Row: {
+          archived_at: string | null;
+          context_id: string | null;
+          context_type: string;
+          created_at: string;
+          id: string;
+          title: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          archived_at?: string | null;
+          context_id?: string | null;
+          context_type?: string;
+          created_at?: string;
+          id?: string;
+          title?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          context_id?: string | null;
+          context_type?: string;
+          created_at?: string;
+          id?: string;
+          title?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       alert_severities: {
         Row: {
-          created_at: string;
+            active: boolean;
+            created_at: string;
           id: string;
           label: string;
           sort_order: number;
           value: string;
         };
         Insert: {
+            active?: boolean;
           created_at?: string;
           id?: string;
           label: string;
@@ -24,6 +97,7 @@ export type Database = {
           value: string;
         };
         Update: {
+            active?: boolean;
           created_at?: string;
           id?: string;
           label?: string;
@@ -34,6 +108,7 @@ export type Database = {
       };
       hazard_types: {
         Row: {
+            active: boolean;
           created_at: string;
           id: string;
           label: string;
@@ -41,6 +116,7 @@ export type Database = {
           value: string;
         };
         Insert: {
+            active?: boolean;
           created_at?: string;
           id?: string;
           label: string;
@@ -48,6 +124,7 @@ export type Database = {
           value: string;
         };
         Update: {
+            active?: boolean;
           created_at?: string;
           id?: string;
           label?: string;
@@ -58,20 +135,26 @@ export type Database = {
       };
       news_categories: {
         Row: {
+            active: boolean;
           created_at: string;
           id: string;
+          label: string | null;
           name: string;
           sort_order: number;
         };
         Insert: {
+            active?: boolean;
           created_at?: string;
           id?: string;
+          label?: string | null;
           name: string;
           sort_order?: number;
         };
         Update: {
+            active?: boolean;
           created_at?: string;
           id?: string;
+          label?: string | null;
           name?: string;
           sort_order?: number;
         };
@@ -79,13 +162,15 @@ export type Database = {
       };
       report_severities: {
         Row: {
-          created_at: string;
+            active: boolean;
+            created_at: string;
           id: string;
           label: string;
           sort_order: number;
           value: string;
         };
         Insert: {
+            active?: boolean;
           created_at?: string;
           id?: string;
           label: string;
@@ -93,6 +178,7 @@ export type Database = {
           value: string;
         };
         Update: {
+            active?: boolean;
           created_at?: string;
           id?: string;
           label?: string;
@@ -881,6 +967,7 @@ export type Database = {
           body: string;
           category: string;
           categories: string[];
+          county: string | null;
           created_at: string;
           featured: boolean;
           id: string;
@@ -888,10 +975,15 @@ export type Database = {
           image_caption: string | null;
           image_credit: string | null;
           image_url: string | null;
+          latitude: number | null;
+          longitude: number | null;
+          location_label: string | null;
+          location_type: string | null;
           page_id: string | null;
           published_at: string;
           reviewed_at: string | null;
           reviewed_by: string | null;
+          road: string | null;
           slug: string;
           seo_description: string | null;
           seo_keywords: string | null;
@@ -907,6 +999,7 @@ export type Database = {
           body: string;
           category?: string;
           categories?: string[];
+          county?: string | null;
           created_at?: string;
           featured?: boolean;
           id?: string;
@@ -914,10 +1007,15 @@ export type Database = {
           image_caption?: string | null;
           image_credit?: string | null;
           image_url?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          location_label?: string | null;
+          location_type?: string | null;
           page_id?: string | null;
           published_at?: string;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
+          road?: string | null;
           slug: string;
           seo_description?: string | null;
           seo_keywords?: string | null;
@@ -933,6 +1031,7 @@ export type Database = {
           body?: string;
           category?: string;
           categories?: string[];
+          county?: string | null;
           created_at?: string;
           featured?: boolean;
           id?: string;
@@ -940,10 +1039,15 @@ export type Database = {
           image_caption?: string | null;
           image_credit?: string | null;
           image_url?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          location_label?: string | null;
+          location_type?: string | null;
           page_id?: string | null;
           published_at?: string;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
+          road?: string | null;
           slug?: string;
           seo_description?: string | null;
           seo_keywords?: string | null;
@@ -1112,20 +1216,26 @@ export type Database = {
       };
       page_categories: {
         Row: {
+          active: boolean;
           created_at: string;
           id: string;
+          label: string | null;
           name: string;
           sort_order: number;
         };
         Insert: {
+          active?: boolean;
           created_at?: string;
           id?: string;
+          label?: string | null;
           name: string;
           sort_order?: number;
         };
         Update: {
+          active?: boolean;
           created_at?: string;
           id?: string;
+          label?: string | null;
           name?: string;
           sort_order?: number;
         };

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { Megaphone } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
  * falls back to a house placeholder promoting Partner With Us, rather than
  * rendering nothing, since a promotional slot is a site-wide requirement.
  */
-export function BannerAd({ className = "" }: { className?: string }) {
+export function BannerAd({ className = "", placement = "site-default" }: { className?: string; placement?: string }) {
   const { data: ads = [] } = useQuery({
     queryKey: ["banner-ads"],
     queryFn: async () => {
@@ -31,6 +31,7 @@ export function BannerAd({ className = "" }: { className?: string }) {
         href={ad.link_url}
         target="_blank"
         rel="noopener noreferrer sponsored"
+        data-ad-placement={placement}
         className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 transition-colors hover:border-accent ${className}`}
       >
         {ad.image_url ? (
@@ -38,26 +39,25 @@ export function BannerAd({ className = "" }: { className?: string }) {
         ) : (
           <Megaphone className="size-6 text-accent" />
         )}
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Advertisement{ad.advertiser ? ` · ${ad.advertiser}` : ""}
           </p>
           <p className="font-semibold">{ad.title}</p>
         </div>
+        <span className="shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Visit Advertiser</span>
       </a>
     );
   }
 
   return (
-    <Link
-      to="/partner-with-us"
-      className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 transition-colors hover:border-accent ${className}`}
-    >
+    <div data-ad-placement={placement} className={`flex flex-wrap items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 ${className}`}>
       <Megaphone className="size-6 text-accent" />
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Advertisement</p>
-        <p className="font-semibold">Advertise your road safety business here</p>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold uppercase tracking-wide">YOUR AD HERE</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Reach road users and the wider built environment community.</p>
       </div>
-    </Link>
+      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Partner With Us</Link>
+    </div>
   );
 }

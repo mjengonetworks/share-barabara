@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { FileVideo, ImageUp, Loader2, X } from "lucide-react";
+import { FileText, FileVideo, ImageUp, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,14 +8,14 @@ import { uploadMedia } from "@/lib/storage";
 
 export type Attachment = {
   url: string;
-  type: "image" | "video";
+  type: "image" | "video" | "document";
   caption?: string;
   credit?: string;
 };
 
 /** Multiple image/video attachments, uploaded separately from any featured
- *  image or inline content images — used by alerts, and by reports for the
- *  gallery shown at the end of the write-up. */
+ *  image or inline content images — used by alerts, reports and editorial
+ *  updates. Documents are retained as links and are not blindly embedded. */
 export function AttachmentsField({
   value,
   onChange,
@@ -26,9 +26,10 @@ export function AttachmentsField({
   const { user } = useAuth();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  async function handleFile(file: File | undefined, type: "image" | "video") {
+  async function handleFile(file: File | undefined, type: "image" | "video" | "document") {
     if (!file || !user) return;
     setUploading(true);
     try {
@@ -40,6 +41,7 @@ export function AttachmentsField({
       setUploading(false);
       if (imageInputRef.current) imageInputRef.current.value = "";
       if (videoInputRef.current) videoInputRef.current.value = "";
+      if (documentInputRef.current) documentInputRef.current.value = "";
     }
   }
 
@@ -53,9 +55,13 @@ export function AttachmentsField({
         <div key={a.url} className="flex gap-3 rounded border border-border bg-muted/30 p-2">
           {a.type === "image" ? (
             <img src={a.url} alt="" className="size-16 shrink-0 rounded object-cover" />
-          ) : (
+          ) : a.type === "video" ? (
             <div className="flex size-16 shrink-0 items-center justify-center rounded bg-muted">
               <FileVideo className="size-6 text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="flex size-16 shrink-0 items-center justify-center rounded bg-muted">
+              <FileText className="size-6 text-muted-foreground" />
             </div>
           )}
           <div className="flex-1 space-y-1.5">
@@ -102,17 +108,33 @@ export function AttachmentsField({
           variant="outline"
           size="sm"
           disabled={uploading}
-          onClick={() => videoInputRef.current?.click()}
+        onClick={() => videoInputRef.current?.click()}
         >
           <FileVideo className="mr-1.5 size-4" /> Add video
         </Button>
       </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={uploading}
+        onClick={() => documentInputRef.current?.click()}
+      >
+        <FileText className="mr-1.5 size-4" /> Add document
+      </Button>
       <input
         ref={imageInputRef}
         type="file"
         accept="image/*"
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0], "image")}
+      />
+      <input
+        ref={documentInputRef}
+        type="file"
+        accept="application/pdf,.doc,.docx,text/plain"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0], "document")}
       />
       <input
         ref={videoInputRef}

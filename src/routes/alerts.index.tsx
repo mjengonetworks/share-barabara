@@ -20,13 +20,17 @@ import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useProfileLeaderboard } from "@/hooks/useContributionLeaderboards";
 import { timeAgo } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/constants";
-import { useHazardTypes } from "@/hooks/useTaxonomy";
+import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
+import { descendantsOf } from "@/lib/incident-taxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
 import { AlertForm } from "@/components/site/alert-form";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
+import { PublicPageHero } from "@/components/site/public-page-hero";
+import heroRoad from "@/assets/hero-road.jpg";
 
 export const Route = createFileRoute("/alerts/")({
   validateSearch: (search: Record<string, unknown>): { county?: string; hazard?: string } => {
@@ -86,7 +90,7 @@ function AlertsPage() {
   const [county, setCounty] = useState(searchParams.county ?? "all");
   const [hazard, setHazard] = useState(searchParams.hazard ?? "all");
   const [openId, setOpenId] = useState<string | null>(null);
-  const { data: hazardTypes = [] } = useHazardTypes();
+  const { data: hazardTypes = [] } = useIncidentTaxonomy();
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ["alerts"],
@@ -110,9 +114,11 @@ function AlertsPage() {
     alerts.map((a) => a.id),
   );
 
+  const selectedHazards = hazard === "all" ? null : descendantsOf(hazardTypes, hazard);
   const visible = alerts.filter(
     (a) =>
-      (county === "all" || a.county === county) && (hazard === "all" || a.hazard_type === hazard),
+      (county === "all" || a.county === county) &&
+      (!selectedHazards || selectedHazards.has(a.hazard_type)),
   );
   const latest = alerts.slice(0, 3);
 
@@ -129,22 +135,14 @@ function AlertsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-            Live feed
-          </p>
-          <h1 className="mt-2 text-[1.7325rem] font-extrabold">Road hazard alerts</h1>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Hazards reported by road users across the 47 counties. Check before you travel, and add
-            what you see on your route.
-          </p>
-        </div>
-        <Button asChild>
-          <a href="#alert-form">Submit alert</a>
-        </Button>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Community road watch"
+        title="Road hazard alerts"
+        description="Current hazards, closures and disruptions reported by road users across Kenya. Check what is ahead and share what you see on your route."
+        image={heroRoad}
+        primaryCta={{ label: "Submit an alert", to: "/alerts#alert-form" }}
+      />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
@@ -360,6 +358,7 @@ function AlertsPage() {
       </div>
 
       <TopContributingProfiles />
+      <MjengoPreviews context="alerts" />
     </div>
   );
 }

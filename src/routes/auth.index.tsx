@@ -7,13 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { safeInternalReturnTo } from "@/lib/ai/return-to-ai";
 
 const PENDING_REFERRAL_KEY = "sb_pending_referral";
 
 export const Route = createFileRoute("/auth/")({
-  validateSearch: (search: Record<string, unknown>): { ref?: string } => {
+  validateSearch: (search: Record<string, unknown>): { ref?: string; returnTo?: string } => {
     const ref = typeof search["ref"] === "string" ? (search["ref"] as string) : undefined;
-    return ref ? { ref } : {};
+    const returnTo = safeInternalReturnTo(search["returnTo"]);
+    return { ...(ref ? { ref } : {}), ...(returnTo ? { returnTo } : {}) };
   },
   head: () => ({
     meta: [
@@ -37,7 +39,7 @@ export const Route = createFileRoute("/auth/")({
 function AuthPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { ref } = Route.useSearch();
+  const { ref, returnTo } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,19 +61,22 @@ function AuthPage() {
       localStorage.removeItem(PENDING_REFERRAL_KEY);
       void supabase.rpc("apply_referral_code", { _code: pending }).then();
     }
-    navigate({ to: "/dashboard", replace: true });
-  }, [user, navigate]);
+    if (returnTo) window.location.assign(returnTo);
+    else navigate({ to: "/dashboard", replace: true });
+  }, [user, navigate, returnTo]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
       if (mode === "signup") {
+        const confirmation = new URL("/auth", window.location.origin);
+        confirmation.searchParams.set("returnTo", safeInternalReturnTo(returnTo) ?? "/dashboard");
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: confirmation.toString(),
             data: { display_name: displayName || email.split("@")[0] },
           },
         });
@@ -93,9 +98,11 @@ function AuthPage() {
   }
 
   async function google() {
+    const callback = new URL("/auth", window.location.origin);
+    callback.searchParams.set("returnTo", safeInternalReturnTo(returnTo) ?? "/dashboard");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: callback.toString() },
     });
     if (error) toast.error(error.message);
     // On success the browser is redirected to Google, then back to redirectTo
@@ -162,6 +169,12 @@ function AuthPage() {
         ) : null}
 
         <Button variant="outline" className="mt-6 w-full" onClick={google}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="mr-2 size-5" role="img">
+            <path fill="#4285F4" d="M21.6 12.23c0-.79-.07-1.55-.2-2.28H12v4.31h5.38a4.6 4.6 0 0 1-1.99 3.02v2.51h3.23c1.89-1.74 2.98-4.3 2.98-7.56Z" />
+            <path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.44l-3.23-2.51c-.9.6-2.05.96-3.39.96-2.61 0-4.82-1.76-5.61-4.13H3.05v2.59A10 10 0 0 0 12 22Z" />
+            <path fill="#FBBC05" d="M6.39 13.88A6 6 0 0 1 6.08 12c0-.65.11-1.28.31-1.88V7.53H3.05A10 10 0 0 0 2 12c0 1.61.39 3.13 1.05 4.47l3.34-2.59Z" />
+            <path fill="#EA4335" d="M12 5.99c1.47 0 2.79.5 3.83 1.49l2.87-2.87C16.95 2.98 14.7 2 12 2a10 10 0 0 0-8.95 5.53l3.34 2.59C7.18 7.75 9.39 5.99 12 5.99Z" />
+          </svg>
           Continue with Google
         </Button>
 

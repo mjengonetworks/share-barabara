@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-/** View counts per entity, for admin list rows. Requires moderator rank or
- *  above to read (see news_views / accident_report_views RLS). */
+/** View counts per entity, for admin list rows. Counts raw view events; an
+ *  entity with no event rows therefore has zero recorded views. Requires the
+ *  applicable staff rank from the view-table RLS policies. */
 export function useViewCounts(
-  table: "news_views" | "accident_report_views",
-  idColumn: "news_id" | "report_id",
+  table: "news_views" | "accident_report_views" | "alert_views",
+  idColumn: "news_id" | "report_id" | "alert_id",
   ids: string[],
 ) {
   const unique = Array.from(new Set(ids)).sort();

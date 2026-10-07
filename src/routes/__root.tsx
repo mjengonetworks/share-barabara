@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -87,12 +88,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Share Barabara: Road Safety in Kenya" },
       {
         name: "description",
-        content: "Road safety for Kenya: live hazard alerts, crash statistics, news and guidance.",
+        content: "Road safety for Kenya: live hazard alerts, crash statistics, news and articles.",
       },
       { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
       {
         property: "og:description",
-        content: "Live hazard alerts, crash statistics, news and guidance for Kenyan roads.",
+        content: "Live hazard alerts, crash statistics, news and articles for Kenyan roads.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Share Barabara" },
@@ -107,11 +108,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
+      {
+        rel: "alternate",
+        type: "application/rss+xml",
+        title: "Share Barabara: Latest News & Articles",
+        href: "/feed.xml",
+      },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Public+Sans:wght@400;500;600;700&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        tag: "script",
+        attrs: {
+          async: true,
+          src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3450370806251490",
+          crossOrigin: "anonymous",
+        },
       },
     ],
   }),
@@ -137,6 +154,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isAdminApp = pathname === "/admin" || pathname.startsWith("/admin/");
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -146,13 +165,13 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </main>
-        <SiteFooter />
+        {!isAdminApp ? <SiteFooter /> : null}
       </div>
       <Toaster />
-      <NotificationPermissionPrompt />
-      <InstallAppPrompt />
-      <CookieConsent />
-      <MockApiBadge />
+      {!isAdminApp ? <NotificationPermissionPrompt /> : null}
+      {!isAdminApp ? <InstallAppPrompt /> : null}
+      {!isAdminApp ? <CookieConsent /> : null}
+      {!isAdminApp ? <MockApiBadge /> : null}
     </QueryClientProvider>
   );
 }

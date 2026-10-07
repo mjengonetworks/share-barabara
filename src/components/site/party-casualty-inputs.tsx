@@ -14,6 +14,58 @@ export type CasualtyBreakdown = Record<
   { dead?: number; injured?: number; subtype?: string }
 >;
 
+/** Keep unclassified people in the totals until an editor can verify who they were. */
+export function withUnspecifiedCasualties(
+  breakdown: CasualtyBreakdown,
+  totals: { dead: number | null; injured: number | null },
+): CasualtyBreakdown {
+  const classified = Object.entries(breakdown)
+    .filter(([party]) => party !== "unspecified")
+    .reduce(
+      (sum, [, entry]) => ({
+        dead: sum.dead + (entry.dead ?? 0),
+        injured: sum.injured + (entry.injured ?? 0),
+      }),
+    { dead: 0, injured: 0 },
+    );
+  const dead = totals.dead === null ? null : Math.max(0, totals.dead - classified.dead);
+  const injured = totals.injured === null ? null : Math.max(0, totals.injured - classified.injured);
+  const next = { ...breakdown };
+  if (dead !== null || injured !== null) {
+    const existing = next.unspecified ?? {};
+    next.unspecified = {
+      ...(dead !== null ? { dead } : existing.dead !== undefined ? { dead: existing.dead } : {}),
+      ...(injured !== null
+        ? { injured }
+        : existing.injured !== undefined
+          ? { injured: existing.injured }
+          : {}),
+    };
+    if (next.unspecified.dead === 0 && next.unspecified.injured === 0) delete next.unspecified;
+  }
+  return next;
+}
+
+export function casualtyBreakdownError(
+  breakdown: CasualtyBreakdown,
+  totals: { dead: number | null; injured: number | null },
+) {
+  const classified = Object.entries(breakdown)
+    .filter(([party]) => party !== "unspecified")
+    .reduce(
+      (sum, [, entry]) => ({
+        dead: sum.dead + (entry.dead ?? 0),
+        injured: sum.injured + (entry.injured ?? 0),
+      }),
+      { dead: 0, injured: 0 },
+    );
+  if (totals.dead !== null && classified.dead > totals.dead)
+    return "Classified fatalities cannot exceed the confirmed fatality total";
+  if (totals.injured !== null && classified.injured > totals.injured)
+    return "Classified injuries cannot exceed the confirmed injury total";
+  return null;
+}
+
 const SUBTYPE_OPTIONS: Record<string, readonly { value: string; label: string }[]> = {
   passenger: PASSENGER_VEHICLE_TYPES,
   motorcyclist: MOTORCYCLIST_SUBTYPES,

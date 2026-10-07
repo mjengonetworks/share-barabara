@@ -10,7 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 export function NewsletterForm({ className = "" }: { className?: string }) {
   const { user } = useAuth();
   const [email, setEmail] = useState(user?.email ?? "");
-  const [done, setDone] = useState(false);
+  const [status, setStatus] = useState<"idle" | "subscribed" | "already">("idle");
+  const [validationError, setValidationError] = useState("");
 
   const subscribe = useMutation({
     mutationFn: async () => {
@@ -19,19 +20,29 @@ export function NewsletterForm({ className = "" }: { className?: string }) {
         .insert({ email: email.trim().toLowerCase(), user_id: user?.id ?? null });
       // A duplicate email means they're already subscribed — treat as success
       // rather than a real error.
-      if (error && error.code !== "23505") throw error;
+      if (error?.code === "23505") return "already" as const;
+      if (error) throw error;
+      return "subscribed" as const;
     },
-    onSuccess: () => {
-      setDone(true);
-      toast.success("You're subscribed to the Share Barabara newsletter");
+    onSuccess: (result) => {
+      setStatus(result);
+      toast.success(result === "already" ? "You're already subscribed" : "You're subscribed to the Share Barabara newsletter");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: () => toast.error("We couldn't subscribe you right now. Please try again."),
   });
 
-  if (done) {
+  if (status === "subscribed") {
     return (
       <p className={`text-sm font-semibold ${className}`}>
         Thanks, you're on the list — watch your inbox for our next update.
+      </p>
+    );
+  }
+
+  if (status === "already") {
+    return (
+      <p className={`text-sm font-semibold ${className}`}>
+        You're already subscribed — we'll keep you posted.
       </p>
     );
   }
@@ -41,6 +52,11 @@ export function NewsletterForm({ className = "" }: { className?: string }) {
       className={`flex flex-wrap items-center gap-2 ${className}`}
       onSubmit={(e) => {
         e.preventDefault();
+        if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) {
+          setValidationError("Enter a valid email address.");
+          return;
+        }
+        setValidationError("");
         subscribe.mutate();
       }}
     >
@@ -51,6 +67,7 @@ export function NewsletterForm({ className = "" }: { className?: string }) {
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.com"
         className="max-w-xs bg-background"
+        aria-invalid={Boolean(validationError)}
       />
       <Button
         type="submit"
@@ -60,6 +77,7 @@ export function NewsletterForm({ className = "" }: { className?: string }) {
         <Mail className="mr-1 size-4" />
         {subscribe.isPending ? "Subscribing…" : "Subscribe"}
       </Button>
+      {validationError && <p className="basis-full text-xs text-destructive">{validationError}</p>}
     </form>
   );
 }

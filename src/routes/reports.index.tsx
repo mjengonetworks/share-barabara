@@ -23,16 +23,22 @@ import { longDate, timeAgo } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
 import { BannerAd } from "@/components/site/banner-ad";
+import { displayReportCount } from "@/lib/report-metrics";
+import { PublicPageHero } from "@/components/site/public-page-hero";
+import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
+import { descendantsOf, incidentLabel } from "@/lib/incident-taxonomy";
 
 export const Route = createFileRoute("/reports/")({
-  validateSearch: (search: Record<string, unknown>): { county?: string; severity?: string } => {
+  validateSearch: (search: Record<string, unknown>): { county?: string; severity?: string; incident?: string } => {
     const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
     const severity =
       typeof search["severity"] === "string" ? (search["severity"] as string) : undefined;
-    return { ...(county ? { county } : {}), ...(severity ? { severity } : {}) };
+    const incident = typeof search["incident"] === "string" ? (search["incident"] as string) : undefined;
+    return { ...(county ? { county } : {}), ...(severity ? { severity } : {}), ...(incident ? { incident } : {}) };
   },
   head: () => ({
     meta: [
@@ -84,8 +90,10 @@ function ReportsPage() {
   const searchParams = Route.useSearch();
   const [county, setCounty] = useState(searchParams.county ?? "all");
   const [severity, setSeverity] = useState(searchParams.severity ?? "all");
+  const [incident, setIncident] = useState(searchParams.incident ?? "all");
   const [search, setSearch] = useState("");
   const { data: severities = [] } = useReportSeverities();
+  const { data: incidentTypes = [] } = useIncidentTaxonomy();
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports"],
@@ -112,9 +120,11 @@ function ReportsPage() {
   );
   const visible = reports.filter((r) => {
     const q = search.trim().toLowerCase();
+    const incidentValues = incident === "all" ? null : descendantsOf(incidentTypes, incident);
     return (
       (county === "all" || r.county === county) &&
       (severity === "all" || r.severity === severity) &&
+      (!incidentValues || incidentValues.has((r as { incident_type?: string | null }).incident_type ?? "")) &&
       (!q ||
         r.title.toLowerCase().includes(q) ||
         r.description.toLowerCase().includes(q) ||
@@ -136,23 +146,13 @@ function ReportsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-            Crash record
-          </p>
-          <h1 className="mt-2 text-[1.7325rem] font-extrabold">Accident reports</h1>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Crash reports filed by the community and reviewed by our editors before publication.
-            Each report carries a shared byline: the road user who filed it and the editor who
-            verified it.
-          </p>
-        </div>
-        <Button asChild>
-          <a href="#report-form">Submit a report</a>
-        </Button>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <PublicPageHero
+        eyebrow="Community reporting"
+        title="Crash and incident reports"
+        description="Browse approved road-safety reports from the community, or contribute useful information about an incident you know."
+        primaryCta={{ label: "Submit a report", to: "/reports#report-form" }}
+      />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div>
@@ -240,6 +240,17 @@ function ReportsPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={incident} onValueChange={setIncident}>
+              <SelectTrigger className="w-56"><SelectValue placeholder="Incident type" /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="all">All incident types</SelectItem>
+                {incidentTypes.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.parent_value ? `${incidentLabel(incidentTypes, item.parent_value)} · ` : ""}{item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -317,13 +328,13 @@ function ReportsPage() {
                   </p>
                   <div className="mt-3 flex flex-wrap gap-4 text-sm">
                     <span>
-                      <strong>{r.vehicles_involved}</strong> vehicles
+                      <strong>{displayReportCount(r.vehicles_involved)}</strong> vehicles
                     </span>
                     <span>
-                      <strong>{r.casualties}</strong> injured
+                      <strong>{displayReportCount(r.casualties)}</strong> injured
                     </span>
                     <span className="text-destructive">
-                      <strong>{r.fatalities}</strong> deaths
+                      <strong>{displayReportCount(r.fatalities)}</strong> deaths
                     </span>
                   </div>
                   <p className="mt-3 line-clamp-2 text-sm text-foreground/90">{r.description}</p>
@@ -368,6 +379,7 @@ function ReportsPage() {
           )}
         </aside>
       </div>
+      <MjengoPreviews context="reports" />
     </div>
   );
 }

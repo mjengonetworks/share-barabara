@@ -9,6 +9,7 @@ import {
   ExternalLink,
   MoreVertical,
   Pencil,
+  Plus,
   ShieldAlert,
   Trash2,
 } from "lucide-react";
@@ -32,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfileNames } from "@/lib/profiles";
 import { useViewCounts } from "@/hooks/useViewCounts";
@@ -45,6 +47,12 @@ import {
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { NullableNumberField } from "@/components/site/nullable-number-field";
+import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs";
+import { LocationButton } from "@/components/site/location-button";
+import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
+import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -56,10 +64,12 @@ type ReportDraft = {
   description: string;
   county: string;
   road: string;
+  latitude: number | null;
+  longitude: number | null;
   severity: string;
-  vehicles_involved: number;
-  casualties: number;
-  fatalities: number;
+  vehicles_involved: number | null;
+  casualties: number | null;
+  fatalities: number | null;
   editor_note: string;
   image_alt: string;
   image_caption: string;
@@ -82,6 +92,7 @@ function ReportsQueuePage() {
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, ReportDraft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [canonicalIds, setCanonicalIds] = useState<Record<string, string>>({});
 
   const { data: allReports = [], isLoading } = useQuery({
     queryKey: ["admin-reports"],
@@ -109,7 +120,7 @@ function ReportsQueuePage() {
   }, [allReports, statusFilter, severityFilter, countyFilter, search]);
 
   const { data: names = {} } = useProfileNames(reports.map((r) => r.user_id));
-  const { data: viewCounts = {} } = useViewCounts(
+  const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
     "accident_report_views",
     "report_id",
     reports.map((r) => r.id),
@@ -125,6 +136,13 @@ function ReportsQueuePage() {
       status: "approved" | "rejected" | "pending";
       draft?: ReportDraft;
     }) => {
+      if (draft) {
+        const breakdownError = casualtyBreakdownError(draft.casualty_breakdown, {
+          dead: draft.fatalities,
+          injured: draft.casualties,
+        });
+        if (breakdownError) throw new Error(breakdownError);
+      }
       const patch = {
         status,
         reviewed_by: user?.id ?? null,
@@ -141,7 +159,7 @@ function ReportsQueuePage() {
             }
           : {}),
       };
-      const { error } = await supabase.from("accident_reports").update(patch).eq("id", id);
+      const { error } = await supabase.from("accident_reports").update(patch as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -155,12 +173,29 @@ function ReportsQueuePage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("accident_reports").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("report", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Report deleted");
       setExpandedId(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const mergeDuplicate = useMutation({
+    mutationFn: async ({ duplicateId, canonicalId }: { duplicateId: string; canonicalId: string }) => {
+      if (!canonicalId || canonicalId === duplicateId) throw new Error("Choose a different approved canonical report.");
+      const { error } = await (supabase.rpc as any)("merge_duplicate_report", {
+        _duplicate_report_id: duplicateId,
+        _canonical_report_id: canonicalId,
+        _note: "Duplicate report merged into the approved canonical incident.",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Duplicate merged into the canonical report");
       queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
       queryClient.invalidateQueries({ queryKey: ["reports"] });
     },
@@ -176,6 +211,10 @@ function ReportsQueuePage() {
       <p className="mt-2 text-muted-foreground">
         Edit submissions for accuracy and clarity, then approve them.
       </p>
+      <IncidentDiscoveryPanel />
+      <Button asChild className="mt-4">
+        <Link to="/reports"><Plus className="mr-1.5 size-4" /> Add new report</Link>
+      </Button>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>
@@ -249,6 +288,8 @@ function ReportsQueuePage() {
             description: r.description,
             county: r.county,
             road: r.road ?? "",
+            latitude: r.latitude,
+            longitude: r.longitude,
             severity: r.severity,
             vehicles_involved: r.vehicles_involved,
             casualties: r.casualties,
@@ -279,7 +320,7 @@ function ReportsQueuePage() {
                     <img
                       src={r.image_url}
                       alt=""
-                      className="size-14 shrink-0 rounded object-cover"
+                      className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
                     />
                   ) : (
                     <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
@@ -296,9 +337,15 @@ function ReportsQueuePage() {
                         Filed by <UserLink userId={r.user_id} name={names[r.user_id]} />
                       </span>
                       <span className="inline-flex items-center gap-0.5">
-                        · <Eye className="size-3" /> {viewCounts[r.id] ?? 0}
+                        · <Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[r.id] ?? 0}
                       </span>
                       <span>· {dateTime(r.created_at)}</span>
+                    </p>
+                    <p className="mt-1 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
+                      <span>County: {r.county || "Not specified"}</span>
+                      <span>Injured: {r.casualties === null || r.casualties === undefined ? "Unknown" : r.casualties}</span>
+                      <span>Deaths: {r.fatalities === null || r.fatalities === undefined ? "Unknown" : r.fatalities}</span>
+                      {r.duplicate_of_report_id ? <span>Linked duplicate</span> : null}
                     </p>
                   </div>
                 </button>
@@ -355,6 +402,59 @@ function ReportsQueuePage() {
               {expanded ? (
                 <div className="border-t border-border p-5">
                   <div className="space-y-4">
+                    {(["generate", "autopopulate"] as const).map((mode) => (
+                      <EditorialAIButton
+                        key={mode}
+                        contentType="report"
+                        mode={mode}
+                        source={`${d["title"]}\n${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}`}
+                        onDraft={(draft) =>
+                          set({
+                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                            ...(typeof draft["description"] === "string" ? { description: draft["description"] } : {}),
+                            ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
+                            ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
+                            ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
+                            ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null
+                              ? { vehicles_involved: draft["vehicles_involved"] }
+                              : {}),
+                            ...(typeof draft["casualties"] === "number" || draft["casualties"] === null
+                              ? { casualties: draft["casualties"] }
+                              : {}),
+                            ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null
+                              ? { fatalities: draft["fatalities"] }
+                              : {}),
+                          })
+                        }
+                      />
+                    ))}
+                    <EditorialAIButton
+                      contentType="report"
+                      source={`${d["title"]}\n${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}`}
+                      mode="update"
+                      contentId={r.id}
+                      current={d}
+                      onDraft={(draft) =>
+                        set({
+                          ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                          ...(typeof draft["description"] === "string"
+                            ? { description: draft["description"] }
+                            : {}),
+                          ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
+                          ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
+                          ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
+                          ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null
+                            ? { vehicles_involved: draft["vehicles_involved"] }
+                            : {}),
+                          ...(typeof draft["casualties"] === "number" || draft["casualties"] === null
+                            ? { casualties: draft["casualties"] }
+                            : {}),
+                          ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null
+                            ? { fatalities: draft["fatalities"] }
+                            : {}),
+                        })
+                      }
+                    />
                     <div>
                       <Label htmlFor={`t-${r.id}`}>Summary</Label>
                       <Input
@@ -402,37 +502,14 @@ function ReportsQueuePage() {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="sm:col-span-2 rounded border border-dashed border-border bg-muted/30 p-3">
+                        <Label>Point location (optional)</Label>
+                        <LocationButton idPrefix={`report-${r.id}-location`} latitude={d.latitude} longitude={d.longitude} onLocate={(latitude, longitude) => set({ latitude, longitude })} />
+                      </div>
                       <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <Label htmlFor={`v-${r.id}`}>Vehicles</Label>
-                          <Input
-                            id={`v-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.vehicles_involved}
-                            onChange={(e) => set({ vehicles_involved: Number(e.target.value) })}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`i-${r.id}`}>Injured</Label>
-                          <Input
-                            id={`i-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.casualties}
-                            onChange={(e) => set({ casualties: Number(e.target.value) })}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`f-${r.id}`}>Deaths</Label>
-                          <Input
-                            id={`f-${r.id}`}
-                            type="number"
-                            min={0}
-                            value={d.fatalities}
-                            onChange={(e) => set({ fatalities: Number(e.target.value) })}
-                          />
-                        </div>
+                        <NullableNumberField id={`v-${r.id}`} label="Vehicles" value={d.vehicles_involved} onChange={(value) => set({ vehicles_involved: value })} />
+                        <NullableNumberField id={`i-${r.id}`} label="Injured" value={d.casualties} onChange={(value) => set({ casualties: value })} />
+                        <NullableNumberField id={`f-${r.id}`} label="Deaths" value={d.fatalities} onChange={(value) => set({ fatalities: value })} />
                       </div>
                     </div>
                     <div>
@@ -453,38 +530,6 @@ function ReportsQueuePage() {
                         onChange={(e) => set({ editor_note: e.target.value })}
                         placeholder="Verification details, corrections or context added during review."
                       />
-                    </div>
-                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        Featured image details
-                      </p>
-                      <div>
-                        <Label htmlFor={`rimg-alt-${r.id}`}>Alt text</Label>
-                        <Input
-                          id={`rimg-alt-${r.id}`}
-                          value={d.image_alt}
-                          onChange={(e) => set({ image_alt: e.target.value })}
-                          placeholder="Describes the image for screen readers and search engines"
-                        />
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <Label htmlFor={`rimg-cap-${r.id}`}>Caption</Label>
-                          <Input
-                            id={`rimg-cap-${r.id}`}
-                            value={d.image_caption}
-                            onChange={(e) => set({ image_caption: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`rimg-cred-${r.id}`}>Credit / source</Label>
-                          <Input
-                            id={`rimg-cred-${r.id}`}
-                            value={d.image_credit}
-                            onChange={(e) => set({ image_credit: e.target.value })}
-                          />
-                        </div>
-                      </div>
                     </div>
                     <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -516,6 +561,20 @@ function ReportsQueuePage() {
                           onChange={(e) => set({ seo_keywords: e.target.value })}
                           placeholder="comma, separated, keywords"
                         />
+                      </div>
+                    </div>
+                    <EditorialUpdatesManager
+                      parentType="report"
+                      parentId={r.id}
+                      parentTitle={d.title}
+                      parentBody={d.description}
+                    />
+                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Featured image details</p>
+                      <div><Label htmlFor={`rimg-alt-${r.id}`}>Alt text</Label><Input id={`rimg-alt-${r.id}`} value={d.image_alt} onChange={(e) => set({ image_alt: e.target.value })} placeholder="Describes the image for screen readers and search engines" /></div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div><Label htmlFor={`rimg-cap-${r.id}`}>Caption</Label><Input id={`rimg-cap-${r.id}`} value={d.image_caption} onChange={(e) => set({ image_caption: e.target.value })} /></div>
+                        <div><Label htmlFor={`rimg-cred-${r.id}`}>Credit / source</Label><Input id={`rimg-cred-${r.id}`} value={d.image_credit} onChange={(e) => set({ image_credit: e.target.value })} /></div>
                       </div>
                     </div>
                     <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
@@ -553,6 +612,9 @@ function ReportsQueuePage() {
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="flex min-w-64 flex-1 items-end gap-2 rounded border border-dashed border-border p-2">
+                      <div className="min-w-0 flex-1"><Label>Duplicate of approved report</Label><Select value={canonicalIds[r.id] ?? "none"} onValueChange={(value) => setCanonicalIds((current) => ({ ...current, [r.id]: value === "none" ? "" : value }))}><SelectTrigger><SelectValue placeholder="Choose canonical report" /></SelectTrigger><SelectContent className="max-w-[32rem]"><SelectItem value="none">Not a duplicate</SelectItem>{allReports.filter((candidate) => candidate.id !== r.id && candidate.status === "approved").map((candidate) => <SelectItem key={candidate.id} value={candidate.id}>{candidate.title}</SelectItem>)}</SelectContent></Select></div><Button type="button" variant="outline" disabled={!canonicalIds[r.id] || mergeDuplicate.isPending} onClick={() => { if (window.confirm("Merge this report into the selected canonical incident? The duplicate will no longer publish.")) mergeDuplicate.mutate({ duplicateId: r.id, canonicalId: canonicalIds[r.id] }); }}>Merge</Button>
+                    </div>
                     <Button
                       disabled={save.isPending}
                       onClick={() => save.mutate({ id: r.id, status: "approved", draft: d })}

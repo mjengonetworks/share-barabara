@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Flame } from "lucide-react";
+import { ChevronRight, Flame, Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDateWithDay } from "@/lib/format";
 import {
@@ -18,10 +18,14 @@ import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
+import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
+import { NewsletterForm } from "@/components/site/newsletter-form";
+import { DiscoverySections } from "@/components/site/discovery-sections";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
-    const { data } = await supabase.from("news").select("*").eq("slug", params.slug).maybeSingle();
+    const { data } = await supabase.from("news").select("*").eq("slug", params.slug).eq("status", "published").maybeSingle();
+    if (!data) throw notFound();
     return data;
   },
   head: ({ loaderData }) => {
@@ -45,23 +49,26 @@ export const Route = createFileRoute("/news/$slug")({
   component: NewsDetail,
 });
 
-type RelatedArticle = { id: string; slug: string; title: string; category: string };
+type RelatedArticle = { id: string; slug: string; title: string; category?: string | null; image_url?: string | null; published_at?: string | null; source?: string | null };
 
 function ArticleList({ articles }: { articles: RelatedArticle[] }) {
   return (
-    <ul className="mt-3 space-y-3">
-      {articles.map((a) => (
-        <li key={a.id}>
-          <Link
-            to="/news/$slug"
-            params={{ slug: a.slug }}
-            className="text-sm text-brand-blue hover:underline"
-          >
-            {a.title}
-          </Link>
-        </li>
+    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+      {articles.map((a, index) => (
+        <Link
+          key={a.id}
+          to="/news/$slug"
+          params={{ slug: a.slug }}
+          className={`group min-w-0 overflow-hidden rounded-md border border-border/70 bg-background/60 transition-colors hover:border-accent ${index === 0 ? "lg:border-accent/60" : ""}`}
+        >
+          {a.image_url ? <img src={a.image_url} alt="" loading="lazy" className="aspect-video w-full object-cover" /> : <div className="flex aspect-video w-full items-center justify-center bg-muted"><Newspaper className="size-6 text-muted-foreground" aria-hidden="true" /></div>}
+          <span className="block min-w-0 p-3">
+            <span className={`${index === 0 ? "text-base" : "text-sm"} line-clamp-2 font-semibold text-brand-blue group-hover:underline`}>{a.title}</span>
+            <span className="mt-1 block truncate text-[0.68rem] text-muted-foreground">{a.category ?? "News"}{a.source ? ` · ${a.source}` : ""}</span>
+          </span>
+        </Link>
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -75,6 +82,7 @@ function NewsDetail() {
         .from("news")
         .select("*")
         .eq("slug", slug)
+        .eq("status", "published")
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -102,21 +110,24 @@ function NewsDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, category")
+        .select("id, slug, title, category, image_url, published_at, source")
         .eq("category", article!.category)
+        .eq("status", "published")
         .neq("id", article!.id)
+        .eq("status", "published")
         .order("published_at", { ascending: false })
-        .limit(5);
+        .limit(4);
       if (error) throw error;
       if (data.length > 0) return data;
       // Nothing else in this category yet — fall back to other recent
       // articles so "Related articles" is never empty.
       const fallback = await supabase
         .from("news")
-        .select("id, slug, title, category")
+        .select("id, slug, title, category, image_url, published_at, source")
         .neq("id", article!.id)
+        .eq("status", "published")
         .order("published_at", { ascending: false })
-        .limit(5);
+        .limit(4);
       if (fallback.error) throw fallback.error;
       return fallback.data;
     },
@@ -128,13 +139,13 @@ function NewsDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, category")
+        .select("id, slug, title, category, image_url, published_at, source")
         .neq("id", article!.id)
         .order("published_at", { ascending: false })
         .limit(5 + related.length);
       if (error) throw error;
       const relatedIds = new Set(related.map((r) => r.id));
-      return data.filter((n) => !relatedIds.has(n.id)).slice(0, 5);
+      return data.filter((n) => !relatedIds.has(n.id)).slice(0, 4);
     },
   });
 
@@ -160,26 +171,28 @@ function NewsDetail() {
       <div className="mx-auto max-w-3xl px-4 py-20">
         <h1 className="text-[1.155rem] font-bold">Story not found</h1>
         <Link to="/news" className="mt-4 inline-block underline">
-          Back to news
+          Back to News &amp; Articles
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-5 sm:py-7">
       <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
         <article className="min-w-0">
-          <Link to="/news" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <ArrowLeft className="size-4" /> All news
-          </Link>
-          <div className="mt-6 flex flex-wrap gap-2">
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+            <Link to="/" className="hover:text-foreground hover:underline">Home</Link><ChevronRight className="size-3" aria-hidden="true" />
+            <Link to="/news" className="hover:text-foreground hover:underline">News &amp; Articles</Link><ChevronRight className="size-3" aria-hidden="true" />
+            <Link to="/news" search={{ category: article.category }} className="font-medium text-foreground hover:underline">{article.category || "News"}</Link>
+          </nav>
+          <div className="mt-3 flex flex-wrap gap-1.5">
             {(article.categories?.length ? article.categories : [article.category]).map((c) => (
               <Link
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className="inline-block rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground hover:bg-accent/30"
+                className="inline-block rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-primary hover:border-accent hover:bg-primary/15"
               >
                 {c}
               </Link>
@@ -202,7 +215,7 @@ function NewsDetail() {
               <img
                 src={article.image_url}
                 alt={article.image_alt || article.title}
-                className="aspect-video w-full rounded-lg border border-border object-cover"
+                className="mx-auto max-h-[70vh] max-w-full rounded-lg border border-border object-contain"
               />
               {article.image_caption || article.image_credit ? (
                 <figcaption className="mt-1.5 text-xs text-muted-foreground">
@@ -237,13 +250,17 @@ function NewsDetail() {
               </div>
             </div>
           ) : null}
-          <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
-            {article.summary}
-          </p>
+            {article.summary?.trim() ? (
+            <p className="mt-5 rounded-lg border border-sky-200/80 bg-sky-50 px-4 py-3 text-lg text-primary">
+                {article.summary}
+              </p>
+            ) : null}
+          {article.status === "published" ? <div className="mt-5"><BannerAd placement="article-quick-summary" /></div> : null}
+          {article.status === "published" ? <ShareBarabaraAI contextType="article" contextId={article.id} title={article.title} sourceText={`${article.summary ?? ""}\n${article.body ?? ""}`} /> : null}
           <div className="mt-6 space-y-4 text-foreground/90">
             {renderRichText(article.body)}
             {related[0] ? (
-              <p className="rounded border-l-4 border-caution bg-caution/10 py-2 pl-4 text-sm">
+              <p className="mx-auto max-w-2xl rounded border-l-4 border-caution bg-caution/10 px-4 py-2 text-center text-sm">
                 <span className="font-semibold">Read also: </span>
                 <Link to="/news/$slug" params={{ slug: related[0].slug }} className="underline">
                   {related[0].title}
@@ -267,26 +284,32 @@ function NewsDetail() {
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className="rounded-full border border-border px-3 py-1 text-xs font-medium hover:border-accent hover:text-accent-foreground"
+                className="rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium hover:border-accent hover:bg-accent/10 hover:text-accent-foreground"
               >
                 {c}
               </Link>
             ))}
           </div>
 
-          <div className="mt-8">
-            <BannerAd />
-          </div>
           <CommentSection entityType="news" entityId={article.id} />
         </article>
 
         <aside className="space-y-8">
+          <div className="rounded-lg border border-accent/40 bg-accent/10 p-5 card-elevated">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Stay informed
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Get important road-safety stories and community updates in your inbox.
+            </p>
+            <NewsletterForm className="mt-4" />
+          </div>
           {related.length > 0 ? (
             <div className="rounded-lg border border-border bg-card p-5 card-elevated">
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Related articles
               </h2>
-              <ArticleList articles={related} />
+              <ArticleList articles={related.slice(0, 4)} />
               <Link
                 to="/news"
                 search={{ category: article.category }}
@@ -301,7 +324,7 @@ function NewsDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Latest articles
               </h2>
-              <ArticleList articles={latest} />
+              <ArticleList articles={latest.slice(0, 4)} />
               <Link
                 to="/news"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -326,6 +349,7 @@ function NewsDetail() {
           ) : null}
         </aside>
       </div>
+      <DiscoverySections focus="article" currentId={article.id} />
     </div>
   );
 }

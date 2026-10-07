@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Video as VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useRoles } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
@@ -58,8 +59,7 @@ function VideosAdminPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("videos").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("video", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Video deleted");

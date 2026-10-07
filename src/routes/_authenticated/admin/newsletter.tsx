@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { longDate } from "@/lib/format";
+import { sendNewsletter } from "@/lib/newsletter.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/newsletter")({
   head: () => ({ meta: [{ title: "Newsletter: Share Barabara Admin" }] }),
@@ -50,18 +51,10 @@ function NewsletterPage() {
 
   const send = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("newsletter_broadcasts").insert({
-        subject: subject.trim(),
-        body: body.trim(),
-        recipient_count: activeCount,
-        sent_by: user?.id ?? null,
-      });
-      if (error) throw error;
+      return sendNewsletter({ data: { subject, body } });
     },
-    onSuccess: () => {
-      toast.success(
-        `Logged for ${activeCount} subscribers. Actual email delivery still needs an email provider wired up.`,
-      );
+    onSuccess: (result) => {
+      toast.success(`Newsletter sent to ${result.recipientCount} subscribers.`);
       setSubject("");
       setBody("");
       queryClient.invalidateQueries({ queryKey: ["admin-newsletter-broadcasts"] });
@@ -76,12 +69,11 @@ function NewsletterPage() {
       </p>
       <h1 className="mt-1 text-[1.44375rem] font-extrabold">Newsletter</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
-        Composing here logs the broadcast for your records.{" "}
+        Send a real newsletter through the server-side Resend integration. {" "}
         <span className="font-semibold text-foreground">
-          Actual email delivery isn't wired up yet
+          The provider key never reaches the browser.
         </span>{" "}
-        — that needs an email provider (e.g. Resend) connected as a Supabase secret and an edge
-        function to send through it.
+        Configure <code>RESEND_API_KEY</code> and <code>RESEND_FROM_EMAIL</code> in the server runtime before sending.
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -120,7 +112,7 @@ function NewsletterPage() {
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Will be logged for {activeCount} active subscribers.
+            Will be sent to {activeCount} active subscribers.
           </p>
           <Button
             disabled={subject.trim().length < 2 || body.trim().length < 2 || send.isPending}

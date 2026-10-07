@@ -16,34 +16,41 @@ import { RichTextEditor } from "@/components/site/rich-text-editor";
 import {
   PartyCasualtyInputs,
   type CasualtyBreakdown,
+  withUnspecifiedCasualties,
+  casualtyBreakdownError,
 } from "@/components/site/party-casualty-inputs";
+import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { ImageUploadField } from "@/components/site/image-upload-field";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
-import { matchOrCreateRoad } from "@/lib/roads";
+import { useIncidentTaxonomy, useReportIncidentTypeSchema } from "@/hooks/useIncidentTaxonomy";
+import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
+import { submitAccidentReport } from "@/lib/report.functions";
 
 export function ReportForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
   const { data: severities = [] } = useReportSeverities();
+  const { data: incidentTypes = [] } = useIncidentTaxonomy();
+  const { data: reportIncidentTypeAvailable = false } = useReportIncidentTypeSchema();
   const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
     county: "Nairobi",
     road: "",
+    incident_type: "",
     severity: "minor",
     occurred_at: new Date().toISOString().slice(0, 16),
-    vehicles_involved: 1,
-    casualties: 0,
-    fatalities: 0,
+    vehicles_involved: null as number | null,
+    casualties: null as number | null,
+    fatalities: null as number | null,
     latitude: null as number | null,
     longitude: null as number | null,
     image_url: "",
@@ -58,31 +65,40 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
   const submit = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
-      const road_id = await matchOrCreateRoad(form.road, form.county);
-      const { error } = await supabase.from("accident_reports").insert({
+      const breakdownError = casualtyBreakdownError(casualtyBreakdown, {
+        dead: form.fatalities,
+        injured: form.casualties,
+      });
+      if (breakdownError) throw new Error(breakdownError);
+      const road_id = await findExistingRoad(form.road);
+      return submitAccidentReport({ data: {
         ...form,
+        ...(reportIncidentTypeAvailable ? { incident_type: form.incident_type || null } : {}),
         image_url: form.image_url.trim() || null,
         image_alt: form.image_alt.trim() || null,
         image_caption: form.image_caption.trim() || null,
         image_credit: form.image_credit.trim() || null,
         road_id,
         parties_involved: partiesInvolved,
-        casualty_breakdown: casualtyBreakdown,
+        casualty_breakdown: withUnspecifiedCasualties(casualtyBreakdown, {
+          dead: form.fatalities,
+          injured: form.casualties,
+        }),
         attachments,
         occurred_at: new Date(form.occurred_at).toISOString(),
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
         is_anonymous: identity.type === "profile" && anonymous,
-      });
-      if (error) throw error;
+      } });
     },
-    onSuccess: () => {
-      toast.success("Report submitted for review, an editor will verify it before it is published");
+    onSuccess: (result) => {
+      toast.success(result.status === "approved" ? "Report published" : "Report submitted for review, an editor will verify it before it is published");
       setForm({
         ...form,
         title: "",
         description: "",
         road: "",
+        incident_type: "",
         latitude: null,
         longitude: null,
         image_url: "",
@@ -172,38 +188,38 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
             </SelectContent>
           </Select>
         </div>
+        {reportIncidentTypeAvailable ? (
+          <div className="sm:col-span-2">
+            <Label>Incident classification (optional)</Label>
+            <Select
+              value={form.incident_type || "unclassified"}
+              onValueChange={(value) =>
+                setForm({ ...form, incident_type: value === "unclassified" ? "" : value })
+              }
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="unclassified">No specific classification</SelectItem>
+                {incidentTypes.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.parent_value
+                      ? `${incidentTypes.find((parent) => parent.value === item.parent_value)?.label ?? item.parent_value} · `
+                      : ""}
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Classification is optional and does not determine severity.
+            </p>
+          </div>
+        ) : null}
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <div>
-          <Label htmlFor="r-veh">Vehicles involved</Label>
-          <Input
-            id="r-veh"
-            type="number"
-            min={0}
-            value={form.vehicles_involved}
-            onChange={(e) => setForm({ ...form, vehicles_involved: Number(e.target.value) })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="r-cas">Injured</Label>
-          <Input
-            id="r-cas"
-            type="number"
-            min={0}
-            value={form.casualties}
-            onChange={(e) => setForm({ ...form, casualties: Number(e.target.value) })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="r-fat">Fatalities</Label>
-          <Input
-            id="r-fat"
-            type="number"
-            min={0}
-            value={form.fatalities}
-            onChange={(e) => setForm({ ...form, fatalities: Number(e.target.value) })}
-          />
-        </div>
+        <NullableNumberField id="r-veh" label="Vehicles involved" value={form.vehicles_involved} onChange={(value) => setForm({ ...form, vehicles_involved: value })} />
+        <NullableNumberField id="r-cas" label="Injured" value={form.casualties} onChange={(value) => setForm({ ...form, casualties: value })} />
+        <NullableNumberField id="r-fat" label="Fatalities" value={form.fatalities} onChange={(value) => setForm({ ...form, fatalities: value })} />
       </div>
       <div>
         <Label>Who was involved (optional)</Label>
@@ -229,32 +245,6 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         />
       </div>
       <div>
-        <Label>Featured image (optional)</Label>
-        <div className="mt-2 space-y-2">
-          <ImageUploadField
-            value={form.image_url}
-            onChange={(url) => setForm({ ...form, image_url: url })}
-          />
-          <Input
-            value={form.image_alt}
-            onChange={(e) => setForm({ ...form, image_alt: e.target.value })}
-            placeholder="Alt text (describes the image for screen readers and search engines)"
-          />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Input
-              value={form.image_caption}
-              onChange={(e) => setForm({ ...form, image_caption: e.target.value })}
-              placeholder="Caption (optional)"
-            />
-            <Input
-              value={form.image_credit}
-              onChange={(e) => setForm({ ...form, image_credit: e.target.value })}
-              placeholder="Credit / source (optional)"
-            />
-          </div>
-        </div>
-      </div>
-      <div>
         <Label htmlFor="r-desc">What happened?</Label>
         <RichTextEditor
           id="r-desc"
@@ -264,6 +254,17 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
           onChange={(v) => setForm({ ...form, description: v })}
           placeholder="Weather, road conditions, contributing factors and the response by emergency services. Use the toolbar to add photos or a video."
         />
+      </div>
+      <div>
+        <Label>Featured image (optional)</Label>
+        <div className="mt-2 space-y-2">
+          <ImageUploadField value={form.image_url} onChange={(url) => setForm({ ...form, image_url: url })} />
+          <Input value={form.image_alt} onChange={(e) => setForm({ ...form, image_alt: e.target.value })} placeholder="Alt text (describes the image for screen readers and search engines)" />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Input value={form.image_caption} onChange={(e) => setForm({ ...form, image_caption: e.target.value })} placeholder="Caption (optional)" />
+            <Input value={form.image_credit} onChange={(e) => setForm({ ...form, image_credit: e.target.value })} placeholder="Credit / source (optional)" />
+          </div>
+        </div>
       </div>
       <div>
         <Label>More images or videos (optional)</Label>

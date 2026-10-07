@@ -10,6 +10,7 @@ import {
   MoreVertical,
   Newspaper,
   Pencil,
+  Plus,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoles } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
@@ -40,6 +42,7 @@ import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { dateTime } from "@/lib/format";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -89,7 +92,7 @@ function ArticlesQueuePage() {
     return allArticles.filter((a) => {
       if (statusFilter !== "all" && a.status !== statusFilter) return false;
       if (categoryFilter !== "all" && a.category !== categoryFilter) return false;
-      if (q && !a.title.toLowerCase().includes(q) && !a.summary.toLowerCase().includes(q))
+      if (q && !a.title.toLowerCase().includes(q) && !(a.summary ?? "").toLowerCase().includes(q))
         return false;
       return true;
     });
@@ -98,7 +101,7 @@ function ArticlesQueuePage() {
   const { data: names = {} } = useProfileNames(
     articles.map((a) => a.author_id).filter((id): id is string => !!id),
   );
-  const { data: viewCounts = {} } = useViewCounts(
+  const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
     "news_views",
     "news_id",
     articles.map((a) => a.id),
@@ -146,8 +149,7 @@ function ArticlesQueuePage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("news").delete().eq("id", id);
-      if (error) throw error;
+      await moveToRecycleBin("article", id, "Removed by an administrator");
     },
     onSuccess: () => {
       toast.success("Article deleted");
@@ -167,6 +169,9 @@ function ArticlesQueuePage() {
       <p className="mt-2 text-muted-foreground">
         Review submissions from contributors. Publishing or rejecting needs moderator rank or above.
       </p>
+      <Button asChild className="mt-4">
+        <Link to="/news"><Plus className="mr-1.5 size-4" /> Add new article</Link>
+      </Button>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>
@@ -255,7 +260,7 @@ function ArticlesQueuePage() {
                     <img
                       src={a.image_url}
                       alt=""
-                      className="size-14 shrink-0 rounded object-cover"
+                      className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
                     />
                   ) : (
                     <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
@@ -279,7 +284,7 @@ function ArticlesQueuePage() {
                         </>
                       ) : null}
                       <span className="inline-flex items-center gap-0.5">
-                        · <Eye className="size-3" /> {viewCounts[a.id] ?? 0}
+                        · <Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[a.id] ?? 0}
                       </span>
                       <span>· {dateTime(a.created_at)}</span>
                     </p>
@@ -345,6 +350,53 @@ function ArticlesQueuePage() {
                 <div className="border-t border-border p-5">
                   {canPublishArticles ? (
                     <div className="space-y-4">
+                      <EditorialAIButton
+                        contentType="article"
+                        mode="generate"
+                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        onDraft={(draft) =>
+                          set({
+                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
+                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
+                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
+                          })
+                        }
+                      />
+                      <EditorialAIButton
+                        contentType="article"
+                        mode="autopopulate"
+                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        onDraft={(draft) =>
+                          set({
+                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
+                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
+                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
+                          })
+                        }
+                      />
+                      <EditorialAIButton
+                        contentType="article"
+                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        mode="update"
+                        contentId={a.id}
+                        current={d}
+                        onDraft={(draft) =>
+                          set({
+                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
+                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
+                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
+                          })
+                        }
+                      />
                       <div>
                         <Label htmlFor={`at-${a.id}`}>Headline</Label>
                         <Input
@@ -383,38 +435,6 @@ function ArticlesQueuePage() {
                       </div>
                       <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                          Featured image details
-                        </p>
-                        <div>
-                          <Label htmlFor={`aimg-alt-${a.id}`}>Alt text</Label>
-                          <Input
-                            id={`aimg-alt-${a.id}`}
-                            value={d.image_alt}
-                            onChange={(e) => set({ image_alt: e.target.value })}
-                            placeholder="Describes the image for screen readers and search engines"
-                          />
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div>
-                            <Label htmlFor={`aimg-cap-${a.id}`}>Caption</Label>
-                            <Input
-                              id={`aimg-cap-${a.id}`}
-                              value={d.image_caption}
-                              onChange={(e) => set({ image_caption: e.target.value })}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor={`aimg-cred-${a.id}`}>Credit / source</Label>
-                            <Input
-                              id={`aimg-cred-${a.id}`}
-                              value={d.image_credit}
-                              onChange={(e) => set({ image_credit: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                           SEO (optional, overrides defaults)
                         </p>
                         <div>
@@ -445,6 +465,11 @@ function ArticlesQueuePage() {
                             placeholder="comma, separated, keywords"
                           />
                         </div>
+                      </div>
+                      <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Featured image details</p>
+                        <div><Label htmlFor={`aimg-alt-${a.id}`}>Alt text</Label><Input id={`aimg-alt-${a.id}`} value={d.image_alt} onChange={(e) => set({ image_alt: e.target.value })} placeholder="Describes the image for screen readers and search engines" /></div>
+                        <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor={`aimg-cap-${a.id}`}>Caption</Label><Input id={`aimg-cap-${a.id}`} value={d.image_caption} onChange={(e) => set({ image_caption: e.target.value })} /></div><div><Label htmlFor={`aimg-cred-${a.id}`}>Credit / source</Label><Input id={`aimg-cred-${a.id}`} value={d.image_credit} onChange={(e) => set({ image_credit: e.target.value })} /></div></div>
                       </div>
                     </div>
                   ) : (

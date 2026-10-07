@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { StatisticsProposalsPanel } from "@/components/site/statistics-proposals-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/crash-statistics")({
   head: () => ({ meta: [{ title: "Crash Statistics: Share Barabara Admin" }] }),
@@ -307,8 +308,18 @@ function CrashStatisticsPage() {
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Feeds every chart on the public Statistics page. Alerts and accident reports already
         populate their own live counts automatically — this is for the aggregate national/county
-        figures (ours, or from official sources) that don't come from user submissions.
+        figures that don't come from user submissions. These legacy tables are separate from the
+        review-only provenance schema and must not be assumed to be official.
       </p>
+      <p className="mt-3 max-w-3xl rounded-md border border-caution/40 bg-caution/10 p-3 text-sm text-muted-foreground">
+        These legacy tables do not currently store source URL, publication period, provisional
+        status, or verification date. Treat every existing row as legacy/unverified until its
+        provenance is manually recorded. Editors and administrators may maintain the tables;
+        ordinary contributors cannot. The Task 26 review migration adds the provenance and
+        human-review workflow without changing historical rows, but is not active yet.
+      </p>
+
+      <StatisticsProposalsPanel />
 
       <Tabs defaultValue="yearly" className="mt-6">
         <TabsList className="flex-wrap">

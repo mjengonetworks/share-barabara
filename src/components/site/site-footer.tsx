@@ -44,11 +44,15 @@ export function SiteFooter() {
   });
 
   return (
-    <footer className="mt-12 asphalt text-secondary">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 border-b border-secondary/10 px-4 py-5">
-        <p className="text-xs font-semibold uppercase tracking-widest text-secondary/60">
+    <footer className="mt-12 bg-primary text-primary-foreground">
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 border-b border-primary-foreground/10 px-4 py-5">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
           Our Platforms
         </p>
+        <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-semibold">
+          <a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Mjengo Hub</a>
+          <a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Mjengo Networks</a>
+        </div>
         <div className="flex flex-wrap items-center justify-center gap-4">
           {socials.map((s) => (
             <a
@@ -57,7 +61,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Follow Share Barabara on ${s.label}`}
-              className="flex size-9 items-center justify-center rounded-full border border-secondary/20 text-secondary/70 transition-colors hover:border-accent hover:text-accent"
+              className="flex size-9 items-center justify-center rounded-full border border-primary-foreground/20 text-primary-foreground/75 transition-colors hover:border-accent hover:text-accent"
             >
               <SocialIcon iconKey={s.icon_key} className="size-4" />
             </a>
@@ -72,15 +76,15 @@ export function SiteFooter() {
             alt="Share Barabara"
             className="h-14 w-auto [filter:drop-shadow(0_0_1px_rgba(255,255,255,0.9))_drop-shadow(0_0_3px_rgba(255,255,255,0.6))]"
           />
-          <p className="mt-3 text-sm text-secondary/70">
+          <p className="mt-3 text-sm text-primary-foreground/75">
             {settings?.footer_tagline ??
-              "Share Barabara: promoting safer roads for all. News, hazard alerts, open crash statistics and reports from the community."}
+              "Share Barabara: promoting safer roads for all. Articles, hazard alerts, open crash statistics and reports from the community."}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="flex items-center gap-2 rounded border border-secondary/20 px-3 py-2 text-xs text-secondary/50">
+            <span className="flex items-center gap-2 rounded border border-primary-foreground/20 px-3 py-2 text-xs text-primary-foreground/60">
               <Apple className="size-4" /> App Store: coming soon
             </span>
-            <span className="flex items-center gap-2 rounded border border-secondary/20 px-3 py-2 text-xs text-secondary/50">
+            <span className="flex items-center gap-2 rounded border border-primary-foreground/20 px-3 py-2 text-xs text-primary-foreground/60">
               <Smartphone className="size-4" /> Google Play: coming soon
             </span>
           </div>
@@ -102,9 +106,9 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Explore</p>
-          <ul className="mt-3 space-y-2 text-sm text-secondary/70">
+          <ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">
             <li>
-              <Link to="/news">News</Link>
+              <Link to="/news">News &amp; Articles</Link>
             </li>
             <li>
               <Link to="/alerts">Alerts</Link>
@@ -127,11 +131,14 @@ export function SiteFooter() {
             <li>
               <Link to="/merch">Merch</Link>
             </li>
+            <li>
+              <a href="/feed.xml">RSS Feed</a>
+            </li>
           </ul>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Company</p>
-          <ul className="mt-3 space-y-2 text-sm text-secondary/70">
+          <ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">
             <li>
               <Link to="/about">About</Link>
             </li>
@@ -179,17 +186,17 @@ export function SiteFooter() {
           <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-accent">
             Emergency numbers
           </p>
-          <ul className="mt-3 space-y-1 text-sm text-secondary/70">
+          <ul className="mt-3 space-y-1 text-sm text-primary-foreground/75">
             {EMERGENCY_CONTACTS.slice(0, 2).map((c) => (
               <li key={c.name}>
-                {c.name}: <span className="text-background">{c.number}</span>
+                {c.name}: <span className="text-primary-foreground">{c.number}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
       <div className="hazard-stripe h-2" />
-      <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-secondary/50">
+      <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-primary-foreground/60">
         Community-sourced information. Always call 999 or 112 in an emergency. Statistics are
         indicative national figures for public awareness. Copyright Mjengo Networks 2026.
       </div>
