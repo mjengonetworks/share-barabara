@@ -109,8 +109,8 @@ export function SiteHeader() {
             <Link
               key={item.to}
               to={item.to}
-                className="whitespace-nowrap rounded px-2 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent lg:px-3"
-              activeProps={{ className: "text-foreground" }}
+              className={`whitespace-nowrap rounded px-2 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent lg:px-3 ${item.to === "/feed" ? "border border-accent/70 text-accent-foreground hover:bg-accent/10" : ""}`}
+              activeProps={{ className: `whitespace-nowrap rounded px-2 py-2 text-sm font-semibold text-foreground lg:px-3 ${item.to === "/feed" ? "border border-accent bg-accent/10 text-accent-foreground" : ""}` }}
             >
               {item.label}
             </Link>
@@ -213,7 +213,7 @@ export function SiteHeader() {
                 to={item.to}
                 onClick={() => setOpen(false)}
                 className="block rounded px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
-                activeProps={{ className: "block rounded bg-muted px-3 py-2.5 text-sm font-semibold text-foreground" }}
+                activeProps={{ className: "block rounded bg-accent/10 px-3 py-2.5 text-sm font-semibold text-foreground" }}
               >
                 {item.label}
               </Link>

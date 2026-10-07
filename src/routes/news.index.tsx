@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Flame, Sparkles } from "lucide-react";
+import { Flame, Newspaper, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
@@ -69,7 +69,11 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
         >
           {a.image_url ? (
             <img src={a.image_url} alt={a.title} className={`w-full object-cover object-center ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`} />
-          ) : null}
+          ) : (
+            <div className={`flex w-full items-center justify-center bg-primary/5 text-primary/50 ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`} aria-hidden="true">
+              <Newspaper className="size-9" />
+            </div>
+          )}
           <div className="flex flex-1 flex-col p-6">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
               <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>

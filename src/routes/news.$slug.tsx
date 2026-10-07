@@ -52,17 +52,17 @@ type RelatedArticle = { id: string; slug: string; title: string; category?: stri
 
 function ArticleList({ articles }: { articles: RelatedArticle[] }) {
   return (
-    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-      {articles.map((a) => (
+    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+      {articles.map((a, index) => (
         <Link
           key={a.id}
           to="/news/$slug"
           params={{ slug: a.slug }}
-          className="group flex min-w-0 gap-3 rounded-md border border-border/70 bg-background/60 p-2 transition-colors hover:border-accent"
+          className={`group min-w-0 overflow-hidden rounded-md border border-border/70 bg-background/60 transition-colors hover:border-accent ${index === 0 ? "lg:border-accent/60" : ""}`}
         >
-          {a.image_url ? <img src={a.image_url} alt="" className="size-16 shrink-0 rounded object-cover" /> : <div className="flex size-16 shrink-0 items-center justify-center rounded bg-muted"><Newspaper className="size-5 text-muted-foreground" /></div>}
-          <span className="min-w-0">
-            <span className="line-clamp-2 text-sm font-semibold text-brand-blue group-hover:underline">{a.title}</span>
+          {a.image_url ? <img src={a.image_url} alt="" loading="lazy" className="aspect-video w-full object-cover" /> : <div className="flex aspect-video w-full items-center justify-center bg-muted"><Newspaper className="size-6 text-muted-foreground" aria-hidden="true" /></div>}
+          <span className="block min-w-0 p-3">
+            <span className={`${index === 0 ? "text-base" : "text-sm"} line-clamp-2 font-semibold text-brand-blue group-hover:underline`}>{a.title}</span>
             <span className="mt-1 block truncate text-[0.68rem] text-muted-foreground">{a.category ?? "News"}{a.source ? ` · ${a.source}` : ""}</span>
           </span>
         </Link>
@@ -191,7 +191,7 @@ function NewsDetail() {
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className="inline-block rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-primary hover:bg-primary/15"
+                className="inline-block rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-primary hover:border-accent hover:bg-primary/15"
               >
                 {c}
               </Link>
@@ -283,7 +283,7 @@ function NewsDetail() {
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className="rounded-full border border-border px-3 py-1 text-xs font-medium hover:border-accent hover:text-accent-foreground"
+                className="rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium hover:border-accent hover:bg-accent/10 hover:text-accent-foreground"
               >
                 {c}
               </Link>

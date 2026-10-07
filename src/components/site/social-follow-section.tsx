@@ -31,8 +31,8 @@ export function SocialFollowSection() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent"><Users className="size-4" aria-hidden="true" /> Follow Share Barabara</p>
-          <h2 id="follow-share-barabara" className="mt-1 text-xl font-bold">Stay connected with @sharebarabara</h2>
-          <p className="mt-1 text-sm text-primary-foreground/75">Follow our verified channels for road-safety conversations, reporting updates and public-interest media.</p>
+          <h2 id="follow-share-barabara" className="mt-1 text-xl font-bold">Stay connected with Share Barabara</h2>
+          <p className="mt-1 text-sm text-primary-foreground/75">Follow configured official channels for road-safety conversations, reporting updates and public-interest media.</p>
         </div>
         {links.length ? <div className="flex flex-wrap gap-2" aria-label="Share Barabara social channels">
           {links.map((item) => <a key={item.id} href={safeSocialUrl(item.href) ?? "#"} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md border border-primary-foreground/20 px-3 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:border-accent hover:text-accent" aria-label={`Follow Share Barabara on ${item.label}`}><SocialIcon iconKey={item.icon_key} className="size-4" />{item.label}<ExternalLink className="size-3" aria-hidden="true" /></a>)}
