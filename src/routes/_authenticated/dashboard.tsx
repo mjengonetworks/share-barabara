@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ROLE_RANK, useRoles } from "@/hooks/useRoles";
-import { timeAgo, longDate } from "@/lib/format";
+import { timeAgo, longDate, dateTime } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { Button } from "@/components/ui/button";
 import { PageForm } from "@/components/site/page-form";
@@ -208,7 +208,7 @@ function DashboardPage() {
                   {chat.title ?? `Share Barabara AI · ${chat.context_type}`}
                 </span>
                 <span className="ml-2 text-muted-foreground">
-                  {new Date(chat.updated_at).toLocaleString()}
+                  {dateTime(chat.updated_at)}
                 </span>
                 </button>
                 <Button type="button" size="sm" variant="outline" onClick={() => setSelectedChatId(chat.id)}>Open chat</Button>

@@ -11,6 +11,7 @@ export function timeAgo(iso: string): string {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "Africa/Nairobi",
   });
 }
 
@@ -19,6 +20,7 @@ export function longDate(iso: string): string {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Africa/Nairobi",
   });
 }
 
@@ -29,6 +31,7 @@ export function longDateWithDay(iso: string): string {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Africa/Nairobi",
   });
 }
 
@@ -40,6 +43,7 @@ export function dateTime(iso: string): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Africa/Nairobi",
   });
 }
 
