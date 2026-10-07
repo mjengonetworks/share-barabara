@@ -9,6 +9,17 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+function isStagingRuntime(): boolean {
+  return serverEnv("DEPLOYMENT_ENV") === "staging";
+}
+
+function withStagingProtection(response: Response): Response {
+  if (!isStagingRuntime()) return response;
+  const headers = new Headers(response.headers);
+  headers.set("x-robots-tag", "noindex, nofollow");
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -54,32 +65,38 @@ export default {
       // every request, not only scheduled push dispatches.
       (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
       const requestUrl = new URL(request.url);
+      if (isStagingRuntime() && requestUrl.pathname === "/robots.txt") {
+        return new Response("User-agent: *\nDisallow: /\n", {
+          headers: { "content-type": "text/plain; charset=utf-8", "x-robots-tag": "noindex, nofollow" },
+        });
+      }
       if (requestUrl.pathname === "/api/web-push-config" && request.method === "GET") {
         const enabled = serverEnv("WEB_PUSH_ENABLED") === "true";
         const publicKey = serverEnv("WEB_PUSH_VAPID_PUBLIC_KEY") ?? "";
         const subject = serverEnv("WEB_PUSH_VAPID_SUBJECT") ?? "";
         const subjectValid = /^(https:|mailto:)/i.test(subject);
-        return Response.json(
+        return withStagingProtection(Response.json(
           { enabled: enabled && Boolean(publicKey) && subjectValid, publicKey: enabled && publicKey ? publicKey : null, subjectValid },
           { headers: { "cache-control": "no-store" } },
-        );
+        ));
       }
       const rssResponse = await handleRssFeedRequest(request);
-      if (rssResponse) return rssResponse;
+      if (rssResponse) return withStagingProtection(rssResponse);
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return withStagingProtection(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
+      return withStagingProtection(new Response(renderErrorPage(), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      }));
     }
   },
   async scheduled(_controller: unknown, env: unknown, ctx: { waitUntil?: (promise: Promise<unknown>) => void }) {
     (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
+    if (isStagingRuntime()) return;
     const work = Promise.allSettled([
       ...(serverEnv("WEB_PUSH_ENABLED") === "true" ? [import("./lib/push-dispatcher.server").then(({ dispatchPendingPushJobs }) => dispatchPendingPushJobs(25))] : []),
       import("./lib/incident-monitor.server").then(({ runDueIncidentMonitorSources }) => runDueIncidentMonitorSources(3)),
