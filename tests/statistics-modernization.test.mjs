@@ -2,10 +2,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
+  excludeLinkedDuplicates,
+  groupIncidentRows,
   isApprovedReport,
   percentageChange,
   reportMonthBuckets,
   sumKnown,
+  summarizeIncidentRows,
 } from "../src/lib/statistics.mjs";
 
 test("approved reports are a separate public dataset", () => {
@@ -17,6 +20,30 @@ test("approved reports are a separate public dataset", () => {
 test("NULL report counts remain unknown and are not converted to zero", () => {
   assert.deepEqual(sumKnown([2, null, 0]), { value: 2, hasUnknown: true });
   assert.deepEqual(sumKnown([null]), { value: 0, hasUnknown: true });
+  assert.deepEqual(sumKnown([0]), { value: 0, hasUnknown: false });
+  assert.deepEqual(sumKnown([2, "bad"]), { value: 2, hasUnknown: true });
+});
+
+test("incident summaries track unknown values without converting them to zero", () => {
+  const summary = summarizeIncidentRows([
+    { id: "known", fatalities: 0, casualties: 2 },
+    { id: "unknown", fatalities: null, casualties: undefined },
+    { id: "linked", fatalities: 7, casualties: 8, duplicate_of_report_id: "known" },
+  ]);
+  assert.equal(summary.incidents, 2);
+  assert.equal(summary.confirmedFatalities, 0);
+  assert.equal(summary.unknownFatalities, 1);
+  assert.equal(summary.confirmedInjuries, 2);
+  assert.equal(summary.unknownInjuries, 1);
+});
+
+test("missing location/type is grouped explicitly and linked duplicates are excluded", () => {
+  const rows = [{ county: "Nairobi" }, { county: null }, { county: "" }, { county: "Nairobi" }];
+  assert.deepEqual(groupIncidentRows(rows, "county"), {
+    Nairobi: 2,
+    "Unknown / not specified": 2,
+  });
+  assert.equal(excludeLinkedDuplicates([{ duplicate_of_report_id: null }, { duplicate_of_report_id: "x" }]).length, 1);
 });
 
 test("the public route does not coerce missing casualty-breakdown values to zero", async () => {

@@ -35,7 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { num } from "@/lib/format";
 import { BannerAd } from "@/components/site/banner-ad";
 import { displayReportCount } from "@/lib/report-metrics";
-import { percentageChange, reportMonthBuckets, sumKnown } from "@/lib/statistics.mjs";
+import { groupIncidentRows, percentageChange, reportMonthBuckets, summarizeIncidentRows } from "@/lib/statistics.mjs";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 
 export const Route = createFileRoute("/statistics")({
@@ -94,8 +94,10 @@ function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
       const rows = (data ?? []) as unknown as Record<string, string>[];
       const counts: Record<string, number> = {};
       for (const row of rows) {
-        const key = row[column];
-        if (key === undefined) continue;
+        const rawKey = row[column];
+        const key = rawKey === undefined || rawKey === null || String(rawKey).trim() === ""
+          ? "Unknown / not specified"
+          : rawKey;
         counts[key] = (counts[key] ?? 0) + 1;
       }
       return counts;
@@ -144,6 +146,8 @@ type LiveReport = {
   fatalities: number | null;
   casualties: number | null;
   parties_involved: string[];
+  duplicate_of_report_id?: string | null;
+  incident_type?: string | null;
 };
 
 /** This year's and last year's approved reports, fetched once and filtered/
@@ -157,7 +161,7 @@ function useLiveYearReports() {
       const since = new Date(currentYear - 1, 0, 1).toISOString();
       const { data, error } = await supabase
         .from("accident_reports")
-        .select("occurred_at, county, severity, fatalities, casualties, parties_involved")
+        .select("occurred_at, county, severity, fatalities, casualties, parties_involved, duplicate_of_report_id, incident_type")
         .eq("status", "approved")
         .gte("occurred_at", since);
       if (error) throw error;
@@ -369,10 +373,7 @@ function StatisticsPage() {
 
   const latest = yearly.find((y) => y.year === activeYear);
   const prev = yearly.find((y) => y.year === activeYear - 1);
-  const yoy =
-    latest && prev
-      ? Math.round(((latest.fatalities - prev.fatalities) / prev.fatalities) * 1000) / 10
-      : null;
+  const yoy = latest && prev ? percentageChange(latest.fatalities, prev.fatalities) : null;
 
   const monthlyForYear = monthly.filter((m) => m.year === activeYear);
   const monthlyData = monthlyForYear.map((m) => ({ ...m, label: MONTHS[m.month - 1] }));
@@ -382,7 +383,7 @@ function StatisticsPage() {
   const roadClassesForYear = roadClasses.filter((r) => r.year === activeYear);
   const countiesForYear = counties.filter((c) => c.year === activeYear);
   const victimsForYear = victims.filter((v) => v.year === activeYear);
-  const totalVictims = victimsForYear.reduce((sum, v) => sum + v.fatalities, 0) || 1;
+  const totalVictims = victimsForYear.reduce((sum, v) => sum + v.fatalities, 0);
   const { data: liveReports = [] } = useLiveYearReports();
   const { data: provenance = [] } = usePublishedStatisticsProvenance();
   const [liveCounty, setLiveCounty] = useState("all");
@@ -409,8 +410,8 @@ function StatisticsPage() {
     return doy <= dayOfYear && matchesLiveFilters(r);
   });
 
-  const sumBy = (rows: LiveReport[], key: "fatalities" | "casualties") =>
-    sumKnown(rows.map((r) => r[key])).value;
+  const thisYearSummary = summarizeIncidentRows(thisYearReports);
+  const lastYearSummary = summarizeIncidentRows(lastYearToDateReports);
 
   const liveMonthly = reportMonthBuckets(thisYearReports, currentYear).map((bucket, i) => ({
     label: MONTHS[i],
@@ -422,8 +423,11 @@ function StatisticsPage() {
   const liveSeverityMix = ["minor", "serious", "fatal"].map((value) => ({
     value,
     label: reportSeverities.find((s) => s.value === value)?.label ?? value,
-    count: thisYearReports.filter((r) => r.severity === value).length,
+    count: thisYearSummary.rows.filter((r) => r.severity === value).length,
   }));
+  const liveIncidentTypes = Object.entries(groupIncidentRows(thisYearSummary.rows, "incident_type"))
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 8);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
@@ -611,20 +615,20 @@ function StatisticsPage() {
             [
               {
                 label: "Accidents recorded",
-                curr: thisYearReports.length,
-                prior: lastYearToDateReports.length,
+                curr: thisYearSummary.incidents,
+                prior: lastYearSummary.incidents,
                 tone: "text-foreground",
               },
               {
                 label: "Known deaths",
-                curr: sumBy(thisYearReports, "fatalities"),
-                prior: sumBy(lastYearToDateReports, "fatalities"),
+                curr: thisYearSummary.confirmedFatalities,
+                prior: lastYearSummary.confirmedFatalities,
                 tone: "text-destructive",
               },
               {
                 label: "Known injuries",
-                curr: sumBy(thisYearReports, "casualties"),
-                prior: sumBy(lastYearToDateReports, "casualties"),
+                curr: thisYearSummary.confirmedInjuries,
+                prior: lastYearSummary.confirmedInjuries,
                 tone: "text-caution",
               },
             ] as const
@@ -653,6 +657,14 @@ function StatisticsPage() {
               </div>
             );
           })}
+        </div>
+        <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2" aria-label="Unknown casualty coverage">
+          <p className="rounded border border-dashed border-border px-3 py-2 text-muted-foreground">
+            Fatalities not confirmed: <strong className="text-foreground">{thisYearSummary.unknownFatalities}</strong>
+          </p>
+          <p className="rounded border border-dashed border-border px-3 py-2 text-muted-foreground">
+            Injuries not confirmed: <strong className="text-foreground">{thisYearSummary.unknownInjuries}</strong>
+          </p>
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -745,14 +757,34 @@ function StatisticsPage() {
         <p className="mt-4 text-xs text-muted-foreground">
           All three charts follow the filters above.
         </p>
+        <section className="mt-8" aria-labelledby="live-incident-types-heading">
+          <h3 id="live-incident-types-heading" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Recorded incident types
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Counts reflect approved reports with an explicit type. Missing classifications remain visible as unknown.
+          </p>
+          {liveIncidentTypes.length ? (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {liveIncidentTypes.map(([label, count]) => (
+                <div key={label} className="flex items-center justify-between rounded border border-border bg-card px-3 py-2 text-sm">
+                  <span>{label}</span>
+                  <strong>{count}</strong>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 rounded border border-dashed border-border p-3 text-sm text-muted-foreground">No approved incident-type records match these filters.</p>
+          )}
+        </section>
       </div>
 
       {topRoads.length > 0 ? (
         <section className="mt-14 border-t border-border pt-10">
-          <h2 className="text-[1.155rem] font-bold">Most dangerous roads</h2>
+          <h2 className="text-[1.155rem] font-bold">Most recorded incidents by road</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Ranked by fatalities in approved accident reports. Click through to a road's own profile
-            for every alert and report filed against it.
+            Ranked by recorded approved reports, with casualty totals shown only when confirmed. This
+            describes Share Barabara coverage, not the objective danger of a road.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {topRoads.map((r) => (
@@ -1142,17 +1174,17 @@ function StatisticsPage() {
           {victimsForYear.length === 0 ? <NoYearData year={activeYear} /> : null}
           <ul className="mt-4 space-y-4">
             {victimsForYear.map((v) => {
-              const pct = Math.round((v.fatalities / totalVictims) * 100);
+              const pct = totalVictims > 0 ? Math.round((v.fatalities / totalVictims) * 100) : null;
               return (
                 <li key={v.id}>
                   <div className="flex items-baseline justify-between text-sm">
                     <span className="font-semibold">{v.category}</span>
                     <span className="text-muted-foreground">
-                      {num(v.fatalities)} ({pct}%)
+                      {num(v.fatalities)} {pct === null ? "(share unavailable)" : `(${pct}%)`}
                     </span>
                   </div>
                   <div className="mt-1 h-3 w-full overflow-hidden rounded bg-muted">
-                    <div className="h-full bg-accent" style={{ width: `${pct}%` }} />
+                    <div className="h-full bg-accent" style={{ width: `${pct ?? 0}%` }} />
                   </div>
                 </li>
               );
