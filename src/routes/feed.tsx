@@ -133,7 +133,7 @@ function FeedPage() {
       if (!user || !reportTarget) throw new Error("Sign in to report a post");
       const reason = normalizeFeedBody(reportReason);
       if (reason.length < 3) throw new Error("Add a short reason");
-      const { error } = await (supabase.from("feed_post_reports") as any).insert({ post_id: reportTarget, reporter_id: user.id, reason });
+      const { error } = await (supabase.from("feed_post_reports") as any).upsert({ post_id: reportTarget, reporter_id: user.id, reason }, { onConflict: "post_id,reporter_id", ignoreDuplicates: true });
       if (error) throw error;
     },
     onSuccess: () => { setReportTarget(null); setReportReason(""); toast.success("Reported to the moderation team"); },
@@ -142,7 +142,8 @@ function FeedPage() {
   const block = useMutation({
     mutationFn: async (blockedId: string) => {
       if (!user) throw new Error("Sign in to block a member");
-      const { error } = await (supabase.from("feed_blocks") as any).insert({ blocker_id: user.id, blocked_id: blockedId });
+      if (blockedId === user.id) throw new Error("You cannot block yourself");
+      const { error } = await (supabase.from("feed_blocks") as any).upsert({ blocker_id: user.id, blocked_id: blockedId }, { onConflict: "blocker_id,blocked_id", ignoreDuplicates: true });
       if (error) throw error;
       return blockedId;
     },
