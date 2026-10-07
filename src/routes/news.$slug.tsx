@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Flame, Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ import { DiscoverySections } from "@/components/site/discovery-sections";
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
     const { data } = await supabase.from("news").select("*").eq("slug", params.slug).eq("status", "published").maybeSingle();
+    if (!data) throw notFound();
     return data;
   },
   head: ({ loaderData }) => {

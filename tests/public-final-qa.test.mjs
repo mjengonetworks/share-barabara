@@ -26,6 +26,12 @@ test("public compatibility and privacy contracts remain intact", async () => {
   assert.match(reports, /displayReportCount\(r\.fatalities\)/);
 });
 
+test("invalid published article slugs use the router not-found path", async () => {
+  const article = await read("src/routes/news.$slug.tsx");
+  assert.match(article, /notFound/);
+  assert.match(article, /if \(!data\) throw notFound\(\)/);
+});
+
 test("public saved-chat timestamps use the shared Nairobi formatter", async () => {
   const dashboard = await read("src/routes/_authenticated/dashboard.tsx");
   assert.match(dashboard, /dateTime\(chat\.updated_at\)/);
