@@ -213,6 +213,25 @@ function OverviewPage() {
       return { articles, articleDrafts, reports, alerts, feed, updates };
     },
   });
+  const { data: operationalQueue = {} } = useQuery<Record<string, number | null>>({
+    queryKey: ["admin-operational-queue"],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const count = async (table: string, configure?: (query: any) => any) => {
+        let query = (supabase.from(table) as any).select("id", { count: "exact", head: true });
+        if (configure) query = configure(query);
+        const { count: value, error } = await query;
+        return error ? null : value ?? 0;
+      };
+      const [enabledSources, failedSources, duplicateSuggestions, reportedComments] = await Promise.all([
+        count("incident_monitor_sources", (query) => query.eq("enabled", true)),
+        count("incident_monitor_sources", (query) => query.gt("consecutive_failures", 0)),
+        count("incident_duplicate_suggestions", (query) => query.eq("status", "suggested")),
+        count("content_requests", (query) => query.eq("entity_type", "comment").eq("request_type", "report").in("status", ["pending", "open"])),
+      ]);
+      return { enabledSources, failedSources, duplicateSuggestions, reportedComments };
+    },
+  });
 
   const { data: trendingArticles = [] } = useQuery({
     queryKey: ["admin-trending-articles", period, articlesLimit],
@@ -356,6 +375,17 @@ function OverviewPage() {
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[{ label: "Articles pending review", key: "articles", to: "/admin/articles" }, { label: "Article drafts", key: "articleDrafts", to: "/admin/articles" }, { label: "Reports pending review", key: "reports", to: "/admin/reports" }, { label: "Alerts pending review", key: "alerts", to: "/admin/alerts" }, { label: "Feed posts pending", key: "feed", to: "/admin/feed" }, { label: "Editorial updates in draft", key: "updates", to: "/admin/alerts" }].map((item) => <Link key={item.key} to={item.to} className="rounded border border-border p-3 transition-colors hover:border-accent"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</p><p className="mt-2 font-display text-2xl font-extrabold">{reviewQueue[item.key] === null || reviewQueue[item.key] === undefined ? "—" : num(reviewQueue[item.key]!)}</p></Link>)}
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-lg border border-border bg-card p-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Operations</p>
+          <h2 className="mt-1 text-lg font-bold">Road-safety operations</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Live operational signals from source monitoring and human review queues. An em dash means the optional table or field is unavailable.</p>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[{ label: "Enabled incident sources", key: "enabledSources", to: "/admin/incident-sources" }, { label: "Sources with failures", key: "failedSources", to: "/admin/incident-sources" }, { label: "Duplicate suggestions", key: "duplicateSuggestions", to: "/admin/reports" }, { label: "Reported comments", key: "reportedComments", to: "/admin/comments" }].map((item) => <Link key={item.key} to={item.to} className="rounded border border-border p-3 transition-colors hover:border-accent"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</p><p className="mt-2 font-display text-2xl font-extrabold">{operationalQueue[item.key] === null || operationalQueue[item.key] === undefined ? "—" : num(operationalQueue[item.key]!)}</p></Link>)}
         </div>
       </section>
 

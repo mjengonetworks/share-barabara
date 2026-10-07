@@ -120,7 +120,7 @@ function ReportsQueuePage() {
   }, [allReports, statusFilter, severityFilter, countyFilter, search]);
 
   const { data: names = {} } = useProfileNames(reports.map((r) => r.user_id));
-  const { data: viewCounts = {} } = useViewCounts(
+  const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
     "accident_report_views",
     "report_id",
     reports.map((r) => r.id),
@@ -337,9 +337,15 @@ function ReportsQueuePage() {
                         Filed by <UserLink userId={r.user_id} name={names[r.user_id]} />
                       </span>
                       <span className="inline-flex items-center gap-0.5">
-                        · <Eye className="size-3" /> {viewCounts[r.id] ?? 0}
+                        · <Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[r.id] ?? 0}
                       </span>
                       <span>· {dateTime(r.created_at)}</span>
+                    </p>
+                    <p className="mt-1 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
+                      <span>County: {r.county || "Not specified"}</span>
+                      <span>Injured: {r.casualties === null || r.casualties === undefined ? "Unknown" : r.casualties}</span>
+                      <span>Deaths: {r.fatalities === null || r.fatalities === undefined ? "Unknown" : r.fatalities}</span>
+                      {r.duplicate_of_report_id ? <span>Linked duplicate</span> : null}
                     </p>
                   </div>
                 </button>

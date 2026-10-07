@@ -101,7 +101,7 @@ function AlertsAdminPage() {
   }, [allAlerts, county, hazard, severity, search]);
 
   const { data: names = {} } = useProfileNames(alerts.map((a) => a.user_id));
-  const { data: viewCounts = {} } = useViewCounts(
+  const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
     "alert_views",
     "alert_id",
     alerts.map((a) => a.id),
@@ -280,7 +280,7 @@ function AlertsAdminPage() {
                   <UserLink userId={a.user_id} name={names[a.user_id]} anonymous={a.is_anonymous} />
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1"><Eye className="size-3" /> {viewCounts[a.id] ?? 0}</span>
+                  <span className="inline-flex items-center gap-1"><Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span>
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {dateTime(a.created_at)}

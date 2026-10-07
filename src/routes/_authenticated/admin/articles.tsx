@@ -101,7 +101,7 @@ function ArticlesQueuePage() {
   const { data: names = {} } = useProfileNames(
     articles.map((a) => a.author_id).filter((id): id is string => !!id),
   );
-  const { data: viewCounts = {} } = useViewCounts(
+  const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
     "news_views",
     "news_id",
     articles.map((a) => a.id),
@@ -284,7 +284,7 @@ function ArticlesQueuePage() {
                         </>
                       ) : null}
                       <span className="inline-flex items-center gap-0.5">
-                        · <Eye className="size-3" /> {viewCounts[a.id] ?? 0}
+                        · <Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[a.id] ?? 0}
                       </span>
                       <span>· {dateTime(a.created_at)}</span>
                     </p>
