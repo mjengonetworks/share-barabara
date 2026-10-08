@@ -21,5 +21,5 @@ config.routes = [{
 await writeFile(generatedConfig, `${JSON.stringify(config, null, 2)}\n`);
 
 const wranglerCommand = process.platform === "win32" ? "npx.cmd" : "npx";
-const result = spawnSync(wranglerCommand, ["wrangler", "deploy", "--config", generatedConfig, "--message", "staging baseline"], { stdio: "inherit" });
+const result = spawnSync(wranglerCommand, ["wrangler", "deploy", "--config", generatedConfig, "--message", "staging baseline"], { stdio: "inherit", shell: process.platform === "win32" });
 if (result.status !== 0) process.exit(result.status ?? 1);
