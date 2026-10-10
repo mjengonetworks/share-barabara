@@ -61,5 +61,6 @@ test("auth flows and protected routes are wired to the safe helpers", () => {
   assert.match(auth, /window.location.replace\(consumeAuthReturnTo\(sessionStorage, returnTo\)\)/);
   assert.doesNotMatch(auth, /searchParams.set/);
   const guard = readFileSync("src/routes/_authenticated/route.tsx", "utf8");
-  assert.match(guard, /returnTo: safeInternalReturnTo\(location.href\)/);
+  assert.match(guard, /const returnTo = safeInternalReturnTo\(location.href\)/);
+  assert.match(guard, /search: returnTo \? \{ returnTo \} : \{\}/);
 });
