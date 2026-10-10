@@ -75,9 +75,9 @@ test("My Chats can reopen owner-scoped saved conversations", async () => {
 
 test("signup confirmation preserves a validated AI/content return surface", async () => {
   const auth = await read("src/routes/auth.index.tsx");
-  assert.match(auth, /const confirmation = new URL\("\/auth", window\.location\.origin\)/);
-  assert.match(auth, /confirmation\.searchParams\.set\("returnTo", safeInternalReturnTo\(returnTo\)/);
-  assert.match(auth, /emailRedirectTo: confirmation\.toString\(\)/);
+  assert.match(auth, /rememberAuthReturnTo\(sessionStorage, returnTo\)/);
+  assert.match(auth, /const confirmation = authCallbackUrl\(window\.location\.origin\)/);
+  assert.match(auth, /emailRedirectTo: confirmation/);
 });
 
 test("AI output uses one safe structured renderer without HTML injection", async () => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { safeInternalReturnTo } from "@/lib/ai/return-to-ai";
+import { authCallbackUrl, rememberAuthReturnTo, consumeAuthReturnTo } from "@/lib/auth-redirect";
 
 const PENDING_REFERRAL_KEY = "sb_pending_referral";
 
@@ -38,7 +39,6 @@ export const Route = createFileRoute("/auth/")({
 
 function AuthPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { ref, returnTo } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -61,22 +61,21 @@ function AuthPage() {
       localStorage.removeItem(PENDING_REFERRAL_KEY);
       void supabase.rpc("apply_referral_code", { _code: pending }).then();
     }
-    if (returnTo) window.location.assign(returnTo);
-    else navigate({ to: "/dashboard", replace: true });
-  }, [user, navigate, returnTo]);
+    window.location.replace(consumeAuthReturnTo(sessionStorage, returnTo));
+  }, [user, returnTo]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
       if (mode === "signup") {
-        const confirmation = new URL("/auth", window.location.origin);
-        confirmation.searchParams.set("returnTo", safeInternalReturnTo(returnTo) ?? "/dashboard");
+        rememberAuthReturnTo(sessionStorage, returnTo);
+        const confirmation = authCallbackUrl(window.location.origin);
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: confirmation.toString(),
+            emailRedirectTo: confirmation,
             data: { display_name: displayName || email.split("@")[0] },
           },
         });
@@ -98,11 +97,11 @@ function AuthPage() {
   }
 
   async function google() {
-    const callback = new URL("/auth", window.location.origin);
-    callback.searchParams.set("returnTo", safeInternalReturnTo(returnTo) ?? "/dashboard");
+    rememberAuthReturnTo(sessionStorage, returnTo);
+    const callback = authCallbackUrl(window.location.origin);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: callback.toString() },
+      options: { redirectTo: callback },
     });
     if (error) toast.error(error.message);
     // On success the browser is redirected to Google, then back to redirectTo
@@ -116,7 +115,7 @@ function AuthPage() {
     }
     setBusy(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset`,
+      redirectTo: authCallbackUrl(window.location.origin, true),
     });
     setBusy(false);
     if (error) {
