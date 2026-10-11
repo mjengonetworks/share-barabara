@@ -1,228 +1,351 @@
-# Pending
+# Share Barabara master task inventory
 
-- Future sharebarabara.com internationalization: make the static `KENYA` in
-  `SHARE BARABARA KENYA` market-aware so it reflects the active country (for
-  example, Uganda or Tanzania). Do not implement geolocation or country
-  detection as part of the current homepage work.
+This file is the authoritative task tracker. Statuses use the release workflow
+definitions in `docs/staging-release-workflow.md`:
 
-## Real-device UI/editorial correction batch
+- **PENDING** — not production-live, including staging-only work.
+- **TESTING** — production-live and awaiting explicit owner acceptance.
+- **COMPLETED** — production-live and explicitly owner-accepted.
 
-- [ ] Make the mobile navigation a responsive partial-width drawer with a visible scrim and resolved full profile name, retaining Verification & subscriptions.
-- [ ] Remove user-visible Mjengo Hub-style editorial workflow branding from Share Barabara.
-- [ ] Route Editorial AI Auto-Populate for articles, alerts and reports through Groq and verify the server-side model.
-- [ ] Replace decorative Editorial AI source badges with safe, removable text/document and image evidence attachments where supported.
-- [ ] Add All time and specific calendar month performance filters with valid comparison periods and compact responsive spacing.
-- [ ] Preserve article paragraph and supported semantic structure through paste, edit, preview, save, reload, Auto-Populate and public rendering.
-- [ ] Populate article SEO title, description and comma-separated keywords through Auto-Populate with regression coverage.
-- [ ] Replace the article back link with an accessible navigable Home > Articles > category breadcrumb and reduce the top gap.
-- [ ] Restyle article category pills with restrained translucent navy glass treatment.
-- [ ] Fit Google preferred-source action into the mobile social row with a permitted Google G mark and no overflow.
-- [ ] Restyle the article summary/standfirst as a subtle light-blue newsroom block.
-- [ ] Place a simplified fallback advertisement above Quick AI Summary without inventing an advertiser URL.
-- [ ] Redesign Related Articles as responsive image cards, cap at four, and add Read more.
-- [ ] Apply the same compact image-card treatment to Latest Articles, cap at four, and avoid duplicates where practical.
-- [ ] Audit spacing and responsive behavior at 320, 360, 390, 412, 768, 1024, 1280, 1440 and 1600+ widths.
-- [ ] Add focused regression coverage for paragraph preservation, SEO application, Groq routing, card limits, profile fallback and attachment validation.
+Passing tests, a merged commit, a clean build, a staging deployment, or an HTTP
+200 response do not establish owner acceptance. No task in this inventory is
+marked COMPLETED without an explicit acceptance record.
 
-## Task 41 — Cross-site discovery, content previews & ad inventory
+## Baseline and evidence boundary
 
-- [ ] 41.1 Article discovery
-- [ ] 41.2 Alert discovery
-- [ ] 41.3 Report discovery
-- [ ] 41.4 Homepage whole-platform previews
-- [ ] 41.5 Alert/Report category discovery
-- [ ] 41.6 Mjengo Hub/Mjengo Networks previews
-- [ ] 41.7 Expanded banner-ad inventory
-- [ ] 41.8 Responsive/performance/security verification
+- Production source baseline: `0853b52c777501ea14be1520dd59252f8eb53d8b`.
+- Staging candidate: `ebaa1c6ece51e76e9c7e470840c00752bdf7ea9b`.
+- Staging Worker: `share-barabara-staging`, version
+  `82db5894-0334-4d7d-abe1-75ce8b90f3bd`.
+- Latest reported full test result: 301 passed.
+- Production Worker version and exact deployed Git SHA are not independently
+  available in this workspace. The source baseline is therefore not treated as
+  owner acceptance or as proof that every source change is live.
+- No privileged Supabase metadata connection is available locally. The
+  repository audit query is read-only and must be run by an authorised owner.
+  Prior audit statements about absent objects are retained as historical
+  evidence, not treated as definitive ledger state.
+- `20260929120000_report_unknown_campaign_review.sql` is the only migration
+  recorded by repository evidence as **KNOWN APPLIED — DO NOT REPLAY**.
+- `20260929130000_subscription_payments_schema_review.sql` is **PROTECTED /
+  EXCLUDED** from the general migration sequence.
 
-## Task 24 — External AI Retrieval
+## Unnumbered future and correction work
 
-- [ ] 24.1 Local-first sufficiency decision
-- [ ] 24.2 Provider-independent server abstraction
-- [ ] 24.3 Search result normalization and evidence bundles
-- [ ] 24.4 Source trust classification and validation
-- [ ] 24.5 Backend-controlled citation IDs and metadata
-- [ ] 24.6 SSRF and URL security
-- [ ] 24.7 External-search rate limiting
-- [ ] 24.8 Distinct retrieval and provider failure states
-- [ ] 24.9 Server-only provider configuration
-- [ ] 24.10 Compatibility with the Task 25 Share Barabara Agent System
-- [ ] 24.11 SearXNG Provider Support & Deployment Readiness (adapter/docs complete; live instance not connected)
+**PENDING — internationalisation:** make the static `KENYA` in `SHARE BARABARA
+KENYA` market-aware. Do not add geolocation or country detection as part of the
+current homepage work.
 
-Task 24 remains TESTING / VERIFICATION because no real SearXNG instance is connected yet.
+**PENDING — real-device UI/editorial correction batch:** mobile navigation
+drawer and profile fallback; removal of Mjengo Hub editorial branding; Groq
+Auto-Populate verification; removable evidence attachments; performance-period
+filters; semantic paragraph preservation; SEO Auto-Populate; article
+breadcrumbs, category pills, summary styling and social-row fit; related and
+latest article cards; responsive review at 320, 360, 390, 412, 768, 1024,
+1280, 1440 and 1600+; and focused regression coverage.
 
-Task 25 — Share Barabara Agent System remains PENDING. External-discovery agents may begin after the selected retrieval provider is configured and live retrieval is verified.
+## Task 24 — External AI Retrieval — PENDING
 
-Task 26 — Statistics Modernization is TESTING / VERIFICATION. The public/admin implementation,
-report-semantics helpers, focused tests, and review-only provenance migration are in place. Remaining
-verification is Supabase schema review/application, real-data provenance/backfill review, RLS checks,
-and browser checks at desktop/tablet/mobile in light and dark mode. Do not execute the migration,
-deploy, or publish unverified 2026 figures as part of this task.
+24.1 Local-first sufficiency decision; 24.2 provider-independent server
+abstraction; 24.3 result normalization and evidence bundles; 24.4 source trust
+classification; 24.5 server-owned citation IDs; 24.6 SSRF and URL security;
+24.7 external-search rate limiting; 24.8 distinct retrieval/provider failure
+states; 24.9 server-only provider configuration; 24.10 compatibility with
+Task 25; and 24.11 SearXNG adapter and deployment readiness.
 
-Task 27 — Alert Radius & Notification Preferences is TESTING / VERIFICATION. The live-schema-safe
-preference UI, deterministic matching helpers, unread/read workflow corrections, and review-only
-database migration are in place. Remaining verification is migration/RLS review and execution,
-browser verification of saved preferences, and real-device notification delivery/cross-device checks.
-Do not execute the migration, deploy, provision SearXNG, or begin Task 25 as part of this task.
+Repository implementation and safety tests exist. SearXNG has no verified live
+endpoint, reviewed engine configuration, operational owner, or live retrieval
+acceptance. Dependencies: approved provider, HTTPS/TLS/firewall controls,
+health monitoring and fail-closed verification. Evidence:
+`docs/external-retrieval-architecture.md` and `docs/searxng-deployment-plan.md`.
 
-Task 28 — Profile / My Activity is TESTING / VERIFICATION. The public-profile privacy tightening,
-bounded owner activity dashboard, exact activity counts, profile identity display, status handling,
-and notification-preferences shortcut are in place. Remaining verification is browser testing at
-desktop/tablet/mobile in light and dark mode, live RLS checks, and validation against real account
-content. Do not execute SQL, deploy, provision SearXNG, or begin Task 25 as part of this task.
+## Task 25 — Share Barabara Agent System — PENDING
 
-Task 29 — Contributor Leaderboard is TESTING / VERIFICATION. The all-time earned-reputation
-leaderboard, deterministic tie ordering, optional signed-in position, public-safe contribution
-metadata, bounded pagination, and review-only leaderboard RPC are in place. Remaining verification
-is review/application of the new migration, live RLS/performance checks, and browser verification.
-Do not execute SQL, deploy, provision SearXNG, or begin Task 25 as part of this task.
+External-discovery agents remain deferred until Task 24 has a configured and
+live retrieval provider. Dependencies: Task 24, approved agent scope, rate
+limits, source ownership and human review.
 
-Task 30 — Admin Taxonomy is TESTING / VERIFICATION. Existing Article, Alert, Report and Page
-taxonomy tables remain the source of controlled values; the admin surface now uses stable machine
-values, editable display labels where supported, conservative editor/admin mutation, and archive
-rather than destructive deletion. The review-only lifecycle/RLS migration is not executed.
-Remaining verification is migration review/application, live RLS and referenced-value checks, and
-browser verification of admin and public filters. Do not execute SQL, deploy, provision SearXNG, or
-begin Task 25 as part of this task.
+## Task 26 — Statistics Modernization — TESTING
 
-Task 42 — Public Page Heroes & News/Articles Naming is TESTING / VERIFICATION. Public navigation,
-footer, search grouping, homepage discovery and article breadcrumbs now use News & Articles where
-the editorial section is named, while /news and /news/$slug remain the compatible routes. A shared
-compact PublicPageHero is applied to the principal public landing pages with local imagery only,
-page-specific copy and real-route CTAs; the homepage flagship hero remains intact. Remaining
-verification is browser review at desktop/tablet/mobile in light and dark mode, including contrast,
-title wrapping, CTA navigation, image crops and route metadata. Do not execute SQL, deploy,
-provision SearXNG, or begin Task 25 as part of this task.
+Public/admin statistics, report semantics, provenance helpers and review-only
+migration exist. Remaining acceptance: production schema/RLS and data review,
+provenance/backfill decisions, and desktop/tablet/mobile light/dark browser
+review. Dependency: Task 53 audit and approved migration sequence.
 
-Task 48 — Share Barabara Integration Audit & Release Preparation is TESTING / VERIFICATION. The
-accumulated Tasks 26–31 and 42–47 worktree, review-only migration chain, Feed execution paths, push
-dispatcher configuration, Mjengo Hub adapters, shared-file ownership and release risks have been
-audited. No migration, staging, commit, push or deployment was performed. Remaining work is the
-manual migration/RLS review and application, Supabase type regeneration, Cloudflare/VAPID setup,
-browser/device verification, and resolving the documented Feed moderation gaps before release.
+## Task 27 — Alert Radius & Notification Preferences — TESTING
 
-Task 49 — Release Blocker Remediation & Migration Hardening is TESTING / VERIFICATION. Feed block
-management, staff review of post/comment reports, soft comment moderation, append-only moderation
-audit history, server-enforced Feed blocking, explicit Feed database error states, AI fail-closed
-parsing, and notification lifecycle hardening are implemented in a new review-only migration.
-Prior migration applied status and non-idempotent DDL still require manual live-schema review;
-browser, RLS and live notification verification remain.
+Preference UI, deterministic matching, unread/read handling and review-only
+migration exist. Remaining acceptance: live schema/RLS, notification triggers,
+saved preferences and real-device/cross-device delivery. Dependencies: existing
+notification objects and compatibility review before any migration write.
 
-Task 31 — Map & Location Architecture is TESTING / VERIFICATION. Existing optional Alert and Report
-coordinates, county/road fields, road IDs, explicit coordinate validation, manual location entry,
-clearable current-location capture, Article location feature detection, and admin/editorial point
-editing are in place. The review-only location migration is not executed. Remaining verification is
-SQL/RLS review, browser testing, live coordinate-quality checks, and selection of an approved map
-tile/geocoder provider before enabling map-click or search features. Do not execute SQL, deploy,
-provision SearXNG, or begin Task 25 as part of this task.
+## Task 28 — Profile / My Activity — TESTING
 
-Task 43 — Theft, Vandalism & Content Taxonomy is TESTING / VERIFICATION. Existing Alert hazard
-values remain stable while the review-only taxonomy migration adds optional parent/subtype metadata,
-supported Theft/Vandalism values, optional Report incident classification, and matching Article
-categories without rewriting historical content. Forms, public Alert/Report filters, admin taxonomy
-context and Editorial AI controlled-value validation are prepared. Remaining verification is
-migration/RLS review and application, live taxonomy data checks, and browser verification of forms,
-filters and discovery. Do not execute SQL, deploy, provision SearXNG, or begin Task 25 as part of
-this task.
+Public-profile privacy, owner activity, counts, identity/status handling and the
+notification shortcut exist. Remaining acceptance: live RLS, real-account data
+and responsive browser review.
 
-Task 44 — Full Notification Customization is TESTING / VERIFICATION. The owner-scoped notification
-settings surface, explicit alert/community/account groups, taxonomy parent/subtype include and
-exclude rules, private geography, severity, mute, browser-channel gating, deterministic server-side
-matching, and review-only customization migration are in place. Email and background push remain
-reserved because no providers/service worker are configured. Remaining verification is migration/RLS
-review and application, live taxonomy/road data checks, browser and real-device notification checks,
-and cross-device delivery verification. Do not execute SQL, deploy, provision SearXNG, or begin
-Task 25 as part of this task.
+## Task 29 — Contributor Leaderboard — TESTING
 
-Task 45 — Mjengo Hub Content & Tracker Integration is TESTING / VERIFICATION. A bounded server-side Mjengo adapter now consumes the public RSS feed and documented public tracker/media HTML cards, with allowlisted URLs, schema-aware normalization, caching, timeout/fallback handling, attribution, and native preview modules on the homepage, News & Articles, Alerts, Reports, Statistics, and Media pages. Remaining verification is browser/source freshness checking and confirming the upstream HTML card contracts remain stable; Mjengo Hub does not currently expose public JSON endpoints for projects or media. Do not execute SQL, deploy, provision SearXNG, or begin Task 25 as part of this task.
+Deterministic earned-reputation leaderboard, safe metadata, pagination and
+review-only RPC exist. Remaining acceptance: RPC/index/RLS review, live
+performance and browser verification. Dependency: compatible reputation and
+profile schema.
 
-Task 46 — Feed, Replies, Mentions & Community Notifications is TESTING / VERIFICATION. The public Feed
-route, prominent navigation, moderated user-post model, automatic public-content stream, voting,
-threaded discussion reuse, hashtags/trending seam, persistent block/report controls, server-side AI
-triage, moderator review queue, Feed notification triggers and review-only migration are implemented.
-Remaining verification is migration/RLS application, browser/mobile accessibility, live moderation and
-notification behavior, and confirming the future community-event expansion does not bypass preferences.
+## Task 30 — Admin Taxonomy — TESTING
 
-Task 47 — Push Notification Delivery & Reliability is TESTING / VERIFICATION. The review-only push
-subscription/outbox/attempt schema, foreground gating, service worker, Web Push encryption/VAPID
-dispatcher seam, bounded retry handling, safe endpoint validation, scheduled dispatcher hook, and
-admin diagnostics surface are in place. Background push remains configuration-gated until VAPID
-keys, runtime bindings, migration application, and real-device delivery are verified. Remaining
-verification is SQL/RLS review and application, Cloudflare scheduled-worker configuration, browser
-subscription tests, and live push-service acceptance/device-display checks. Do not execute SQL,
-deploy, provision SearXNG, or begin Task 25 as part of this task.
+Controlled machine values, editable labels, conservative mutation and archive
+behavior exist. Remaining acceptance: migration/RLS application, referenced
+value checks and admin/public filter review. Dependency: existing taxonomy
+tables and Task 43 taxonomy metadata.
 
-Task 50 — Dual Recycle Bin System is TESTING / VERIFICATION. The review-only recycle-bin migration,
-owner/admin-separated UI, append-only history, server-authoritative soft deletion, guarded restoration,
-retention metadata, permanent-delete confirmation, and public visibility filters are implemented.
-Remaining verification is migration/RLS review and application, conversion of any remaining legacy hard
-delete handlers, browser testing of owner/admin permissions and parent-child safety, and live retention
-policy configuration. Do not execute SQL, deploy, provision SearXNG, or begin Task 25 as part of this task.
+## Task 31 — Map & Location Architecture — TESTING
 
-Task 51 — Production Database Migration Readiness is TESTING / VERIFICATION. The repository migration
-chain, known-applied report/campaign patch, protected subscription boundary, dependency order, conflict
-gates, backup/rollback plan and exact read-only Supabase inspection queries are documented. No live
-database inspection or migration execution was performed because local configuration has no privileged
-metadata access. Remaining work is running the read-only queries, confirming applied versions, taking a
-backup, reviewing each migration against production, and executing the approved sequence manually.
+Optional Alert/Report coordinates, county/road fields, validation, manual and
+current-location capture, Article location support and admin editing exist.
+Remaining acceptance: live coordinate quality, RLS, SQL review and an approved
+map tile/geocoder provider before map-click/search features.
 
-Task 53 — Supabase Production Database Verification is TESTING / VERIFICATION. A single consolidated,
-read-only SQL Editor audit now returns migration history, tables/columns, RLS policies, triggers,
-functions, constraints, indexes, grants, extensions, dependency checks and expected-object conflicts
-as one structured JSON result. A local comparison utility can analyze the exported JSON against the
-repository migrations without treating missing history as proof of non-application. No SQL was
-executed and no production data was changed. Remaining work is pasting the inspection query into
-Supabase, exporting the JSON result, reviewing conflicts, confirming backup readiness and approving
-the migration sequence manually. The protected subscription migration remains excluded.
+## Task 41 — Cross-site discovery, content previews & ad inventory — PENDING
 
-Task 54 — Urgent Editorial AI Repair is TESTING / VERIFICATION. The Cloudflare request environment is
-now bound for normal requests, editorial instructions are delivered as a server system instruction,
-source material remains explicitly untrusted user evidence, and editorial provider calls request
-provider-enforced JSON output before server-side field validation. Groq remains locked to Auto-Populate,
-Grok/xAI remains locked to Generate and Update, and the public AI path remains Groq. Safe configuration,
-provider and malformed-response diagnostics are surfaced without secrets. Remaining verification is
-deployment/runtime binding confirmation and mocked/live provider checks; no migration or deployment was
-performed. Keep the Contributors Directory & Sitewide Discovery task pending.
+41.1 Article discovery; 41.2 Alert discovery; 41.3 Report discovery; 41.4
+homepage whole-platform previews; 41.5 alert/report category discovery; 41.6
+Mjengo Hub/Mjengo Networks previews; 41.7 expanded banner inventory; 41.8
+responsive/performance/security verification.
 
-Task 56 — Share Barabara Public Website Repair is TESTING / VERIFICATION. Public navigation now presents
-News & Articles, Alerts, Reports, Statistics, Media & Feed and Campaigns while preserving /feed and the
-/contributors directory. Article rendering safely separates legacy paragraph markup, related-article
-content is centered, article cards use accessible responsive aspect-ratio presentation, unsold ads link
-to Partner With Us, ecosystem copy no longer uses sister-platform language, and Media & Feed has a
-source-attributed Mjengo/social surface. Public Quick AI Summary can use bounded published article text
-when server-side row resolution or external retrieval is unavailable, without claiming outside
-verification. Remaining verification is browser/device visual review, configured social-link review,
-Mjengo upstream freshness, and deployed public-AI runtime checks. No SQL, deployment, secret change or
-SearXNG provisioning was performed.
+Some implementation exists through Tasks 45 and 56, but the task has no owner
+acceptance record. The current sitewide four-item distribution is tracked
+separately as Task 62 and is not duplicated here.
 
-Task 57 — Editorial AI Contracts & Update Existing is TESTING / VERIFICATION. The owner-supplied News
-Article and Accident Report prompts are preserved verbatim as separate source documents, with a distinct
-Alert contract derived from its actual fields. Generate remains Grok/xAI, Auto-Populate remains Groq, and
-Update Existing is available below Auto-Populate on Article, Report and Alert editors. Updates read the
-current unsaved form state, produce structured field-level proposals, preserve omitted/unknown values, and
-require explicit human application and normal save/publish actions. SEO and supported featured-image metadata
-are validated, and Featured Image follows SEO in rich editors. Remaining verification is Cloudflare runtime
-credential/model confirmation, live provider checks, and browser review of all editorial forms; no SQL or
-deployment was performed. Do not mark production-verified.
+## Task 42 — Public Page Heroes & News/Articles Naming — TESTING
 
-Task 58 — Share Barabara Production Database Audit & Migration Readiness is TESTING / VERIFICATION. The repository
-migration chain, protected subscription boundary, known-applied report/campaign exception, feature
-dependencies, conflict gates, backup precautions and exact owner action remain documented in
-docs/production-database-migration-readiness.md. No SQL was executed and no production data was changed.
+Navigation, footer, search grouping, homepage discovery, breadcrumbs and shared
+public heroes exist. Remaining acceptance: production visual review, contrast,
+wrapping, CTA navigation, image crops and metadata.
 
-Task 59 — Share Barabara Production Database Migration Reconciliation is TESTING / VERIFICATION.
-The owner-supplied 2 October 2026 audit export was validated and reconciled against the pending
-migrations. The repository audit is complete, but production verification after each write,
-backup/snapshot approval, migration-ledger reconciliation and owner approval remain pending. The
-reconciliation report records the mixed production state, including present AI/report effects,
-missing later feature objects, notification/vote conflicts and the dependency-aware execution plan.
-No SQL was executed, no production data changed, the audit JSON was not committed, and protected
-subscription work remains excluded.
+## Task 43 — Theft, Vandalism & Content Taxonomy — TESTING
 
-Task 60 — Share Barabara Production Recovery, AI Functionality, Project Publishing and Deployment Audit is
-TESTING / VERIFICATION. The repository-side audit covers the current AI action paths, deployment evidence,
-project-publishing scope, Task 59 migration dependencies and recent public UI state. A safe primary-navigation
-cleanup removes the duplicate Videos item while preserving /videos, footer and sitemap access. Production
-deployment version, live AI behavior, project-publishing ownership/schema, and database migration readiness
-remain unverified or owner-approved work as explicitly documented in the Task 60 reports. No SQL, deployment,
-secret change or subscription work was performed.
+Stable Alert values, optional parent/subtype metadata, Report incident
+classification, Article categories and controlled Editorial AI values exist.
+Remaining acceptance: live taxonomy data/RLS and form/filter/discovery review.
+Dependency: Task 30.
+
+## Task 44 — Full Notification Customization — TESTING
+
+Owner-scoped settings, groups, taxonomy inclusion/exclusion, private geography,
+severity, mute and deterministic server matching exist. Remaining acceptance:
+live schema/RLS, taxonomy/road data, browser and real-device delivery.
+Dependencies: Tasks 27 and 43. Email and background push remain provider and
+runtime gated.
+
+## Task 45 — Mjengo Hub Content & Tracker Integration — TESTING
+
+Bounded RSS and public tracker/media adapter, allowlists, normalization,
+caching, fallback, attribution and native previews exist. Remaining acceptance:
+source freshness, upstream HTML contract stability and production browser review.
+No public JSON project/media API is assumed.
+
+## Task 46 — Feed, Replies, Mentions & Community Notifications — TESTING
+
+Feed route, moderated posts, automatic public-content stream, votes, threaded
+discussion, hashtags/trending, blocks/reports, AI triage, moderator queue and
+notification paths exist. Remaining acceptance: migration/RLS, mobile
+accessibility, live moderation and notification behavior. Dependency: existing
+comments/votes/notifications and Task 44.
+
+## Task 47 — Push Notification Delivery & Reliability — TESTING
+
+Review-only subscription/outbox/attempt schema, foreground gating, service
+worker, VAPID dispatcher seam, retries, endpoint validation, scheduled hook and
+admin diagnostics exist. Remaining acceptance: migration/RLS, VAPID bindings,
+Cloudflare scheduling, subscription tests and real-device delivery. Dependencies:
+Tasks 27 and 44. Push remains disabled in staging.
+
+## Task 48 — Integration Audit & Release Preparation — TESTING
+
+Tasks 26–31 and 42–47, migration boundaries, Feed paths, push configuration,
+Mjengo adapters and release risks have been audited. Remaining acceptance:
+production migration/RLS review, type regeneration if required, Cloudflare/VAPID
+setup, browser/device checks and Feed moderation closure.
+
+## Task 49 — Release Blocker Remediation & Migration Hardening — TESTING
+
+Feed blocking, report review, comment moderation, moderation history,
+server-enforced blocking, explicit Feed errors, fail-closed AI parsing and
+notification hardening exist in review-only form. Remaining acceptance: live
+schema compatibility, RLS, browser and notification verification. Dependency:
+Task 46.
+
+## Task 50 — Dual Recycle Bin System — TESTING
+
+Owner/admin UI separation, append-only history, server-authoritative soft delete,
+restoration, retention metadata, permanent-delete confirmation and public
+visibility filters exist. Remaining acceptance: migration/RLS, remaining legacy
+delete handlers, parent-child safety and retention configuration. Dependency:
+Task 49 and all source-table policy review.
+
+## Task 51 — Production Database Migration Readiness — TESTING
+
+Migration inventory, known-applied report/campaign patch, protected subscription
+boundary, dependency order, conflict gates, backup/rollback plan and read-only
+inspection SQL are documented. Remaining acceptance: owner-run ledger/catalog
+inspection, backup, migration-by-migration review and approved execution.
+Evidence: `docs/production-database-migration-readiness.md`.
+
+## Task 53 — Supabase Production Database Verification — TESTING
+
+The consolidated read-only audit query and local comparison utility exist. The
+query has not been run from this workspace because privileged access is
+unavailable. Remaining acceptance: owner export, conflict review, backup
+readiness and approval. Missing history must not be interpreted as proof of
+non-application.
+
+## Task 54 — Urgent Editorial AI Repair — TESTING
+
+Cloudflare request environment binding, server system instructions, untrusted
+source handling, provider-enforced JSON and safe diagnostics exist. Routing is
+Groq for Auto-Populate/public AI and Grok/xAI for Generate/Update. Remaining
+acceptance: deployed runtime binding, credentials/model behavior and live
+provider checks. Evidence: `docs/task60-ai-functionality-matrix.md`.
+
+## Task 56 — Share Barabara Public Website Repair — TESTING
+
+Public navigation, Article rendering, related cards, unsold-ad destination,
+ecosystem copy, Mjengo/social surface and bounded public AI evidence exist.
+Remaining acceptance: production browser/device review, social configuration,
+Mjengo freshness and deployed public-AI runtime.
+
+## Task 57 — Editorial AI Contracts & Update Existing — TESTING
+
+Owner-supplied Article and Report prompts, Alert contract, provider routing,
+Update Existing proposals, unsaved-form preservation, SEO/image validation and
+explicit human application exist. Remaining acceptance: runtime credentials,
+live providers and all editorial-form browser review.
+
+## Task 58 — Production Database Audit & Migration Readiness — TESTING
+
+Repository migration chain, protected subscription boundary, known-applied
+exception, dependencies, conflict gates and backup precautions are documented.
+Production ledger status remains unconfirmed except for the documented
+known-applied exception. Evidence: `docs/production-database-migration-readiness.md`.
+
+## Task 59 — Production Database Migration Reconciliation — TESTING
+
+The owner-supplied 2 October 2026 audit export was reconciled at catalog level.
+Backup approval, ledger reconciliation after each write, production verification
+and owner approval remain outstanding. Evidence:
+`docs/production-database-migration-reconciliation.md`.
+
+## Task 60 — Production Recovery, AI Functionality, Project Publishing & Deployment Audit — TESTING
+
+Repository-side recovery, AI, project-publishing scope and deployment audits
+exist. Production Worker identity, live AI behavior, project-publishing
+ownership/schema and migration readiness remain unverified or owner-approved.
+No project publishing capability is present in this repository; Mjengo previews
+are read-only. Evidence: `docs/task60-*.md`.
+
+## Task 61 — Permanent Staging & Environment-aware Authentication — PENDING
+
+Permanent staging Worker/domain, staging markers, noindex/nofollow, disabled
+cron/push dispatch, shared-data warning, origin-aware OAuth/password/reset
+callbacks and protected return destinations are implemented in the staging
+candidate. Staging Worker evidence: `82db5894-0334-4d7d-abe1-75ce8b90f3bd`.
+Automated auth contracts pass, but this is staging-only and interactive provider
+login/owner acceptance is outstanding. Dependencies: staging review and explicit
+production release approval; do not change the production Supabase Site URL.
+
+## Task 62 — Sitewide Four-item Advertising Distribution — PENDING
+
+Reusable placement logic inserts listing banners after four real items, midpoint
+banners in long-form content, and interval banners in related sidebars while
+preserving paid ads, house-ad fallback, targeting and tracking boundaries.
+Candidate evidence: commit `ebaa1c6ece51e76e9c7e470840c00752bdf7ea9b`, staging
+Worker `82db5894-0334-4d7d-abe1-75ce8b90f3bd`, and 301 passing tests reported.
+It is staging-only. Remaining acceptance: production render checks across public
+templates, representative inventory/content, responsive viewports and duplicate
+impression verification.
+
+## Task 63 — Editorial Updates — PENDING
+
+Shared public Alerts/Reports chronology, staff authoring and role/policy
+boundaries exist, including review-only migration
+`20261005100000_editorial_updates_review.sql`. The prior tracker omitted this as
+a standalone task. Production ledger state, RLS, browser behavior and owner
+acceptance remain unverified. Dependencies: existing Alert/Report parents and
+Task 53 ledger review.
+
+## Task 64 — Incident Source Operations & Scheduler — PENDING
+
+Source lifecycle, bounded execution/claiming, retry state, duplicate metadata,
+admin operations and scheduler seams exist. Review-only migrations include
+`20261006100000_incident_source_operations_review.sql` and
+`20261006120000_incident_source_scheduler_review.sql`. Production cron,
+ledger/RLS and safe scheduler execution are not verified. Dependencies: source
+ownership, Task 25 retrieval boundaries and production scheduler approval.
+
+## Task 65 — Duplicate Detection, Suggestions & Merging — PENDING
+
+Staff-controlled accident duplicate merge, cross-content suggestions and
+canonical incident linking exist in review-only form. Evidence includes
+`20261005120000_accident_duplicate_merge_review.sql`,
+`20261006110000_incident_duplicate_suggestions_review.sql` and related
+implementation commits. Production schema, permissions, audit behavior and
+owner acceptance remain unverified. Dependencies: approved Reports, source
+operations and moderation/RLS review.
+
+## Task 66 — Paystack Subscription Payments — PENDING / DEFERRED
+
+The protected subscription-payment design is present in
+`20260929130000_subscription_payments_schema_review.sql`, but Paystack
+provider/webhook activation is explicitly outside the general migration
+sequence. No provider activation, payment acceptance or owner approval is
+claimed. Dependencies: separate payment-owner review, webhook/security plan,
+backup and explicit release approval.
+
+## Task 67 — Resend Newsletters — PENDING
+
+Newsletter subscriber storage, admin surfaces and server-side delivery seams
+exist. Resend provider configuration, sender/domain verification, production
+delivery, unsubscribe/compliance checks and owner acceptance are not evidenced.
+Dependencies: approved provider credentials, deliverability review and safe
+production test plan.
+
+## Task 68 — Public Search & Saved AI Chats — PENDING
+
+Public search coverage and owner-scoped saved Share Barabara AI chats exist in
+the source history. Production deployment identity, live RLS/ownership and
+owner acceptance are not independently verified. Dependencies: Task 53 schema
+review and Task 54 runtime verification.
+
+## Task 69 — Project Publishing & Schema — PENDING / DEFERRED
+
+Task 60 audits confirmed that this repository has no project-generation,
+project-autopopulate or project-publishing capability and no confirmed Share
+Barabara `projects` schema. Mjengo project previews are read-only. Do not add a
+fake route or infer ownership. Next action requires an explicit product owner,
+schema decision and separate scope approval.
+
+## Migration and release dependencies
+
+The safe dependency order is: read-only Task 53 audit; backup/snapshot and
+ledger reconciliation; Statistics; Task 27 preferences; leaderboard; taxonomy;
+Article location; Theft/Vandalism metadata; notification customization; push
+schema/configuration; Feed; moderation; Recycle Bin last. The protected
+subscription migration remains separate. Never replay a migration solely
+because its history row was absent from an earlier export, and never delete
+migration history as rollback.
+
+Staging remains separate from production. Staging uses shared mutable data,
+has no scheduled trigger, disables push dispatch, emits `noindex, nofollow`,
+serves disallow-all robots and displays `STAGING · SHARED DATA`. Staging review
+does not authorize production deployment.
+
+## Current inventory summary
+
+- **PENDING:** Tasks 24, 25, 41 and 61–69, plus the unnumbered work above.
+- **TESTING:** Tasks 26–31, 42–50, 51, 53, 54, 56–60.
+- **COMPLETED:** none; no explicit owner acceptance record was found.
+
+The TESTING statuses preserve the existing production-baseline classification;
+they are not COMPLETED. Exact production Worker identity and owner acceptance
+remain outstanding and must be resolved before any status changes.
