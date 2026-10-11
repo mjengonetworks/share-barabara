@@ -22,6 +22,7 @@ import { timeAgo } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/constants";
 import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
 import { descendantsOf } from "@/lib/incident-taxonomy";
+import { isAdInterval } from "@/lib/ad-placement";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { VoteButtons } from "@/components/site/vote-buttons";
@@ -251,9 +252,9 @@ function AlertsPage() {
           <ul className="mt-6 space-y-6">
             {visible.map((a, i) => (
               <Fragment key={a.id}>
-                {i === 2 ? (
+                {isAdInterval(i + 1) ? (
                   <li key="ad">
-                    <BannerAd />
+                    <BannerAd placement={`alerts-list-interval-${(i + 1) / 4}`} />
                   </li>
                 ) : null}
                 <li

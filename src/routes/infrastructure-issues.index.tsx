@@ -23,6 +23,7 @@ import { longDate } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { InfrastructureIssueForm } from "@/components/site/infrastructure-issue-form";
 import { BannerAd } from "@/components/site/banner-ad";
+import { isAdInterval } from "@/lib/ad-placement";
 
 export const Route = createFileRoute("/infrastructure-issues/")({
   validateSearch: (
@@ -168,9 +169,9 @@ function InfrastructureIssuesPage() {
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {visible.map((issue, i) => (
           <Fragment key={issue.id}>
-            {i === 3 ? (
+            {isAdInterval(i + 1) ? (
               <div className="md:col-span-2 lg:col-span-3">
-                <BannerAd />
+                <BannerAd placement={`infrastructure-list-interval-${(i + 1) / 4}`} />
               </div>
             ) : null}
             <Link

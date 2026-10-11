@@ -13,6 +13,7 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import heroRoad from "@/assets/hero-road.jpg";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { AdInterleave } from "@/components/site/ad-interleave";
 import {
   Dialog,
   DialogContent,
@@ -60,7 +61,11 @@ type ArticleCard = {
 function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      {articles.map((a, index) => (
+      <AdInterleave
+        items={articles}
+        placement="news-list"
+        adClassName="col-span-full"
+        renderItem={(a, index) => (
         <Link
           key={a.id}
           to="/news/$slug"
@@ -88,7 +93,8 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
             </p>
           </div>
         </Link>
-      ))}
+        )}
+      />
     </div>
   );
 }
@@ -96,7 +102,11 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
 function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
   return (
     <div className="mt-5 grid gap-4 sm:grid-cols-2">
-      {articles.map((a) => (
+      <AdInterleave
+        items={articles}
+        placement="news-compact-list"
+        adClassName="col-span-full"
+        renderItem={(a) => (
         <Link
           key={a.id}
           to="/news/$slug"
@@ -125,7 +135,8 @@ function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
             </p>
           </div>
         </Link>
-      ))}
+        )}
+      />
     </div>
   );
 }

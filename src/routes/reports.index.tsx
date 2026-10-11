@@ -31,6 +31,7 @@ import { displayReportCount } from "@/lib/report-metrics";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
 import { descendantsOf, incidentLabel } from "@/lib/incident-taxonomy";
+import { isAdInterval } from "@/lib/ad-placement";
 
 export const Route = createFileRoute("/reports/")({
   validateSearch: (search: Record<string, unknown>): { county?: string; severity?: string; incident?: string } => {
@@ -269,9 +270,9 @@ function ReportsPage() {
           <ul className="mt-6 space-y-6">
             {visible.map((r, i) => (
               <Fragment key={r.id}>
-                {i === 2 ? (
+                {isAdInterval(i + 1) ? (
                   <li key="ad">
-                    <BannerAd />
+                    <BannerAd placement={`reports-list-interval-${(i + 1) / 4}`} />
                   </li>
                 ) : null}
                 <li className="rounded-lg border border-border bg-card p-5 card-elevated">

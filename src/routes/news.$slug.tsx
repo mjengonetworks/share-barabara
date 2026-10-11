@@ -11,7 +11,6 @@ import {
   useProfileBylines,
 } from "@/lib/profiles";
 import { useRoleLabels, bylineLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
-import { renderRichText } from "@/lib/richtext";
 import { UserLink } from "@/components/site/user-link";
 import { UserAvatar } from "@/components/site/user-avatar";
 import { CommentSection } from "@/components/site/comment-section";
@@ -21,6 +20,8 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import { DiscoverySections } from "@/components/site/discovery-sections";
+import { AdRichText } from "@/components/site/ad-interleave";
+import { AdInterleave } from "@/components/site/ad-interleave";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -54,7 +55,11 @@ type RelatedArticle = { id: string; slug: string; title: string; category?: stri
 function ArticleList({ articles }: { articles: RelatedArticle[] }) {
   return (
     <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-      {articles.map((a, index) => (
+      <AdInterleave
+        items={articles}
+        placement="article-sidebar"
+        adClassName="col-span-full"
+        renderItem={(a, index) => (
         <Link
           key={a.id}
           to="/news/$slug"
@@ -67,7 +72,8 @@ function ArticleList({ articles }: { articles: RelatedArticle[] }) {
             <span className="mt-1 block truncate text-[0.68rem] text-muted-foreground">{a.category ?? "News"}{a.source ? ` · ${a.source}` : ""}</span>
           </span>
         </Link>
-      ))}
+        )}
+      />
     </div>
   );
 }
@@ -258,7 +264,7 @@ function NewsDetail() {
           {article.status === "published" ? <div className="mt-5"><BannerAd placement="article-quick-summary" /></div> : null}
           {article.status === "published" ? <ShareBarabaraAI contextType="article" contextId={article.id} title={article.title} sourceText={`${article.summary ?? ""}\n${article.body ?? ""}`} /> : null}
           <div className="mt-6 space-y-4 text-foreground/90">
-            {renderRichText(article.body)}
+            <AdRichText content={article.body} placement="article-body" />
             {related[0] ? (
               <p className="mx-auto max-w-2xl rounded border-l-4 border-caution bg-caution/10 px-4 py-2 text-center text-sm">
                 <span className="font-semibold">Read also: </span>

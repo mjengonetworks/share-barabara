@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate } from "@/lib/format";
-import { renderRichText } from "@/lib/richtext";
+import { AdRichText } from "@/components/site/ad-interleave";
 import { campaignStatus } from "@/lib/campaigns";
 import { Badge } from "@/components/ui/badge";
 import { ShareButtons } from "@/components/site/share-buttons";
@@ -112,7 +112,7 @@ function CampaignDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 What happened
               </h2>
-              <div className="mt-4 space-y-4">{renderRichText(campaign.report_content)}</div>
+              <div className="mt-4 space-y-4"><AdRichText content={campaign.report_content} placement="campaign-report-body" /></div>
             </div>
             <AttachmentGallery
               attachments={(campaign.report_attachments as AttachmentRow[] | null) ?? []}

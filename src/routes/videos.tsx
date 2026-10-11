@@ -9,13 +9,13 @@ import { useProfileNames } from "@/lib/profiles";
 import { youtubeId } from "@/lib/video";
 import { roleRank, useRoleLabels, ROLE_RANK } from "@/hooks/useRoles";
 import { UserLink } from "@/components/site/user-link";
-import { BannerAd } from "@/components/site/banner-ad";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { AdInterleave } from "@/components/site/ad-interleave";
 
 export const Route = createFileRoute("/videos")({
   head: () => ({
@@ -64,10 +64,14 @@ type VideoCard = {
 function VideoGrid({ videos, names }: { videos: VideoCard[]; names: Record<string, string> }) {
   return (
     <div className="grid gap-6 sm:grid-cols-2">
-      {videos.map((v) => {
+      <AdInterleave
+        items={videos}
+        placement="videos-list"
+        adClassName="col-span-full"
+        renderItem={(v) => {
         const yt = youtubeId(v.video_url);
         return (
-          <article key={v.id} className="rounded-lg border border-border bg-card p-4 card-elevated">
+          <article className="rounded-lg border border-border bg-card p-4 card-elevated">
             {yt ? (
               <div className="aspect-video overflow-hidden rounded">
                 <iframe
@@ -97,7 +101,8 @@ function VideoGrid({ videos, names }: { videos: VideoCard[]; names: Record<strin
             </p>
           </article>
         );
-      })}
+        }}
+      />
     </div>
   );
 }
@@ -199,11 +204,6 @@ function VideosPage() {
             )}
           </section>
 
-          {videos.length > 0 ? (
-            <div className="mt-8">
-              <BannerAd />
-            </div>
-          ) : null}
         </div>
 
         <aside className="h-fit rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24">

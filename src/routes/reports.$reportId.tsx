@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Flame, MapPin, ShieldCheck } from "lucide-react";
@@ -10,7 +10,6 @@ import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useVotes } from "@/hooks/useVotes";
 import { longDate } from "@/lib/format";
-import { renderRichText } from "@/lib/richtext";
 import { PARTIES_INVOLVED } from "@/lib/constants";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { VoteButtons } from "@/components/site/vote-buttons";
@@ -25,6 +24,8 @@ import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { displayReportCount } from "@/lib/report-metrics";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
+import { AdRichText } from "@/components/site/ad-interleave";
+import { isAdInterval } from "@/lib/ad-placement";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -61,7 +62,9 @@ type RelatedReport = { id: string; title: string; severity: string; county: stri
 function ReportList({ reports }: { reports: RelatedReport[] }) {
   return (
     <ul className="mt-3 space-y-3">
-      {reports.map((r) => (
+      {reports.map((r, index) => (
+        <Fragment key={r.id}>
+          {isAdInterval(index + 1) ? <li><BannerAd placement={`report-sidebar-interval-${(index + 1) / 4}`} /></li> : null}
         <li key={r.id}>
           <Link
             to="/reports/$reportId"
@@ -71,6 +74,7 @@ function ReportList({ reports }: { reports: RelatedReport[] }) {
             {r.title}
           </Link>
         </li>
+        </Fragment>
       ))}
     </ul>
   );
@@ -324,7 +328,7 @@ function ReportDetail() {
           ) : null}
 
           <div className="mt-6 space-y-4 text-foreground/90">
-            {renderRichText(report.description)}
+            <AdRichText content={report.description} placement="report-body" />
           </div>
 
           <AttachmentGallery attachments={report.attachments as AttachmentRow[]} />

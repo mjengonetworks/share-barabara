@@ -23,7 +23,9 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
     staleTime: 60_000,
   });
 
-  const ad = ads.length > 0 ? ads[Math.floor(Math.random() * ads.length)] : null;
+  // Keep selection deterministic so SSR and hydration choose the same paid
+  // creative and a re-render cannot create another impression.
+  const ad = ads[0] ?? null;
 
   if (ad) {
     return (

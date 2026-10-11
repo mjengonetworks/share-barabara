@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -17,6 +17,8 @@ import { EMERGENCY_CONTACTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
 import { PublicPageHero } from "@/components/site/public-page-hero";
+import { BannerAd } from "@/components/site/banner-ad";
+import { isAdInterval } from "@/lib/ad-placement";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -102,8 +104,11 @@ function CampaignSection({
       ) : (
         <>
           <div className="mt-4 space-y-3">
-            {shown.map((c) => (
-              <CampaignListItem key={c.id} campaign={c} dateLabel={dateLabel(c)} />
+            {shown.map((c, index) => (
+              <Fragment key={c.id}>
+                {isAdInterval(index + 1) ? <BannerAd placement={`${title.toLowerCase().replaceAll(" ", "-")}-interval-${(index + 1) / 4}`} /> : null}
+                <CampaignListItem campaign={c} dateLabel={dateLabel(c)} />
+              </Fragment>
             ))}
           </div>
           {!expanded && campaigns.length > 3 ? (

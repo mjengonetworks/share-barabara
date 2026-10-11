@@ -64,3 +64,11 @@ test("auth flows and protected routes are wired to the safe helpers", () => {
   assert.match(guard, /const returnTo = safeInternalReturnTo\(location.href\)/);
   assert.match(guard, /search: returnTo \? \{ returnTo \} : \{\}/);
 });
+
+test("staging and production use the browser origin for every callback flow", () => {
+  const auth = readFileSync("src/routes/auth.index.tsx", "utf8");
+  assert.match(auth, /authCallbackUrl\(window\.location\.origin\)/);
+  assert.match(auth, /authCallbackUrl\(window\.location\.origin, true\)/);
+  assert.doesNotMatch(auth, /https:\/\/sharebarabara\.co\.ke\/auth/);
+  assert.doesNotMatch(auth, /siteUrl|SITE_URL|redirectTo:\s*["'`]https:/i);
+});
