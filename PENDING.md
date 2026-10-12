@@ -186,6 +186,8 @@ Task 49 and all source-table policy review.
 
 ## Task 51 — Production Database Migration Readiness — TESTING
 
+Task 51 — Production Database Migration Readiness is TESTING / VERIFICATION.
+
 Migration inventory, known-applied report/campaign patch, protected subscription
 boundary, dependency order, conflict gates, backup/rollback plan and read-only
 inspection SQL are documented. Remaining acceptance: owner-run ledger/catalog
@@ -194,11 +196,17 @@ Evidence: `docs/production-database-migration-readiness.md`.
 
 ## Task 53 — Supabase Production Database Verification — TESTING
 
+Task 53 — Supabase Production Database Verification is TESTING / VERIFICATION.
+
+No SQL was executed by Codex.
+
 The consolidated read-only audit query and local comparison utility exist. The
 query has not been run from this workspace because privileged access is
 unavailable. Remaining acceptance: owner export, conflict review, backup
-readiness and approval. Missing history must not be interpreted as proof of
-non-application.
+readiness and approval. The 2026-10-02 owner export is historical evidence
+only, not current production verification. Missing history must not be
+interpreted as proof of non-application. Evidence:
+`docs/task53-production-database-verification.md`.
 
 ## Task 54 — Urgent Editorial AI Repair — TESTING
 

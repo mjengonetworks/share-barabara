@@ -1,6 +1,7 @@
 # Task 58 — Production Database Audit & Migration Readiness
 
-Status: review-only. No SQL was executed by Codex.
+Status: review-only. No SQL was executed by Codex. Current production remains
+unverified; see `docs/task53-production-database-verification.md`.
 
 ## Task 58 audit conclusion
 
@@ -35,10 +36,10 @@ comparison utility; it deliberately reports missing evidence as
 - **PROTECTED / EXCLUDED** — subscription payment work; it is not part of the
 application sequence in this document.
 
-Task 59 processed the actual 2 October 2026 production export supplied by the
-owner. The export is not committed to the repository. Production
-reconciliation is complete at the catalog-evidence level, but migration
-execution remains blocked pending backup, ledger reconciliation and owner
+Task 59 processed the 2 October 2026 production export supplied by the owner.
+The export is not committed to the repository and is historical evidence only,
+not a current live verification. Production reconciliation remains blocked
+pending a fresh owner export, backup evidence, ledger reconciliation and owner
 approval; see `docs/production-database-migration-reconciliation.md`.
 
 ## Task 59 production evidence summary
@@ -173,14 +174,15 @@ catalogs, migration history, RLS policies, triggers, functions, constraints,
 indexes and grants. No production request was made and no credential value is
 recorded here.
 
-The only migration explicitly known from repository evidence to have already
-been applied is:
+The only migration explicitly recorded by repository/release evidence as
+already applied is:
 
 `supabase/migrations/20260929120000_report_unknown_campaign_review.sql`
 
-Do not schedule that file for execution again. All other production applied
-status is unknown until the read-only queries below are run against the live
-database. The subscription migration is protected, separate, and excluded.
+Do not schedule that file for execution again. This is not a fresh live
+verification. All other production applied status is unknown until the
+read-only queries below are run against the live database. The subscription
+migration is protected, separate, and excluded.
 
 ## Read-only inspection SQL
 
