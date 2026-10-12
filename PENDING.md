@@ -344,6 +344,24 @@ Barabara `projects` schema. Mjengo project previews are read-only. Do not add a
 fake route or infer ownership. Next action requires an explicit product owner,
 schema decision and separate scope approval.
 
+## Task 70 — Public Page Layout System & Editorial Content Flow — PENDING
+
+Batch 1 implements the shared public editorial layout primitives and redesigns
+News & Articles listing/detail surfaces on the isolated feature branch. Scope
+preserves routes, SEO, permissions, discussions, sharing, newsletter behavior,
+contextual report/alert recommendations, and Task 62 ad placement boundaries.
+
+Staging-only candidate; no database migrations, hosted data writes or
+production deployment. Remaining acceptance: owner visual review of `/news`
+and a published article detail across responsive light/dark viewports, ad
+impression/cadence verification, and regression review before extending the
+system to Alerts, Reports, Campaigns, Statistics, Media and Feed. Dependencies:
+Task 26 Statistics integration boundary, Task 62 advertising acceptance,
+existing public content/privacy contracts, and the staging release workflow.
+Evidence: `src/components/site/public-layout.tsx`,
+`tests/task70-public-page-layout.test.mjs`, and the four planning documents in
+`docs/ui/`.
+
 ## Migration and release dependencies
 
 The safe dependency order is: read-only Task 53 audit; backup/snapshot and
