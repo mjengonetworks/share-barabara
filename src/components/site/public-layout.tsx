@@ -107,7 +107,7 @@ export function FeaturedLeadCard({ article }: { article: PublicArticleCard }) {
       <ArticleImage article={article} lead />
       <div className="p-5 sm:p-6">
         <ArticleMeta article={article} />
-        <h3 className="mt-3 text-2xl font-extrabold leading-tight text-brand-blue group-hover:underline sm:text-3xl">
+        <h3 className="mt-3 text-2xl font-extrabold leading-tight text-foreground group-hover:underline sm:text-3xl">
           {article.title}
         </h3>
         {article.summary ? (
@@ -132,7 +132,7 @@ export function CompactArticleCard({ article }: { article: PublicArticleCard }) 
       </div>
       <div className="min-w-0 sm:p-4">
         <ArticleMeta article={article} />
-        <h3 className="mt-1.5 line-clamp-3 font-bold leading-snug text-brand-blue group-hover:underline sm:text-base">
+        <h3 className="mt-1.5 line-clamp-3 font-bold leading-snug text-foreground group-hover:underline sm:text-base">
           {article.title}
         </h3>
         {article.summary ? (
@@ -150,14 +150,14 @@ export function CompactArticleRow({ article }: { article: PublicArticleCard }) {
     <Link
       to="/news/$slug"
       params={{ slug: article.slug }}
-      className="group flex min-w-0 gap-3 border-b border-border/70 pb-4 last:border-0 last:pb-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group flex min-w-0 gap-3 border-b border-border/70 py-3 first:pt-0 last:border-0 last:pb-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <div className="w-28 shrink-0 overflow-hidden rounded-md bg-muted sm:w-32">
+      <div className="w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
         <ArticleImage article={article} />
       </div>
       <div className="min-w-0 py-0.5">
         <ArticleMeta article={article} />
-        <h3 className="mt-1 line-clamp-3 text-sm font-bold leading-snug text-brand-blue group-hover:underline sm:text-base">
+        <h3 className="mt-1 line-clamp-3 text-[13px] font-bold leading-snug text-foreground group-hover:underline sm:text-sm">
           {article.title}
         </h3>
       </div>
@@ -208,6 +208,88 @@ export function EditorialLeadAndCompactCards({
         <CompactArticleCard key={article.id} article={article} />
       ))}
       {placement ? <span className="sr-only">{placement}</span> : null}
+    </div>
+  );
+}
+
+export function CompactEditorialColumn({
+  title,
+  articles,
+  to = "/news",
+  placement,
+}: {
+  title: string;
+  articles: PublicArticleCard[];
+  to?: "/news" | "/alerts" | "/reports";
+  placement?: string;
+}) {
+  const [lead, ...supporting] = articles;
+  if (!lead) return null;
+
+  return (
+    <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+        <h3 className="text-sm font-extrabold uppercase tracking-[0.12em] text-brand-blue">
+          {title}
+        </h3>
+        {placement ? <span className="sr-only">{placement}</span> : null}
+      </div>
+      <Link
+        to="/news/$slug"
+        params={{ slug: lead.slug }}
+        className="group mt-4 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <ArticleImage article={lead} lead />
+        <ArticleMeta article={lead} />
+        <h4 className="mt-2 line-clamp-3 text-[17px] font-bold leading-[1.18] text-foreground group-hover:underline">
+          {lead.title}
+        </h4>
+      </Link>
+      {supporting.length ? (
+        <div className="mt-3 border-t border-border/70">
+          {supporting.slice(0, 4).map((article) => (
+            <CompactArticleRow key={article.id} article={article} />
+          ))}
+        </div>
+      ) : null}
+      <Link
+        to={to}
+        className="mt-auto inline-flex items-center pt-4 text-xs font-bold text-brand-blue underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        View more <ArrowRight className="ml-1 size-3.5" aria-hidden="true" />
+      </Link>
+    </section>
+  );
+}
+
+export function CompactEditorialColumns({
+  articles,
+  titles,
+  placement,
+  to = "/news",
+}: {
+  articles: PublicArticleCard[];
+  titles?: string[];
+  placement?: string;
+  to?: "/news" | "/alerts" | "/reports";
+}) {
+  if (!articles.length) return null;
+  const columnSize = Math.max(1, Math.ceil(articles.length / 3));
+  const columns = Array.from({ length: 3 }, (_, index) =>
+    articles.slice(index * columnSize, (index + 1) * columnSize),
+  ).filter((column) => column.length > 0);
+
+  return (
+    <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+      {columns.map((column, index) => (
+        <CompactEditorialColumn
+          key={`${placement ?? "editorial"}-${index}`}
+          title={titles?.[index] ?? `Stories ${index + 1}`}
+          articles={column}
+          placement={placement}
+          to={to}
+        />
+      ))}
     </div>
   );
 }

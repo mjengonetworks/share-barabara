@@ -12,7 +12,7 @@ export function NewsletterForm({
   variant = "default",
 }: {
   className?: string;
-  variant?: "default" | "gold";
+  variant?: "default" | "sidebar";
 }) {
   const { user } = useAuth();
   const [email, setEmail] = useState(user?.email ?? "");
@@ -59,7 +59,7 @@ export function NewsletterForm({
 
   return (
     <form
-      className={`flex flex-wrap items-center gap-2 ${className}`}
+      className={`${variant === "sidebar" ? "flex flex-col items-stretch gap-3" : "flex flex-wrap items-center gap-2"} ${className}`}
       onSubmit={(e) => {
         e.preventDefault();
         if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) {
@@ -76,17 +76,17 @@ export function NewsletterForm({
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.com"
-        className={`max-w-xs ${variant === "gold" ? "border-slate-700/30 bg-white/80 text-slate-950 placeholder:text-slate-600" : "bg-background"}`}
+        className={
+          variant === "sidebar"
+            ? "w-full border-white/20 bg-white/10 text-primary-foreground placeholder:text-primary-foreground/60"
+            : "max-w-xs bg-background"
+        }
         aria-invalid={Boolean(validationError)}
       />
       <Button
         type="submit"
         disabled={subscribe.isPending}
-        className={
-          variant === "gold"
-            ? "bg-brand-navy text-white shadow-sm hover:bg-brand-blue focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60"
-            : "bg-accent text-accent-foreground hover:bg-accent/90"
-        }
+        className={`bg-accent text-accent-foreground hover:bg-accent/90 ${variant === "sidebar" ? "w-full" : ""}`}
       >
         <Mail className="mr-1 size-4" />
         {subscribe.isPending ? "Subscribing…" : "Subscribe"}
