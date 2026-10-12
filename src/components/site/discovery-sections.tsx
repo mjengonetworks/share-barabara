@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useHazardTypes, useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { displayReportCount } from "@/lib/report-metrics";
-import { longDate, longDateWithDay } from "@/lib/format";
 import { BannerAd } from "@/components/site/banner-ad";
 
 type Focus = "article" | "alert" | "report";
@@ -64,7 +63,6 @@ export function ArticlePreviewCard({ article }: { article: ArticlePreview }) {
         <p className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">{article.category}</p>
         <h3 className="mt-1 line-clamp-2 font-bold leading-snug group-hover:underline">{article.title}</h3>
         <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{article.summary}</p>
-        <p className="mt-3 text-xs text-muted-foreground">{longDateWithDay(article.published_at)}</p>
       </div>
     </Link>
   );
@@ -104,7 +102,6 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
       <div className="p-4">
         <div className="flex flex-wrap items-center gap-2">
           <SeverityBadge value={report.severity} />
-          <span className="ml-auto text-xs text-muted-foreground">{longDate(report.occurred_at)}</span>
         </div>
         <h3 className="mt-3 line-clamp-2 font-bold leading-snug group-hover:underline">{report.title}</h3>
         <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">

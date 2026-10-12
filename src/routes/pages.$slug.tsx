@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { longDate, timeAgo } from "@/lib/format";
+import { timeAgo } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { PageForm } from "@/components/site/page-form";
@@ -219,9 +219,6 @@ function PageProfile() {
                   >
                     {a.title}
                   </Link>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {longDate(a.published_at)}
-                  </span>
                 </div>
               </li>
             ))}

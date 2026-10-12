@@ -19,7 +19,6 @@ import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { VoteButtons } from "@/components/site/vote-buttons";
-import { longDate, timeAgo } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
@@ -71,33 +70,6 @@ export const Route = createFileRoute("/reports/")({
   }),
   component: ReportsPage,
 });
-
-type ReportCard = {
-  id: string;
-  title: string;
-  severity: string;
-  county: string;
-  occurred_at: string;
-};
-
-function ReportMiniCard({ report }: { report: ReportCard }) {
-  return (
-    <Link
-      to="/reports/$reportId"
-      params={{ reportId: report.id }}
-      className="block rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <SeverityBadge value={report.severity} />
-        <span className="ml-auto text-xs text-muted-foreground">{timeAgo(report.occurred_at)}</span>
-      </div>
-      <p className="mt-2 font-semibold text-brand-blue hover:underline">{report.title}</p>
-      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-        <MapPin className="size-3" /> {report.county}
-      </p>
-    </Link>
-  );
-}
 
 function ReportsPage() {
   const { user } = useAuth();

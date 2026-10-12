@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { longDate } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { InfrastructureIssueForm } from "@/components/site/infrastructure-issue-form";
 import { BannerAd } from "@/components/site/banner-ad";
@@ -200,7 +199,6 @@ function InfrastructureIssuesPage() {
               <p className="mt-2 line-clamp-2 flex-1 text-sm text-muted-foreground">
                 {issue.summary}
               </p>
-              <p className="mt-3 text-xs text-muted-foreground">{longDate(issue.created_at)}</p>
             </Link>
           </Fragment>
         ))}
