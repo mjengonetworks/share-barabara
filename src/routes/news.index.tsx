@@ -119,13 +119,16 @@ function TopicSection({
   tone?: "plain" | "pale";
   placement: string;
 }) {
-  if (!articles.length) return null;
   return (
     <EditorialBand tone={tone}>
       <SectionHeader eyebrow={eyebrow} title={title} to="/news" actionLabel="Read more" />
-      <div className="mt-6">
-        <EditorialLeadAndRows articles={articles.slice(0, 5)} placement={placement} />
-      </div>
+      {articles.length ? (
+        <div className="mt-6">
+          <EditorialLeadAndRows articles={articles.slice(0, 5)} placement={placement} />
+        </div>
+      ) : (
+        <EmptyState label="No published articles are available in this section yet." />
+      )}
     </EditorialBand>
   );
 }
@@ -267,23 +270,25 @@ function NewsIndex() {
             articles={latest}
             placement="news-latest"
           />
-          {featured.length ? (
-            <EditorialBand tone="pale">
-              <SectionHeader
-                eyebrow="Editors' selection"
-                title="Featured / Prime Articles"
-                icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
-                to="/news"
-                actionLabel="Read more"
-              />
+          <EditorialBand tone="pale">
+            <SectionHeader
+              eyebrow="Editors' selection"
+              title="Featured / Prime Articles"
+              icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
+              to="/news"
+              actionLabel="Read more"
+            />
+            {featured.length ? (
               <div className="mt-6">
                 <EditorialCardSection articles={featured} />
               </div>
-              {featured.length === featuredLimit ? (
-                <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
-              ) : null}
-            </EditorialBand>
-          ) : null}
+            ) : (
+              <EmptyState label="No featured published articles are available yet." />
+            )}
+            {featured.length === featuredLimit ? (
+              <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
+            ) : null}
+          </EditorialBand>
           <EditorialBand tone="plain">
             <SectionHeader
               eyebrow="Browse the newsroom"
