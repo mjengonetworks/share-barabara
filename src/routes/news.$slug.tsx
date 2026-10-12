@@ -11,7 +11,6 @@ import {
   useProfileBylines,
 } from "@/lib/profiles";
 import { useRoleLabels, bylineLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
-import { renderRichText } from "@/lib/richtext";
 import { UserLink } from "@/components/site/user-link";
 import { UserAvatar } from "@/components/site/user-avatar";
 import { CommentSection } from "@/components/site/comment-section";
@@ -21,10 +20,24 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import { DiscoverySections } from "@/components/site/discovery-sections";
+import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
+import { AdRichText } from "@/components/site/ad-interleave";
+import { AdInterleave } from "@/components/site/ad-interleave";
+import {
+  EditorialBand,
+  PublicSidebar,
+  SectionHeader,
+  SidebarModule,
+} from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
-    const { data } = await supabase.from("news").select("*").eq("slug", params.slug).eq("status", "published").maybeSingle();
+    const { data } = await supabase
+      .from("news")
+      .select("*")
+      .eq("slug", params.slug)
+      .eq("status", "published")
+      .maybeSingle();
     if (!data) throw notFound();
     return data;
   },
@@ -49,25 +62,56 @@ export const Route = createFileRoute("/news/$slug")({
   component: NewsDetail,
 });
 
-type RelatedArticle = { id: string; slug: string; title: string; category?: string | null; image_url?: string | null; published_at?: string | null; source?: string | null };
+type RelatedArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  category?: string | null;
+  image_url?: string | null;
+  published_at?: string | null;
+  source?: string | null;
+};
 
 function ArticleList({ articles }: { articles: RelatedArticle[] }) {
   return (
     <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-      {articles.map((a, index) => (
-        <Link
-          key={a.id}
-          to="/news/$slug"
-          params={{ slug: a.slug }}
-          className={`group min-w-0 overflow-hidden rounded-md border border-border/70 bg-background/60 transition-colors hover:border-accent ${index === 0 ? "lg:border-accent/60" : ""}`}
-        >
-          {a.image_url ? <img src={a.image_url} alt="" loading="lazy" className="aspect-video w-full object-cover" /> : <div className="flex aspect-video w-full items-center justify-center bg-muted"><Newspaper className="size-6 text-muted-foreground" aria-hidden="true" /></div>}
-          <span className="block min-w-0 p-3">
-            <span className={`${index === 0 ? "text-base" : "text-sm"} line-clamp-2 font-semibold text-brand-blue group-hover:underline`}>{a.title}</span>
-            <span className="mt-1 block truncate text-[0.68rem] text-muted-foreground">{a.category ?? "News"}{a.source ? ` · ${a.source}` : ""}</span>
-          </span>
-        </Link>
-      ))}
+      <AdInterleave
+        items={articles}
+        placement="article-sidebar"
+        adClassName="col-span-full"
+        renderItem={(a, index) => (
+          <Link
+            key={a.id}
+            to="/news/$slug"
+            params={{ slug: a.slug }}
+            className={`group min-w-0 overflow-hidden rounded-md border border-border/70 bg-background/60 transition-colors hover:border-accent ${index === 0 ? "lg:border-accent/60" : ""}`}
+          >
+            {a.image_url ? (
+              <img
+                src={a.image_url}
+                alt=""
+                loading="lazy"
+                className="aspect-video w-full object-cover"
+              />
+            ) : (
+              <div className="flex aspect-video w-full items-center justify-center bg-muted">
+                <Newspaper className="size-6 text-muted-foreground" aria-hidden="true" />
+              </div>
+            )}
+            <span className="block min-w-0 p-3">
+              <span
+                className={`${index === 0 ? "text-base" : "text-sm"} line-clamp-2 font-semibold text-brand-blue group-hover:underline`}
+              >
+                {a.title}
+              </span>
+              <span className="mt-1 block truncate text-[0.68rem] text-muted-foreground">
+                {a.category ?? "News"}
+                {a.source ? ` · ${a.source}` : ""}
+              </span>
+            </span>
+          </Link>
+        )}
+      />
     </div>
   );
 }
@@ -162,6 +206,42 @@ function NewsDetail() {
     },
   });
 
+  const { data: contextualReports = [] } = useQuery({
+    queryKey: ["news-context-reports", article?.id, article?.county, article?.road],
+    enabled: !!article && Boolean(article.county || article.road),
+    queryFn: async () => {
+      let query = supabase
+        .from("accident_reports")
+        .select(
+          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+        )
+        .eq("status", "approved");
+      query = article!.road
+        ? query.eq("road", article!.road)
+        : query.eq("county", article!.county!);
+      const { data, error } = await query.order("occurred_at", { ascending: false }).limit(4);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: contextualAlerts = [] } = useQuery({
+    queryKey: ["news-context-alerts", article?.id, article?.county, article?.road],
+    enabled: !!article && Boolean(article.county || article.road),
+    queryFn: async () => {
+      let query = supabase
+        .from("alerts")
+        .select("id, title, description, county, road, hazard_type, severity, created_at")
+        .eq("status", "active");
+      query = article!.road
+        ? query.eq("road", article!.road)
+        : query.eq("county", article!.county!);
+      const { data, error } = await query.order("created_at", { ascending: false }).limit(4);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   if (isLoading) {
     return <p className="mx-auto max-w-3xl px-4 py-20 text-muted-foreground">Loading story…</p>;
   }
@@ -178,13 +258,28 @@ function NewsDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-5 sm:py-7">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
         <article className="min-w-0">
-          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-            <Link to="/" className="hover:text-foreground hover:underline">Home</Link><ChevronRight className="size-3" aria-hidden="true" />
-            <Link to="/news" className="hover:text-foreground hover:underline">News &amp; Articles</Link><ChevronRight className="size-3" aria-hidden="true" />
-            <Link to="/news" search={{ category: article.category }} className="font-medium text-foreground hover:underline">{article.category || "News"}</Link>
+          <nav
+            aria-label="Breadcrumb"
+            className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground"
+          >
+            <Link to="/" className="hover:text-foreground hover:underline">
+              Home
+            </Link>
+            <ChevronRight className="size-3" aria-hidden="true" />
+            <Link to="/news" className="hover:text-foreground hover:underline">
+              News &amp; Articles
+            </Link>
+            <ChevronRight className="size-3" aria-hidden="true" />
+            <Link
+              to="/news"
+              search={{ category: article.category }}
+              className="font-medium text-foreground hover:underline"
+            >
+              {article.category || "News"}
+            </Link>
           </nav>
           <div className="mt-3 flex flex-wrap gap-1.5">
             {(article.categories?.length ? article.categories : [article.category]).map((c) => (
@@ -215,7 +310,7 @@ function NewsDetail() {
               <img
                 src={article.image_url}
                 alt={article.image_alt || article.title}
-                className="mx-auto max-h-[70vh] max-w-full rounded-lg border border-border object-contain"
+                className="aspect-[16/8] w-full rounded-xl border border-border object-cover object-center"
               />
               {article.image_caption || article.image_credit ? (
                 <figcaption className="mt-1.5 text-xs text-muted-foreground">
@@ -250,15 +345,26 @@ function NewsDetail() {
               </div>
             </div>
           ) : null}
-            {article.summary?.trim() ? (
+          {article.summary?.trim() ? (
             <p className="mt-5 rounded-lg border border-sky-200/80 bg-sky-50 px-4 py-3 text-lg text-primary">
-                {article.summary}
-              </p>
-            ) : null}
-          {article.status === "published" ? <div className="mt-5"><BannerAd placement="article-quick-summary" /></div> : null}
-          {article.status === "published" ? <ShareBarabaraAI contextType="article" contextId={article.id} title={article.title} sourceText={`${article.summary ?? ""}\n${article.body ?? ""}`} /> : null}
+              {article.summary}
+            </p>
+          ) : null}
+          {article.status === "published" ? (
+            <div className="mt-5">
+              <BannerAd placement="article-quick-summary" />
+            </div>
+          ) : null}
+          {article.status === "published" ? (
+            <ShareBarabaraAI
+              contextType="article"
+              contextId={article.id}
+              title={article.title}
+              sourceText={`${article.summary ?? ""}\n${article.body ?? ""}`}
+            />
+          ) : null}
           <div className="mt-6 space-y-4 text-foreground/90">
-            {renderRichText(article.body)}
+            <AdRichText content={article.body} placement="article-body" />
             {related[0] ? (
               <p className="mx-auto max-w-2xl rounded border-l-4 border-caution bg-caution/10 px-4 py-2 text-center text-sm">
                 <span className="font-semibold">Read also: </span>
@@ -291,11 +397,47 @@ function NewsDetail() {
             ))}
           </div>
 
+          {contextualReports.length > 0 || contextualAlerts.length > 0 ? (
+            <EditorialBand tone="pale" className="mt-10 rounded-xl">
+              <SectionHeader
+                eyebrow={
+                  article.county || article.road
+                    ? `Context for ${article.road || article.county}`
+                    : "Road context"
+                }
+                title="Reports and alerts connected to this story"
+                description="Public items matched by the article's stored road or county."
+              />
+              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                {contextualReports.length > 0 ? (
+                  <div>
+                    <h2 className="mb-3 text-lg font-bold">Accident reports</h2>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                      {contextualReports.map((report) => (
+                        <ReportPreviewCard key={report.id} report={report} />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {contextualAlerts.length > 0 ? (
+                  <div>
+                    <h2 className="mb-3 text-lg font-bold">Active alerts</h2>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                      {contextualAlerts.map((alert) => (
+                        <AlertPreviewCard key={alert.id} alert={alert} />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </EditorialBand>
+          ) : null}
+
           <CommentSection entityType="news" entityId={article.id} />
         </article>
 
-        <aside className="space-y-8">
-          <div className="rounded-lg border border-accent/40 bg-accent/10 p-5 card-elevated">
+        <PublicSidebar>
+          <SidebarModule className="border-accent/40 bg-accent/10">
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
               Stay informed
             </h2>
@@ -303,9 +445,9 @@ function NewsDetail() {
               Get important road-safety stories and community updates in your inbox.
             </p>
             <NewsletterForm className="mt-4" />
-          </div>
+          </SidebarModule>
           {related.length > 0 ? (
-            <div className="rounded-lg border border-border bg-card p-5 card-elevated">
+            <SidebarModule>
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Related articles
               </h2>
@@ -317,10 +459,10 @@ function NewsDetail() {
               >
                 Read more
               </Link>
-            </div>
+            </SidebarModule>
           ) : null}
           {latest.length > 0 ? (
-            <div className="rounded-lg border border-border bg-card p-5 card-elevated">
+            <SidebarModule>
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Latest articles
               </h2>
@@ -331,10 +473,10 @@ function NewsDetail() {
               >
                 Read more
               </Link>
-            </div>
+            </SidebarModule>
           ) : null}
           {trending.length > 0 ? (
-            <div className="rounded-lg border border-border bg-card p-5 card-elevated">
+            <SidebarModule>
               <h2 className="flex items-center gap-1 text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 <Flame className="size-4 text-destructive" /> Trending
               </h2>
@@ -345,9 +487,9 @@ function NewsDetail() {
               >
                 Read more
               </Link>
-            </div>
+            </SidebarModule>
           ) : null}
-        </aside>
+        </PublicSidebar>
       </div>
       <DiscoverySections focus="article" currentId={article.id} />
     </div>
