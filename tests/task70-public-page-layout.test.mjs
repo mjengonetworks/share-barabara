@@ -6,6 +6,8 @@ const read = (file) => fs.readFileSync(file, "utf8");
 const layout = read("src/components/site/public-layout.tsx");
 const news = read("src/routes/news.index.tsx");
 const detail = read("src/routes/news.$slug.tsx");
+const alerts = read("src/routes/alerts.index.tsx");
+const reports = read("src/routes/reports.index.tsx");
 
 test("Task 70 shared public layout exposes the planned editorial primitives", () => {
   for (const name of [
@@ -122,4 +124,20 @@ test("editorial modules provide balanced unique lead-and-supporting card columns
   assert.match(news, /latest: all\.slice\(0, 12\)/);
   assert.match(news, /name: "latest",\s*limit: 12/);
   assert.match(news, /result_limit: 12/);
+});
+
+test("alerts and reports listings use shared multi-column incident editorial sections", () => {
+  for (const route of [alerts, reports]) {
+    assert.match(route, /CompactIncidentColumns/);
+    assert.match(route, /lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/);
+    assert.match(route, /EditorialBand tone="pale"/);
+    assert.match(route, /EditorialBand tone="plain"/);
+    assert.doesNotMatch(route, /<ul className="mt-6 space-y-6">/);
+  }
+  assert.match(alerts, /Important \/ Critical Alerts/);
+  assert.match(alerts, /Latest Alerts/);
+  assert.match(reports, /Featured Accident Reports/);
+  assert.match(reports, /Latest Accident Reports/);
+  assert.match(layout, /supporting\.slice\(0, 3\)/);
+  assert.match(layout, /aspect-video/);
 });

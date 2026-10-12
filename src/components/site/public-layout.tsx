@@ -3,6 +3,8 @@ import { ArrowRight, MapPin, Newspaper } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { longDateWithDay } from "@/lib/format";
+import { SeverityBadge } from "@/components/site/severity-badge";
+import { displayReportCount } from "@/lib/report-metrics";
 
 export type PublicArticleCard = {
   id: string;
@@ -396,13 +398,18 @@ export type PublicBreadcrumbItem = { label: string; to?: string };
 /** Shared breadcrumb strip for every public detail surface. */
 export function PublicBreadcrumbStrip({ items }: { items: PublicBreadcrumbItem[] }) {
   return (
-    <nav aria-label="Breadcrumb" className="w-full bg-gradient-to-r from-brand-navy via-brand-blue to-primary text-primary-foreground">
+    <nav
+      aria-label="Breadcrumb"
+      className="w-full bg-gradient-to-r from-brand-navy via-brand-blue to-primary text-primary-foreground"
+    >
       <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-4 py-2 text-xs sm:px-6">
         {items.map((item, index) => (
           <span key={`${item.label}-${index}`} className="flex min-w-0 items-center gap-1">
             {index ? <span className="shrink-0 text-primary-foreground/60">›</span> : null}
             {item.to ? (
-              <Link to={item.to as never} className="shrink-0 hover:underline">{item.label}</Link>
+              <Link to={item.to as never} className="shrink-0 hover:underline">
+                {item.label}
+              </Link>
             ) : (
               <span className="truncate text-primary-foreground/85">{item.label}</span>
             )}
@@ -427,7 +434,9 @@ export function PublicDetailShell({
     <>
       <PublicBreadcrumbStrip items={breadcrumb} />
       <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
-        <article className="min-w-0 rounded-xl border border-border bg-card p-5 card-elevated sm:p-6">{children}</article>
+        <article className="min-w-0 rounded-xl border border-border bg-card p-5 card-elevated sm:p-6">
+          {children}
+        </article>
         {sidebar ? <PublicSidebar>{sidebar}</PublicSidebar> : null}
       </div>
     </>
@@ -438,13 +447,167 @@ export function DetailSidebarList({ children }: { children: ReactNode }) {
   return <div className="divide-y divide-border/70">{children}</div>;
 }
 
-export function CategoryChip({ active = false, children }: { active?: boolean; children: ReactNode }) {
+export function CategoryChip({
+  active = false,
+  children,
+}: {
+  active?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <span className={cn(
-      "inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold",
-      active ? "border-brand-blue bg-brand-blue text-white" : "border-[#CFE2FA] bg-[#EAF3FF] text-[#174A87]",
-    )}>
+    <span
+      className={cn(
+        "inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold",
+        active
+          ? "border-brand-blue bg-brand-blue text-white"
+          : "border-[#CFE2FA] bg-[#EAF3FF] text-[#174A87]",
+      )}
+    >
       {children}
     </span>
+  );
+}
+
+export type PublicIncidentCard = {
+  id: string;
+  title: string;
+  severity?: string | null;
+  county?: string | null;
+  road?: string | null;
+  occurred_at?: string | null;
+  created_at?: string | null;
+  image_url?: string | null;
+  description?: string | null;
+  hazard_type?: string | null;
+  incident_type?: string | null;
+  status?: string | null;
+  vehicles_involved?: number | null;
+  casualties?: number | null;
+  fatalities?: number | null;
+};
+
+function IncidentImage({ item, lead = false }: { item: PublicIncidentCard; lead?: boolean }) {
+  return item.image_url ? (
+    <img
+      src={item.image_url}
+      alt={item.title}
+      loading={lead ? "eager" : "lazy"}
+      className={cn("w-full rounded-md object-cover", lead ? "aspect-video" : "aspect-[4/3]")}
+    />
+  ) : null;
+}
+
+function IncidentRow({
+  item,
+  kind,
+  actions,
+}: {
+  item: PublicIncidentCard;
+  kind: "alert" | "report";
+  actions?: (item: PublicIncidentCard) => ReactNode;
+}) {
+  const to = kind === "alert" ? "/alerts/$alertId" : "/reports/$reportId";
+  const params = kind === "alert" ? { alertId: item.id } : { reportId: item.id };
+  return (
+    <Link
+      to={to as never}
+      params={params as never}
+      className="group flex min-w-0 gap-3 border-b border-border/70 py-3 first:pt-0 last:border-0 last:pb-0"
+    >
+      {item.image_url ? (
+        <div className="w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
+          <IncidentImage item={item} />
+        </div>
+      ) : null}
+      <div className="min-w-0 py-0.5">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {item.severity ? <SeverityBadge value={item.severity} /> : null}
+          <span className="text-[11px] text-muted-foreground">
+            {longDateWithDay(item.occurred_at ?? item.created_at ?? "")}
+          </span>
+        </div>
+        <h4 className="mt-1 line-clamp-3 text-[13px] font-bold leading-snug text-foreground group-hover:underline sm:text-sm">
+          {item.title}
+        </h4>
+        <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">
+          {[item.county, item.road].filter(Boolean).join(" · ") || "Location not provided"}
+        </p>
+        {actions ? <div className="mt-2">{actions(item)}</div> : null}
+      </div>
+    </Link>
+  );
+}
+
+export function CompactIncidentColumns({
+  items,
+  kind,
+  titles = ["Lead reports", "On the road", "Community watch"],
+  placement,
+  renderActions,
+}: {
+  items: PublicIncidentCard[];
+  kind: "alert" | "report";
+  titles?: string[];
+  placement?: string;
+  renderActions?: (item: PublicIncidentCard) => ReactNode;
+}) {
+  const unique = items
+    .filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
+    .slice(0, 12);
+  if (!unique.length) return null;
+  const columns: PublicIncidentCard[][] = Array.from(
+    { length: Math.min(3, unique.length) },
+    () => [],
+  );
+  unique.forEach((item, index) => columns[index % columns.length].push(item));
+  return (
+    <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+      {columns.map((column, index) => {
+        const [lead, ...supporting] = column;
+        const to = kind === "alert" ? "/alerts/$alertId" : "/reports/$reportId";
+        const params = kind === "alert" ? { alertId: lead.id } : { reportId: lead.id };
+        return (
+          <section
+            key={`${placement ?? kind}-${index}`}
+            className="flex min-w-0 flex-col rounded-lg border border-border bg-card p-3 shadow-sm"
+          >
+            <h3 className="border-b border-border pb-3 text-sm font-extrabold uppercase tracking-[0.12em] text-brand-blue">
+              {titles[index] ?? `Stories ${index + 1}`}
+            </h3>
+            <Link to={to as never} params={params as never} className="group mt-4 block">
+              <IncidentImage item={lead} lead />
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {lead.severity ? <SeverityBadge value={lead.severity} /> : null}
+                <span className="text-[11px] text-muted-foreground">
+                  {longDateWithDay(lead.occurred_at ?? lead.created_at ?? "")}
+                </span>
+              </div>
+              <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-foreground group-hover:underline">
+                {lead.title}
+              </h4>
+              <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+                {[lead.county, lead.road, lead.status].filter(Boolean).join(" · ") ||
+                  "Location not provided"}
+              </p>
+              {kind === "report" ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  <strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles ·{" "}
+                  <strong>{displayReportCount(lead.casualties)}</strong> injured ·{" "}
+                  <strong>{displayReportCount(lead.fatalities)}</strong> deaths
+                </p>
+              ) : null}
+              {renderActions ? <div className="mt-3">{renderActions(lead)}</div> : null}
+            </Link>
+            {supporting.length ? (
+              <div className="mt-3 border-t border-border/70">
+                {supporting.slice(0, 3).map((item) => (
+                  <IncidentRow key={item.id} item={item} kind={kind} actions={renderActions} />
+                ))}
+              </div>
+            ) : null}
+          </section>
+        );
+      })}
+    </div>
   );
 }
