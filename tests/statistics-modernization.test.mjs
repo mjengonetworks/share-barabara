@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   excludeLinkedDuplicates,
+  clusterIncidentRows,
   groupIncidentRows,
+  hasVerifiedCoordinates,
   isApprovedReport,
   percentageChange,
   reportMonthBuckets,
@@ -43,7 +45,50 @@ test("missing location/type is grouped explicitly and linked duplicates are excl
     Nairobi: 2,
     "Unknown / not specified": 2,
   });
-  assert.equal(excludeLinkedDuplicates([{ duplicate_of_report_id: null }, { duplicate_of_report_id: "x" }]).length, 1);
+  assert.equal(
+    excludeLinkedDuplicates([{ duplicate_of_report_id: null }, { duplicate_of_report_id: "x" }])
+      .length,
+    1,
+  );
+});
+
+test("map markers use only verified coordinates and cluster real incidents", () => {
+  const rows = [
+    { id: "one", latitude: -1.28, longitude: 36.82 },
+    { id: "two", latitude: -1.29, longitude: 36.83 },
+    { id: "unknown", latitude: null, longitude: 36.8 },
+    { id: "outside", latitude: 12, longitude: 36.8 },
+  ];
+  assert.equal(hasVerifiedCoordinates(rows[0]), true);
+  assert.equal(hasVerifiedCoordinates(rows[2]), false);
+  assert.equal(hasVerifiedCoordinates(rows[3]), false);
+  const clusters = clusterIncidentRows(rows, 0.15);
+  assert.equal(clusters.length, 1);
+  assert.deepEqual(
+    clusters[0].members.map((row) => row.id),
+    ["one", "two"],
+  );
+  assert.equal(clusters[0].latitude, -1.28);
+  assert.equal(clusters[0].longitude, 36.82);
+});
+
+test("statistics map preserves filter synchronization and canonical links", async () => {
+  const [route, map] = await Promise.all([
+    readFile(new URL("../src/routes/statistics.tsx", import.meta.url), "utf8"),
+    readFile(
+      new URL("../src/components/site/statistics-incident-map.tsx", import.meta.url),
+      "utf8",
+    ),
+  ]);
+  assert.match(route, /liveRoad/);
+  assert.match(route, /r\.road_id === liveRoad/);
+  assert.match(route, /<StatisticsIncidentMap incidents=\{thisYearSummary\.rows\}/);
+  assert.match(route, /The incident map is unavailable/);
+  assert.match(map, /to="\/reports\/\$reportId"/);
+  assert.match(map, /clusterIncidentRows/);
+  assert.match(map, /KENYA_BOUNDARY/);
+  assert.match(map, /Natural Earth/);
+  assert.match(map, /No approved reports with verified coordinates/);
 });
 
 test("the public route does not coerce missing casualty-breakdown values to zero", async () => {
@@ -81,7 +126,10 @@ test("public route explicitly separates approved reports from stored aggregates"
 
 test("provenance schema is review-only and cannot autonomously publish", async () => {
   const sql = await readFile(
-    new URL("../supabase/migrations/20260930100000_statistics_modernization_review.sql", import.meta.url),
+    new URL(
+      "../supabase/migrations/20260930100000_statistics_modernization_review.sql",
+      import.meta.url,
+    ),
     "utf8",
   );
   assert.match(sql, /REVIEW-ONLY/);
@@ -96,7 +144,10 @@ test("provenance schema is review-only and cannot autonomously publish", async (
   assert.match(sql, /Statistics proposal author is immutable/);
   assert.match(sql, /Reviewed statistics proposals are immutable/);
   assert.match(sql, /verification_status.*unverified.*provisional.*final/s);
-  assert.match(sql, /record_status <> 'published' OR verification_status IN \('provisional', 'final'\)/);
+  assert.match(
+    sql,
+    /record_status <> 'published' OR verification_status IN \('provisional', 'final'\)/,
+  );
   assert.match(sql, /has_min_role\(auth\.uid\(\), 'editor'\)/);
   assert.match(sql, /proposed_by = auth\.uid\(\)/);
   assert.doesNotMatch(sql, /ON public\.statistics_update_proposals FOR DELETE/);
@@ -117,7 +168,10 @@ test("alerts keep their existing active/public semantics while reports require a
   const source = await readFile(new URL("../src/routes/statistics.tsx", import.meta.url), "utf8");
   assert.match(source, /useLiveCount\("alerts", "alerts"\)/);
   assert.match(source, /supabase\.from\("alerts"\)\.select\("casualty_breakdown"\)/);
-  assert.match(source, /supabase\.from\("accident_reports"\)\.select\("casualty_breakdown"\)\.eq\("status", "approved"\)/);
+  assert.match(
+    source,
+    /supabase\.from\("accident_reports"\)\.select\("casualty_breakdown"\)\.eq\("status", "approved"\)/,
+  );
 });
 
 test("the runtime page preserves legacy tables and optionally reads published provenance", async () => {
@@ -129,9 +183,21 @@ test("the runtime page preserves legacy tables and optionally reads published pr
 
 test("statistics admin has review-only evidence proposals", async () => {
   const [admin, panel, migration] = await Promise.all([
-    readFile(new URL("../src/routes/_authenticated/admin/crash-statistics.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../src/components/site/statistics-proposals-panel.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../supabase/migrations/20260930100000_statistics_modernization_review.sql", import.meta.url), "utf8"),
+    readFile(
+      new URL("../src/routes/_authenticated/admin/crash-statistics.tsx", import.meta.url),
+      "utf8",
+    ),
+    readFile(
+      new URL("../src/components/site/statistics-proposals-panel.tsx", import.meta.url),
+      "utf8",
+    ),
+    readFile(
+      new URL(
+        "../supabase/migrations/20260930100000_statistics_modernization_review.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
   ]);
   assert.match(admin, /StatisticsProposalsPanel/);
   assert.match(panel, /statistics_update_proposals/);

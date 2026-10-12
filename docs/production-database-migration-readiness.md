@@ -38,9 +38,10 @@ application sequence in this document.
 
 Task 59 processed the 2 October 2026 production export supplied by the owner.
 The export is not committed to the repository and is historical evidence only,
-not a current live verification. Production reconciliation remains blocked
-pending a fresh owner export, backup evidence, ledger reconciliation and owner
-approval; see `docs/production-database-migration-reconciliation.md`.
+not a current live verification. Production reconciliation is complete at the catalog-evidence level,
+while production execution remains blocked pending a
+fresh owner export, backup evidence, ledger reconciliation and owner approval;
+see `docs/production-database-migration-reconciliation.md`.
 
 ## Task 59 production evidence summary
 

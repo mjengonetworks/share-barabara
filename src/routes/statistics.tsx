@@ -37,6 +37,7 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { displayReportCount } from "@/lib/report-metrics";
 import { groupIncidentRows, percentageChange, reportMonthBuckets, summarizeIncidentRows } from "@/lib/statistics.mjs";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { StatisticsIncidentMap } from "@/components/site/statistics-incident-map";
 
 export const Route = createFileRoute("/statistics")({
   head: () => ({
@@ -140,8 +141,14 @@ function usePartiesCasualtyCounts() {
 }
 
 type LiveReport = {
+  id: string;
+  title: string;
   occurred_at: string;
   county: string;
+  road: string | null;
+  road_id: string | null;
+  latitude: number | null;
+  longitude: number | null;
   severity: string;
   fatalities: number | null;
   casualties: number | null;
@@ -161,7 +168,7 @@ function useLiveYearReports() {
       const since = new Date(currentYear - 1, 0, 1).toISOString();
       const { data, error } = await supabase
         .from("accident_reports")
-        .select("occurred_at, county, severity, fatalities, casualties, parties_involved, duplicate_of_report_id, incident_type")
+        .select("id, title, occurred_at, county, road, road_id, latitude, longitude, severity, fatalities, casualties, parties_involved, duplicate_of_report_id, incident_type")
         .eq("status", "approved")
         .gte("occurred_at", since);
       if (error) throw error;
@@ -384,17 +391,26 @@ function StatisticsPage() {
   const countiesForYear = counties.filter((c) => c.year === activeYear);
   const victimsForYear = victims.filter((v) => v.year === activeYear);
   const totalVictims = victimsForYear.reduce((sum, v) => sum + v.fatalities, 0);
-  const { data: liveReports = [] } = useLiveYearReports();
+  const { data: liveReports = [], isLoading: liveReportsLoading, error: liveReportsError } = useLiveYearReports();
   const { data: provenance = [] } = usePublishedStatisticsProvenance();
   const [liveCounty, setLiveCounty] = useState("all");
   const [liveSeverity, setLiveSeverity] = useState("all");
   const [liveParty, setLiveParty] = useState("all");
-  const liveFiltered = liveCounty !== "all" || liveSeverity !== "all" || liveParty !== "all";
+  const [liveRoad, setLiveRoad] = useState("all");
+  const roadOptions = Array.from(
+    new Map(
+      liveReports
+        .filter((report) => report.road_id && report.road)
+        .map((report) => [report.road_id, { id: report.road_id as string, name: report.road as string }]),
+    ).values(),
+  ).sort((a, b) => a.name.localeCompare(b.name));
+  const liveFiltered = liveCounty !== "all" || liveSeverity !== "all" || liveParty !== "all" || liveRoad !== "all";
 
   const matchesLiveFilters = (r: LiveReport) =>
     (liveCounty === "all" || r.county === liveCounty) &&
     (liveSeverity === "all" || r.severity === liveSeverity) &&
-    (liveParty === "all" || r.parties_involved.includes(liveParty));
+    (liveParty === "all" || r.parties_involved.includes(liveParty)) &&
+    (liveRoad === "all" || r.road_id === liveRoad);
 
   const jan1ThisYear = new Date(currentYear, 0, 1).getTime();
   const dayOfYear = Math.floor((Date.now() - jan1ThisYear) / 86_400_000);
@@ -569,6 +585,19 @@ function StatisticsPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={liveRoad} onValueChange={setLiveRoad}>
+            <SelectTrigger className="w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-64">
+              <SelectItem value="all">All roads</SelectItem>
+              {roadOptions.map((road) => (
+                <SelectItem key={road.id} value={road.id}>
+                  {road.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={liveSeverity} onValueChange={setLiveSeverity}>
             <SelectTrigger className="w-44">
               <SelectValue />
@@ -603,6 +632,7 @@ function StatisticsPage() {
                 setLiveCounty("all");
                 setLiveSeverity("all");
                 setLiveParty("all");
+                setLiveRoad("all");
               }}
             >
               Clear filters
@@ -666,6 +696,19 @@ function StatisticsPage() {
             Injuries not confirmed: <strong className="text-foreground">{thisYearSummary.unknownInjuries}</strong>
           </p>
         </div>
+
+        {liveReportsLoading ? (
+          <section className="mt-8 rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground" aria-live="polite">
+            Loading the incident map…
+          </section>
+        ) : liveReportsError ? (
+          <section className="mt-8 rounded-lg border border-destructive/30 bg-destructive/5 p-6 text-sm" role="alert">
+            <p className="font-semibold">The incident map is unavailable right now.</p>
+            <p className="mt-1 text-muted-foreground">The report statistics above could not load map data. No incident markers were created.</p>
+          </section>
+        ) : (
+          <StatisticsIncidentMap incidents={thisYearSummary.rows} />
+        )}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <div>
