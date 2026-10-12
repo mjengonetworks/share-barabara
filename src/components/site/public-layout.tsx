@@ -67,13 +67,13 @@ function ArticleImage({ article, lead = false }: { article: PublicArticleCard; l
       src={article.image_url}
       alt={article.title}
       loading={lead ? "eager" : "lazy"}
-      className={cn("w-full object-cover object-center", lead ? "aspect-[16/8]" : "aspect-video")}
+      className={cn("w-full object-cover object-center", lead ? "aspect-[16/9]" : "aspect-video")}
     />
   ) : (
     <div
       className={cn(
         "flex w-full items-center justify-center bg-primary/5 text-primary/50",
-        lead ? "aspect-[16/8]" : "aspect-video",
+        lead ? "aspect-[16/9]" : "aspect-video",
       )}
       aria-label="Article image unavailable"
     >
@@ -82,17 +82,30 @@ function ArticleImage({ article, lead = false }: { article: PublicArticleCard; l
   );
 }
 
-function ArticleMeta({ article }: { article: PublicArticleCard }) {
+function ArticleMeta({
+  article,
+  compact = false,
+}: {
+  article: PublicArticleCard;
+  compact?: boolean;
+}) {
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
       {article.category ? (
-        <span className="rounded bg-accent/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-accent-foreground">
+        <span
+          className={cn(
+            "rounded bg-accent/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-accent-foreground",
+            compact && "px-1.5",
+          )}
+        >
           {article.category}
         </span>
       ) : null}
-      {article.featured ? <span className="font-semibold text-caution">Featured</span> : null}
+      {!compact && article.featured ? (
+        <span className="font-semibold text-caution">Featured</span>
+      ) : null}
       {article.published_at ? <span>{longDateWithDay(article.published_at)}</span> : null}
-      {article.source ? <span>· {article.source}</span> : null}
+      {!compact && article.source ? <span>· {article.source}</span> : null}
     </div>
   );
 }
@@ -156,7 +169,7 @@ export function CompactArticleRow({ article }: { article: PublicArticleCard }) {
         <ArticleImage article={article} />
       </div>
       <div className="min-w-0 py-0.5">
-        <ArticleMeta article={article} />
+        <ArticleMeta article={article} compact />
         <h3 className="mt-1 line-clamp-3 text-[13px] font-bold leading-snug text-foreground group-hover:underline sm:text-sm">
           {article.title}
         </h3>
@@ -227,7 +240,7 @@ export function CompactEditorialColumn({
   if (!lead) return null;
 
   return (
-    <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 shadow-sm">
+    <section className="flex min-w-0 flex-col rounded-lg border border-border bg-card p-3 shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
         <h3 className="text-sm font-extrabold uppercase tracking-[0.12em] text-brand-blue">
           {title}
@@ -240,14 +253,14 @@ export function CompactEditorialColumn({
         className="group mt-4 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <ArticleImage article={lead} lead />
-        <ArticleMeta article={lead} />
-        <h4 className="mt-2 line-clamp-3 text-[17px] font-bold leading-[1.18] text-foreground group-hover:underline">
+        <ArticleMeta article={lead} compact />
+        <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-brand-blue group-hover:underline">
           {lead.title}
         </h4>
       </Link>
       {supporting.length ? (
         <div className="mt-3 border-t border-border/70">
-          {supporting.slice(0, 4).map((article) => (
+          {supporting.slice(0, 3).map((article) => (
             <CompactArticleRow key={article.id} article={article} />
           ))}
         </div>
@@ -274,10 +287,17 @@ export function CompactEditorialColumns({
   to?: "/news" | "/alerts" | "/reports";
 }) {
   if (!articles.length) return null;
-  const columnSize = Math.max(1, Math.ceil(articles.length / 3));
-  const columns = Array.from({ length: 3 }, (_, index) =>
-    articles.slice(index * columnSize, (index + 1) * columnSize),
-  ).filter((column) => column.length > 0);
+  const uniqueArticles = articles
+    .filter(
+      (article, index, all) =>
+        all.findIndex(
+          (candidate) => candidate.id === article.id || candidate.slug === article.slug,
+        ) === index,
+    )
+    .slice(0, 12);
+  const columnCount = Math.min(3, uniqueArticles.length);
+  const columns: PublicArticleCard[][] = Array.from({ length: columnCount }, () => []);
+  uniqueArticles.forEach((article, index) => columns[index % columnCount].push(article));
 
   return (
     <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">

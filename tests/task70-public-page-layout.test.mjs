@@ -19,7 +19,7 @@ test("Task 70 shared public layout exposes the planned editorial primitives", ()
   ]) {
     assert.match(layout, new RegExp(`export function ${name}`));
   }
-  assert.match(layout, /aspect-\[16\/8\]/);
+  assert.match(layout, /aspect-\[16\/9\]/);
   assert.match(layout, /object-cover/);
   assert.match(layout, /Article image unavailable/);
 });
@@ -111,4 +111,15 @@ test("batch one visual correction keeps listing and detail density compact", () 
   assert.match(detail, /variant="sidebar"/);
   assert.match(detail, /bg-gradient-to-br from-brand-blue/);
   assert.match(detail, /aria-label="Breadcrumb"/);
+});
+
+test("editorial modules provide balanced unique lead-and-supporting card columns", () => {
+  assert.match(layout, /\.slice\(0, 12\)/);
+  assert.match(layout, /supporting\.slice\(0, 3\)/);
+  assert.match(layout, /candidate\.id === article\.id \|\| candidate\.slug === article\.slug/);
+  assert.match(layout, /columns\[index % columnCount\]\.push\(article\)/);
+  assert.match(news, /articles\.slice\(0, 12\)/);
+  assert.match(news, /latest: all\.slice\(0, 12\)/);
+  assert.match(news, /name: "latest",\s*limit: 12/);
+  assert.match(news, /result_limit: 12/);
 });
