@@ -25,13 +25,17 @@ test("Task 70 shared public layout exposes the planned editorial primitives", ()
 });
 
 test("news listing keeps the editorial lead, compact cards, sections and ad placements", () => {
-  assert.match(news, /function ArticleGrid[\s\S]*placement\?: string/);
-  assert.match(news, /FeaturedLeadCard/);
+  assert.match(news, /function EditorialLeadAndRows|EditorialLeadAndRows/);
   assert.match(news, /CompactArticleCard/);
   assert.match(news, /EditorialBand tone="pale"/);
   assert.match(news, /news-latest/);
-  assert.match(news, /news-featured/);
   assert.match(news, /news-trending/);
+  assert.match(news, /Featured \/ Prime Articles/);
+  assert.match(news, /Articles by Category/);
+  assert.match(news, /Road Safety Analysis/);
+  assert.match(news, /Related Accident Reports/);
+  assert.match(news, /Relevant Alerts/);
+  assert.match(news, /More Articles/);
   assert.match(news, /news-context-midpoint/);
   assert.match(news, /from\("accident_reports"\)/);
   assert.match(news, /from\("alerts"\)/);

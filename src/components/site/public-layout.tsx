@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArrowRight, Newspaper } from "lucide-react";
+import { ArrowRight, MapPin, Newspaper } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { longDateWithDay } from "@/lib/format";
@@ -142,6 +142,71 @@ export function CompactArticleCard({ article }: { article: PublicArticleCard }) 
         ) : null}
       </div>
     </Link>
+  );
+}
+
+export function CompactArticleRow({ article }: { article: PublicArticleCard }) {
+  return (
+    <Link
+      to="/news/$slug"
+      params={{ slug: article.slug }}
+      className="group flex min-w-0 gap-3 border-b border-border/70 pb-4 last:border-0 last:pb-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="w-28 shrink-0 overflow-hidden rounded-md bg-muted sm:w-32">
+        <ArticleImage article={article} />
+      </div>
+      <div className="min-w-0 py-0.5">
+        <ArticleMeta article={article} />
+        <h3 className="mt-1 line-clamp-3 text-sm font-bold leading-snug text-brand-blue group-hover:underline sm:text-base">
+          {article.title}
+        </h3>
+      </div>
+    </Link>
+  );
+}
+
+export function EditorialLeadAndRows({
+  articles,
+  placement,
+  renderAd,
+}: {
+  articles: PublicArticleCard[];
+  placement?: string;
+  renderAd?: (slot: number) => ReactNode;
+}) {
+  const [lead, ...rows] = articles;
+  if (!lead) return null;
+  return (
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.85fr)]">
+      <FeaturedLeadCard article={lead} />
+      <div className="space-y-4">
+        {rows.slice(0, 4).map((article) => (
+          <CompactArticleRow key={article.id} article={article} />
+        ))}
+        {renderAd && rows.length >= 4 ? renderAd(1) : null}
+      </div>
+      {placement ? <span className="sr-only">{placement}</span> : null}
+    </div>
+  );
+}
+
+export function EditorialCardSection({ articles }: { articles: PublicArticleCard[] }) {
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {articles.slice(0, 6).map((article) => (
+        <CompactArticleCard key={article.id} article={article} />
+      ))}
+    </div>
+  );
+}
+
+export function LocationMeta({ county, road }: { county?: string | null; road?: string | null }) {
+  if (!county && !road) return null;
+  return (
+    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+      <MapPin className="size-3.5" aria-hidden="true" />
+      {[road, county].filter(Boolean).join(" · ")}
+    </p>
   );
 }
 
