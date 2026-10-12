@@ -5,7 +5,6 @@ import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
-import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/site/article-form";
 import { BannerAd } from "@/components/site/banner-ad";
@@ -49,6 +48,52 @@ export const Route = createFileRoute("/news/")({
       },
     ],
   }),
+  loader: async (): Promise<NewsIndexLoaderData> => {
+    const [all, trendingResult, relatedAlertsResult, relatedReportsResult] = await Promise.all([
+      fetchPublishedArticles(),
+      supabase.rpc("trending_news", { hours_back: 48, result_limit: 6 }),
+      supabase
+        .from("alerts")
+        .select("id, title, description, county, road, hazard_type, severity, created_at")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(3),
+      supabase
+        .from("accident_reports")
+        .select(
+          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+        )
+        .eq("status", "approved")
+        .order("occurred_at", { ascending: false })
+        .limit(3),
+    ]);
+    if (trendingResult.error) throw trendingResult.error;
+    if (relatedAlertsResult.error) throw relatedAlertsResult.error;
+    if (relatedReportsResult.error) throw relatedReportsResult.error;
+    const categories = Array.from(
+      new Set(
+        all.flatMap(
+          (article) =>
+            [article.category, ...(article.categories ?? [])].filter(Boolean) as string[],
+        ),
+      ),
+    );
+    const analysis = all.filter((article) =>
+      [article.category, ...(article.categories ?? [])]
+        .filter(Boolean)
+        .some((value) => /analysis|safety/i.test(value as string)),
+    );
+    return {
+      all,
+      latest: all.slice(0, 6),
+      featured: all.filter((article) => article.featured).slice(0, 6),
+      analysis: analysis.slice(0, 6),
+      trending: (trendingResult.data ?? []) as ArticleCard[],
+      relatedAlerts: relatedAlertsResult.data ?? [],
+      relatedReports: relatedReportsResult.data ?? [],
+      categories,
+    };
+  },
   component: NewsIndex,
 });
 
@@ -62,24 +107,107 @@ type ArticleCard = {
   published_at: string | null;
   featured: boolean | null;
   image_url?: string | null;
+  categories?: string[] | null;
 };
+
+function MostViewed({ articles }: { articles: ArticleCard[] }) {
+  if (!articles.length) return null;
+  return (
+    <EditorialBand tone="plain">
+      <SectionHeader
+        eyebrow="Verified view activity · 48 hours"
+        title="Most Viewed"
+        to="/news"
+        actionLabel="Browse all"
+      />
+      <ol className="mt-5 grid gap-x-8 gap-y-4 md:grid-cols-2 lg:grid-cols-3">
+        {articles.slice(0, 6).map((article, index) => (
+          <li key={article.id} className="flex gap-3 border-b border-border/70 pb-4">
+            <span className="font-display text-3xl font-extrabold leading-none text-accent">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <Link
+              to="/news/$slug"
+              params={{ slug: article.slug }}
+              className="font-bold leading-snug text-brand-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {article.title}
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </EditorialBand>
+  );
+}
+
+function LatestStrip({ articles }: { articles: ArticleCard[] }) {
+  if (!articles.length) return null;
+  return (
+    <div className="mt-5 overflow-hidden rounded-xl border border-border bg-card card-elevated">
+      <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
+        <span className="shrink-0 text-xs font-extrabold uppercase tracking-[0.18em] text-brand-blue">
+          Latest update
+        </span>
+        <div className="grid min-w-0 flex-1 gap-2 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          {articles.slice(0, 3).map((article) => (
+            <Link
+              key={article.id}
+              to="/news/$slug"
+              params={{ slug: article.slug }}
+              className="truncate px-0 text-sm font-semibold hover:text-brand-blue hover:underline sm:px-4 first:sm:pl-0"
+            >
+              {article.title}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 const articleSelect =
-  "id, slug, title, summary, category, source, published_at, featured, image_url";
+  "id, slug, title, summary, category, source, published_at, featured, image_url, categories";
+
+type NewsIndexLoaderData = {
+  all: ArticleCard[];
+  latest: ArticleCard[];
+  featured: ArticleCard[];
+  analysis: ArticleCard[];
+  trending: ArticleCard[];
+  relatedAlerts: Array<Record<string, unknown>>;
+  relatedReports: Array<Record<string, unknown>>;
+  categories: string[];
+};
+
+async function fetchPublishedArticles(limit = 50) {
+  const { data, error } = await supabase
+    .from("news")
+    .select(articleSelect)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data as ArticleCard[];
+}
 
 function usePublishedQuery({
   name,
   category,
   limit = 12,
+  initialData,
 }: {
   name: string;
   category?: string;
   limit?: number;
+  initialData?: ArticleCard[];
 }) {
   return useQuery({
     queryKey: ["news-task70", name, category, limit],
+    initialData,
     queryFn: async () => {
       let query = supabase.from("news").select(articleSelect).eq("status", "published");
-      if (category) query = query.eq("category", category);
+      if (category) {
+        query = query.or(`category.eq.${category},categories.cs.{${category}}`);
+      }
       const { data, error } = await query.order("published_at", { ascending: false }).limit(limit);
       if (error) throw error;
       return data as ArticleCard[];
@@ -141,7 +269,7 @@ function NewsIndex() {
   const { user } = useAuth();
   const canWrite = useCanWriteArticles();
   const { category } = Route.useSearch();
-  const { data: categories = [] } = useNewsCategories();
+  const loaderData = Route.useLoaderData();
   const [featuredLimit, setFeaturedLimit] = useState(6);
   const [trendingLimit, setTrendingLimit] = useState(6);
   const { data: filtered = [], isLoading: filteredLoading } = usePublishedQuery({
@@ -149,13 +277,24 @@ function NewsIndex() {
     category,
     limit: 50,
     initialData: category
-      ? loaderData.all.filter((article) => article.category === category)
+      ? loaderData.all.filter(
+          (article) => article.category === category || article.categories?.includes(category),
+        )
       : undefined,
   });
-  const { data: latest = [] } = usePublishedQuery({ name: "latest", limit: 6 });
-  const { data: all = [], isLoading: allLoading } = usePublishedQuery({ name: "all", limit: 50 });
+  const { data: latest = [] } = usePublishedQuery({
+    name: "latest",
+    limit: 6,
+    initialData: loaderData.latest,
+  });
+  const { data: all = [], isLoading: allLoading } = usePublishedQuery({
+    name: "all",
+    limit: 50,
+    initialData: loaderData.all,
+  });
   const { data: featured = [] } = useQuery({
     queryKey: ["news-task70-featured", featuredLimit],
+    initialData: loaderData.featured.slice(0, featuredLimit),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
@@ -171,6 +310,7 @@ function NewsIndex() {
   });
   const { data: analysis = [] } = useQuery({
     queryKey: ["news-task70-analysis"],
+    initialData: loaderData.analysis,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
@@ -186,6 +326,7 @@ function NewsIndex() {
   });
   const { data: trending = [] } = useQuery({
     queryKey: ["news-task70-trending", trendingLimit],
+    initialData: loaderData.trending.slice(0, trendingLimit),
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
         hours_back: 48,
@@ -198,6 +339,7 @@ function NewsIndex() {
   });
   const { data: relatedAlerts = [] } = useQuery({
     queryKey: ["news-task70-alerts"],
+    initialData: loaderData.relatedAlerts,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
@@ -212,6 +354,7 @@ function NewsIndex() {
   });
   const { data: relatedReports = [] } = useQuery({
     queryKey: ["news-task70-reports"],
+    initialData: loaderData.relatedReports,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
@@ -232,9 +375,11 @@ function NewsIndex() {
       <PublicPageHero
         eyebrow="Share Barabara newsroom"
         title="News & Articles"
+        titleAccent="Articles"
         description="Road safety reporting, transport insight and community stories about how Kenyans travel and how we can make every journey safer."
         image={heroRoad}
       />
+      {!category ? <LatestStrip articles={latest} /> : null}
       {user && canWrite ? (
         <div className="mt-4 flex justify-end">
           <WriteButton signedIn={!!user} canWrite={canWrite} />
@@ -277,6 +422,7 @@ function NewsIndex() {
             articles={latest}
             placement="news-latest"
           />
+          <MostViewed articles={trending} />
           {featured.length ? (
             <EditorialBand tone="pale">
               <SectionHeader
@@ -301,14 +447,15 @@ function NewsIndex() {
               description="Explore published reporting by the topics that shape safer journeys."
             />
             <div className="mt-5 flex flex-wrap gap-2">
-              {categories.map((item) => (
+              {loaderData.categories.map((categoryName) => (
                 <Link
-                  key={item.id}
+                  key={categoryName}
                   to="/news"
-                  search={{ category: item.name }}
-                  className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold transition-colors hover:border-accent hover:text-accent-foreground"
+                  search={{ category: categoryName }}
+                  aria-current={category === categoryName ? "page" : undefined}
+                  className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold transition-colors hover:border-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  {item.name}
+                  {categoryName}
                 </Link>
               ))}
             </div>
@@ -321,45 +468,41 @@ function NewsIndex() {
             placement="news-analysis"
             optional
           />
-          <EditorialBand tone="plain">
-            <SectionHeader
-              eyebrow="Road context"
-              title="Related Accident Reports"
-              description="Published public reports that help place road-safety coverage in context."
-              to="/reports"
-              actionLabel="View reports"
-            />
-            {relatedReports.length ? (
+          {relatedReports.length ? (
+            <EditorialBand tone="plain">
+              <SectionHeader
+                eyebrow="Road context"
+                title="Related Accident Reports"
+                description="Published public reports that help place road-safety coverage in context."
+                to="/reports"
+                actionLabel="View reports"
+              />
               <div className="mt-6 grid gap-5 md:grid-cols-3">
                 {relatedReports.map((report) => (
                   <ReportPreviewCard key={report.id} report={report} />
                 ))}
               </div>
-            ) : (
-              <EmptyState label="No approved public reports are available right now." />
-            )}
-          </EditorialBand>
-          <EditorialBand tone="pale">
-            <SectionHeader
-              eyebrow="Live road context"
-              title="Relevant Alerts"
-              description="Only active alerts are shown here; resolved and expired alerts stay out of the current-news flow."
-              to="/alerts"
-              actionLabel="View alerts"
-            />
-            {relatedAlerts.length ? (
+            </EditorialBand>
+          ) : null}
+          {relatedAlerts.length ? (
+            <EditorialBand tone="pale">
+              <SectionHeader
+                eyebrow="Live road context"
+                title="Relevant Alerts"
+                description="Only active alerts are shown here; resolved and expired alerts stay out of the current-news flow."
+                to="/alerts"
+                actionLabel="View alerts"
+              />
               <div className="mt-6 grid gap-5 md:grid-cols-3">
                 {relatedAlerts.map((alert) => (
                   <AlertPreviewCard key={alert.id} alert={alert} />
                 ))}
               </div>
-            ) : (
-              <EmptyState label="No active public alerts are available right now." />
-            )}
-            <div className="mt-8">
-              <BannerAd placement="news-context-midpoint" />
-            </div>
-          </EditorialBand>
+              <div className="mt-8">
+                <BannerAd placement="news-context-midpoint" />
+              </div>
+            </EditorialBand>
+          ) : null}
           <EditorialBand tone="plain" className="scroll-mt-24">
             <div id="all-articles">
               <SectionHeader
