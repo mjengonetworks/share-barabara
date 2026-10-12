@@ -23,6 +23,7 @@ import { DiscoverySections } from "@/components/site/discovery-sections";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { AdInterleave } from "@/components/site/ad-interleave";
+import heroRoad from "@/assets/hero-road.jpg";
 import {
   EditorialBand,
   PublicSidebar,
@@ -32,28 +33,90 @@ import {
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
-    const { data } = await supabase
+    const { data: article, error: articleError } = await supabase
       .from("news")
       .select("*")
       .eq("slug", params.slug)
       .eq("status", "published")
       .maybeSingle();
-    if (!data) throw notFound();
-    return data;
+    if (articleError) throw articleError;
+    if (!article) throw notFound();
+
+    const [relatedResult, latestResult, trendingResult] = await Promise.all([
+      supabase
+        .from("news")
+        .select("id, slug, title, category, image_url, published_at, source")
+        .eq("category", article.category)
+        .eq("status", "published")
+        .neq("id", article.id)
+        .order("published_at", { ascending: false })
+        .limit(4),
+      supabase
+        .from("news")
+        .select("id, slug, title, category, image_url, published_at, source")
+        .eq("status", "published")
+        .neq("id", article.id)
+        .order("published_at", { ascending: false })
+        .limit(8),
+      supabase.rpc("trending_news", { hours_back: 48, result_limit: 6 }),
+    ]);
+    if (relatedResult.error) throw relatedResult.error;
+    if (latestResult.error) throw latestResult.error;
+    if (trendingResult.error) throw trendingResult.error;
+    const related = relatedResult.data.length
+      ? relatedResult.data
+      : (latestResult.data ?? []).slice(0, 4);
+    const relatedIds = new Set(related.map((item) => item.id));
+    const latest = (latestResult.data ?? []).filter((item) => !relatedIds.has(item.id)).slice(0, 4);
+    const trending = (trendingResult.data ?? [])
+      .filter((item) => item.id !== article.id)
+      .slice(0, 5);
+
+    const [contextualReportsResult, contextualAlertsResult] = await Promise.all([
+      article.road || article.county
+        ? supabase
+            .from("accident_reports")
+            .select(
+              "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+            )
+            .eq("status", "approved")
+            .or(`road.eq.${article.road ?? ""},county.eq.${article.county ?? ""}`)
+            .order("occurred_at", { ascending: false })
+            .limit(4)
+        : Promise.resolve({ data: [], error: null }),
+      article.road || article.county
+        ? supabase
+            .from("alerts")
+            .select("id, title, description, county, road, hazard_type, severity, created_at")
+            .eq("status", "active")
+            .or(`road.eq.${article.road ?? ""},county.eq.${article.county ?? ""}`)
+            .order("created_at", { ascending: false })
+            .limit(4)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+    if (contextualReportsResult.error) throw contextualReportsResult.error;
+    if (contextualAlertsResult.error) throw contextualAlertsResult.error;
+    return {
+      article,
+      related,
+      latest,
+      trending,
+      contextualReports: contextualReportsResult.data ?? [],
+      contextualAlerts: contextualAlertsResult.data ?? [],
+    };
   },
   head: ({ loaderData }) => {
-    const title = loaderData?.seo_title || loaderData?.title || "News story";
+    const article = loaderData?.article ?? loaderData;
+    const title = article?.seo_title || article?.title || "News story";
     const description =
-      loaderData?.seo_description ||
-      loaderData?.summary ||
+      article?.seo_description ||
+      article?.summary ||
       "Read the full road safety story and join the community discussion.";
     return {
       meta: [
         { title: `${title}: Share Barabara Kenya` },
         { name: "description", content: description },
-        ...(loaderData?.seo_keywords
-          ? [{ name: "keywords", content: loaderData.seo_keywords }]
-          : []),
+        ...(article?.seo_keywords ? [{ name: "keywords", content: article.seo_keywords }] : []),
         { property: "og:title", content: title },
         { property: "og:description", content: description },
       ],
@@ -119,6 +182,7 @@ function ArticleList({ articles }: { articles: RelatedArticle[] }) {
 function NewsDetail() {
   const { slug } = Route.useParams();
   const loaderData = Route.useLoaderData();
+  const loaderArticle = loaderData.article;
   const { data: article, isLoading } = useQuery({
     queryKey: ["news", slug],
     queryFn: async () => {
@@ -131,7 +195,7 @@ function NewsDetail() {
       if (error) throw error;
       return data;
     },
-    initialData: loaderData,
+    initialData: loaderArticle,
   });
 
   const authorIds = article?.author_id ? [article.author_id] : [];
@@ -151,6 +215,7 @@ function NewsDetail() {
   const { data: related = [] } = useQuery({
     queryKey: ["news-related", article?.id, article?.category],
     enabled: !!article,
+    initialData: loaderData.related,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
@@ -180,6 +245,7 @@ function NewsDetail() {
   const { data: latest = [] } = useQuery({
     queryKey: ["news-latest-sidebar", article?.id, related.map((r) => r.id)],
     enabled: !!article,
+    initialData: loaderData.latest,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
@@ -196,6 +262,7 @@ function NewsDetail() {
   const { data: trending = [] } = useQuery({
     queryKey: ["news-trending-sidebar", article?.id],
     enabled: !!article,
+    initialData: loaderData.trending,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
         hours_back: 48,
@@ -209,6 +276,7 @@ function NewsDetail() {
   const { data: contextualReports = [] } = useQuery({
     queryKey: ["news-context-reports", article?.id, article?.county, article?.road],
     enabled: !!article && Boolean(article.county || article.road),
+    initialData: loaderData.contextualReports,
     queryFn: async () => {
       let query = supabase
         .from("accident_reports")
@@ -228,6 +296,7 @@ function NewsDetail() {
   const { data: contextualAlerts = [] } = useQuery({
     queryKey: ["news-context-alerts", article?.id, article?.county, article?.road],
     enabled: !!article && Boolean(article.county || article.road),
+    initialData: loaderData.contextualAlerts,
     queryFn: async () => {
       let query = supabase
         .from("alerts")
@@ -324,7 +393,18 @@ function NewsDetail() {
                 </figcaption>
               ) : null}
             </figure>
-          ) : null}
+          ) : (
+            <figure className="mt-4">
+              <img
+                src={heroRoad}
+                alt="Share Barabara road safety newsroom"
+                className="aspect-[16/8] w-full rounded-xl border border-border object-cover object-center"
+              />
+              <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                Share Barabara newsroom
+              </figcaption>
+            </figure>
+          )}
           {article.author_id ? (
             <div className="mt-4 flex items-start gap-3">
               <UserAvatar

@@ -42,7 +42,10 @@ test("news listing keeps the editorial lead, compact cards, sections and ad plac
 });
 
 test("article detail keeps SEO, sharing, discussion, newsletter, midpoint ad and contextual recommendations", () => {
-  assert.match(detail, /loaderData\?\.seo_title/);
+  assert.match(detail, /loaderData\?\.article|article\?\.seo_title/);
+  assert.match(detail, /initialData: loaderData\.related/);
+  assert.match(detail, /initialData: loaderData\.latest/);
+  assert.match(detail, /initialData: loaderData\.trending/);
   assert.match(detail, /ShareButtons/);
   assert.match(detail, /CommentSection/);
   assert.match(detail, /NewsletterForm/);
@@ -60,4 +63,27 @@ test("contextual incident recommendations remain public-only and status-filtered
   assert.match(detail, /\.eq\("status", "active"\)/);
   assert.match(news, /\.eq\("status", "approved"\)/);
   assert.match(news, /\.eq\("status", "active"\)/);
+});
+
+test("public news data is loader-backed and published-only before hydration", () => {
+  assert.match(news, /loader: async \(\): Promise<NewsIndexLoaderData>/);
+  assert.match(news, /fetchPublishedArticles/);
+  assert.match(news, /\.eq\("status", "published"\)/);
+  assert.match(news, /initialData: loaderData\.latest/);
+  assert.match(news, /initialData: loaderData\.all/);
+  assert.match(news, /initialData: loaderData\.relatedReports/);
+  assert.match(news, /initialData: loaderData\.relatedAlerts/);
+});
+
+test("optional editorial sections use verified empty states rather than synthetic content", () => {
+  assert.match(news, /No featured published articles are available yet/);
+  assert.match(news, /No published articles are available in this section yet/);
+  assert.match(news, /all\.filter\(\(article\) => article\.featured\)/);
+  assert.match(news, /analysis = all\.filter/);
+});
+
+test("article detail preserves stored images and has a neutral fallback for image-less published records", () => {
+  assert.match(detail, /article\.image_url/);
+  assert.match(detail, /src=\{heroRoad\}/);
+  assert.match(detail, /Share Barabara newsroom/);
 });
