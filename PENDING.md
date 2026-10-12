@@ -75,7 +75,9 @@ review. Dependency: Task 53 audit and approved migration sequence.
 The interactive incident-map candidate is implemented on the feature branch
 and remains staging-only pending production acceptance; its geographic context,
 filters, clustering and real-coordinate safeguards are covered by focused
-tests and browser review.
+tests. Staging Worker version `309e6a3f-924a-4733-a989-eff93e2a0c0e` returned
+HTTP 200 with the staging marker and Kenya context. Desktop/mobile visual
+browser review remains outstanding because no browser surface was available.
 
 ## Task 27 — Alert Radius & Notification Preferences — TESTING
 
