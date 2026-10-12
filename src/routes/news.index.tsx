@@ -5,7 +5,6 @@ import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
-import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/site/article-form";
 import { BannerAd } from "@/components/site/banner-ad";
@@ -49,6 +48,52 @@ export const Route = createFileRoute("/news/")({
       },
     ],
   }),
+  loader: async (): Promise<NewsIndexLoaderData> => {
+    const [all, trendingResult, relatedAlertsResult, relatedReportsResult] = await Promise.all([
+      fetchPublishedArticles(),
+      supabase.rpc("trending_news", { hours_back: 48, result_limit: 6 }),
+      supabase
+        .from("alerts")
+        .select("id, title, description, county, road, hazard_type, severity, created_at")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(3),
+      supabase
+        .from("accident_reports")
+        .select(
+          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+        )
+        .eq("status", "approved")
+        .order("occurred_at", { ascending: false })
+        .limit(3),
+    ]);
+    if (trendingResult.error) throw trendingResult.error;
+    if (relatedAlertsResult.error) throw relatedAlertsResult.error;
+    if (relatedReportsResult.error) throw relatedReportsResult.error;
+    const categories = Array.from(
+      new Set(
+        all.flatMap(
+          (article) =>
+            [article.category, ...(article.categories ?? [])].filter(Boolean) as string[],
+        ),
+      ),
+    );
+    const analysis = all.filter((article) =>
+      [article.category, ...(article.categories ?? [])]
+        .filter(Boolean)
+        .some((value) => /analysis|safety/i.test(value as string)),
+    );
+    return {
+      all,
+      latest: all.slice(0, 6),
+      featured: all.filter((article) => article.featured).slice(0, 6),
+      analysis: analysis.slice(0, 6),
+      trending: (trendingResult.data ?? []) as ArticleCard[],
+      relatedAlerts: relatedAlertsResult.data ?? [],
+      relatedReports: relatedReportsResult.data ?? [],
+      categories,
+    };
+  },
   component: NewsIndex,
 });
 
@@ -62,21 +107,47 @@ type ArticleCard = {
   published_at: string | null;
   featured: boolean | null;
   image_url?: string | null;
+  categories?: string[] | null;
 };
 const articleSelect =
-  "id, slug, title, summary, category, source, published_at, featured, image_url";
+  "id, slug, title, summary, category, source, published_at, featured, image_url, categories";
+
+type NewsIndexLoaderData = {
+  all: ArticleCard[];
+  latest: ArticleCard[];
+  featured: ArticleCard[];
+  analysis: ArticleCard[];
+  trending: ArticleCard[];
+  relatedAlerts: Array<Record<string, unknown>>;
+  relatedReports: Array<Record<string, unknown>>;
+  categories: string[];
+};
+
+async function fetchPublishedArticles(limit = 50) {
+  const { data, error } = await supabase
+    .from("news")
+    .select(articleSelect)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data as ArticleCard[];
+}
 
 function usePublishedQuery({
   name,
   category,
   limit = 12,
+  initialData,
 }: {
   name: string;
   category?: string;
   limit?: number;
+  initialData?: ArticleCard[];
 }) {
   return useQuery({
     queryKey: ["news-task70", name, category, limit],
+    initialData,
     queryFn: async () => {
       let query = supabase.from("news").select(articleSelect).eq("status", "published");
       if (category) query = query.eq("category", category);
@@ -137,7 +208,7 @@ function NewsIndex() {
   const { user } = useAuth();
   const canWrite = useCanWriteArticles();
   const { category } = Route.useSearch();
-  const { data: categories = [] } = useNewsCategories();
+  const loaderData = Route.useLoaderData();
   const [featuredLimit, setFeaturedLimit] = useState(6);
   const [trendingLimit, setTrendingLimit] = useState(6);
   const { data: filtered = [], isLoading: filteredLoading } = usePublishedQuery({
@@ -145,10 +216,19 @@ function NewsIndex() {
     category,
     limit: 50,
   });
-  const { data: latest = [] } = usePublishedQuery({ name: "latest", limit: 6 });
-  const { data: all = [], isLoading: allLoading } = usePublishedQuery({ name: "all", limit: 50 });
+  const { data: latest = [] } = usePublishedQuery({
+    name: "latest",
+    limit: 6,
+    initialData: loaderData.latest,
+  });
+  const { data: all = [], isLoading: allLoading } = usePublishedQuery({
+    name: "all",
+    limit: 50,
+    initialData: loaderData.all,
+  });
   const { data: featured = [] } = useQuery({
     queryKey: ["news-task70-featured", featuredLimit],
+    initialData: loaderData.featured.slice(0, featuredLimit),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
@@ -164,6 +244,7 @@ function NewsIndex() {
   });
   const { data: analysis = [] } = useQuery({
     queryKey: ["news-task70-analysis"],
+    initialData: loaderData.analysis,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
@@ -179,6 +260,7 @@ function NewsIndex() {
   });
   const { data: trending = [] } = useQuery({
     queryKey: ["news-task70-trending", trendingLimit],
+    initialData: loaderData.trending.slice(0, trendingLimit),
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
         hours_back: 48,
@@ -191,6 +273,7 @@ function NewsIndex() {
   });
   const { data: relatedAlerts = [] } = useQuery({
     queryKey: ["news-task70-alerts"],
+    initialData: loaderData.relatedAlerts,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
@@ -205,6 +288,7 @@ function NewsIndex() {
   });
   const { data: relatedReports = [] } = useQuery({
     queryKey: ["news-task70-reports"],
+    initialData: loaderData.relatedReports,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
@@ -296,7 +380,7 @@ function NewsIndex() {
               description="Explore published reporting by the topics that shape safer journeys."
             />
             <div className="mt-5 flex flex-wrap gap-2">
-              {categories.map((item) => (
+              {loaderData.categories.map((item) => (
                 <Link
                   key={item.id}
                   to="/news"
