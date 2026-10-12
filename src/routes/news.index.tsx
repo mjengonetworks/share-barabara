@@ -112,13 +112,17 @@ function TopicSection({
   articles,
   tone = "plain",
   placement,
+  optional = false,
 }: {
   title: string;
   eyebrow?: string;
   articles: ArticleCard[];
   tone?: "plain" | "pale";
   placement: string;
+  optional?: boolean;
 }) {
+  if (optional && !articles.length) return null;
+
   return (
     <EditorialBand tone={tone}>
       <SectionHeader eyebrow={eyebrow} title={title} to="/news" actionLabel="Read more" />
@@ -144,6 +148,9 @@ function NewsIndex() {
     name: "category",
     category,
     limit: 50,
+    initialData: category
+      ? loaderData.all.filter((article) => article.category === category)
+      : undefined,
   });
   const { data: latest = [] } = usePublishedQuery({ name: "latest", limit: 6 });
   const { data: all = [], isLoading: allLoading } = usePublishedQuery({ name: "all", limit: 50 });
@@ -270,25 +277,23 @@ function NewsIndex() {
             articles={latest}
             placement="news-latest"
           />
-          <EditorialBand tone="pale">
-            <SectionHeader
-              eyebrow="Editors' selection"
-              title="Featured / Prime Articles"
-              icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
-              to="/news"
-              actionLabel="Read more"
-            />
-            {featured.length ? (
+          {featured.length ? (
+            <EditorialBand tone="pale">
+              <SectionHeader
+                eyebrow="Editors' selection"
+                title="Featured / Prime Articles"
+                icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
+                to="/news"
+                actionLabel="Read more"
+              />
               <div className="mt-6">
                 <EditorialCardSection articles={featured} />
               </div>
-            ) : (
-              <EmptyState label="No featured published articles are available yet." />
-            )}
-            {featured.length === featuredLimit ? (
-              <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
-            ) : null}
-          </EditorialBand>
+              {featured.length === featuredLimit ? (
+                <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
+              ) : null}
+            </EditorialBand>
+          ) : null}
           <EditorialBand tone="plain">
             <SectionHeader
               eyebrow="Browse the newsroom"
@@ -314,6 +319,7 @@ function NewsIndex() {
             articles={analysis}
             tone="pale"
             placement="news-analysis"
+            optional
           />
           <EditorialBand tone="plain">
             <SectionHeader
