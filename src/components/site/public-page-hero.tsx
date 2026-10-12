@@ -23,6 +23,7 @@ type PublicPageHeroProps = {
   primaryCta?: HeroLink;
   secondaryCta?: HeroLink;
   children?: ReactNode;
+  fullBleed?: boolean;
 };
 
 /** Compact editorial hero for public landing pages. The homepage keeps its own flagship hero. */
@@ -36,10 +37,15 @@ export function PublicPageHero({
   primaryCta,
   secondaryCta,
   children,
+  fullBleed = false,
 }: PublicPageHeroProps) {
   return (
     <section
-      className="relative isolate overflow-hidden rounded-2xl border border-border bg-primary text-primary-foreground shadow-sm"
+      className={
+        fullBleed
+          ? "relative isolate overflow-hidden border-y border-border bg-primary text-primary-foreground shadow-sm"
+          : "relative isolate overflow-hidden rounded-2xl border border-border bg-primary text-primary-foreground shadow-sm"
+      }
       aria-labelledby="public-page-hero-title"
     >
       {image ? (
@@ -56,7 +62,7 @@ export function PublicPageHero({
         aria-hidden="true"
       />
 
-      <div className="relative px-5 py-7 sm:px-8 sm:py-9">
+      <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14 lg:py-16">
         {breadcrumbs?.length ? (
           <nav aria-label="Breadcrumb" className="mb-5 text-xs text-primary-foreground/75">
             <ol className="flex flex-wrap items-center gap-2">
