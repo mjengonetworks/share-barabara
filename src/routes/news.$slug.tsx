@@ -148,9 +148,9 @@ function ArticleList({ articles }: { articles: RelatedArticle[] }) {
             key={a.id}
             to="/news/$slug"
             params={{ slug: a.slug }}
-            className="group flex gap-3 border-b border-border/70 pb-4 last:border-0 last:pb-0"
+            className="group flex items-start gap-3 border-b border-border/70 py-3 first:pt-0 last:border-0 last:pb-0"
           >
-            <span className="w-24 shrink-0 overflow-hidden rounded-md bg-muted sm:w-28">
+            <span className="order-2 w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
               {a.image_url ? (
                 <img
                   src={a.image_url}
@@ -164,11 +164,11 @@ function ArticleList({ articles }: { articles: RelatedArticle[] }) {
                 </span>
               )}
             </span>
-            <span className="min-w-0 py-0.5">
-              <span className="block line-clamp-2 text-sm font-bold leading-snug text-brand-blue group-hover:underline">
+            <span className="order-1 min-w-0 py-0.5">
+              <span className="block line-clamp-2 text-sm font-bold leading-snug text-foreground group-hover:underline">
                 {a.title}
               </span>
-              <span className="mt-1 block truncate text-[0.68rem] uppercase tracking-wide text-muted-foreground">
+              <span className="mt-1 block truncate text-[0.68rem] font-semibold uppercase tracking-wide text-accent-foreground">
                 {a.category ?? "News"}
                 {a.source ? ` · ${a.source}` : ""}
               </span>
@@ -327,30 +327,47 @@ function NewsDetail() {
     );
   }
 
+  const readingMinutes = Math.max(
+    1,
+    Math.ceil(
+      (article.body ?? "")
+        .replace(/<[^>]+>/g, " ")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length / 200,
+    ),
+  );
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,800px)_320px] lg:justify-center">
-        <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-7 lg:p-9">
-          <nav
-            aria-label="Breadcrumb"
-            className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground"
+    <div className="w-full py-0 sm:py-2">
+      <nav
+        aria-label="Breadcrumb"
+        className="bg-gradient-to-r from-brand-blue via-primary to-brand-blue text-primary-foreground"
+      >
+        <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-4 py-2 text-xs sm:px-6 lg:px-8">
+          <Link to="/" className="shrink-0 hover:underline">
+            Home
+          </Link>
+          <ChevronRight className="size-3 shrink-0" aria-hidden="true" />
+          <Link to="/news" className="shrink-0 hover:underline">
+            News &amp; Articles
+          </Link>
+          <ChevronRight className="size-3 shrink-0" aria-hidden="true" />
+          <Link
+            to="/news"
+            search={{ category: article.category }}
+            className="shrink-0 hover:underline"
           >
-            <Link to="/" className="hover:text-foreground hover:underline">
-              Home
-            </Link>
-            <ChevronRight className="size-3" aria-hidden="true" />
-            <Link to="/news" className="hover:text-foreground hover:underline">
-              News &amp; Articles
-            </Link>
-            <ChevronRight className="size-3" aria-hidden="true" />
-            <Link
-              to="/news"
-              search={{ category: article.category }}
-              className="font-medium text-foreground hover:underline"
-            >
-              {article.category || "News"}
-            </Link>
-          </nav>
+            {article.category || "News"}
+          </Link>
+          <ChevronRight className="size-3 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 truncate text-primary-foreground/80" aria-current="page">
+            {article.title}
+          </span>
+        </div>
+      </nav>
+      <div className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5 sm:px-6 sm:py-7 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
+        <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6 lg:p-6">
           <div className="mt-3 flex flex-wrap gap-1.5">
             {(article.categories?.length ? article.categories : [article.category]).map((c) => (
               <Link
@@ -368,13 +385,14 @@ function NewsDetail() {
               Preview · {article.status.replace("_", " ")}, not visible to the public yet
             </p>
           ) : null}
-          <div className="mt-5 border-y border-border/70 py-5">
-            <h1 className="max-w-4xl text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-[3.25rem]">
+          <div className="mt-4 border-b border-border/70 pb-4">
+            <h1 className="max-w-4xl text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
               {article.title}
             </h1>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            {longDateWithDay(article.published_at)} {article.source ? `· ${article.source}` : ""}
+            {longDateWithDay(article.published_at)} · {readingMinutes} min read
+            {article.source ? ` · ${article.source}` : ""}
           </p>
           <div className="mt-3">
             <ShareButtons title={article.title} />
@@ -562,14 +580,14 @@ function NewsDetail() {
         </article>
 
         <PublicSidebar>
-          <SidebarModule className="border-accent/40 bg-accent/10">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+          <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-blue via-primary to-brand-blue text-primary-foreground">
+            <h2 className="text-center text-sm font-bold uppercase tracking-widest text-white">
               Stay informed
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-center text-sm text-primary-foreground/75">
               Get important road-safety stories and community updates in your inbox.
             </p>
-            <NewsletterForm className="mt-4" />
+            <NewsletterForm className="mt-4" variant="sidebar" />
           </SidebarModule>
           {related.length > 0 ? (
             <SidebarModule>

@@ -13,9 +13,8 @@ import heroRoad from "@/assets/hero-road.jpg";
 import { AdInterleave } from "@/components/site/ad-interleave";
 import {
   CompactArticleCard,
+  CompactEditorialColumns,
   EditorialBand,
-  EditorialCardSection,
-  EditorialLeadAndCompactCards,
   SectionHeader,
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
@@ -257,7 +256,15 @@ function TopicSection({
       <SectionHeader eyebrow={eyebrow} title={title} to="/news" actionLabel="Read more" />
       {articles.length ? (
         <div className="mt-6">
-          <EditorialLeadAndCompactCards articles={articles.slice(0, 5)} placement={placement} />
+          <CompactEditorialColumns
+            articles={articles.slice(0, 6)}
+            placement={placement}
+            titles={
+              title === "Trending Articles"
+                ? ["Most opened", "Trending now", "More trending"]
+                : ["Lead stories", "On the road", "Community watch"]
+            }
+          />
         </div>
       ) : (
         <EmptyState label="No published articles are available in this section yet." />
@@ -467,7 +474,11 @@ function NewsIndex() {
                   actionLabel="Read more"
                 />
                 <div className="mt-6">
-                  <EditorialCardSection articles={featured} />
+                  <CompactEditorialColumns
+                    articles={featured}
+                    placement="news-featured"
+                    titles={["Featured lead", "Prime selection", "Editor picks"]}
+                  />
                 </div>
                 {featured.length === featuredLimit ? (
                   <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
