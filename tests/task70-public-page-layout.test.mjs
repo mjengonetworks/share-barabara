@@ -37,6 +37,10 @@ test("news listing keeps the editorial lead, compact cards, sections and ad plac
   assert.match(news, /Relevant Alerts/);
   assert.match(news, /More Articles/);
   assert.match(news, /news-context-midpoint/);
+  assert.match(news, /function MostViewed/);
+  assert.match(news, /Verified view activity/);
+  assert.match(news, /function LatestStrip/);
+  assert.match(news, /Latest update/);
   assert.match(news, /from\("accident_reports"\)/);
   assert.match(news, /from\("alerts"\)/);
 });
@@ -82,6 +86,10 @@ test("optional editorial sections collapse without synthetic content", () => {
   assert.doesNotMatch(news, /No featured published articles are available yet/);
   assert.match(news, /all\.filter\(\(article\) => article\.featured\)/);
   assert.match(news, /analysis = all\.filter/);
+  assert.match(news, /relatedReports\.length \? \(/);
+  assert.match(news, /relatedAlerts\.length/);
+  assert.match(news, /key=\{categoryName\}/);
+  assert.match(news, /search=\{\{ category: categoryName \}\}/);
 });
 
 test("article detail preserves stored images and has a neutral fallback for image-less published records", () => {
