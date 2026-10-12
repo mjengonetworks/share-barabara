@@ -234,6 +234,43 @@ function ArticleGridWithAds({
   );
 }
 
+function CategoryEditorialModules({ articles }: { articles: ArticleCard[] }) {
+  const groups = new Map<string, ArticleCard[]>();
+  for (const article of articles) {
+    const category = article.category?.trim();
+    if (!category) continue;
+    const group = groups.get(category) ?? [];
+    if (!group.some((item) => item.id === article.id)) group.push(article);
+    groups.set(category, group);
+  }
+  const modules = Array.from(groups.entries()).filter(([, items]) => items.length > 0);
+  if (!modules.length) return <EmptyState label="No published articles have categories yet." />;
+  return (
+    <div className="space-y-0">
+      {modules.map(([category, items], index) => (
+        <div key={category}>
+          {index > 0 && index % 4 === 0 ? <div className="py-6"><BannerAd placement={`news-more-category-interval-${index / 4}`} /></div> : null}
+          <div className="border-b border-border/70 py-7 first:pt-0 last:border-b-0">
+            <SectionHeader
+              eyebrow="Published category"
+              title={category}
+              to="/news"
+              actionLabel="View more"
+            />
+            <div className="mt-5">
+              <CompactEditorialColumns
+                articles={items.slice(0, 9)}
+                placement={`news-category-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                titles={["Lead story", "Latest in this topic", "More from this topic"]}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TopicSection({
   title,
   eyebrow,
@@ -414,7 +451,7 @@ function NewsIndex() {
               className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 category === categoryName
                   ? "border-brand-blue bg-brand-blue text-white"
-                  : "border-border bg-card hover:border-accent hover:text-accent-foreground"
+                  : "border-[#CFE2FA] bg-[#EAF3FF] text-[#174A87] hover:border-brand-blue"
               }`}
             >
               {categoryName}
@@ -498,7 +535,7 @@ function NewsIndex() {
                     to="/news"
                     search={{ category: categoryName }}
                     aria-current={category === categoryName ? "page" : undefined}
-                    className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold transition-colors hover:border-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="rounded-full border border-[#CFE2FA] bg-[#EAF3FF] px-4 py-2 text-sm font-semibold text-[#174A87] transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     {categoryName}
                   </Link>
@@ -560,7 +597,7 @@ function NewsIndex() {
                   <p className="mt-6 text-muted-foreground">Loading published stories…</p>
                 ) : null}
                 <div className="mt-6">
-                  <ArticleGridWithAds articles={all} placement="news-more" />
+                  {allLoading ? null : <CategoryEditorialModules articles={all} />}
                 </div>
               </div>
             </EditorialBand>

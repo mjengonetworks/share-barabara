@@ -26,6 +26,8 @@ import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
+import { NewsletterForm } from "@/components/site/newsletter-form";
+import { PublicBreadcrumbStrip, PublicSidebar, SidebarModule } from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -181,9 +183,10 @@ function ReportDetail() {
   const linkedRoad = roadMap[report.road_id ?? ""];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
-        <article className="min-w-0">
+    <>
+      <PublicBreadcrumbStrip items={[{ label: "Home", to: "/" }, { label: "Accident Reports", to: "/reports" }, { label: report.title }]} />
+      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-5 card-elevated sm:p-6">
           <Link
             to="/reports"
             className="inline-flex items-center gap-1 text-sm text-muted-foreground"
@@ -212,7 +215,7 @@ function ReportDetail() {
               {report.rejection_reason}
             </p>
           ) : null}
-          <h1 className="mt-3 text-[1.7325rem] font-extrabold leading-tight">{report.title}</h1>
+          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">{report.title}</h1>
           <div className="mt-3">
             <ShareButtons title={report.title} />
           </div>
@@ -365,7 +368,12 @@ function ReportDetail() {
           <CommentSection entityType="report" entityId={report.id} />
         </article>
 
-        <aside className="space-y-8">
+        <PublicSidebar>
+          <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-navy via-brand-blue to-primary text-primary-foreground">
+            <h2 className="text-center text-lg font-bold text-white">Stay informed</h2>
+            <p className="mt-2 text-center text-sm text-white/75">Get relevant road safety updates in your inbox.</p>
+            <NewsletterForm className="mt-4" variant="sidebar" />
+          </SidebarModule>
           {related.length > 0 ? (
             <div className="rounded-lg border border-border bg-card p-5 card-elevated">
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
@@ -408,9 +416,9 @@ function ReportDetail() {
               </Link>
             </div>
           ) : null}
-        </aside>
+        </PublicSidebar>
       </div>
       <DiscoverySections focus="report" currentId={report.id} />
-    </div>
+    </>
   );
 }

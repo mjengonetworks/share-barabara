@@ -8,6 +8,8 @@ import { campaignStatus } from "@/lib/campaigns";
 import { Badge } from "@/components/ui/badge";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
+import { NewsletterForm } from "@/components/site/newsletter-form";
+import { PublicBreadcrumbStrip, PublicSidebar, SidebarModule } from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   head: () => ({
@@ -61,15 +63,11 @@ function CampaignDetail() {
   const heroImage = (isPast && campaign.report_image_url) || campaign.image_url;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <Link
-        to="/campaigns"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground"
-      >
-        <ArrowLeft className="size-4" /> All campaigns
-      </Link>
-
-      <div className="mt-6 flex flex-wrap items-center gap-2">
+    <>
+      <PublicBreadcrumbStrip items={[{ label: "Home", to: "/" }, { label: "Campaigns", to: "/campaigns" }, { label: campaign.title }]} />
+      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-5 card-elevated sm:p-6">
+      <div className="flex flex-wrap items-center gap-2">
         <Badge variant={STATUS_VARIANT[status]} className="capitalize">
           {status}
         </Badge>
@@ -85,7 +83,7 @@ function CampaignDetail() {
         ) : null}
       </div>
 
-      <h1 className="mt-3 text-[1.7325rem] font-extrabold leading-tight">{campaign.title}</h1>
+      <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">{campaign.title}</h1>
 
       <div className="mt-3">
         <ShareButtons title={campaign.title} />
@@ -124,6 +122,15 @@ function CampaignDetail() {
           </p>
         )
       ) : null}
-    </div>
+        </article>
+        <PublicSidebar>
+          <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-navy via-brand-blue to-primary text-primary-foreground">
+            <h2 className="text-center text-lg font-bold text-white">Stay informed</h2>
+            <p className="mt-2 text-center text-sm text-white/75">Get campaign updates and road safety stories.</p>
+            <NewsletterForm className="mt-4" variant="sidebar" />
+          </SidebarModule>
+        </PublicSidebar>
+      </div>
+    </>
   );
 }
