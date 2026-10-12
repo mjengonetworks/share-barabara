@@ -16,6 +16,7 @@ type Breadcrumb = {
 type PublicPageHeroProps = {
   eyebrow: string;
   title: string;
+  titleAccent?: string;
   description: string;
   image?: string;
   breadcrumbs?: Breadcrumb[];
@@ -28,6 +29,7 @@ type PublicPageHeroProps = {
 export function PublicPageHero({
   eyebrow,
   title,
+  titleAccent,
   description,
   image,
   breadcrumbs,
@@ -49,7 +51,10 @@ export function PublicPageHero({
         />
       ) : null}
       <div className="absolute inset-0 -z-10 bg-primary/90" aria-hidden="true" />
-      <div className="absolute inset-y-0 right-0 -z-10 w-1/2 bg-gradient-to-l from-accent/20 to-transparent" aria-hidden="true" />
+      <div
+        className="absolute inset-y-0 right-0 -z-10 w-1/2 bg-gradient-to-l from-accent/20 to-transparent"
+        aria-hidden="true"
+      />
 
       <div className="relative px-5 py-7 sm:px-8 sm:py-9">
         {breadcrumbs?.length ? (
@@ -71,14 +76,19 @@ export function PublicPageHero({
           </nav>
         ) : null}
 
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-          {eyebrow}
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">{eyebrow}</p>
         <h1
           id="public-page-hero-title"
           className="mt-2 max-w-3xl font-display text-3xl font-extrabold leading-tight sm:text-4xl"
         >
-          {title}
+          {titleAccent ? (
+            <>
+              {title.replace(titleAccent, "").trimEnd()}{" "}
+              <span className="text-accent">{titleAccent}</span>
+            </>
+          ) : (
+            title
+          )}
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-primary-foreground/80 sm:text-base">
           {description}
@@ -94,7 +104,11 @@ export function PublicPageHero({
               </Button>
             ) : null}
             {secondaryCta ? (
-              <Button asChild variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
+              <Button
+                asChild
+                variant="outline"
+                className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              >
                 <Link to={secondaryCta.to}>{secondaryCta.label}</Link>
               </Button>
             ) : null}
