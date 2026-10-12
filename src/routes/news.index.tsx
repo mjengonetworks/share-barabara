@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Flame, Newspaper, Sparkles } from "lucide-react";
+import { Flame, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
-import { longDate } from "@/lib/format";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/site/article-form";
@@ -14,7 +13,13 @@ import { PublicPageHero } from "@/components/site/public-page-hero";
 import heroRoad from "@/assets/hero-road.jpg";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { AdInterleave } from "@/components/site/ad-interleave";
-import { publicCategoryBadgeClass } from "@/components/site/public-ui";
+import {
+  CompactArticleCard,
+  EditorialBand,
+  FeaturedLeadCard,
+  SectionHeader,
+} from "@/components/site/public-layout";
+import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import {
   Dialog,
   DialogContent,
@@ -60,50 +65,25 @@ type ArticleCard = {
   image_url?: string | null;
 };
 
-function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
+// The shared fallback keeps the established aspect-video and Newspaper className contracts.
+
+function ArticleGrid({
+  articles,
+  placement = "news-list",
+}: {
+  articles: ArticleCard[];
+  placement?: string;
+}) {
   return (
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-3">
       <AdInterleave
         items={articles}
-        placement="news-list"
+        placement={placement}
         adClassName="col-span-full"
         renderItem={(a, index) => (
-          <Link
-            key={a.id}
-            to="/news/$slug"
-            params={{ slug: a.slug }}
-            className={`group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent ${index === 0 ? "md:col-span-2" : ""}`}
-          >
-            {a.image_url ? (
-              <img
-                src={a.image_url}
-                alt={a.title}
-                className={`w-full object-cover object-center ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`}
-              />
-            ) : (
-              <div
-                className={`flex w-full items-center justify-center bg-primary/5 text-primary/50 ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`}
-                aria-hidden="true"
-              >
-                <Newspaper className="size-9" />
-              </div>
-            )}
-            <div className="flex flex-1 flex-col p-6">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-                <span className={publicCategoryBadgeClass}>{a.category}</span>
-                {a.featured ? <span className="text-caution">Featured</span> : null}
-              </div>
-              <h2
-                className={`mt-3 font-bold text-brand-blue group-hover:underline ${index === 0 ? "text-xl sm:text-2xl" : "text-[0.9625rem]"}`}
-              >
-                {a.title}
-              </h2>
-              <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
-              <p className="mt-4 text-xs text-muted-foreground">
-                {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
-              </p>
-            </div>
-          </Link>
+          <div className={index === 0 ? "md:col-span-2" : ""}>
+            {index === 0 ? <FeaturedLeadCard article={a} /> : <CompactArticleCard article={a} />}
+          </div>
         )}
       />
     </div>
@@ -117,36 +97,7 @@ function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
         items={articles}
         placement="news-compact-list"
         adClassName="col-span-full"
-        renderItem={(a) => (
-          <Link
-            key={a.id}
-            to="/news/$slug"
-            params={{ slug: a.slug }}
-            className="group flex gap-4 rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
-          >
-            {a.image_url ? (
-              <img
-                src={a.image_url}
-                alt={a.title}
-                className="aspect-video w-28 shrink-0 rounded object-cover object-center sm:w-36"
-              />
-            ) : (
-              <div className="aspect-video w-28 shrink-0 rounded bg-muted sm:w-36" />
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-                <span className={publicCategoryBadgeClass}>{a.category}</span>
-                {a.featured ? <span className="text-caution">Featured</span> : null}
-              </div>
-              <h3 className="mt-1.5 line-clamp-2 font-bold text-brand-blue group-hover:underline">
-                {a.title}
-              </h3>
-              <p className="mt-1.5 text-xs text-muted-foreground">
-                {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
-              </p>
-            </div>
-          </Link>
-        )}
+        renderItem={(a) => <CompactArticleCard article={a} />}
       />
     </div>
   );
@@ -231,6 +182,38 @@ function NewsIndex() {
     },
   });
 
+  const { data: relatedAlerts = [] } = useQuery({
+    queryKey: ["news-context-alerts"],
+    enabled: !category,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("alerts")
+        .select("id, title, description, county, road, hazard_type, severity, created_at")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: relatedReports = [] } = useQuery({
+    queryKey: ["news-context-reports"],
+    enabled: !category,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("accident_reports")
+        .select(
+          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+        )
+        .eq("status", "approved")
+        .order("occurred_at", { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <PublicPageHero
@@ -267,18 +250,27 @@ function NewsIndex() {
           </>
         ) : (
           <>
-            <h2 className="text-lg font-bold">Latest News &amp; Articles</h2>
-            <div className="mt-5">
-              <ArticleGrid articles={latest} />
-            </div>
+            <EditorialBand tone="plain">
+              <SectionHeader
+                eyebrow="The newsroom"
+                title="Latest News & Articles"
+                description="The newest road-safety reporting and community stories, led by one prominent story and compact secondary reads."
+              />
+              <div className="mt-5">
+                <ArticleGrid articles={latest} placement="news-latest" />
+              </div>
+            </EditorialBand>
             <div className="mt-6 text-center">
               <a href="#all-articles" className="text-base font-semibold text-brand-blue underline">
                 Read more
               </a>
             </div>
 
-            <div className="mt-12">
-              <h2 className="text-lg font-bold text-muted-foreground">Browse by category</h2>
+            <EditorialBand tone="pale">
+              <SectionHeader
+                title="Browse by category"
+                description="Find reporting by the topics that shape safer journeys."
+              />
               <div className="mt-3 flex flex-wrap gap-2">
                 {categories.map((c) => (
                   <Link
@@ -291,15 +283,17 @@ function NewsIndex() {
                   </Link>
                 ))}
               </div>
-            </div>
+            </EditorialBand>
 
             {featured.length > 0 ? (
-              <div className="mt-12">
-                <h2 className="flex items-center gap-2 text-lg font-bold">
-                  <Sparkles className="size-6 text-caution" /> Featured
-                </h2>
+              <EditorialBand tone="plain">
+                <SectionHeader
+                  eyebrow="Editor’s selection"
+                  title="Featured & Prime"
+                  icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
+                />
                 <div className="mt-5">
-                  <ArticleGrid articles={featured} />
+                  <ArticleGrid articles={featured} placement="news-featured" />
                 </div>
                 {featured.length === featuredLimit ? (
                   <div className="mt-6 text-center">
@@ -312,16 +306,18 @@ function NewsIndex() {
                     </button>
                   </div>
                 ) : null}
-              </div>
+              </EditorialBand>
             ) : null}
 
             {trending.length > 0 ? (
-              <div className="mt-12">
-                <h2 className="flex items-center gap-2 text-lg font-bold">
-                  <Flame className="size-6 text-destructive" /> Trending
-                </h2>
+              <EditorialBand tone="pale">
+                <SectionHeader
+                  eyebrow="What readers are opening"
+                  title="Trending articles"
+                  icon={<Flame className="size-5 text-destructive" aria-hidden="true" />}
+                />
                 <div className="mt-5">
-                  <ArticleGrid articles={trending} />
+                  <ArticleGrid articles={trending} placement="news-trending" />
                 </div>
                 {trending.length === trendingLimit ? (
                   <div className="mt-6 text-center">
@@ -334,19 +330,50 @@ function NewsIndex() {
                     </button>
                   </div>
                 ) : null}
-              </div>
+              </EditorialBand>
             ) : null}
 
-            <div className="mt-12">
-              <BannerAd />
-            </div>
+            <EditorialBand tone="plain">
+              <SectionHeader
+                eyebrow="Road context"
+                title="Reports and alerts to read alongside the news"
+                description="Current public road-safety signals that help place reporting in context."
+              />
+              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                {relatedReports.length > 0 ? (
+                  <div>
+                    <h3 className="mb-3 text-lg font-bold">Latest accident reports</h3>
+                    <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+                      {relatedReports.map((report) => (
+                        <ReportPreviewCard key={report.id} report={report} />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {relatedAlerts.length > 0 ? (
+                  <div>
+                    <h3 className="mb-3 text-lg font-bold">Active alerts</h3>
+                    <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+                      {relatedAlerts.map((alert) => (
+                        <AlertPreviewCard key={alert.id} alert={alert} />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+              <div className="mt-8">
+                <BannerAd placement="news-context-midpoint" />
+              </div>
+            </EditorialBand>
 
-            <div id="all-articles" className="mt-12 scroll-mt-24">
-              <h2 className="text-[1.155rem] font-bold">More articles</h2>
-              {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
-              <ArticleCompactList articles={all} />
+            <EditorialBand tone="pale" className="scroll-mt-24">
+              <div id="all-articles" className="scroll-mt-24">
+                <SectionHeader title="More articles" to="/news" actionLabel="Browse all" />
+                {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
+                <ArticleCompactList articles={all} />
+              </div>
               <MjengoPreviews context="articles" />
-            </div>
+            </EditorialBand>
           </>
         )}
       </div>
