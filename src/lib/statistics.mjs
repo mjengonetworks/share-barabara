@@ -21,6 +21,37 @@ export function excludeLinkedDuplicates(rows) {
   });
 }
 
+export function hasVerifiedCoordinates(row) {
+  if (row?.latitude === null || row?.latitude === undefined || row?.longitude === null || row?.longitude === undefined) return false;
+  const latitude = Number(row?.latitude);
+  const longitude = Number(row?.longitude);
+  return Number.isFinite(latitude) && Number.isFinite(longitude)
+    && latitude >= -5 && latitude <= 5
+    && longitude >= 33 && longitude <= 42;
+}
+
+/** Cluster nearby real incidents in small geographic cells. A cluster keeps
+ * its member coordinates and uses the first member's real coordinate for the
+ * clickable cluster affordance; no representative coordinate is invented. */
+export function clusterIncidentRows(rows, cellSize = 0.15) {
+  const cells = new Map();
+  for (const row of rows) {
+    if (!hasVerifiedCoordinates(row)) continue;
+    const latitude = Number(row.latitude);
+    const longitude = Number(row.longitude);
+    const key = `${Math.floor(latitude / cellSize)}:${Math.floor(longitude / cellSize)}`;
+    const members = cells.get(key) ?? [];
+    members.push(row);
+    cells.set(key, members);
+  }
+  return [...cells.values()].map((members) => ({
+    id: members.length === 1 ? members[0].id : members.map((row) => row.id).join(","),
+    latitude: Number(members[0].latitude),
+    longitude: Number(members[0].longitude),
+    members,
+  }));
+}
+
 export function summarizeIncidentRows(rows) {
   const eligibleRows = excludeLinkedDuplicates(rows);
   const fatalities = sumKnown(eligibleRows.map((row) => row?.fatalities));

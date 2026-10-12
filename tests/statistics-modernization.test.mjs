@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   excludeLinkedDuplicates,
+  clusterIncidentRows,
   groupIncidentRows,
+  hasVerifiedCoordinates,
   isApprovedReport,
   percentageChange,
   reportMonthBuckets,
@@ -44,6 +46,37 @@ test("missing location/type is grouped explicitly and linked duplicates are excl
     "Unknown / not specified": 2,
   });
   assert.equal(excludeLinkedDuplicates([{ duplicate_of_report_id: null }, { duplicate_of_report_id: "x" }]).length, 1);
+});
+
+test("map markers use only verified coordinates and cluster real incidents", () => {
+  const rows = [
+    { id: "one", latitude: -1.28, longitude: 36.82 },
+    { id: "two", latitude: -1.29, longitude: 36.83 },
+    { id: "unknown", latitude: null, longitude: 36.8 },
+    { id: "outside", latitude: 12, longitude: 36.8 },
+  ];
+  assert.equal(hasVerifiedCoordinates(rows[0]), true);
+  assert.equal(hasVerifiedCoordinates(rows[2]), false);
+  assert.equal(hasVerifiedCoordinates(rows[3]), false);
+  const clusters = clusterIncidentRows(rows, 0.15);
+  assert.equal(clusters.length, 1);
+  assert.deepEqual(clusters[0].members.map((row) => row.id), ["one", "two"]);
+  assert.equal(clusters[0].latitude, -1.28);
+  assert.equal(clusters[0].longitude, 36.82);
+});
+
+test("statistics map preserves filter synchronization and canonical links", async () => {
+  const [route, map] = await Promise.all([
+    readFile(new URL("../src/routes/statistics.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/site/statistics-incident-map.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(route, /liveRoad/);
+  assert.match(route, /r\.road_id === liveRoad/);
+  assert.match(route, /<StatisticsIncidentMap incidents=\{thisYearSummary\.rows\}/);
+  assert.match(route, /The incident map is unavailable/);
+  assert.match(map, /to="\/reports\/\$reportId"/);
+  assert.match(map, /clusterIncidentRows/);
+  assert.match(map, /No approved reports with verified coordinates/);
 });
 
 test("the public route does not coerce missing casualty-breakdown values to zero", async () => {
