@@ -72,6 +72,11 @@ migration exist. Remaining acceptance: production schema/RLS and data review,
 provenance/backfill decisions, and desktop/tablet/mobile light/dark browser
 review. Dependency: Task 53 audit and approved migration sequence.
 
+The interactive incident-map candidate is implemented on the feature branch
+and remains staging-only pending production acceptance; its geographic context,
+filters, clustering and real-coordinate safeguards are covered by focused
+tests and browser review.
+
 ## Task 27 — Alert Radius & Notification Preferences — TESTING
 
 Preference UI, deterministic matching, unread/read handling and review-only
@@ -108,10 +113,10 @@ map tile/geocoder provider before map-click/search features.
 
 ## Task 41 — Cross-site discovery, content previews & ad inventory — PENDING
 
-41.1 Article discovery; 41.2 Alert discovery; 41.3 Report discovery; 41.4
-homepage whole-platform previews; 41.5 alert/report category discovery; 41.6
-Mjengo Hub/Mjengo Networks previews; 41.7 expanded banner inventory; 41.8
-responsive/performance/security verification.
+41.1 Article discovery; 41.2 Alert discovery; 41.3 Report discovery;
+41.4 Homepage whole-platform previews; 41.5 Alert/Report category discovery;
+41.6 Mjengo Hub/Mjengo Networks previews; 41.7 Expanded banner-ad inventory;
+41.8 Responsive/performance/security verification.
 
 Some implementation exists through Tasks 45 and 56, but the task has no owner
 acceptance record. The current sitewide four-item distribution is tracked
@@ -245,6 +250,10 @@ and owner approval remain outstanding. Evidence:
 `docs/production-database-migration-reconciliation.md`.
 
 ## Task 60 — Production Recovery, AI Functionality, Project Publishing & Deployment Audit — TESTING
+
+Task 60 is in TESTING / VERIFICATION; repository evidence is recorded, while
+production approval and any protected migration execution remain outstanding.
+Production deployment version and exact deployed Git SHA remain unverified.
 
 Repository-side recovery, AI, project-publishing scope and deployment audits
 exist. Production Worker identity, live AI behavior, project-publishing
