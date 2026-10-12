@@ -15,10 +15,11 @@ import {
   CompactArticleCard,
   EditorialBand,
   EditorialCardSection,
-  EditorialLeadAndRows,
+  EditorialLeadAndCompactCards,
   SectionHeader,
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
+import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import {
   Dialog,
   DialogContent,
@@ -256,7 +257,7 @@ function TopicSection({
       <SectionHeader eyebrow={eyebrow} title={title} to="/news" actionLabel="Read more" />
       {articles.length ? (
         <div className="mt-6">
-          <EditorialLeadAndRows articles={articles.slice(0, 5)} placement={placement} />
+          <EditorialLeadAndCompactCards articles={articles.slice(0, 5)} placement={placement} />
         </div>
       ) : (
         <EmptyState label="No published articles are available in this section yet." />
@@ -371,156 +372,191 @@ function NewsIndex() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="w-full py-8 sm:py-10">
       <PublicPageHero
         eyebrow="Share Barabara newsroom"
         title="News & Articles"
         titleAccent="Articles"
         description="Road safety reporting, transport insight and community stories about how Kenyans travel and how we can make every journey safer."
         image={heroRoad}
+        fullBleed
       />
-      {!category ? <LatestStrip articles={latest} /> : null}
-      {user && canWrite ? (
-        <div className="mt-4 flex justify-end">
-          <WriteButton signedIn={!!user} canWrite={canWrite} />
-        </div>
-      ) : null}
-      {category ? (
-        <EditorialBand className="mt-8" tone="plain">
-          <SectionHeader
-            eyebrow="Newsroom category"
-            title={category}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        {!category ? <LatestStrip articles={latest} /> : null}
+        <nav
+          aria-label="Filter articles by category"
+          className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none"
+        >
+          <Link
             to="/news"
-            actionLabel="All articles"
-          />
-          {filteredLoading ? (
-            <p className="mt-6 text-muted-foreground">Loading published articles…</p>
-          ) : null}
-          {!filteredLoading && !filtered.length ? (
-            <EmptyState label="No published articles in this category yet." />
-          ) : (
-            <div className="mt-6">
-              <ArticleGridWithAds articles={filtered} placement="news-category" />
-            </div>
-          )}
-        </EditorialBand>
-      ) : (
-        <div className="mt-8 space-y-0">
-          <TopicSection
-            title="Trending Articles"
-            eyebrow="What readers are opening"
-            articles={trending}
-            tone="pale"
-            placement="news-trending"
-          />
-          {trending.length === trendingLimit ? (
-            <LoadMore onClick={() => setTrendingLimit((value) => value + 6)} />
-          ) : null}
-          <TopicSection
-            title="Latest Articles"
-            eyebrow="The newsroom"
-            articles={latest}
-            placement="news-latest"
-          />
-          <MostViewed articles={trending} />
-          {featured.length ? (
-            <EditorialBand tone="pale">
-              <SectionHeader
-                eyebrow="Editors' selection"
-                title="Featured / Prime Articles"
-                icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
-                to="/news"
-                actionLabel="Read more"
-              />
-              <div className="mt-6">
-                <EditorialCardSection articles={featured} />
-              </div>
-              {featured.length === featuredLimit ? (
-                <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
-              ) : null}
-            </EditorialBand>
-          ) : null}
-          <EditorialBand tone="plain">
+            aria-current={!category ? "page" : undefined}
+            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              !category
+                ? "border-brand-blue bg-brand-blue text-white"
+                : "border-border bg-card hover:border-accent hover:text-accent-foreground"
+            }`}
+          >
+            All articles
+          </Link>
+          {loaderData.categories.map((categoryName) => (
+            <Link
+              key={categoryName}
+              to="/news"
+              search={{ category: categoryName }}
+              aria-current={category === categoryName ? "page" : undefined}
+              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                category === categoryName
+                  ? "border-brand-blue bg-brand-blue text-white"
+                  : "border-border bg-card hover:border-accent hover:text-accent-foreground"
+              }`}
+            >
+              {categoryName}
+            </Link>
+          ))}
+        </nav>
+        {user && canWrite ? (
+          <div className="mt-4 flex justify-end">
+            <WriteButton signedIn={!!user} canWrite={canWrite} />
+          </div>
+        ) : null}
+        {category ? (
+          <EditorialBand className="mt-8" tone="plain">
             <SectionHeader
-              eyebrow="Browse the newsroom"
-              title="Articles by Category"
-              description="Explore published reporting by the topics that shape safer journeys."
+              eyebrow="Newsroom category"
+              title={category}
+              to="/news"
+              actionLabel="All articles"
             />
-            <div className="mt-5 flex flex-wrap gap-2">
-              {loaderData.categories.map((categoryName) => (
-                <Link
-                  key={categoryName}
-                  to="/news"
-                  search={{ category: categoryName }}
-                  aria-current={category === categoryName ? "page" : undefined}
-                  className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold transition-colors hover:border-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {categoryName}
-                </Link>
-              ))}
-            </div>
+            {filteredLoading ? (
+              <p className="mt-6 text-muted-foreground">Loading published articles…</p>
+            ) : null}
+            {!filteredLoading && !filtered.length ? (
+              <EmptyState label="No published articles in this category yet." />
+            ) : (
+              <div className="mt-6">
+                <ArticleGridWithAds articles={filtered} placement="news-category" />
+              </div>
+            )}
           </EditorialBand>
-          <TopicSection
-            title="Road Safety Analysis"
-            eyebrow="Evidence and context"
-            articles={analysis}
-            tone="pale"
-            placement="news-analysis"
-            optional
-          />
-          {relatedReports.length ? (
+        ) : (
+          <div className="mt-8 space-y-0">
+            <TopicSection
+              title="Trending Articles"
+              eyebrow="What readers are opening"
+              articles={trending}
+              tone="pale"
+              placement="news-trending"
+            />
+            {trending.length === trendingLimit ? (
+              <LoadMore onClick={() => setTrendingLimit((value) => value + 6)} />
+            ) : null}
+            <TopicSection
+              title="Latest Articles"
+              eyebrow="The newsroom"
+              articles={latest}
+              placement="news-latest"
+            />
+            <MostViewed articles={trending} />
+            {featured.length ? (
+              <EditorialBand tone="pale">
+                <SectionHeader
+                  eyebrow="Editors' selection"
+                  title="Featured / Prime Articles"
+                  icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
+                  to="/news"
+                  actionLabel="Read more"
+                />
+                <div className="mt-6">
+                  <EditorialCardSection articles={featured} />
+                </div>
+                {featured.length === featuredLimit ? (
+                  <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
+                ) : null}
+              </EditorialBand>
+            ) : null}
             <EditorialBand tone="plain">
               <SectionHeader
-                eyebrow="Road context"
-                title="Related Accident Reports"
-                description="Published public reports that help place road-safety coverage in context."
-                to="/reports"
-                actionLabel="View reports"
+                eyebrow="Browse the newsroom"
+                title="Articles by Category"
+                description="Explore published reporting by the topics that shape safer journeys."
               />
-              <div className="mt-6 grid gap-5 md:grid-cols-3">
-                {relatedReports.map((report) => (
-                  <ReportPreviewCard key={report.id} report={report} />
+              <div className="mt-5 flex flex-wrap gap-2">
+                {loaderData.categories.map((categoryName) => (
+                  <Link
+                    key={categoryName}
+                    to="/news"
+                    search={{ category: categoryName }}
+                    aria-current={category === categoryName ? "page" : undefined}
+                    className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold transition-colors hover:border-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {categoryName}
+                  </Link>
                 ))}
               </div>
             </EditorialBand>
-          ) : null}
-          {relatedAlerts.length ? (
-            <EditorialBand tone="pale">
-              <SectionHeader
-                eyebrow="Live road context"
-                title="Relevant Alerts"
-                description="Only active alerts are shown here; resolved and expired alerts stay out of the current-news flow."
-                to="/alerts"
-                actionLabel="View alerts"
-              />
-              <div className="mt-6 grid gap-5 md:grid-cols-3">
-                {relatedAlerts.map((alert) => (
-                  <AlertPreviewCard key={alert.id} alert={alert} />
-                ))}
-              </div>
-              <div className="mt-8">
-                <BannerAd placement="news-context-midpoint" />
+            <TopicSection
+              title="Road Safety Analysis"
+              eyebrow="Evidence and context"
+              articles={analysis}
+              tone="pale"
+              placement="news-analysis"
+              optional
+            />
+            {relatedReports.length ? (
+              <EditorialBand tone="plain">
+                <SectionHeader
+                  eyebrow="Road context"
+                  title="Related Accident Reports"
+                  description="Published public reports that help place road-safety coverage in context."
+                  to="/reports"
+                  actionLabel="View reports"
+                />
+                <div className="mt-6 grid gap-5 md:grid-cols-3">
+                  {relatedReports.map((report) => (
+                    <ReportPreviewCard key={report.id} report={report} />
+                  ))}
+                </div>
+              </EditorialBand>
+            ) : null}
+            {relatedAlerts.length ? (
+              <EditorialBand tone="pale">
+                <SectionHeader
+                  eyebrow="Live road context"
+                  title="Relevant Alerts"
+                  description="Only active alerts are shown here; resolved and expired alerts stay out of the current-news flow."
+                  to="/alerts"
+                  actionLabel="View alerts"
+                />
+                <div className="mt-6 grid gap-5 md:grid-cols-3">
+                  {relatedAlerts.map((alert) => (
+                    <AlertPreviewCard key={alert.id} alert={alert} />
+                  ))}
+                </div>
+                <div className="mt-8">
+                  <BannerAd placement="news-context-midpoint" />
+                </div>
+              </EditorialBand>
+            ) : null}
+            <EditorialBand tone="plain" className="scroll-mt-24">
+              <div id="all-articles">
+                <SectionHeader
+                  eyebrow="Keep reading"
+                  title="More Articles"
+                  to="/news"
+                  actionLabel="Browse all"
+                />
+                {allLoading ? (
+                  <p className="mt-6 text-muted-foreground">Loading published stories…</p>
+                ) : null}
+                <div className="mt-6">
+                  <ArticleGridWithAds articles={all} placement="news-more" />
+                </div>
               </div>
             </EditorialBand>
-          ) : null}
-          <EditorialBand tone="plain" className="scroll-mt-24">
-            <div id="all-articles">
-              <SectionHeader
-                eyebrow="Keep reading"
-                title="More Articles"
-                to="/news"
-                actionLabel="Browse all"
-              />
-              {allLoading ? (
-                <p className="mt-6 text-muted-foreground">Loading published stories…</p>
-              ) : null}
-              <div className="mt-6">
-                <ArticleGridWithAds articles={all} placement="news-more" />
-              </div>
-            </div>
-          </EditorialBand>
-        </div>
-      )}
+          </div>
+        )}
+        <MjengoPreviews context="articles" />
+      </div>
     </div>
   );
 }

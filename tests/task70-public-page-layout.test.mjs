@@ -25,7 +25,7 @@ test("Task 70 shared public layout exposes the planned editorial primitives", ()
 });
 
 test("news listing keeps the editorial lead, compact cards, sections and ad placements", () => {
-  assert.match(news, /function EditorialLeadAndRows|EditorialLeadAndRows/);
+  assert.match(news, /EditorialLeadAndCompactCards/);
   assert.match(news, /CompactArticleCard/);
   assert.match(news, /EditorialBand tone="pale"/);
   assert.match(news, /news-latest/);
@@ -41,6 +41,8 @@ test("news listing keeps the editorial lead, compact cards, sections and ad plac
   assert.match(news, /Verified view activity/);
   assert.match(news, /function LatestStrip/);
   assert.match(news, /Latest update/);
+  assert.match(news, /fullBleed/);
+  assert.match(news, /Filter articles by category/);
   assert.match(news, /from\("accident_reports"\)/);
   assert.match(news, /from\("alerts"\)/);
 });
@@ -82,7 +84,7 @@ test("public news data is loader-backed and published-only before hydration", ()
 test("optional editorial sections collapse without synthetic content", () => {
   assert.match(news, /optional = false/);
   assert.match(news, /if \(optional && !articles\.length\) return null/);
-  assert.match(news, /optional\n          \/>/);
+  assert.match(news, /optional\s*\/>/);
   assert.doesNotMatch(news, /No featured published articles are available yet/);
   assert.match(news, /all\.filter\(\(article\) => article\.featured\)/);
   assert.match(news, /analysis = all\.filter/);

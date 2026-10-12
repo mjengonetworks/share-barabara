@@ -190,6 +190,28 @@ export function EditorialLeadAndRows({
   );
 }
 
+/** Editorial lead plus image-led compact cards for dense three-column newsroom sections. */
+export function EditorialLeadAndCompactCards({
+  articles,
+  placement,
+}: {
+  articles: PublicArticleCard[];
+  placement?: string;
+}) {
+  const [lead, ...secondary] = articles;
+  if (!lead) return null;
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_repeat(2,minmax(0,0.82fr))]">
+      <FeaturedLeadCard article={lead} />
+      {secondary.slice(0, 4).map((article) => (
+        <CompactArticleCard key={article.id} article={article} />
+      ))}
+      {placement ? <span className="sr-only">{placement}</span> : null}
+    </div>
+  );
+}
+
 export function EditorialCardSection({ articles }: { articles: PublicArticleCard[] }) {
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
