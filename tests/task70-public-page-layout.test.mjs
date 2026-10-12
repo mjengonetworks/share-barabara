@@ -25,7 +25,7 @@ test("Task 70 shared public layout exposes the planned editorial primitives", ()
 });
 
 test("news listing keeps the editorial lead, compact cards, sections and ad placements", () => {
-  assert.match(news, /EditorialLeadAndCompactCards/);
+  assert.match(news, /CompactEditorialColumns/);
   assert.match(news, /CompactArticleCard/);
   assert.match(news, /EditorialBand tone="pale"/);
   assert.match(news, /news-latest/);
@@ -98,4 +98,17 @@ test("article detail preserves stored images and has a neutral fallback for imag
   assert.match(detail, /article\.image_url/);
   assert.match(detail, /src=\{heroRoad\}/);
   assert.match(detail, /Share Barabara newsroom/);
+});
+
+test("batch one visual correction keeps listing and detail density compact", () => {
+  assert.match(layout, /CompactEditorialColumn/);
+  assert.match(layout, /w-\[38%\]/);
+  assert.match(news, /Lead stories/);
+  assert.match(news, /On the road/);
+  assert.match(news, /Community watch/);
+  assert.match(detail, /text-\[28px\].*sm:text-\[34px\]/);
+  assert.match(detail, /max-w-\[1500px\].*lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/s);
+  assert.match(detail, /variant="sidebar"/);
+  assert.match(detail, /bg-gradient-to-br from-brand-blue/);
+  assert.match(detail, /aria-label="Breadcrumb"/);
 });

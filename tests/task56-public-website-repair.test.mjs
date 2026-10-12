@@ -88,7 +88,7 @@ test("Google preferred-source control is compact rather than circular", () => {
 });
 
 test("public article surfaces have a lead story, newsletter capture, and honest subscription states", () => {
-  assert.match(newsIndex, /EditorialLeadAndCompactCards/);
+  assert.match(newsIndex, /CompactEditorialColumns/);
   assert.match(newsIndex, /Featured \/ Prime Articles/);
   assert.match(article, /NewsletterForm/);
   assert.match(newsletter, /already subscribed/);
