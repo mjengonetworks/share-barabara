@@ -8,6 +8,11 @@ const news = read("src/routes/news.index.tsx");
 const detail = read("src/routes/news.$slug.tsx");
 const alerts = read("src/routes/alerts.index.tsx");
 const reports = read("src/routes/reports.index.tsx");
+const discovery = read("src/components/site/discovery-sections.tsx");
+const feed = read("src/routes/feed.tsx");
+const profile = read("src/routes/u.$userId.tsx");
+const roads = read("src/routes/roads.$slug.tsx");
+const search = read("src/routes/search.tsx");
 
 test("Task 70 shared public layout exposes the planned editorial primitives", () => {
   for (const name of [
@@ -140,4 +145,19 @@ test("alerts and reports listings use shared multi-column incident editorial sec
   assert.match(reports, /Latest Accident Reports/);
   assert.match(layout, /supporting\.slice\(0, 3\)/);
   assert.match(layout, /aspect-video/);
+});
+
+test("editorial preview cards omit dates while preserving allowed detail and feed timestamps", () => {
+  assert.doesNotMatch(layout, /article\.published_at[\s\S]{0,120}longDate/);
+  assert.match(layout, /kind === "alert"/);
+  assert.doesNotMatch(discovery, /longDateWithDay\(article\.published_at\)/);
+  assert.doesNotMatch(discovery, /longDate\(report\.occurred_at\)/);
+  assert.doesNotMatch(feed, /timeAgo\(item\.created_at\)/);
+  assert.match(feed, /timeAgo\(post\.created_at\)/);
+  for (const source of [profile, roads, search]) {
+    assert.doesNotMatch(source, /longDate\(a\.published_at\)/);
+    assert.doesNotMatch(source, /longDate\(n\.published_at\)/);
+    assert.doesNotMatch(source, /longDate\(r\.occurred_at\)/);
+  }
+  assert.match(detail, /longDateWithDay\(article\.published_at\)/);
 });

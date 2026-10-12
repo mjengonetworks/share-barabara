@@ -117,7 +117,6 @@ function SearchPage() {
                   className="block rounded border border-border bg-card p-4 hover:border-accent"
                 >
                   <p className="font-semibold">{n.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{longDate(n.published_at)}</p>
                 </Link>
               </li>
             ))}

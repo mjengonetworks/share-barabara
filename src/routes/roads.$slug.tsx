@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CarFront, MapPin, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { timeAgo, longDate } from "@/lib/format";
+import { timeAgo } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { displayReportCount, knownReportSum } from "@/lib/report-metrics";
 
@@ -162,9 +162,6 @@ function RoadProfilePage() {
                   >
                     {r.title}
                   </Link>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {longDate(r.occurred_at)}
-                  </span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {displayReportCount(r.fatalities)} deaths, {displayReportCount(r.casualties)} injured
