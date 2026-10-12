@@ -390,3 +390,61 @@ export function SidebarModule({
     </div>
   );
 }
+
+export type PublicBreadcrumbItem = { label: string; to?: string };
+
+/** Shared breadcrumb strip for every public detail surface. */
+export function PublicBreadcrumbStrip({ items }: { items: PublicBreadcrumbItem[] }) {
+  return (
+    <nav aria-label="Breadcrumb" className="w-full bg-gradient-to-r from-brand-navy via-brand-blue to-primary text-primary-foreground">
+      <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-4 py-2 text-xs sm:px-6">
+        {items.map((item, index) => (
+          <span key={`${item.label}-${index}`} className="flex min-w-0 items-center gap-1">
+            {index ? <span className="shrink-0 text-primary-foreground/60">›</span> : null}
+            {item.to ? (
+              <Link to={item.to as never} className="shrink-0 hover:underline">{item.label}</Link>
+            ) : (
+              <span className="truncate text-primary-foreground/85">{item.label}</span>
+            )}
+          </span>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+/** The approved 70/30 shell keeps all public detail pages aligned. */
+export function PublicDetailShell({
+  breadcrumb,
+  children,
+  sidebar,
+}: {
+  breadcrumb: PublicBreadcrumbItem[];
+  children: ReactNode;
+  sidebar?: ReactNode;
+}) {
+  return (
+    <>
+      <PublicBreadcrumbStrip items={breadcrumb} />
+      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-5 card-elevated sm:p-6">{children}</article>
+        {sidebar ? <PublicSidebar>{sidebar}</PublicSidebar> : null}
+      </div>
+    </>
+  );
+}
+
+export function DetailSidebarList({ children }: { children: ReactNode }) {
+  return <div className="divide-y divide-border/70">{children}</div>;
+}
+
+export function CategoryChip({ active = false, children }: { active?: boolean; children: ReactNode }) {
+  return (
+    <span className={cn(
+      "inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold",
+      active ? "border-brand-blue bg-brand-blue text-white" : "border-[#CFE2FA] bg-[#EAF3FF] text-[#174A87]",
+    )}>
+      {children}
+    </span>
+  );
+}
