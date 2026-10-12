@@ -33,14 +33,15 @@ import {
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
-    const { data: article, error: articleError } = await supabase
+    const { data, error: articleError } = await supabase
       .from("news")
       .select("*")
       .eq("slug", params.slug)
       .eq("status", "published")
       .maybeSingle();
     if (articleError) throw articleError;
-    if (!article) throw notFound();
+    if (!data) throw notFound();
+    const article = data;
 
     const [relatedResult, latestResult, trendingResult] = await Promise.all([
       supabase
@@ -329,7 +330,7 @@ function NewsDetail() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="grid gap-10 lg:grid-cols-[minmax(0,800px)_320px] lg:justify-center">
-        <article className="min-w-0">
+        <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-7 lg:p-9">
           <nav
             aria-label="Breadcrumb"
             className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground"
