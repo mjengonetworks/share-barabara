@@ -51,7 +51,7 @@ export const Route = createFileRoute("/news/")({
   loader: async (): Promise<NewsIndexLoaderData> => {
     const [all, trendingResult, relatedAlertsResult, relatedReportsResult] = await Promise.all([
       fetchPublishedArticles(),
-      supabase.rpc("trending_news", { hours_back: 48, result_limit: 6 }),
+      supabase.rpc("trending_news", { hours_back: 48, result_limit: 12 }),
       supabase
         .from("alerts")
         .select("id, title, description, county, road, hazard_type, severity, created_at")
@@ -85,9 +85,9 @@ export const Route = createFileRoute("/news/")({
     );
     return {
       all,
-      latest: all.slice(0, 6),
-      featured: all.filter((article) => article.featured).slice(0, 6),
-      analysis: analysis.slice(0, 6),
+      latest: all.slice(0, 12),
+      featured: all.filter((article) => article.featured).slice(0, 12),
+      analysis: analysis.slice(0, 12),
       trending: (trendingResult.data ?? []) as ArticleCard[],
       relatedAlerts: relatedAlertsResult.data ?? [],
       relatedReports: relatedReportsResult.data ?? [],
@@ -257,7 +257,7 @@ function TopicSection({
       {articles.length ? (
         <div className="mt-6">
           <CompactEditorialColumns
-            articles={articles.slice(0, 6)}
+            articles={articles.slice(0, 12)}
             placement={placement}
             titles={
               title === "Trending Articles"
@@ -278,8 +278,8 @@ function NewsIndex() {
   const canWrite = useCanWriteArticles();
   const { category } = Route.useSearch();
   const loaderData = Route.useLoaderData();
-  const [featuredLimit, setFeaturedLimit] = useState(6);
-  const [trendingLimit, setTrendingLimit] = useState(6);
+  const [featuredLimit, setFeaturedLimit] = useState(12);
+  const [trendingLimit, setTrendingLimit] = useState(12);
   const { data: filtered = [], isLoading: filteredLoading } = usePublishedQuery({
     name: "category",
     category,
@@ -292,7 +292,7 @@ function NewsIndex() {
   });
   const { data: latest = [] } = usePublishedQuery({
     name: "latest",
-    limit: 6,
+    limit: 12,
     initialData: loaderData.latest,
   });
   const { data: all = [], isLoading: allLoading } = usePublishedQuery({
