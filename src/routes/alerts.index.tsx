@@ -228,6 +228,9 @@ function AlertsPage() {
                 </div>
               </EditorialBand>
             ) : null}
+            <div className="mt-6">
+              <BannerAd placement="alerts-list-interval-1" />
+            </div>
             {trending.length > 0 ? (
               <EditorialBand tone="pale">
                 <SectionHeader

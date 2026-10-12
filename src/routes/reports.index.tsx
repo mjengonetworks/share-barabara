@@ -229,6 +229,9 @@ function ReportsPage() {
                 </div>
               </EditorialBand>
             ) : null}
+            <div className="mt-6">
+              <BannerAd placement="reports-list-interval-1" />
+            </div>
             {trending.length > 0 ? (
               <EditorialBand tone="pale">
                 <SectionHeader
