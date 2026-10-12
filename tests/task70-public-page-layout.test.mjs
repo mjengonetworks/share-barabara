@@ -75,9 +75,11 @@ test("public news data is loader-backed and published-only before hydration", ()
   assert.match(news, /initialData: loaderData\.relatedAlerts/);
 });
 
-test("optional editorial sections use verified empty states rather than synthetic content", () => {
-  assert.match(news, /No featured published articles are available yet/);
-  assert.match(news, /No published articles are available in this section yet/);
+test("optional editorial sections collapse without synthetic content", () => {
+  assert.match(news, /optional = false/);
+  assert.match(news, /if \(optional && !articles\.length\) return null/);
+  assert.match(news, /optional\n          \/>/);
+  assert.doesNotMatch(news, /No featured published articles are available yet/);
   assert.match(news, /all\.filter\(\(article\) => article\.featured\)/);
   assert.match(news, /analysis = all\.filter/);
 });
