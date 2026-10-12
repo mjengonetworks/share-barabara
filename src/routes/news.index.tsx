@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Flame, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
@@ -11,12 +11,12 @@ import { ArticleForm } from "@/components/site/article-form";
 import { BannerAd } from "@/components/site/banner-ad";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import heroRoad from "@/assets/hero-road.jpg";
-import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { AdInterleave } from "@/components/site/ad-interleave";
 import {
   CompactArticleCard,
   EditorialBand,
-  FeaturedLeadCard,
+  EditorialCardSection,
+  EditorialLeadAndRows,
   SectionHeader,
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
@@ -30,8 +30,7 @@ import {
 
 export const Route = createFileRoute("/news/")({
   validateSearch: (search: Record<string, unknown>): { category?: string } => {
-    const category =
-      typeof search["category"] === "string" ? (search["category"] as string) : undefined;
+    const category = typeof search.category === "string" ? search.category : undefined;
     return category ? { category } : {};
   },
   head: () => ({
@@ -57,49 +56,77 @@ type ArticleCard = {
   id: string;
   slug: string;
   title: string;
-  summary: string;
-  category: string;
+  summary: string | null;
+  category: string | null;
   source: string | null;
-  published_at: string;
-  featured: boolean;
+  published_at: string | null;
+  featured: boolean | null;
   image_url?: string | null;
 };
+const articleSelect =
+  "id, slug, title, summary, category, source, published_at, featured, image_url";
 
-// The shared fallback keeps the established aspect-video and Newspaper className contracts.
+function usePublishedQuery({
+  name,
+  category,
+  limit = 12,
+}: {
+  name: string;
+  category?: string;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: ["news-task70", name, category, limit],
+    queryFn: async () => {
+      let query = supabase.from("news").select(articleSelect).eq("status", "published");
+      if (category) query = query.eq("category", category);
+      const { data, error } = await query.order("published_at", { ascending: false }).limit(limit);
+      if (error) throw error;
+      return data as ArticleCard[];
+    },
+  });
+}
 
-function ArticleGrid({
+function ArticleGridWithAds({
   articles,
-  placement = "news-list",
+  placement,
 }: {
   articles: ArticleCard[];
-  placement?: string;
+  placement: string;
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       <AdInterleave
         items={articles}
         placement={placement}
         adClassName="col-span-full"
-        renderItem={(a, index) => (
-          <div className={index === 0 ? "md:col-span-2" : ""}>
-            {index === 0 ? <FeaturedLeadCard article={a} /> : <CompactArticleCard article={a} />}
-          </div>
-        )}
+        renderItem={(article) => <CompactArticleCard article={article} />}
       />
     </div>
   );
 }
 
-function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
+function TopicSection({
+  title,
+  eyebrow,
+  articles,
+  tone = "plain",
+  placement,
+}: {
+  title: string;
+  eyebrow?: string;
+  articles: ArticleCard[];
+  tone?: "plain" | "pale";
+  placement: string;
+}) {
+  if (!articles.length) return null;
   return (
-    <div className="mt-5 grid gap-4 sm:grid-cols-2">
-      <AdInterleave
-        items={articles}
-        placement="news-compact-list"
-        adClassName="col-span-full"
-        renderItem={(a) => <CompactArticleCard article={a} />}
-      />
-    </div>
+    <EditorialBand tone={tone}>
+      <SectionHeader eyebrow={eyebrow} title={title} to="/news" actionLabel="Read more" />
+      <div className="mt-6">
+        <EditorialLeadAndRows articles={articles.slice(0, 5)} placement={placement} />
+      </div>
+    </EditorialBand>
   );
 }
 
@@ -108,83 +135,59 @@ function NewsIndex() {
   const canWrite = useCanWriteArticles();
   const { category } = Route.useSearch();
   const { data: categories = [] } = useNewsCategories();
-
-  const { data: filtered = [], isLoading: filteredLoading } = useQuery({
-    queryKey: ["news-category", category],
-    enabled: !!category,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("news")
-        .select("id, slug, title, summary, category, source, published_at, featured, image_url")
-        .eq("category", category as string)
-        .order("published_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data;
-    },
+  const [featuredLimit, setFeaturedLimit] = useState(6);
+  const [trendingLimit, setTrendingLimit] = useState(6);
+  const { data: filtered = [], isLoading: filteredLoading } = usePublishedQuery({
+    name: "category",
+    category,
+    limit: 50,
   });
-
-  const { data: latest = [] } = useQuery({
-    queryKey: ["news-latest"],
-    enabled: !category,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("news")
-        .select("id, slug, title, summary, category, source, published_at, featured, image_url")
-        .order("published_at", { ascending: false })
-        .limit(4);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const [featuredLimit, setFeaturedLimit] = useState(3);
+  const { data: latest = [] } = usePublishedQuery({ name: "latest", limit: 6 });
+  const { data: all = [], isLoading: allLoading } = usePublishedQuery({ name: "all", limit: 50 });
   const { data: featured = [] } = useQuery({
-    queryKey: ["news-featured", featuredLimit],
-    enabled: !category,
+    queryKey: ["news-task70-featured", featuredLimit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, summary, category, source, published_at, featured, image_url")
+        .select(articleSelect)
+        .eq("status", "published")
         .eq("featured", true)
         .order("published_at", { ascending: false })
         .limit(featuredLimit);
       if (error) throw error;
-      return data;
+      return data as ArticleCard[];
     },
-  });
-
-  const [trendingLimit, setTrendingLimit] = useState(3);
-  const { data: trending = [] } = useQuery({
-    queryKey: ["news-trending", trendingLimit],
     enabled: !category,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("trending_news", {
-        hours_back: 8,
-        result_limit: trendingLimit,
-      });
-      if (error) throw error;
-      return data;
-    },
   });
-
-  const { data: all = [], isLoading: allLoading } = useQuery({
-    queryKey: ["news"],
-    enabled: !category,
+  const { data: analysis = [] } = useQuery({
+    queryKey: ["news-task70-analysis"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, summary, category, source, published_at, featured, image_url")
+        .select(articleSelect)
+        .eq("status", "published")
+        .or("category.ilike.%analysis%,category.ilike.%safety%")
         .order("published_at", { ascending: false })
-        .limit(50);
+        .limit(6);
       if (error) throw error;
-      return data;
+      return data as ArticleCard[];
     },
-  });
-
-  const { data: relatedAlerts = [] } = useQuery({
-    queryKey: ["news-context-alerts"],
     enabled: !category,
+  });
+  const { data: trending = [] } = useQuery({
+    queryKey: ["news-task70-trending", trendingLimit],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("trending_news", {
+        hours_back: 48,
+        result_limit: trendingLimit,
+      });
+      if (error) throw error;
+      return (data ?? []) as ArticleCard[];
+    },
+    enabled: !category,
+  });
+  const { data: relatedAlerts = [] } = useQuery({
+    queryKey: ["news-task70-alerts"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
@@ -195,11 +198,10 @@ function NewsIndex() {
       if (error) throw error;
       return data;
     },
-  });
-
-  const { data: relatedReports = [] } = useQuery({
-    queryKey: ["news-context-reports"],
     enabled: !category,
+  });
+  const { data: relatedReports = [] } = useQuery({
+    queryKey: ["news-task70-reports"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
@@ -212,12 +214,13 @@ function NewsIndex() {
       if (error) throw error;
       return data;
     },
+    enabled: !category,
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
       <PublicPageHero
-        eyebrow="Newsroom"
+        eyebrow="Share Barabara newsroom"
         title="News & Articles"
         description="Road safety reporting, transport insight and community stories about how Kenyans travel and how we can make every journey safer."
         image={heroRoad}
@@ -227,169 +230,174 @@ function NewsIndex() {
           <WriteButton signedIn={!!user} canWrite={canWrite} />
         </div>
       ) : null}
-
-      <div className="mt-10">
-        {category ? (
-          <>
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-[1.155rem] font-bold">{category}</h2>
-              <Link to="/news" className="text-sm font-semibold text-brand-blue underline">
-                All News & Articles
-              </Link>
+      {category ? (
+        <EditorialBand className="mt-8" tone="plain">
+          <SectionHeader
+            eyebrow="Newsroom category"
+            title={category}
+            to="/news"
+            actionLabel="All articles"
+          />
+          {filteredLoading ? (
+            <p className="mt-6 text-muted-foreground">Loading published articles…</p>
+          ) : null}
+          {!filteredLoading && !filtered.length ? (
+            <EmptyState label="No published articles in this category yet." />
+          ) : (
+            <div className="mt-6">
+              <ArticleGridWithAds articles={filtered} placement="news-category" />
             </div>
-            {filteredLoading ? <p className="mt-6 text-muted-foreground">Loading…</p> : null}
-            {!filteredLoading && filtered.length === 0 ? (
-              <p className="mt-6 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
-                No articles in this category yet.
-              </p>
-            ) : (
-              <div className="mt-6">
-                <ArticleGrid articles={filtered} />
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <EditorialBand tone="plain">
-              <SectionHeader
-                eyebrow="The newsroom"
-                title="Latest News & Articles"
-                description="The newest road-safety reporting and community stories, led by one prominent story and compact secondary reads."
-              />
-              <div className="mt-5">
-                <ArticleGrid articles={latest} placement="news-latest" />
-              </div>
-            </EditorialBand>
-            <div className="mt-6 text-center">
-              <a href="#all-articles" className="text-base font-semibold text-brand-blue underline">
-                Read more
-              </a>
-            </div>
-
+          )}
+        </EditorialBand>
+      ) : (
+        <div className="mt-8 space-y-0">
+          <TopicSection
+            title="Trending Articles"
+            eyebrow="What readers are opening"
+            articles={trending}
+            tone="pale"
+            placement="news-trending"
+          />
+          {trending.length === trendingLimit ? (
+            <LoadMore onClick={() => setTrendingLimit((value) => value + 6)} />
+          ) : null}
+          <TopicSection
+            title="Latest Articles"
+            eyebrow="The newsroom"
+            articles={latest}
+            placement="news-latest"
+          />
+          {featured.length ? (
             <EditorialBand tone="pale">
               <SectionHeader
-                title="Browse by category"
-                description="Find reporting by the topics that shape safer journeys."
+                eyebrow="Editors' selection"
+                title="Featured / Prime Articles"
+                icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
+                to="/news"
+                actionLabel="Read more"
               />
-              <div className="mt-3 flex flex-wrap gap-2">
-                {categories.map((c) => (
-                  <Link
-                    key={c.id}
-                    to="/news"
-                    search={{ category: c.name }}
-                    className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium transition-colors hover:border-accent hover:text-accent-foreground"
-                  >
-                    {c.name}
-                  </Link>
+              <div className="mt-6">
+                <EditorialCardSection articles={featured} />
+              </div>
+              {featured.length === featuredLimit ? (
+                <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
+              ) : null}
+            </EditorialBand>
+          ) : null}
+          <EditorialBand tone="plain">
+            <SectionHeader
+              eyebrow="Browse the newsroom"
+              title="Articles by Category"
+              description="Explore published reporting by the topics that shape safer journeys."
+            />
+            <div className="mt-5 flex flex-wrap gap-2">
+              {categories.map((item) => (
+                <Link
+                  key={item.id}
+                  to="/news"
+                  search={{ category: item.name }}
+                  className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold transition-colors hover:border-accent hover:text-accent-foreground"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </EditorialBand>
+          <TopicSection
+            title="Road Safety Analysis"
+            eyebrow="Evidence and context"
+            articles={analysis}
+            tone="pale"
+            placement="news-analysis"
+          />
+          <EditorialBand tone="plain">
+            <SectionHeader
+              eyebrow="Road context"
+              title="Related Accident Reports"
+              description="Published public reports that help place road-safety coverage in context."
+              to="/reports"
+              actionLabel="View reports"
+            />
+            {relatedReports.length ? (
+              <div className="mt-6 grid gap-5 md:grid-cols-3">
+                {relatedReports.map((report) => (
+                  <ReportPreviewCard key={report.id} report={report} />
                 ))}
               </div>
-            </EditorialBand>
-
-            {featured.length > 0 ? (
-              <EditorialBand tone="plain">
-                <SectionHeader
-                  eyebrow="Editor’s selection"
-                  title="Featured & Prime"
-                  icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
-                />
-                <div className="mt-5">
-                  <ArticleGrid articles={featured} placement="news-featured" />
-                </div>
-                {featured.length === featuredLimit ? (
-                  <div className="mt-6 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setFeaturedLimit((n) => n + 6)}
-                      className="text-base font-semibold text-brand-blue underline"
-                    >
-                      Read more
-                    </button>
-                  </div>
-                ) : null}
-              </EditorialBand>
-            ) : null}
-
-            {trending.length > 0 ? (
-              <EditorialBand tone="pale">
-                <SectionHeader
-                  eyebrow="What readers are opening"
-                  title="Trending articles"
-                  icon={<Flame className="size-5 text-destructive" aria-hidden="true" />}
-                />
-                <div className="mt-5">
-                  <ArticleGrid articles={trending} placement="news-trending" />
-                </div>
-                {trending.length === trendingLimit ? (
-                  <div className="mt-6 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setTrendingLimit((n) => n + 6)}
-                      className="text-base font-semibold text-brand-blue underline"
-                    >
-                      Read more
-                    </button>
-                  </div>
-                ) : null}
-              </EditorialBand>
-            ) : null}
-
-            <EditorialBand tone="plain">
+            ) : (
+              <EmptyState label="No approved public reports are available right now." />
+            )}
+          </EditorialBand>
+          <EditorialBand tone="pale">
+            <SectionHeader
+              eyebrow="Live road context"
+              title="Relevant Alerts"
+              description="Only active alerts are shown here; resolved and expired alerts stay out of the current-news flow."
+              to="/alerts"
+              actionLabel="View alerts"
+            />
+            {relatedAlerts.length ? (
+              <div className="mt-6 grid gap-5 md:grid-cols-3">
+                {relatedAlerts.map((alert) => (
+                  <AlertPreviewCard key={alert.id} alert={alert} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState label="No active public alerts are available right now." />
+            )}
+            <div className="mt-8">
+              <BannerAd placement="news-context-midpoint" />
+            </div>
+          </EditorialBand>
+          <EditorialBand tone="plain" className="scroll-mt-24">
+            <div id="all-articles">
               <SectionHeader
-                eyebrow="Road context"
-                title="Reports and alerts to read alongside the news"
-                description="Current public road-safety signals that help place reporting in context."
+                eyebrow="Keep reading"
+                title="More Articles"
+                to="/news"
+                actionLabel="Browse all"
               />
-              <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                {relatedReports.length > 0 ? (
-                  <div>
-                    <h3 className="mb-3 text-lg font-bold">Latest accident reports</h3>
-                    <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-                      {relatedReports.map((report) => (
-                        <ReportPreviewCard key={report.id} report={report} />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-                {relatedAlerts.length > 0 ? (
-                  <div>
-                    <h3 className="mb-3 text-lg font-bold">Active alerts</h3>
-                    <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-                      {relatedAlerts.map((alert) => (
-                        <AlertPreviewCard key={alert.id} alert={alert} />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
+              {allLoading ? (
+                <p className="mt-6 text-muted-foreground">Loading published stories…</p>
+              ) : null}
+              <div className="mt-6">
+                <ArticleGridWithAds articles={all} placement="news-more" />
               </div>
-              <div className="mt-8">
-                <BannerAd placement="news-context-midpoint" />
-              </div>
-            </EditorialBand>
-
-            <EditorialBand tone="pale" className="scroll-mt-24">
-              <div id="all-articles" className="scroll-mt-24">
-                <SectionHeader title="More articles" to="/news" actionLabel="Browse all" />
-                {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
-                <ArticleCompactList articles={all} />
-              </div>
-              <MjengoPreviews context="articles" />
-            </EditorialBand>
-          </>
-        )}
-      </div>
+            </div>
+          </EditorialBand>
+        </div>
+      )}
     </div>
   );
 }
 
+function EmptyState({ label }: { label: string }) {
+  return (
+    <p className="mt-6 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+      {label}
+    </p>
+  );
+}
+function LoadMore({ onClick }: { onClick: () => void }) {
+  return (
+    <div className="bg-background py-3 text-center">
+      <button
+        type="button"
+        onClick={onClick}
+        className="text-sm font-bold text-brand-blue underline"
+      >
+        Read more
+      </button>
+    </div>
+  );
+}
 function WriteButton({ signedIn, canWrite }: { signedIn: boolean; canWrite: boolean }) {
-  if (!signedIn) {
+  if (!signedIn)
     return (
       <Button asChild variant="outline">
         <Link to="/auth">Sign in to write</Link>
       </Button>
     );
-  }
-
   return (
     <Dialog>
       <DialogTrigger asChild>

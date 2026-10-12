@@ -74,37 +74,37 @@ type RelatedArticle = {
 
 function ArticleList({ articles }: { articles: RelatedArticle[] }) {
   return (
-    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+    <div className="mt-4 space-y-4">
       <AdInterleave
         items={articles}
         placement="article-sidebar"
-        adClassName="col-span-full"
+        adClassName="pt-1"
         renderItem={(a, index) => (
           <Link
             key={a.id}
             to="/news/$slug"
             params={{ slug: a.slug }}
-            className={`group min-w-0 overflow-hidden rounded-md border border-border/70 bg-background/60 transition-colors hover:border-accent ${index === 0 ? "lg:border-accent/60" : ""}`}
+            className="group flex gap-3 border-b border-border/70 pb-4 last:border-0 last:pb-0"
           >
-            {a.image_url ? (
-              <img
-                src={a.image_url}
-                alt=""
-                loading="lazy"
-                className="aspect-video w-full object-cover"
-              />
-            ) : (
-              <div className="flex aspect-video w-full items-center justify-center bg-muted">
-                <Newspaper className="size-6 text-muted-foreground" aria-hidden="true" />
-              </div>
-            )}
-            <span className="block min-w-0 p-3">
-              <span
-                className={`${index === 0 ? "text-base" : "text-sm"} line-clamp-2 font-semibold text-brand-blue group-hover:underline`}
-              >
+            <span className="w-24 shrink-0 overflow-hidden rounded-md bg-muted sm:w-28">
+              {a.image_url ? (
+                <img
+                  src={a.image_url}
+                  alt=""
+                  loading="lazy"
+                  className="aspect-video w-full object-cover"
+                />
+              ) : (
+                <span className="flex aspect-video w-full items-center justify-center">
+                  <Newspaper className="size-5 text-muted-foreground" aria-hidden="true" />
+                </span>
+              )}
+            </span>
+            <span className="min-w-0 py-0.5">
+              <span className="block line-clamp-2 text-sm font-bold leading-snug text-brand-blue group-hover:underline">
                 {a.title}
               </span>
-              <span className="mt-1 block truncate text-[0.68rem] text-muted-foreground">
+              <span className="mt-1 block truncate text-[0.68rem] uppercase tracking-wide text-muted-foreground">
                 {a.category ?? "News"}
                 {a.source ? ` · ${a.source}` : ""}
               </span>
@@ -259,7 +259,7 @@ function NewsDetail() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-      <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,800px)_320px] lg:justify-center">
         <article className="min-w-0">
           <nav
             aria-label="Breadcrumb"
@@ -298,7 +298,11 @@ function NewsDetail() {
               Preview · {article.status.replace("_", " ")}, not visible to the public yet
             </p>
           ) : null}
-          <h1 className="mt-3 text-[1.7325rem] font-extrabold leading-tight">{article.title}</h1>
+          <div className="mt-5 border-y border-border/70 py-5">
+            <h1 className="max-w-4xl text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-[3.25rem]">
+              {article.title}
+            </h1>
+          </div>
           <p className="mt-3 text-sm text-muted-foreground">
             {longDateWithDay(article.published_at)} {article.source ? `· ${article.source}` : ""}
           </p>
@@ -363,7 +367,7 @@ function NewsDetail() {
               sourceText={`${article.summary ?? ""}\n${article.body ?? ""}`}
             />
           ) : null}
-          <div className="mt-6 space-y-4 text-foreground/90">
+          <div className="mt-8 space-y-5 text-[1.05rem] leading-8 text-foreground/90 sm:text-[1.12rem]">
             <AdRichText content={article.body} placement="article-body" />
             {related[0] ? (
               <p className="mx-auto max-w-2xl rounded border-l-4 border-caution bg-caution/10 px-4 py-2 text-center text-sm">
@@ -396,6 +400,46 @@ function NewsDetail() {
               </Link>
             ))}
           </div>
+
+          {related.length > 0 ? (
+            <EditorialBand tone="plain" className="mt-10 rounded-xl border border-border/70">
+              <SectionHeader
+                eyebrow="Keep reading"
+                title="Related articles"
+                to="/news"
+                actionLabel="More articles"
+              />
+              <div className="mt-5 grid gap-5 md:grid-cols-3">
+                {related.slice(0, 3).map((item) => (
+                  <Link
+                    key={item.id}
+                    to="/news/$slug"
+                    params={{ slug: item.slug }}
+                    className="group overflow-hidden rounded-lg border border-border bg-card"
+                  >
+                    <span className="block overflow-hidden bg-muted">
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt=""
+                          className="aspect-video w-full object-cover transition-transform group-hover:scale-[1.02]"
+                        />
+                      ) : (
+                        <span className="flex aspect-video items-center justify-center">
+                          <Newspaper className="size-7 text-muted-foreground" aria-hidden="true" />
+                        </span>
+                      )}
+                    </span>
+                    <span className="block p-3">
+                      <span className="text-sm font-bold leading-snug text-brand-blue group-hover:underline">
+                        {item.title}
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </EditorialBand>
+          ) : null}
 
           {contextualReports.length > 0 || contextualAlerts.length > 0 ? (
             <EditorialBand tone="pale" className="mt-10 rounded-xl">
@@ -487,6 +531,30 @@ function NewsDetail() {
               >
                 Read more
               </Link>
+            </SidebarModule>
+          ) : null}
+          {contextualReports.length > 0 ? (
+            <SidebarModule>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                Related reports
+              </h2>
+              <div className="mt-4 space-y-4">
+                {contextualReports.slice(0, 2).map((report) => (
+                  <ReportPreviewCard key={report.id} report={report} />
+                ))}
+              </div>
+            </SidebarModule>
+          ) : null}
+          {contextualAlerts.length > 0 ? (
+            <SidebarModule>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                Relevant alerts
+              </h2>
+              <div className="mt-4 space-y-4">
+                {contextualAlerts.slice(0, 2).map((alert) => (
+                  <AlertPreviewCard key={alert.id} alert={alert} />
+                ))}
+              </div>
             </SidebarModule>
           ) : null}
         </PublicSidebar>
