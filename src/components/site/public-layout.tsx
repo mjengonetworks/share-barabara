@@ -106,7 +106,6 @@ function ArticleMeta({
       {!compact && article.featured ? (
         <span className="font-semibold text-caution">Featured</span>
       ) : null}
-      {article.published_at ? <span>{longDateWithDay(article.published_at)}</span> : null}
       {!compact && article.source ? <span>· {article.source}</span> : null}
     </div>
   );
@@ -522,9 +521,11 @@ function IncidentRow({
       <div className="min-w-0 py-0.5">
         <div className="flex flex-wrap items-center gap-1.5">
           {item.severity ? <SeverityBadge value={item.severity} /> : null}
-          <span className="text-[11px] text-muted-foreground">
-            {longDateWithDay(item.occurred_at ?? item.created_at ?? "")}
-          </span>
+          {kind === "alert" ? (
+            <span className="text-[11px] text-muted-foreground">
+              {longDateWithDay(item.occurred_at ?? item.created_at ?? "")}
+            </span>
+          ) : null}
         </div>
         <h4 className="mt-1 line-clamp-3 text-[13px] font-bold leading-snug text-foreground group-hover:underline sm:text-sm">
           {item.title}
@@ -578,9 +579,11 @@ export function CompactIncidentColumns({
               <IncidentImage item={lead} lead />
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {lead.severity ? <SeverityBadge value={lead.severity} /> : null}
-                <span className="text-[11px] text-muted-foreground">
-                  {longDateWithDay(lead.occurred_at ?? lead.created_at ?? "")}
-                </span>
+                {kind === "alert" ? (
+                  <span className="text-[11px] text-muted-foreground">
+                    {longDateWithDay(lead.occurred_at ?? lead.created_at ?? "")}
+                  </span>
+                ) : null}
               </div>
               <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-foreground group-hover:underline">
                 {lead.title}
