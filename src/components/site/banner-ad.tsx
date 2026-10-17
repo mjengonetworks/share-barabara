@@ -32,7 +32,7 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
         target="_blank"
         rel="noopener noreferrer sponsored"
         data-ad-placement={placement}
-        className={`flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 transition-colors hover:border-accent ${className}`}
+        className={`flex items-center gap-3 rounded-xl border border-brand-blue/30 bg-brand-navy p-4 text-white transition-colors hover:border-accent ${className}`}
       >
         {ad.image_url ? (
           <img src={ad.image_url} alt={ad.title} className="h-12 w-auto rounded" />
@@ -40,24 +40,24 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
           <Megaphone className="size-6 text-accent" />
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Advertisement{ad.advertiser ? ` · ${ad.advertiser}` : ""}
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/70">
+            Sponsored
           </p>
-          <p className="font-semibold">{ad.title}</p>
+          <p className="font-semibold text-white">{ad.title}</p>
         </div>
-        <span className="shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground">Visit Advertiser</span>
+        <span className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground">Visit Advertiser</span>
       </a>
     );
   }
 
   return (
-    <div data-ad-placement={placement} className={`flex flex-wrap items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4 ${className}`}>
-      <Megaphone className="size-6 text-accent" />
+    <div data-ad-placement={placement} className={`flex flex-wrap items-center gap-3 rounded-xl border border-brand-blue/30 bg-brand-navy p-4 text-white ${className}`}>
+      <Megaphone className="size-6 shrink-0 text-accent" />
       <div className="min-w-0 flex-1">
-        <p className="font-semibold uppercase tracking-wide">YOUR AD HERE</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">Reach road users and the wider built environment community.</p>
+        <p className="font-semibold uppercase tracking-wide text-white">YOUR AD HERE</p>
+        <p className="mt-0.5 text-xs text-white/70">Reach road users and the wider transport community.</p>
       </div>
-      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Partner With Us</Link>
+      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90">Advertise with us</Link>
     </div>
   );
 }

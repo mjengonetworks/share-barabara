@@ -344,9 +344,6 @@ function ContributorPage() {
                       >
                         {r.title}
                       </Link>
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {longDate(r.occurred_at)}
-                      </span>
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {r.county}
@@ -391,9 +388,6 @@ function ContributorPage() {
                       >
                         {a.title}
                       </Link>
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {longDate(a.published_at)}
-                      </span>
                     </div>
                   </li>
                 ))}

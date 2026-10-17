@@ -16,28 +16,36 @@ type Breadcrumb = {
 type PublicPageHeroProps = {
   eyebrow: string;
   title: string;
+  titleAccent?: string;
   description: string;
   image?: string;
   breadcrumbs?: Breadcrumb[];
   primaryCta?: HeroLink;
   secondaryCta?: HeroLink;
   children?: ReactNode;
+  fullBleed?: boolean;
 };
 
 /** Compact editorial hero for public landing pages. The homepage keeps its own flagship hero. */
 export function PublicPageHero({
   eyebrow,
   title,
+  titleAccent,
   description,
   image,
   breadcrumbs,
   primaryCta,
   secondaryCta,
   children,
+  fullBleed = false,
 }: PublicPageHeroProps) {
   return (
     <section
-      className="relative isolate overflow-hidden rounded-2xl border border-border bg-primary text-primary-foreground shadow-sm"
+      className={
+        fullBleed
+          ? "relative isolate overflow-hidden border-y border-border bg-primary text-primary-foreground shadow-sm"
+          : "relative isolate overflow-hidden rounded-2xl border border-border bg-primary text-primary-foreground shadow-sm"
+      }
       aria-labelledby="public-page-hero-title"
     >
       {image ? (
@@ -49,9 +57,12 @@ export function PublicPageHero({
         />
       ) : null}
       <div className="absolute inset-0 -z-10 bg-primary/90" aria-hidden="true" />
-      <div className="absolute inset-y-0 right-0 -z-10 w-1/2 bg-gradient-to-l from-accent/20 to-transparent" aria-hidden="true" />
+      <div
+        className="absolute inset-y-0 right-0 -z-10 w-1/2 bg-gradient-to-l from-accent/20 to-transparent"
+        aria-hidden="true"
+      />
 
-      <div className="relative px-5 py-7 sm:px-8 sm:py-9">
+      <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14 lg:py-16">
         {breadcrumbs?.length ? (
           <nav aria-label="Breadcrumb" className="mb-5 text-xs text-primary-foreground/75">
             <ol className="flex flex-wrap items-center gap-2">
@@ -71,14 +82,19 @@ export function PublicPageHero({
           </nav>
         ) : null}
 
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-          {eyebrow}
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">{eyebrow}</p>
         <h1
           id="public-page-hero-title"
           className="mt-2 max-w-3xl font-display text-3xl font-extrabold leading-tight sm:text-4xl"
         >
-          {title}
+          {titleAccent ? (
+            <>
+              {title.replace(titleAccent, "").trimEnd()}{" "}
+              <span className="text-accent">{titleAccent}</span>
+            </>
+          ) : (
+            title
+          )}
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-primary-foreground/80 sm:text-base">
           {description}
@@ -94,7 +110,11 @@ export function PublicPageHero({
               </Button>
             ) : null}
             {secondaryCta ? (
-              <Button asChild variant="outline" className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
+              <Button
+                asChild
+                variant="outline"
+                className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+              >
                 <Link to={secondaryCta.to}>{secondaryCta.label}</Link>
               </Button>
             ) : null}

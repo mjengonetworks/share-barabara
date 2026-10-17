@@ -19,7 +19,6 @@ import { useRoadsByIds } from "@/hooks/useRoadsByIds";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { VoteButtons } from "@/components/site/vote-buttons";
-import { longDate, timeAgo } from "@/lib/format";
 import { KENYA_COUNTIES } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
@@ -31,14 +30,28 @@ import { displayReportCount } from "@/lib/report-metrics";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
 import { descendantsOf, incidentLabel } from "@/lib/incident-taxonomy";
+import { isAdInterval } from "@/lib/ad-placement";
+import {
+  CompactIncidentColumns,
+  EditorialBand,
+  SectionHeader,
+  type PublicIncidentCard,
+} from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/reports/")({
-  validateSearch: (search: Record<string, unknown>): { county?: string; severity?: string; incident?: string } => {
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { county?: string; severity?: string; incident?: string } => {
     const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
     const severity =
       typeof search["severity"] === "string" ? (search["severity"] as string) : undefined;
-    const incident = typeof search["incident"] === "string" ? (search["incident"] as string) : undefined;
-    return { ...(county ? { county } : {}), ...(severity ? { severity } : {}), ...(incident ? { incident } : {}) };
+    const incident =
+      typeof search["incident"] === "string" ? (search["incident"] as string) : undefined;
+    return {
+      ...(county ? { county } : {}),
+      ...(severity ? { severity } : {}),
+      ...(incident ? { incident } : {}),
+    };
   },
   head: () => ({
     meta: [
@@ -57,33 +70,6 @@ export const Route = createFileRoute("/reports/")({
   }),
   component: ReportsPage,
 });
-
-type ReportCard = {
-  id: string;
-  title: string;
-  severity: string;
-  county: string;
-  occurred_at: string;
-};
-
-function ReportMiniCard({ report }: { report: ReportCard }) {
-  return (
-    <Link
-      to="/reports/$reportId"
-      params={{ reportId: report.id }}
-      className="block rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <SeverityBadge value={report.severity} />
-        <span className="ml-auto text-xs text-muted-foreground">{timeAgo(report.occurred_at)}</span>
-      </div>
-      <p className="mt-2 font-semibold text-brand-blue hover:underline">{report.title}</p>
-      <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-        <MapPin className="size-3" /> {report.county}
-      </p>
-    </Link>
-  );
-}
 
 function ReportsPage() {
   const { user } = useAuth();
@@ -124,14 +110,16 @@ function ReportsPage() {
     return (
       (county === "all" || r.county === county) &&
       (severity === "all" || r.severity === severity) &&
-      (!incidentValues || incidentValues.has((r as { incident_type?: string | null }).incident_type ?? "")) &&
+      (!incidentValues ||
+        incidentValues.has((r as { incident_type?: string | null }).incident_type ?? "")) &&
       (!q ||
         r.title.toLowerCase().includes(q) ||
         r.description.toLowerCase().includes(q) ||
         (r.road ?? "").toLowerCase().includes(q))
     );
   });
-  const latest = reports.slice(0, 3);
+  const latest = reports.slice(0, 12);
+  const featured = reports.filter((r) => /critical|high/i.test(r.severity ?? "")).slice(0, 12);
 
   const { data: trending = [] } = useQuery({
     queryKey: ["reports-trending"],
@@ -145,8 +133,25 @@ function ReportsPage() {
     },
   });
 
+  const reportActions = (item: PublicIncidentCard) => (
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      <VoteButtons
+        net={scores[item.id]?.net ?? 0}
+        mine={scores[item.id]?.mine ?? 0}
+        onVote={(value) => vote(item.id, value)}
+      />
+      <Link
+        to="/reports/$reportId"
+        params={{ reportId: item.id }}
+        className="font-semibold text-brand-blue hover:underline"
+      >
+        Read more
+      </Link>
+    </div>
+  );
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+    <div className="w-full py-8 sm:py-10">
       <PublicPageHero
         eyebrow="Community reporting"
         title="Crash and incident reports"
@@ -154,230 +159,181 @@ function ReportsPage() {
         primaryCta={{ label: "Submit a report", to: "/reports#report-form" }}
       />
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
-        <div>
-          {latest.length > 0 ? (
-            <div>
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-[1.155rem] font-bold">Latest reports</h2>
-                <a href="#all-reports" className="text-sm font-semibold text-brand-blue underline">
-                  See all
-                </a>
-              </div>
-              <ul className="mt-5 grid gap-4 sm:grid-cols-3">
-                {latest.map((r) => (
-                  <li key={r.id}>
-                    <ReportMiniCard report={r} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+      <div className="mx-auto mt-8 max-w-[1500px] px-4 sm:px-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)]">
+          <div className="min-w-0">
+            {featured.length > 0 ? (
+              <EditorialBand tone="pale">
+                <SectionHeader
+                  eyebrow="Verified high-severity incidents"
+                  title="Featured Accident Reports"
+                  to="/reports"
+                  actionLabel="View all"
+                />
+                <div className="mt-5">
+                  <CompactIncidentColumns
+                    items={featured as PublicIncidentCard[]}
+                    kind="report"
+                    titles={["Priority incidents", "Verified reports", "Road context"]}
+                    placement="reports-featured"
+                    renderActions={reportActions}
+                  />
+                </div>
+              </EditorialBand>
+            ) : null}
 
-          {trending.length > 0 ? (
-            <div className="mt-12">
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">
-                  <Flame className="size-6 text-destructive" /> Trending reports
-                </h2>
-                <a href="#all-reports" className="text-sm font-semibold text-brand-blue underline">
-                  Read more
-                </a>
-              </div>
-              <ul className="mt-5 grid gap-4 sm:grid-cols-3">
-                {trending.map((r) => (
-                  <li key={r.id}>
-                    <ReportMiniCard report={r} />
-                  </li>
-                ))}
-              </ul>
+            {latest.length > 0 ? (
+              <EditorialBand tone="plain">
+                <SectionHeader
+                  eyebrow="Newest approved incidents"
+                  title="Latest Accident Reports"
+                  to="/reports"
+                  actionLabel="View all"
+                />
+                <div className="mt-5">
+                  <CompactIncidentColumns
+                    items={latest as PublicIncidentCard[]}
+                    kind="report"
+                    titles={["Latest reports", "On the road", "Community watch"]}
+                    placement="reports-latest"
+                    renderActions={reportActions}
+                  />
+                </div>
+              </EditorialBand>
+            ) : null}
+            <div className="mt-6">
+              <BannerAd placement="reports-list-interval-1" />
             </div>
-          ) : null}
+            {trending.length > 0 ? (
+              <EditorialBand tone="pale">
+                <SectionHeader
+                  eyebrow="Verified activity"
+                  title="Trending Reports"
+                  icon={<Flame className="size-5 text-destructive" />}
+                />
+                <div className="mt-5">
+                  <CompactIncidentColumns
+                    items={trending as PublicIncidentCard[]}
+                    kind="report"
+                    titles={["Most opened", "Trending now", "More viewed"]}
+                    placement="reports-trending"
+                  />
+                </div>
+              </EditorialBand>
+            ) : null}
 
-          <div className="mt-12">
-            <h2 className="text-lg font-bold text-muted-foreground">Browse by severity</h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                onClick={() => setSeverity("all")}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                  severity === "all"
-                    ? "border-accent bg-accent/15 text-accent-foreground"
-                    : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                }`}
-              >
-                All severities
-              </button>
-              {severities.map((s) => (
+            <EditorialBand tone="plain" className="mt-8">
+              <h2 className="text-lg font-bold text-muted-foreground">Browse by severity</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
                 <button
-                  key={s.value}
-                  onClick={() => setSeverity(s.value)}
+                  onClick={() => setSeverity("all")}
                   className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                    severity === s.value
+                    severity === "all"
                       ? "border-accent bg-accent/15 text-accent-foreground"
                       : "border-border bg-card hover:border-accent hover:text-accent-foreground"
                   }`}
                 >
-                  {s.label}
+                  All severities
                 </button>
-              ))}
-            </div>
-          </div>
-
-          <div id="all-reports" className="mt-12 scroll-mt-24">
-            <h2 className="text-[1.155rem] font-bold">All reports</h2>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Select value={county} onValueChange={setCounty}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="max-h-64">
-                <SelectItem value="all">All counties</SelectItem>
-                {KENYA_COUNTIES.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
+                {severities.map((s) => (
+                  <button
+                    key={s.value}
+                    onClick={() => setSeverity(s.value)}
+                    className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                      severity === s.value
+                        ? "border-accent bg-accent/15 text-accent-foreground"
+                        : "border-border bg-card hover:border-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
                 ))}
-              </SelectContent>
-            </Select>
-            <Select value={incident} onValueChange={setIncident}>
-              <SelectTrigger className="w-56"><SelectValue placeholder="Incident type" /></SelectTrigger>
-              <SelectContent className="max-h-64">
-                <SelectItem value="all">All incident types</SelectItem>
-                {incidentTypes.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.parent_value ? `${incidentLabel(incidentTypes, item.parent_value)} · ` : ""}{item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search title, road or description…"
-              className="w-64"
-            />
-          </div>
+              </div>
+            </EditorialBand>
 
-          {isLoading ? <p className="mt-8 text-muted-foreground">Loading reports…</p> : null}
-          {!isLoading && visible.length === 0 ? (
-            <p className="mt-8 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
-              No published reports for this filter yet.
-            </p>
-          ) : null}
-
-          <ul className="mt-6 space-y-6">
-            {visible.map((r, i) => (
-              <Fragment key={r.id}>
-                {i === 2 ? (
-                  <li key="ad">
-                    <BannerAd />
-                  </li>
-                ) : null}
-                <li className="rounded-lg border border-border bg-card p-5 card-elevated">
-                  {r.image_url ? (
-                    <img
-                      src={r.image_url}
-                      alt={r.title}
-                      className="-mx-5 -mt-5 mb-4 aspect-video w-[calc(100%+2.5rem)] rounded-t-lg object-cover"
-                    />
-                  ) : null}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <SeverityBadge value={r.severity} />
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {longDate(r.occurred_at)}
-                    </span>
-                  </div>
-                  <Link to="/reports/$reportId" params={{ reportId: r.id }} className="group">
-                    <h2 className="mt-3 text-lg font-bold text-brand-blue group-hover:underline">
-                      {r.title}
-                    </h2>
-                  </Link>
-                  <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="size-4" /> {r.county}
-                    {r.road ? (
-                      <>
-                        {" · "}
-                        {(() => {
-                          const linked = roadMap[r.road_id ?? ""];
-                          return linked ? (
-                            <Link
-                              to="/roads/$slug"
-                              params={{ slug: linked.slug }}
-                              className="underline"
-                            >
-                              {r.road}
-                            </Link>
-                          ) : (
-                            r.road
-                          );
-                        })()}
-                      </>
-                    ) : null}
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Reported by{" "}
-                    <UserLink
-                      userId={r.user_id}
-                      name={names[r.user_id]}
-                      anonymous={r.is_anonymous}
-                      verified={r.page_id ? !!pages[r.page_id]?.verified : !!verified[r.user_id]}
-                      pageSlug={r.page_id ? pages[r.page_id]?.slug : undefined}
-                      pageName={r.page_id ? pages[r.page_id]?.name : undefined}
-                    />
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                    <span>
-                      <strong>{displayReportCount(r.vehicles_involved)}</strong> vehicles
-                    </span>
-                    <span>
-                      <strong>{displayReportCount(r.casualties)}</strong> injured
-                    </span>
-                    <span className="text-destructive">
-                      <strong>{displayReportCount(r.fatalities)}</strong> deaths
-                    </span>
-                  </div>
-                  <p className="mt-3 line-clamp-2 text-sm text-foreground/90">{r.description}</p>
-                  <div className="mt-3 flex items-center gap-4">
-                    <VoteButtons
-                      net={scores[r.id]?.net ?? 0}
-                      mine={scores[r.id]?.mine ?? 0}
-                      onVote={(v) => vote(r.id, v)}
-                    />
-                    <Link
-                      to="/reports/$reportId"
-                      params={{ reportId: r.id }}
-                      className="text-sm font-semibold text-brand-blue underline"
-                    >
-                      Read more
-                    </Link>
-                  </div>
-                </li>
-              </Fragment>
-            ))}
-          </ul>
-        </div>
-
-        <aside
-          id="report-form"
-          className="h-fit scroll-mt-24 rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24"
-        >
-          <h2 className="text-lg font-bold">File a report</h2>
-          {user ? (
-            <div className="mt-4">
-              <ReportForm />
+            <div id="all-reports" className="mt-8 scroll-mt-24">
+              <SectionHeader
+                eyebrow="Approved public records"
+                title="Reports by County, Road and Incident Type"
+              />
             </div>
-          ) : (
-            <>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Sign in to file an accident report. Call 999 or 112 first if anyone is injured.
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Select value={county} onValueChange={setCounty}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  <SelectItem value="all">All counties</SelectItem>
+                  {KENYA_COUNTIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={incident} onValueChange={setIncident}>
+                <SelectTrigger className="w-56">
+                  <SelectValue placeholder="Incident type" />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  <SelectItem value="all">All incident types</SelectItem>
+                  {incidentTypes.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.parent_value
+                        ? `${incidentLabel(incidentTypes, item.parent_value)} · `
+                        : ""}
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search title, road or description…"
+                className="w-64"
+              />
+            </div>
+
+            {isLoading ? <p className="mt-8 text-muted-foreground">Loading reports…</p> : null}
+            {!isLoading && visible.length === 0 ? (
+              <p className="mt-8 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
+                No published reports for this filter yet.
               </p>
-              <Button asChild className="mt-4 w-full">
-                <Link to="/auth">Sign in to report</Link>
-              </Button>
-            </>
-          )}
-        </aside>
+            ) : null}
+
+            <div className="mt-6">
+              <CompactIncidentColumns
+                items={visible as PublicIncidentCard[]}
+                kind="report"
+                titles={["Filtered reports", "County watch", "Road watch"]}
+                placement="reports-filtered"
+                renderActions={reportActions}
+              />
+            </div>
+          </div>
+
+          <aside
+            id="report-form"
+            className="h-fit scroll-mt-24 rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24"
+          >
+            <h2 className="text-lg font-bold">File a report</h2>
+            {user ? (
+              <div className="mt-4">
+                <ReportForm />
+              </div>
+            ) : (
+              <>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Sign in to file an accident report. Call 999 or 112 first if anyone is injured.
+                </p>
+                <Button asChild className="mt-4 w-full">
+                  <Link to="/auth">Sign in to report</Link>
+                </Button>
+              </>
+            )}
+          </aside>
+        </div>
       </div>
       <MjengoPreviews context="reports" />
     </div>

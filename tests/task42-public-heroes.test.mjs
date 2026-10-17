@@ -35,7 +35,7 @@ test("landing pages share one compact, responsive, accessible hero primitive", (
   assert.match(hero, /export function PublicPageHero/);
   assert.match(hero, /<h1/);
   assert.match(hero, /aria-labelledby/);
-  assert.match(hero, /sm:py-9/);
+  assert.match(hero, /sm:py-14/);
   assert.match(hero, /sm:text-4xl/);
   for (const source of routes) assert.match(source, /PublicPageHero/);
 });
@@ -46,11 +46,23 @@ test("hero copy is page-specific and avoids unsupported claims", () => {
   assert.match(read("src/routes/campaigns.tsx"), /Explore Share Barabara campaigns/);
   assert.match(read("src/routes/videos.tsx"), /Watch road-safety and transport stories/);
   assert.match(read("src/routes/merch.tsx"), /Wear and share the message/);
-  assert.match(read("src/routes/partner-with-us.tsx"), /partnership, campaign and advertising opportunities/);
-  assert.match(read("src/routes/contributors.tsx"), /Payment, roles and verification do not determine rank/);
-  assert.match(read("src/routes/statistics.tsx"), /separate picture of what Share Barabara users have reported/);
+  assert.match(
+    read("src/routes/partner-with-us.tsx"),
+    /partnership, campaign and advertising opportunities/,
+  );
+  assert.match(
+    read("src/routes/contributors.tsx"),
+    /Payment, roles and verification do not determine rank/,
+  );
+  assert.match(
+    read("src/routes/statistics.tsx"),
+    /separate picture of what Share Barabara users have reported/,
+  );
   assert.doesNotMatch(read("src/routes/statistics.tsx"), /13 deaths every day/i);
-  assert.doesNotMatch(read("src/routes/alerts.index.tsx"), /verified incidents|real-time coverage guarantee/i);
+  assert.doesNotMatch(
+    read("src/routes/alerts.index.tsx"),
+    /verified incidents|real-time coverage guarantee/i,
+  );
 });
 
 test("hero imagery stays local and does not add an external provider dependency", () => {

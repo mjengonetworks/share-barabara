@@ -226,3 +226,9 @@ cleanup removes the duplicate Videos item while preserving /videos, footer and s
 deployment version, live AI behavior, project-publishing ownership/schema, and database migration readiness
 remain unverified or owner-approved work as explicitly documented in the Task 60 reports. No SQL, deployment,
 secret change or subscription work was performed.
+
+Task 70 — Public Page Layout System is TESTING. The approved Task 70 public editorial layout, shared detail
+architecture, advertising surfaces, Alerts and Accident Reports listing redesign, and global editorial-card date
+removal are deployed to production. Continuing owner visual refinement remains open; do not mark this task
+COMPLETED or begin later batches without approval. No database migration or hosted data change is part of this
+release.

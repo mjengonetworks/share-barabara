@@ -11,19 +11,19 @@ test("public date formatting is explicitly Africa/Nairobi based", async () => {
 });
 
 test("public compatibility and privacy contracts remain intact", async () => {
-  const [media, header, root, feed, reports] = await Promise.all([
+  const [media, header, root, feed, layout] = await Promise.all([
     read("src/routes/media.tsx"),
     read("src/components/site/site-header.tsx"),
     read("src/routes/__root.tsx"),
     read("src/routes/feed.tsx"),
-    read("src/routes/reports.index.tsx"),
+    read("src/components/site/public-layout.tsx"),
   ]);
   assert.match(media, /redirect\(\{ to: "\/feed" \}\)/);
   assert.match(header, /label: "Media & Feed"/);
   assert.doesNotMatch(header, /label: "Contributors"/);
   assert.match(root, /isAdminApp/);
   assert.match(feed, /published|public/i);
-  assert.match(reports, /displayReportCount\(r\.fatalities\)/);
+  assert.match(layout, /displayReportCount\(lead\.fatalities\)/);
 });
 
 test("invalid published article slugs use the router not-found path", async () => {

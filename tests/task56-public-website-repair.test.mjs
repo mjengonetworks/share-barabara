@@ -15,6 +15,7 @@ const article = read("src/routes/news.$slug.tsx");
 const publicAI = read("src/lib/ai/public.functions.ts");
 const newsletter = read("src/components/site/newsletter-form.tsx");
 const newsIndex = read("src/routes/news.index.tsx");
+const publicLayout = read("src/components/site/public-layout.tsx");
 const headerSource = read("src/components/site/site-header.tsx");
 const updatesMigration = read("supabase/migrations/20261005100000_editorial_updates_review.sql");
 const updatesComponent = read("src/components/site/editorial-updates.tsx");
@@ -22,16 +23,23 @@ const updatesManager = read("src/components/site/editorial-updates-manager.tsx")
 const newsletterServer = read("src/lib/newsletter.functions.ts");
 const newsletterAdmin = read("src/routes/_authenticated/admin/newsletter.tsx");
 const feedSource = read("src/routes/feed.tsx");
-const duplicateMigration = read("supabase/migrations/20261005120000_accident_duplicate_merge_review.sql");
+const duplicateMigration = read(
+  "supabase/migrations/20261005120000_accident_duplicate_merge_review.sql",
+);
 const reportsAdmin = read("src/routes/_authenticated/admin/reports.tsx");
 const statisticsSource = read("src/routes/statistics.tsx");
 const discoveryFunction = read("src/lib/incident-discovery.functions.ts");
 const discoveryPanel = read("src/components/site/incident-discovery-panel.tsx");
-const discoveryMigration = read("supabase/migrations/20261005130000_incident_discovery_candidates_review.sql");
+const discoveryMigration = read(
+  "supabase/migrations/20261005130000_incident_discovery_candidates_review.sql",
+);
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
   assert.match(header, /to: "\/news", label: "News & Articles"/);
-  assert.match(header, /to: "\/statistics", label: "Statistics"[\s\S]*to: "\/feed", label: "Media & Feed"[\s\S]*to: "\/campaigns", label: "Campaigns"/);
+  assert.match(
+    header,
+    /to: "\/statistics", label: "Statistics"[\s\S]*to: "\/feed", label: "Media & Feed"[\s\S]*to: "\/campaigns", label: "Campaigns"/,
+  );
   assert.doesNotMatch(header, /to: "\/contributors", label: "Contributors"/);
 });
 
@@ -80,7 +88,8 @@ test("Google preferred-source control is compact rather than circular", () => {
 });
 
 test("public article surfaces have a lead story, newsletter capture, and honest subscription states", () => {
-  assert.match(newsIndex, /index === 0 \? "md:col-span-2"/);
+  assert.match(newsIndex, /CompactEditorialColumns/);
+  assert.match(newsIndex, /Featured \/ Prime Articles/);
   assert.match(article, /NewsletterForm/);
   assert.match(newsletter, /already subscribed/);
   assert.match(newsletter, /valid email address/);
@@ -95,7 +104,10 @@ test("mobile navigation has an accessible compact disclosure and full-width acco
 });
 
 test("Alerts and Reports share a published-only editorial updates chronology", () => {
-  assert.match(updatesMigration, /parent_type text not null check \(parent_type in \('alert', 'report'\)\)/);
+  assert.match(
+    updatesMigration,
+    /parent_type text not null check \(parent_type in \('alert', 'report'\)\)/,
+  );
   assert.match(updatesMigration, /status text not null default 'draft'/);
   assert.match(updatesMigration, /status = 'published'/);
   assert.match(updatesMigration, /set search_path = public/);
@@ -119,7 +131,10 @@ test("newsletter delivery is server-side, role-gated, batched, and secret-safe",
   assert.match(newsletterServer, /RESEND_FROM_EMAIL/);
   assert.match(newsletterServer, /roleRank\.editor/);
   assert.match(newsletterServer, /api\.resend\.com\/emails\/batch/);
-  assert.match(newsletterServer, /for \(let offset = 0; offset < recipients\.length; offset \+= 100\)/);
+  assert.match(
+    newsletterServer,
+    /for \(let offset = 0; offset < recipients\.length; offset \+= 100\)/,
+  );
   assert.match(newsletterServer, /escapeHtml/);
   assert.match(newsletterAdmin, /sendNewsletter/);
   assert.doesNotMatch(newsletterAdmin, /process\.env|serverEnv\(/);
@@ -161,7 +176,9 @@ test("external incident discovery creates bounded admin drafts and never auto-pu
 
 test("discovery drafts can be linked to an approved canonical incident", () => {
   const panel = read("src/components/site/incident-discovery-panel.tsx");
-  const migration = read("supabase/migrations/20261005130000_incident_discovery_candidates_review.sql");
+  const migration = read(
+    "supabase/migrations/20261005130000_incident_discovery_candidates_review.sql",
+  );
   assert.match(panel, /Choose approved canonical incident/);
   assert.match(panel, /duplicate_of_report_id/);
   assert.match(panel, /Link to canonical/);
@@ -207,7 +224,9 @@ test("Media & Feed surfaces existing featured videos without creating fake embed
 
 test("subscription UI reads lifecycle state and requests cancellation safely", () => {
   const route = read("src/routes/subscribe.tsx");
-  const migration = read("supabase/migrations/20260929130000_subscription_payments_schema_review.sql");
+  const migration = read(
+    "supabase/migrations/20260929130000_subscription_payments_schema_review.sql",
+  );
   assert.match(route, /subscription_accounts/);
   assert.match(route, /request_subscription_cancellation/);
   assert.match(route, /cancel_at_period_end/);
