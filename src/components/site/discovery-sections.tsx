@@ -178,15 +178,15 @@ export function TaxonomyDiscovery({ kind }: { kind: "alerts" | "reports" }) {
 
 export function SisterPlatformPreviews() {
   return (
-    <section className="grid gap-4 sm:grid-cols-2" aria-label="Share Barabara ecosystem platforms">
+    <section className="grid gap-2" aria-label="Share Barabara ecosystem platforms">
       <ExternalPreview
         name="Mjengo Hub"
-        description="A construction and infrastructure information platform covering news, projects and developments in Kenya and beyond."
+        description="Construction, infrastructure and development news from Kenya and beyond."
         href="https://mjengohub.co.ke"
       />
       <ExternalPreview
         name="Mjengo Networks"
-        description="A professional and business networking platform connecting people, organisations and opportunities across the built environment."
+        description="Professional connections and opportunities across the built environment."
         href="https://mjengonetworks.co.ke"
       />
     </section>
@@ -207,23 +207,23 @@ function ExternalPreview({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group rounded-2xl border border-blue-200/25 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy p-5 text-white shadow-lg shadow-brand-navy/25 backdrop-blur transition-colors hover:from-brand-blue hover:to-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="group rounded-xl border border-blue-200/25 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy p-3 text-white shadow-md shadow-brand-navy/20 backdrop-blur transition-colors hover:from-brand-blue hover:to-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <div className="flex items-center gap-3">
         <span
-          className="flex size-10 items-center justify-center rounded-md border border-accent/40 bg-white/10 text-accent"
+          className="flex size-8 shrink-0 items-center justify-center rounded-md border border-accent/40 bg-white/10 text-accent"
           aria-hidden="true"
         >
           <Building2 className="size-5" />
         </span>
         <div className="min-w-0">
-          <p className="font-bold">{name}</p>
+          <p className="text-sm font-bold">{name}</p>
           <p className="text-xs text-blue-100/80">Across our ecosystem</p>
         </div>
         <ExternalLink className="ml-auto size-4 shrink-0" aria-hidden="true" />
       </div>
-      <p className="mt-3 text-sm text-blue-100/85">{description}</p>
-      <span className="mt-4 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-brand-navy/50 px-3 py-2 text-sm font-semibold text-accent underline-offset-2 group-hover:underline">
+      <p className="mt-2 text-xs leading-5 text-blue-100/85">{description}</p>
+      <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent underline-offset-2 group-hover:underline">
         Visit {name} <ArrowRight className="size-3.5" />
       </span>
     </a>

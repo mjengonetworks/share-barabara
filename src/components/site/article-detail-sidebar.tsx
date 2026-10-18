@@ -1,5 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Flame, Newspaper } from "lucide-react";
+import {
+  BarChart3,
+  Construction,
+  Flame,
+  Megaphone,
+  Newspaper,
+  Radio,
+  TriangleAlert,
+} from "lucide-react";
 import { BannerAd } from "@/components/site/banner-ad";
 import {
   PublicNewsletterCard,
@@ -11,6 +19,7 @@ import {
   ReportPreviewCard,
   SisterPlatformPreviews,
 } from "@/components/site/discovery-sections";
+import { publicCategoryBadgeClass } from "@/components/site/public-ui";
 
 export type ArticleSidebarArticle = {
   id: string;
@@ -80,6 +89,44 @@ export function ArticleSidebar({
   contextualAlerts,
 }: ArticleSidebarProps) {
   const hasRoadContext = contextualReports.length > 0 || contextualAlerts.length > 0;
+  const sectionPreviews = [
+    {
+      label: "Alerts",
+      description: "Active road hazards and public safety updates.",
+      to: "/alerts",
+      icon: TriangleAlert,
+    },
+    {
+      label: "Accident Reports",
+      description: "Approved community reports from roads across Kenya.",
+      to: "/reports",
+      icon: Radio,
+    },
+    {
+      label: "Statistics",
+      description: "Explore published road safety trends and summaries.",
+      to: "/statistics",
+      icon: BarChart3,
+    },
+    {
+      label: "Campaigns",
+      description: "Community campaigns supporting safer roads and travel.",
+      to: "/campaigns",
+      icon: Megaphone,
+    },
+    {
+      label: "Media & Feed",
+      description: "Videos, community posts and timely road conversations.",
+      to: "/feed",
+      icon: Newspaper,
+    },
+    {
+      label: "Infrastructure Issues",
+      description: "Track public road and infrastructure concerns.",
+      to: "/infrastructure-issues",
+      icon: Construction,
+    },
+  ] as const;
 
   return (
     <PublicSidebar>
@@ -126,7 +173,7 @@ export function ArticleSidebar({
                 key={category}
                 to="/news"
                 search={{ category }}
-                className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={publicCategoryBadgeClass}
               >
                 {category}
               </Link>
@@ -184,6 +231,31 @@ export function ArticleSidebar({
           </div>
         </PublicSidebarSection>
       ) : null}
+
+      <PublicSidebarSection>
+        <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+          Explore Share Barabara
+        </h2>
+        <div className="mt-3 divide-y divide-border/70">
+          {sectionPreviews.map(({ label, description, to, icon: Icon }) => (
+            <Link
+              key={label}
+              to={to}
+              className="group flex items-start gap-3 py-2.5 first:pt-0 last:pb-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Icon className="mt-0.5 size-4 shrink-0 text-brand-blue" aria-hidden="true" />
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold group-hover:text-brand-blue group-hover:underline">
+                  {label}
+                </span>
+                <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                  {description}
+                </span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </PublicSidebarSection>
 
       <PublicSidebarSection>
         <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">

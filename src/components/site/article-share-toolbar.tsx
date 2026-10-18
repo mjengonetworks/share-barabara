@@ -165,7 +165,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
 
   return (
     <div
-      className="grid max-w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap"
+      className="grid max-w-full grid-cols-2 gap-1.5 sm:flex sm:flex-nowrap sm:gap-2"
       aria-label="Public sharing actions"
     >
       <div className="relative" ref={menuRef}>
@@ -174,7 +174,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="inline-flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-md border border-brand-blue bg-brand-blue px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex h-9 min-w-0 items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-card px-2 text-xs font-semibold text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2.5 sm:text-sm"
         >
           <Share2 className="size-4" aria-hidden="true" />
           Share
@@ -207,7 +207,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
       <button
         type="button"
         onClick={copyLink}
-        className="inline-flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex h-9 min-w-0 items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-card px-2 text-xs font-semibold text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2.5 sm:text-sm"
       >
         {copied ? (
           <Check className="size-4 text-safe" aria-hidden="true" />
@@ -220,19 +220,21 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
         href={settings?.google_source_url?.trim() || GOOGLE_SOURCE_FALLBACK_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
+        aria-label={settings?.google_source_label?.trim() || "Add as a preferred source on Google"}
+        className="inline-flex min-w-0 max-w-full items-center justify-center gap-1 rounded-md border border-border bg-card px-2 py-1.5 text-[0.68rem] font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2.5 sm:text-xs"
       >
         <GoogleLogo className="size-4 shrink-0" />
-        <span>{settings?.google_source_label?.trim() || "Add as preferred source on Google"}</span>
+        <span aria-hidden="true">Preferred source</span>
       </a>
       <a
         href={GOOGLE_NEWS_SEARCH_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
+        aria-label="Follow on Google News"
+        className="inline-flex min-w-0 max-w-full items-center justify-center gap-1 rounded-md border border-border bg-card px-2 py-1.5 text-[0.68rem] font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2.5 sm:text-xs"
       >
         <GoogleNewsLogo className="size-4 shrink-0" />
-        <span>Follow on Google News</span>
+        <span aria-hidden="true">Google News</span>
       </a>
     </div>
   );
