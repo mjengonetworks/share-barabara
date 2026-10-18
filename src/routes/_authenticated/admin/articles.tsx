@@ -43,6 +43,7 @@ import { dateTime } from "@/lib/format";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -162,16 +163,13 @@ function ArticlesQueuePage() {
 
   return (
     <div className="max-w-4xl">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Moderation queue
-      </p>
-      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Articles</h1>
-      <p className="mt-2 text-muted-foreground">
-        Review submissions from contributors. Publishing or rejecting needs moderator rank or above.
-      </p>
-      <Button asChild className="mt-4">
-        <Link to="/news"><Plus className="mr-1.5 size-4" /> Add new article</Link>
-      </Button>
+      <AdminPageHeader
+        eyebrow="Content & moderation"
+        title="Articles"
+        description="Review submissions from contributors. Publishing or rejecting needs moderator rank or above."
+        websiteHref="/news"
+        actions={<Button asChild size="sm"><Link to="/admin/my-articles"><Plus className="mr-1.5 size-4" /> Add new article</Link></Button>}
+      />
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>
