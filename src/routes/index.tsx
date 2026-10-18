@@ -22,6 +22,7 @@ import { SearchBar } from "@/components/site/search-bar";
 import { QuoteOfTheDay } from "@/components/site/quote-of-the-day";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
 import { useFeaturedPagesList } from "@/hooks/useFeatured";
+import { PublicNewsletterCard } from "@/components/site/public-ui";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import {
   AlertPreviewCard,
@@ -135,10 +136,20 @@ function Index() {
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
         <div className="relative mx-auto max-w-6xl px-4 py-10 sm:py-6">
           <div className="flex flex-wrap gap-2">
-            <a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer" className="rounded-md border border-primary-foreground/25 bg-primary/75 px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary">
+            <a
+              href="https://mjengohub.co.ke"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border border-primary-foreground/25 bg-primary/75 px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary"
+            >
               Mjengo Hub
             </a>
-            <a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer" className="rounded-md border border-primary-foreground/25 bg-primary/75 px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary">
+            <a
+              href="https://mjengonetworks.co.ke"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border border-primary-foreground/25 bg-primary/75 px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary"
+            >
               Mjengo Networks
             </a>
           </div>
@@ -195,7 +206,9 @@ function Index() {
           </p>
         ) : (
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {alerts.map((a) => <AlertPreviewCard key={a.id} alert={a} />)}
+            {alerts.map((a) => (
+              <AlertPreviewCard key={a.id} alert={a} />
+            ))}
           </div>
         )}
       </section>
@@ -221,7 +234,9 @@ function Index() {
             </div>
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {news.map((n) => <ArticlePreviewCard key={n.id} article={n} />)}
+            {news.map((n) => (
+              <ArticlePreviewCard key={n.id} article={n} />
+            ))}
           </div>
         </div>
       </section>
@@ -253,7 +268,9 @@ function Index() {
           </p>
         ) : (
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {reports.map((r) => <ReportPreviewCard key={r.id} report={r} />)}
+            {reports.map((r) => (
+              <ReportPreviewCard key={r.id} report={r} />
+            ))}
           </div>
         )}
       </section>
@@ -381,19 +398,17 @@ function Index() {
         </div>
       </section>
 
-      <section className="bg-accent/15">
-        <div className="mx-auto max-w-6xl px-4 py-10">
-          <div className="flex flex-wrap items-center justify-between gap-6 rounded-lg border border-accent/30 bg-background p-6 card-elevated">
-            <div>
-              <p className="flex items-center gap-2 font-bold">
-                <Mail className="size-5 text-accent" /> Get the Share Barabara newsletter
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Hazard trends, new campaigns and top stories, straight to your inbox.
-              </p>
+      <section className="py-10">
+        <div className="mx-auto max-w-6xl px-4">
+          <PublicNewsletterCard
+            title="Get the Share Barabara newsletter"
+            description="Hazard trends, new campaigns and top stories, straight to your inbox."
+            className="flex flex-wrap items-center justify-between gap-6"
+          >
+            <div className="w-full sm:w-auto sm:min-w-[20rem]">
+              <NewsletterForm variant="gold" />
             </div>
-            <NewsletterForm />
-          </div>
+          </PublicNewsletterCard>
         </div>
       </section>
 
@@ -429,27 +444,65 @@ function Index() {
       <section className="border-t border-border bg-secondary/40">
         <div className="mx-auto max-w-6xl space-y-8 px-4 py-10">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Explore the platform</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+              Explore the platform
+            </p>
             <h2 className="mt-1 text-[1.44375rem] font-bold">More from Share Barabara</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <PreviewCard title="Share Barabara AI" body="Ask questions about published road-safety content with answers grounded in the site's public evidence." to="/news" cta="Explore the newsroom" icon={BadgeCheck} />
-            <PreviewCard title="Merch" body="Support road-safety work with Share Barabara merchandise, where the public catalogue is available." to="/merch" cta="Browse merch" icon={HandHeart} />
-            <PreviewCard title="Partner with us" body="Reach Kenyan road users through responsible banner, campaign and content partnerships." to="/partner-with-us" cta="Start a partnership" icon={Megaphone} />
+            <PreviewCard
+              title="Share Barabara AI"
+              body="Ask questions about published road-safety content with answers grounded in the site's public evidence."
+              to="/news"
+              cta="Explore the newsroom"
+              icon={BadgeCheck}
+            />
+            <PreviewCard
+              title="Merch"
+              body="Support road-safety work with Share Barabara merchandise, where the public catalogue is available."
+              to="/merch"
+              cta="Browse merch"
+              icon={HandHeart}
+            />
+            <PreviewCard
+              title="Partner with us"
+              body="Reach Kenyan road users through responsible banner, campaign and content partnerships."
+              to="/partner-with-us"
+              cta="Start a partnership"
+              icon={Megaphone}
+            />
           </div>
           <div className="rounded-lg border border-border bg-card p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
-              <div><h3 className="font-bold">Browse live alert types</h3><p className="mt-1 text-sm text-muted-foreground">Use the existing alert taxonomy to find the situations that matter to you.</p></div>
-              <Link to="/alerts" className="text-sm font-semibold text-brand-blue underline">View all alerts</Link>
+              <div>
+                <h3 className="font-bold">Browse live alert types</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Use the existing alert taxonomy to find the situations that matter to you.
+                </p>
+              </div>
+              <Link to="/alerts" className="text-sm font-semibold text-brand-blue underline">
+                View all alerts
+              </Link>
             </div>
-            <div className="mt-4"><TaxonomyDiscovery kind="alerts" /></div>
+            <div className="mt-4">
+              <TaxonomyDiscovery kind="alerts" />
+            </div>
           </div>
           <div className="rounded-lg border border-border bg-card p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
-              <div><h3 className="font-bold">Browse report severities</h3><p className="mt-1 text-sm text-muted-foreground">Explore public accident reports using the existing report taxonomy.</p></div>
-              <Link to="/reports" className="text-sm font-semibold text-brand-blue underline">View all reports</Link>
+              <div>
+                <h3 className="font-bold">Browse report severities</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Explore public accident reports using the existing report taxonomy.
+                </p>
+              </div>
+              <Link to="/reports" className="text-sm font-semibold text-brand-blue underline">
+                View all reports
+              </Link>
             </div>
-            <div className="mt-4"><TaxonomyDiscovery kind="reports" /></div>
+            <div className="mt-4">
+              <TaxonomyDiscovery kind="reports" />
+            </div>
           </div>
           <MjengoPreviews context="home" />
           <SisterPlatformPreviews />

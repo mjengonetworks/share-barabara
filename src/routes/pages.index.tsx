@@ -10,6 +10,7 @@ import { usePageLeaderboard } from "@/hooks/useContributionLeaderboards";
 import { Button } from "@/components/ui/button";
 import { PageForm } from "@/components/site/page-form";
 import { FeaturedPageCard } from "@/components/site/featured-cards";
+import { publicCategoryBadgeClass } from "@/components/site/public-ui";
 import {
   Dialog,
   DialogContent,
@@ -181,7 +182,7 @@ function PageCard({ page: p }: { page: PageRow }) {
               <BadgeCheck className="size-4 text-accent" aria-label="Verified page" />
             ) : null}
           </p>
-          <p className="text-xs text-muted-foreground">{p.category}</p>
+          <span className={publicCategoryBadgeClass}>{p.category}</span>
         </div>
       </div>
       {p.description ? (

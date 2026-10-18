@@ -7,7 +7,13 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export function NewsletterForm({ className = "" }: { className?: string }) {
+export function NewsletterForm({
+  className = "",
+  variant = "default",
+}: {
+  className?: string;
+  variant?: "default" | "gold";
+}) {
   const { user } = useAuth();
   const [email, setEmail] = useState(user?.email ?? "");
   const [status, setStatus] = useState<"idle" | "subscribed" | "already">("idle");
@@ -26,7 +32,11 @@ export function NewsletterForm({ className = "" }: { className?: string }) {
     },
     onSuccess: (result) => {
       setStatus(result);
-      toast.success(result === "already" ? "You're already subscribed" : "You're subscribed to the Share Barabara newsletter");
+      toast.success(
+        result === "already"
+          ? "You're already subscribed"
+          : "You're subscribed to the Share Barabara newsletter",
+      );
     },
     onError: () => toast.error("We couldn't subscribe you right now. Please try again."),
   });
@@ -66,13 +76,17 @@ export function NewsletterForm({ className = "" }: { className?: string }) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.com"
-        className="max-w-xs bg-background"
+        className={`max-w-xs ${variant === "gold" ? "border-slate-700/30 bg-white/80 text-slate-950 placeholder:text-slate-600" : "bg-background"}`}
         aria-invalid={Boolean(validationError)}
       />
       <Button
         type="submit"
         disabled={subscribe.isPending}
-        className="bg-accent text-accent-foreground hover:bg-accent/90"
+        className={
+          variant === "gold"
+            ? "bg-brand-navy text-white hover:bg-brand-blue"
+            : "bg-accent text-accent-foreground hover:bg-accent/90"
+        }
       >
         <Mail className="mr-1 size-4" />
         {subscribe.isPending ? "Subscribing…" : "Subscribe"}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronDown, Copy, Facebook, Linkedin, Share2 } from "lucide-react";
+import { Check, ChevronDown, Copy, Facebook, Linkedin, Send, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,11 +49,24 @@ function GoogleLogo({ className }: { className?: string }) {
   );
 }
 
+function GoogleNewsLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="2" fill="#4285f4" />
+      <rect x="5" y="7" width="9" height="2" rx="1" fill="#fff" />
+      <rect x="5" y="11" width="6" height="6" rx="1" fill="#34a853" />
+      <rect x="13" y="11" width="6" height="2" rx="1" fill="#fbbc04" />
+      <rect x="13" y="15" width="6" height="2" rx="1" fill="#ea4335" />
+    </svg>
+  );
+}
+
 type ShareButtonsProps = { title: string; canonicalUrl?: string };
 
-export function ArticleShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
+export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
   const menuRef = useRef<HTMLDivElement>(null);
   const url = canonicalUrl ?? (typeof window !== "undefined" ? window.location.href : "");
   const { data: settings } = useQuery({
@@ -77,11 +91,34 @@ export function ArticleShareToolbar({ title, canonicalUrl }: ShareButtonsProps) 
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
     }
+    function positionMenu() {
+      const trigger = menuRef.current?.querySelector("button");
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const width = Math.min(304, window.innerWidth - 24);
+      const left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+      const openBelow = rect.bottom + 236 < window.innerHeight;
+      setMenuStyle(
+        openBelow
+          ? { left, top: rect.bottom + 8, width, maxHeight: "calc(100dvh - 24px)" }
+          : {
+              left,
+              bottom: window.innerHeight - rect.top + 8,
+              width,
+              maxHeight: "calc(100dvh - 24px)",
+            },
+      );
+    }
+    positionMenu();
     document.addEventListener("mousedown", closeOnOutsideClick);
     document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", positionMenu);
+    window.addEventListener("scroll", positionMenu, true);
     return () => {
       document.removeEventListener("mousedown", closeOnOutsideClick);
       document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu, true);
     };
   }, [open]);
 
@@ -119,17 +156,25 @@ export function ArticleShareToolbar({ title, canonicalUrl }: ShareButtonsProps) 
       icon: WhatsAppLogo,
       href: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,
     },
+    {
+      label: "Telegram",
+      icon: Send,
+      href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`,
+    },
   ];
 
   return (
-    <div className="flex max-w-full flex-wrap items-center gap-2" aria-label="Article actions">
+    <div
+      className="grid max-w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap"
+      aria-label="Public sharing actions"
+    >
       <div className="relative" ref={menuRef}>
         <button
           type="button"
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-brand-blue bg-brand-blue px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-md border border-brand-blue bg-brand-blue px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Share2 className="size-4" aria-hidden="true" />
           Share
@@ -139,7 +184,8 @@ export function ArticleShareToolbar({ title, canonicalUrl }: ShareButtonsProps) 
           <div
             role="menu"
             aria-label="Share article"
-            className="absolute left-0 top-[calc(100%+0.5rem)] z-20 grid min-w-[12rem] gap-1 rounded-lg border border-border bg-card p-2 shadow-lg sm:left-auto sm:right-0"
+            style={menuStyle}
+            className="fixed z-[60] grid min-w-0 gap-1 overflow-y-auto rounded-lg border border-border bg-card p-2 shadow-2xl"
           >
             {socialLinks.map(({ label, icon: Icon, href }) => (
               <a
@@ -161,7 +207,7 @@ export function ArticleShareToolbar({ title, canonicalUrl }: ShareButtonsProps) 
       <button
         type="button"
         onClick={copyLink}
-        className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {copied ? (
           <Check className="size-4 text-safe" aria-hidden="true" />
@@ -185,11 +231,13 @@ export function ArticleShareToolbar({ title, canonicalUrl }: ShareButtonsProps) 
         rel="noopener noreferrer"
         className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
       >
-        <GoogleLogo className="size-4 shrink-0" />
-        <span>Find on Google News</span>
+        <GoogleNewsLogo className="size-4 shrink-0" />
+        <span>Follow on Google News</span>
       </a>
     </div>
   );
 }
+
+export const ArticleShareToolbar = PublicShareToolbar;
 
 export { GOOGLE_NEWS_SEARCH_URL };

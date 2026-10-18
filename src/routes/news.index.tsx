@@ -14,6 +14,7 @@ import { PublicPageHero } from "@/components/site/public-page-hero";
 import heroRoad from "@/assets/hero-road.jpg";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { AdInterleave } from "@/components/site/ad-interleave";
+import { publicCategoryBadgeClass } from "@/components/site/public-ui";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +40,8 @@ export const Route = createFileRoute("/news/")({
       { property: "og:title", content: "News & Articles | Share Barabara" },
       {
         property: "og:description",
-        content: "Road safety reporting, transport insight and community stories for Kenyan road users.",
+        content:
+          "Road safety reporting, transport insight and community stories for Kenyan road users.",
       },
     ],
   }),
@@ -66,33 +68,42 @@ function ArticleGrid({ articles }: { articles: ArticleCard[] }) {
         placement="news-list"
         adClassName="col-span-full"
         renderItem={(a, index) => (
-        <Link
-          key={a.id}
-          to="/news/$slug"
-          params={{ slug: a.slug }}
-          className={`group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent ${index === 0 ? "md:col-span-2" : ""}`}
-        >
-          {a.image_url ? (
-            <img src={a.image_url} alt={a.title} className={`w-full object-cover object-center ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`} />
-          ) : (
-            <div className={`flex w-full items-center justify-center bg-primary/5 text-primary/50 ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`} aria-hidden="true">
-              <Newspaper className="size-9" />
+          <Link
+            key={a.id}
+            to="/news/$slug"
+            params={{ slug: a.slug }}
+            className={`group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-shadow card-elevated hover:border-accent ${index === 0 ? "md:col-span-2" : ""}`}
+          >
+            {a.image_url ? (
+              <img
+                src={a.image_url}
+                alt={a.title}
+                className={`w-full object-cover object-center ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`}
+              />
+            ) : (
+              <div
+                className={`flex w-full items-center justify-center bg-primary/5 text-primary/50 ${index === 0 ? "aspect-[16/8]" : "aspect-video"}`}
+                aria-hidden="true"
+              >
+                <Newspaper className="size-9" />
+              </div>
+            )}
+            <div className="flex flex-1 flex-col p-6">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+                <span className={publicCategoryBadgeClass}>{a.category}</span>
+                {a.featured ? <span className="text-caution">Featured</span> : null}
+              </div>
+              <h2
+                className={`mt-3 font-bold text-brand-blue group-hover:underline ${index === 0 ? "text-xl sm:text-2xl" : "text-[0.9625rem]"}`}
+              >
+                {a.title}
+              </h2>
+              <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
+              <p className="mt-4 text-xs text-muted-foreground">
+                {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
+              </p>
             </div>
-          )}
-          <div className="flex flex-1 flex-col p-6">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-              <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
-              {a.featured ? <span className="text-caution">Featured</span> : null}
-            </div>
-            <h2 className={`mt-3 font-bold text-brand-blue group-hover:underline ${index === 0 ? "text-xl sm:text-2xl" : "text-[0.9625rem]"}`}>
-              {a.title}
-            </h2>
-            <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
-            <p className="mt-4 text-xs text-muted-foreground">
-              {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
-            </p>
-          </div>
-        </Link>
+          </Link>
         )}
       />
     </div>
@@ -107,34 +118,34 @@ function ArticleCompactList({ articles }: { articles: ArticleCard[] }) {
         placement="news-compact-list"
         adClassName="col-span-full"
         renderItem={(a) => (
-        <Link
-          key={a.id}
-          to="/news/$slug"
-          params={{ slug: a.slug }}
-          className="group flex gap-4 rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
-        >
-          {a.image_url ? (
-            <img
-              src={a.image_url}
-              alt={a.title}
-              className="aspect-video w-28 shrink-0 rounded object-cover object-center sm:w-36"
-            />
-          ) : (
-            <div className="aspect-video w-28 shrink-0 rounded bg-muted sm:w-36" />
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-              <span className="rounded bg-accent/20 px-2 py-0.5">{a.category}</span>
-              {a.featured ? <span className="text-caution">Featured</span> : null}
+          <Link
+            key={a.id}
+            to="/news/$slug"
+            params={{ slug: a.slug }}
+            className="group flex gap-4 rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+          >
+            {a.image_url ? (
+              <img
+                src={a.image_url}
+                alt={a.title}
+                className="aspect-video w-28 shrink-0 rounded object-cover object-center sm:w-36"
+              />
+            ) : (
+              <div className="aspect-video w-28 shrink-0 rounded bg-muted sm:w-36" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
+                <span className={publicCategoryBadgeClass}>{a.category}</span>
+                {a.featured ? <span className="text-caution">Featured</span> : null}
+              </div>
+              <h3 className="mt-1.5 line-clamp-2 font-bold text-brand-blue group-hover:underline">
+                {a.title}
+              </h3>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
+              </p>
             </div>
-            <h3 className="mt-1.5 line-clamp-2 font-bold text-brand-blue group-hover:underline">
-              {a.title}
-            </h3>
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              {longDate(a.published_at)} {a.source ? `· ${a.source}` : ""}
-            </p>
-          </div>
-        </Link>
+          </Link>
         )}
       />
     </div>
@@ -333,9 +344,9 @@ function NewsIndex() {
             <div id="all-articles" className="mt-12 scroll-mt-24">
               <h2 className="text-[1.155rem] font-bold">More articles</h2>
               {allLoading ? <p className="mt-6 text-muted-foreground">Loading stories…</p> : null}
-            <ArticleCompactList articles={all} />
-            <MjengoPreviews context="articles" />
-          </div>
+              <ArticleCompactList articles={all} />
+              <MjengoPreviews context="articles" />
+            </div>
           </>
         )}
       </div>

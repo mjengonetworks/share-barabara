@@ -34,12 +34,19 @@ import { descendantsOf, incidentLabel } from "@/lib/incident-taxonomy";
 import { isAdInterval } from "@/lib/ad-placement";
 
 export const Route = createFileRoute("/reports/")({
-  validateSearch: (search: Record<string, unknown>): { county?: string; severity?: string; incident?: string } => {
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { county?: string; severity?: string; incident?: string } => {
     const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
     const severity =
       typeof search["severity"] === "string" ? (search["severity"] as string) : undefined;
-    const incident = typeof search["incident"] === "string" ? (search["incident"] as string) : undefined;
-    return { ...(county ? { county } : {}), ...(severity ? { severity } : {}), ...(incident ? { incident } : {}) };
+    const incident =
+      typeof search["incident"] === "string" ? (search["incident"] as string) : undefined;
+    return {
+      ...(county ? { county } : {}),
+      ...(severity ? { severity } : {}),
+      ...(incident ? { incident } : {}),
+    };
   },
   head: () => ({
     meta: [
@@ -125,7 +132,8 @@ function ReportsPage() {
     return (
       (county === "all" || r.county === county) &&
       (severity === "all" || r.severity === severity) &&
-      (!incidentValues || incidentValues.has((r as { incident_type?: string | null }).incident_type ?? "")) &&
+      (!incidentValues ||
+        incidentValues.has((r as { incident_type?: string | null }).incident_type ?? "")) &&
       (!q ||
         r.title.toLowerCase().includes(q) ||
         r.description.toLowerCase().includes(q) ||
@@ -200,11 +208,7 @@ function ReportsPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 onClick={() => setSeverity("all")}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                  severity === "all"
-                    ? "border-accent bg-accent/15 text-accent-foreground"
-                    : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                }`}
+                className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-4 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 All severities
               </button>
@@ -212,11 +216,7 @@ function ReportsPage() {
                 <button
                   key={s.value}
                   onClick={() => setSeverity(s.value)}
-                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                    severity === s.value
-                      ? "border-accent bg-accent/15 text-accent-foreground"
-                      : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                  }`}
+                  className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-4 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {s.label}
                 </button>
@@ -242,12 +242,17 @@ function ReportsPage() {
               </SelectContent>
             </Select>
             <Select value={incident} onValueChange={setIncident}>
-              <SelectTrigger className="w-56"><SelectValue placeholder="Incident type" /></SelectTrigger>
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="Incident type" />
+              </SelectTrigger>
               <SelectContent className="max-h-64">
                 <SelectItem value="all">All incident types</SelectItem>
                 {incidentTypes.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
-                    {item.parent_value ? `${incidentLabel(incidentTypes, item.parent_value)} · ` : ""}{item.label}
+                    {item.parent_value
+                      ? `${incidentLabel(incidentTypes, item.parent_value)} · `
+                      : ""}
+                    {item.label}
                   </SelectItem>
                 ))}
               </SelectContent>

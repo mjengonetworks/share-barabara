@@ -199,11 +199,7 @@ function AlertsPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 onClick={() => setHazard("all")}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                  hazard === "all"
-                    ? "border-accent bg-accent/15 text-accent-foreground"
-                    : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                }`}
+                className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-4 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 All hazards
               </button>
@@ -211,11 +207,7 @@ function AlertsPage() {
                 <button
                   key={h.value}
                   onClick={() => setHazard(h.value)}
-                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                    hazard === h.value
-                      ? "border-accent bg-accent/15 text-accent-foreground"
-                      : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                  }`}
+                  className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-4 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {h.label}
                 </button>

@@ -10,7 +10,7 @@ const mjengo = read("src/lib/mjengo.functions.ts");
 const previews = read("src/components/site/mjengo-previews.tsx");
 const ads = read("src/components/site/banner-ad.tsx");
 const discovery = read("src/components/site/discovery-sections.tsx");
-const share = read("src/components/site/share-buttons.tsx");
+const share = read("src/components/site/article-share-toolbar.tsx");
 const article = read("src/routes/news.$slug.tsx");
 const articleSidebar = read("src/components/site/article-detail-sidebar.tsx");
 const publicAI = read("src/lib/ai/public.functions.ts");
@@ -89,7 +89,7 @@ test("Google preferred-source control is compact rather than circular", () => {
 
 test("public article surfaces have a lead story, newsletter capture, and honest subscription states", () => {
   assert.match(newsIndex, /index === 0 \? "md:col-span-2"/);
-  assert.match(articleSidebar, /NewsletterForm/);
+  assert.match(articleSidebar, /PublicNewsletterCard/);
   assert.match(newsletter, /already subscribed/);
   assert.match(newsletter, /valid email address/);
   assert.match(newsletter, /error\?\.code === "23505"/);
