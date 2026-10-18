@@ -367,7 +367,8 @@ function NewsDetail() {
               <img
                 src={article.image_url}
                 alt={article.image_alt || article.title}
-                className="aspect-[16/8] w-full rounded-xl border border-border object-cover object-center"
+                loading="lazy"
+                className="aspect-video w-full rounded-xl border border-border object-cover object-center"
               />
               {article.image_caption || article.image_credit ? (
                 <figcaption className="mt-1.5 text-xs text-muted-foreground">
@@ -382,7 +383,8 @@ function NewsDetail() {
               <img
                 src={heroRoad}
                 alt="Share Barabara road safety newsroom"
-                className="aspect-[16/8] w-full rounded-xl border border-border object-cover object-center"
+                loading="lazy"
+                className="aspect-video w-full rounded-xl border border-border object-cover object-center"
               />
               <figcaption className="mt-1.5 text-xs text-muted-foreground">
                 Share Barabara newsroom
