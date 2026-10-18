@@ -19,7 +19,6 @@ import { CookieConsent } from "../components/site/cookie-consent";
 import { NotificationPermissionPrompt } from "../components/site/notification-permission-prompt";
 import { InstallAppPrompt } from "../components/site/install-app-prompt";
 import { MockApiBadge } from "../components/site/mock-api-badge";
-import { isStaging } from "../lib/deployment-env";
 
 function NotFoundComponent() {
   return (
@@ -99,7 +98,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Share Barabara" },
       { name: "twitter:card", content: "summary_large_image" },
-      ...(isStaging ? [{ name: "robots", content: "noindex, nofollow" }] : []),
       { name: "theme-color", content: "#000837" },
     ],
     links: [
@@ -162,15 +160,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
-        {isStaging ? (
-          <div
-            className="sticky top-0 z-50 border-b border-amber-300 bg-amber-100 px-3 py-1 text-center text-xs font-bold tracking-wide text-amber-950"
-            role="status"
-            aria-label="Staging environment using shared production data"
-          >
-            STAGING · SHARED DATA
-          </div>
-        ) : null}
         {!isAdminApp ? <SiteHeader /> : null}
         <main className="flex-1">
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}

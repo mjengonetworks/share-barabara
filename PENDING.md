@@ -232,3 +232,9 @@ architecture, advertising surfaces, Alerts and Accident Reports listing redesign
 removal are deployed to production. Continuing owner visual refinement remains open; do not mark this task
 COMPLETED or begin later batches without approval. No database migration or hosted data change is part of this
 release.
+
+Admin Workspace Separation — TESTING. The authenticated management area now has dedicated admin chrome,
+independent navigation, role-filtered management surfaces, admin-owned Article/Alert/Report authoring entry
+points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
+existing shell and permissions. Browser/device review and any follow-up management-surface refinements remain
+open; no database migration or hosted data change is part of this release.
