@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Flame, Newspaper } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDateWithDay } from "@/lib/format";
 import {
@@ -15,21 +15,12 @@ import { UserLink } from "@/components/site/user-link";
 import { UserAvatar } from "@/components/site/user-avatar";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
-import { ShareButtons } from "@/components/site/share-buttons";
+import { ArticleShareToolbar } from "@/components/site/article-share-toolbar";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
-import { NewsletterForm } from "@/components/site/newsletter-form";
-import { DiscoverySections } from "@/components/site/discovery-sections";
-import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { AdRichText } from "@/components/site/ad-interleave";
-import { AdInterleave } from "@/components/site/ad-interleave";
+import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
 import heroRoad from "@/assets/hero-road.jpg";
-import {
-  EditorialBand,
-  PublicSidebar,
-  SectionHeader,
-  SidebarModule,
-} from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -43,7 +34,7 @@ export const Route = createFileRoute("/news/$slug")({
     if (!data) throw notFound();
     const article = data;
 
-    const [relatedResult, latestResult, trendingResult] = await Promise.all([
+    const [relatedResult, latestResult, trendingResult, categoriesResult] = await Promise.all([
       supabase
         .from("news")
         .select("id, slug, title, category, image_url, published_at, source")
@@ -60,18 +51,35 @@ export const Route = createFileRoute("/news/$slug")({
         .order("published_at", { ascending: false })
         .limit(8),
       supabase.rpc("trending_news", { hours_back: 48, result_limit: 6 }),
+      supabase.from("news").select("category, categories").eq("status", "published").limit(100),
     ]);
     if (relatedResult.error) throw relatedResult.error;
     if (latestResult.error) throw latestResult.error;
     if (trendingResult.error) throw trendingResult.error;
-    const related = relatedResult.data.length
+    if (categoriesResult.error) throw categoriesResult.error;
+    const related = relatedResult.data?.length
       ? relatedResult.data
       : (latestResult.data ?? []).slice(0, 4);
     const relatedIds = new Set(related.map((item) => item.id));
     const latest = (latestResult.data ?? []).filter((item) => !relatedIds.has(item.id)).slice(0, 4);
     const trending = (trendingResult.data ?? [])
-      .filter((item) => item.id !== article.id)
+      .filter(
+        (item) =>
+          item.id !== article.id &&
+          !relatedIds.has(item.id) &&
+          !latest.some((latestItem) => latestItem.id === item.id),
+      )
       .slice(0, 5);
+    const categories = Array.from(
+      new Set(
+        (categoriesResult.data ?? [])
+          .flatMap((item) => [
+            item.category,
+            ...(Array.isArray(item.categories) ? item.categories : []),
+          ])
+          .filter((value): value is string => Boolean(value?.trim())),
+      ),
+    ).sort((a, b) => a.localeCompare(b));
 
     const [contextualReportsResult, contextualAlertsResult] = await Promise.all([
       article.road || article.county
@@ -102,6 +110,7 @@ export const Route = createFileRoute("/news/$slug")({
       related,
       latest,
       trending,
+      categories,
       contextualReports: contextualReportsResult.data ?? [],
       contextualAlerts: contextualAlertsResult.data ?? [],
     };
@@ -125,60 +134,6 @@ export const Route = createFileRoute("/news/$slug")({
   },
   component: NewsDetail,
 });
-
-type RelatedArticle = {
-  id: string;
-  slug: string;
-  title: string;
-  category?: string | null;
-  image_url?: string | null;
-  published_at?: string | null;
-  source?: string | null;
-};
-
-function ArticleList({ articles }: { articles: RelatedArticle[] }) {
-  return (
-    <div className="mt-4 space-y-4">
-      <AdInterleave
-        items={articles}
-        placement="article-sidebar"
-        adClassName="pt-1"
-        renderItem={(a, index) => (
-          <Link
-            key={a.id}
-            to="/news/$slug"
-            params={{ slug: a.slug }}
-            className="group flex items-start gap-3 border-b border-border/70 py-3 first:pt-0 last:border-0 last:pb-0"
-          >
-            <span className="order-2 w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
-              {a.image_url ? (
-                <img
-                  src={a.image_url}
-                  alt=""
-                  loading="lazy"
-                  className="aspect-video w-full object-cover"
-                />
-              ) : (
-                <span className="flex aspect-video w-full items-center justify-center">
-                  <Newspaper className="size-5 text-muted-foreground" aria-hidden="true" />
-                </span>
-              )}
-            </span>
-            <span className="order-1 min-w-0 py-0.5">
-              <span className="block line-clamp-2 text-sm font-bold leading-snug text-foreground group-hover:underline">
-                {a.title}
-              </span>
-              <span className="mt-1 block truncate text-[0.68rem] font-semibold uppercase tracking-wide text-accent-foreground">
-                {a.category ?? "News"}
-                {a.source ? ` · ${a.source}` : ""}
-              </span>
-            </span>
-          </Link>
-        )}
-      />
-    </div>
-  );
-}
 
 function NewsDetail() {
   const { slug } = Route.useParams();
@@ -312,6 +267,13 @@ function NewsDetail() {
     },
   });
 
+  const relatedIds = new Set(related.map((item) => item.id));
+  const sidebarLatest = latest.filter((item) => !relatedIds.has(item.id));
+  const latestIds = new Set(sidebarLatest.map((item) => item.id));
+  const sidebarTrending = trending.filter(
+    (item) => item.id !== article?.id && !relatedIds.has(item.id) && !latestIds.has(item.id),
+  );
+
   if (isLoading) {
     return <p className="mx-auto max-w-3xl px-4 py-20 text-muted-foreground">Loading story…</p>;
   }
@@ -374,7 +336,7 @@ function NewsDetail() {
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className="inline-block rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-primary hover:border-accent hover:bg-primary/15"
+                className="inline-block rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-accent-foreground hover:border-accent hover:bg-accent/20"
               >
                 {c}
               </Link>
@@ -395,7 +357,10 @@ function NewsDetail() {
             {article.source ? ` · ${article.source}` : ""}
           </p>
           <div className="mt-3">
-            <ShareButtons title={article.title} />
+            <ArticleShareToolbar
+              title={article.title}
+              canonicalUrl={`https://sharebarabara.co.ke/news/${encodeURIComponent(article.slug)}`}
+            />
           </div>
           {article.image_url ? (
             <figure className="mt-4">
@@ -500,165 +465,17 @@ function NewsDetail() {
             ))}
           </div>
 
-          {related.length > 0 ? (
-            <EditorialBand tone="plain" className="mt-10 rounded-xl border border-border/70">
-              <SectionHeader
-                eyebrow="Keep reading"
-                title="Related articles"
-                to="/news"
-                actionLabel="More articles"
-              />
-              <div className="mt-5 grid gap-5 md:grid-cols-3">
-                {related.slice(0, 3).map((item) => (
-                  <Link
-                    key={item.id}
-                    to="/news/$slug"
-                    params={{ slug: item.slug }}
-                    className="group overflow-hidden rounded-lg border border-border bg-card"
-                  >
-                    <span className="block overflow-hidden bg-muted">
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt=""
-                          className="aspect-video w-full object-cover transition-transform group-hover:scale-[1.02]"
-                        />
-                      ) : (
-                        <span className="flex aspect-video items-center justify-center">
-                          <Newspaper className="size-7 text-muted-foreground" aria-hidden="true" />
-                        </span>
-                      )}
-                    </span>
-                    <span className="block p-3">
-                      <span className="text-sm font-bold leading-snug text-brand-blue group-hover:underline">
-                        {item.title}
-                      </span>
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </EditorialBand>
-          ) : null}
-
-          {contextualReports.length > 0 || contextualAlerts.length > 0 ? (
-            <EditorialBand tone="pale" className="mt-10 rounded-xl">
-              <SectionHeader
-                eyebrow={
-                  article.county || article.road
-                    ? `Context for ${article.road || article.county}`
-                    : "Road context"
-                }
-                title="Reports and alerts connected to this story"
-                description="Public items matched by the article's stored road or county."
-              />
-              <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                {contextualReports.length > 0 ? (
-                  <div>
-                    <h2 className="mb-3 text-lg font-bold">Accident reports</h2>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                      {contextualReports.map((report) => (
-                        <ReportPreviewCard key={report.id} report={report} />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-                {contextualAlerts.length > 0 ? (
-                  <div>
-                    <h2 className="mb-3 text-lg font-bold">Active alerts</h2>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                      {contextualAlerts.map((alert) => (
-                        <AlertPreviewCard key={alert.id} alert={alert} />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </EditorialBand>
-          ) : null}
-
           <CommentSection entityType="news" entityId={article.id} />
         </article>
-
-        <PublicSidebar>
-          <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-blue via-primary to-brand-blue text-primary-foreground">
-            <h2 className="text-center text-sm font-bold uppercase tracking-widest text-white">
-              Stay informed
-            </h2>
-            <p className="mt-2 text-center text-sm text-primary-foreground/75">
-              Get important road-safety stories and community updates in your inbox.
-            </p>
-            <NewsletterForm className="mt-4" variant="sidebar" />
-          </SidebarModule>
-          {related.length > 0 ? (
-            <SidebarModule>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                Related articles
-              </h2>
-              <ArticleList articles={related.slice(0, 4)} />
-              <Link
-                to="/news"
-                search={{ category: article.category }}
-                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
-              >
-                Read more
-              </Link>
-            </SidebarModule>
-          ) : null}
-          {latest.length > 0 ? (
-            <SidebarModule>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                Latest articles
-              </h2>
-              <ArticleList articles={latest.slice(0, 4)} />
-              <Link
-                to="/news"
-                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
-              >
-                Read more
-              </Link>
-            </SidebarModule>
-          ) : null}
-          {trending.length > 0 ? (
-            <SidebarModule>
-              <h2 className="flex items-center gap-1 text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                <Flame className="size-4 text-destructive" /> Trending
-              </h2>
-              <ArticleList articles={trending} />
-              <Link
-                to="/news"
-                className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
-              >
-                Read more
-              </Link>
-            </SidebarModule>
-          ) : null}
-          {contextualReports.length > 0 ? (
-            <SidebarModule>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                Related reports
-              </h2>
-              <div className="mt-4 space-y-4">
-                {contextualReports.slice(0, 2).map((report) => (
-                  <ReportPreviewCard key={report.id} report={report} />
-                ))}
-              </div>
-            </SidebarModule>
-          ) : null}
-          {contextualAlerts.length > 0 ? (
-            <SidebarModule>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                Relevant alerts
-              </h2>
-              <div className="mt-4 space-y-4">
-                {contextualAlerts.slice(0, 2).map((alert) => (
-                  <AlertPreviewCard key={alert.id} alert={alert} />
-                ))}
-              </div>
-            </SidebarModule>
-          ) : null}
-        </PublicSidebar>
+        <ArticleSidebar
+          related={related.slice(0, 4)}
+          latest={sidebarLatest.slice(0, 4)}
+          trending={sidebarTrending.slice(0, 5)}
+          categories={loaderData.categories}
+          contextualReports={contextualReports}
+          contextualAlerts={contextualAlerts}
+        />
       </div>
-      <DiscoverySections focus="article" currentId={article.id} />
     </div>
   );
 }

@@ -6,6 +6,7 @@ const read = (path) => fs.readFileSync(path, "utf8");
 const header = read("src/components/site/site-header.tsx");
 const feed = read("src/routes/feed.tsx");
 const article = read("src/routes/news.$slug.tsx");
+const articleSidebar = read("src/components/site/article-detail-sidebar.tsx");
 const newsIndex = read("src/routes/news.index.tsx");
 const publicLayout = read("src/components/site/public-layout.tsx");
 const social = read("src/components/site/social-follow-section.tsx");
@@ -32,6 +33,8 @@ test("editorial previews use controlled 16:9 media with an accessible fallback",
   assert.match(publicLayout, /Newspaper className/);
   assert.match(article, /aspect-video w-full object-cover/);
   assert.match(article, /loading="lazy"/);
+  assert.match(articleSidebar, /aspect-video w-full object-cover/);
+  assert.match(articleSidebar, /loading="lazy"/);
 });
 
 test("social discovery is configuration-driven and does not invent a handle", () => {
