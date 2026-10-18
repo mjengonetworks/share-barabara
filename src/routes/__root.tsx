@@ -171,7 +171,7 @@ function RootComponent() {
             STAGING · SHARED DATA
           </div>
         ) : null}
-        <SiteHeader />
+        {!isAdminApp ? <SiteHeader /> : null}
         <main className="flex-1">
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />

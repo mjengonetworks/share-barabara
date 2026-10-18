@@ -24,6 +24,7 @@ import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
 import { longDate, slugify } from "@/lib/format";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
   head: () => ({ meta: [{ title: "Campaigns: Share Barabara Admin" }] }),
@@ -191,16 +192,20 @@ function CampaignsAdminPage() {
 
   return (
     <div className="max-w-3xl">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Site content
-      </p>
-      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Campaigns</h1>
-      <p className="mt-2 text-muted-foreground">
+      <AdminPageHeader
+        eyebrow="Site content"
+        title="Campaigns"
+        websiteHref="/campaigns"
+        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> New campaign</Button>}
+        description={
+          <>
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
         campaign's end date passes, it's hidden from the public until its report is written and
         published here — nobody can write a first-hand account before the event actually happens,
         and a lapsed campaign with no published report just won't appear on the site.
-      </p>
+          </>
+        }
+      />
 
       <div className="mt-6">
         <Dialog

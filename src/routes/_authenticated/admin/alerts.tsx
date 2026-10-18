@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   PartyCasualtyInputs,
   type CasualtyBreakdown,
@@ -47,6 +47,8 @@ import { useViewCounts } from "@/hooks/useViewCounts";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AlertForm } from "@/components/site/alert-form";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
   head: () => ({ meta: [{ title: "Hazard Alerts: Share Barabara Admin" }] }),
@@ -159,16 +161,21 @@ function AlertsAdminPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Moderation queue
-      </p>
-      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Hazard alerts</h1>
-      <p className="mt-2 max-w-2xl text-muted-foreground">
-        Adjust severity or remove alerts that are spam, duplicate or resolved.
-      </p>
-      <Button asChild className="mt-4">
-        <Link to="/alerts"><Plus className="mr-1.5 size-4" /> Add new alert</Link>
-      </Button>
+      <AdminPageHeader
+        eyebrow="Content & moderation"
+        title="Hazard alerts"
+        description="Adjust severity or remove alerts that are spam, duplicate or resolved."
+        websiteHref="/alerts"
+        actions={
+          <Dialog>
+            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new alert</Button></DialogTrigger>
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+              <DialogHeader><DialogTitle>New hazard alert</DialogTitle></DialogHeader>
+              <AlertForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] })} />
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>

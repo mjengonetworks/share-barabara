@@ -53,6 +53,9 @@ import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs"
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { ReportForm } from "@/components/site/report-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -204,17 +207,22 @@ function ReportsQueuePage() {
 
   return (
     <div className="max-w-4xl">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Moderation queue
-      </p>
-      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Accident reports</h1>
-      <p className="mt-2 text-muted-foreground">
-        Edit submissions for accuracy and clarity, then approve them.
-      </p>
+      <AdminPageHeader
+        eyebrow="Content & moderation"
+        title="Accident reports"
+        description="Edit submissions for accuracy and clarity, then approve them."
+        websiteHref="/reports"
+        actions={
+          <Dialog>
+            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new report</Button></DialogTrigger>
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+              <DialogHeader><DialogTitle>New accident report</DialogTitle></DialogHeader>
+              <ReportForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
+            </DialogContent>
+          </Dialog>
+        }
+      />
       <IncidentDiscoveryPanel />
-      <Button asChild className="mt-4">
-        <Link to="/reports"><Plus className="mr-1.5 size-4" /> Add new report</Link>
-      </Button>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>
