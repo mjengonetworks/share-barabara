@@ -3,7 +3,10 @@ import type { ReactNode } from "react";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 
 export const publicCategoryBadgeClass =
-  "inline-flex max-w-full items-center rounded-md border border-white/20 bg-brand-navy/90 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex max-w-full items-center rounded-md border border-blue-200/25 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm shadow-brand-navy/20 backdrop-blur transition-colors hover:border-accent hover:from-brand-blue hover:to-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+export const publicCategoryBadgeSelectedClass =
+  "inline-flex max-w-full items-center rounded-md border border-blue-200/40 bg-brand-blue px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm shadow-brand-navy/20 transition-colors hover:border-accent hover:bg-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function PublicCategoryBadge({ category }: { category: string }) {
   return (
