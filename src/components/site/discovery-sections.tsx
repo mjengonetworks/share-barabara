@@ -167,7 +167,7 @@ export function TaxonomyDiscovery({ kind }: { kind: "alerts" | "reports" }) {
           key={value.value}
           to={kind === "alerts" ? "/alerts" : "/reports"}
           search={kind === "alerts" ? { hazard: value.value } : { severity: value.value }}
-          className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-3 py-1.5 text-xs font-semibold text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex items-center rounded-md border border-blue-200/25 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-brand-navy/20 backdrop-blur transition-colors hover:border-accent hover:from-brand-blue hover:to-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           {value.label}
         </Link>
@@ -207,23 +207,23 @@ function ExternalPreview({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group rounded-2xl border border-amber-200/50 bg-gradient-to-br from-amber-500 via-amber-400 to-orange-300 p-5 text-slate-950 shadow-sm transition-colors hover:from-amber-400 hover:to-orange-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group rounded-2xl border border-blue-200/25 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy p-5 text-white shadow-lg shadow-brand-navy/25 backdrop-blur transition-colors hover:from-brand-blue hover:to-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <div className="flex items-center gap-3">
         <span
-          className="flex size-10 items-center justify-center rounded-md border border-slate-950/15 bg-white/30"
+          className="flex size-10 items-center justify-center rounded-md border border-accent/40 bg-white/10 text-accent"
           aria-hidden="true"
         >
           <Building2 className="size-5" />
         </span>
         <div className="min-w-0">
           <p className="font-bold">{name}</p>
-          <p className="text-xs text-slate-900/70">Across our ecosystem</p>
+          <p className="text-xs text-blue-100/80">Across our ecosystem</p>
         </div>
         <ExternalLink className="ml-auto size-4 shrink-0" aria-hidden="true" />
       </div>
-      <p className="mt-3 text-sm text-slate-900/80">{description}</p>
-      <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold underline">
+      <p className="mt-3 text-sm text-blue-100/85">{description}</p>
+      <span className="mt-4 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-brand-navy/50 px-3 py-2 text-sm font-semibold text-accent underline-offset-2 group-hover:underline">
         Visit {name} <ArrowRight className="size-3.5" />
       </span>
     </a>

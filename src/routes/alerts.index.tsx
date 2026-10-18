@@ -31,6 +31,10 @@ import { AlertForm } from "@/components/site/alert-form";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { PublicPageHero } from "@/components/site/public-page-hero";
+import {
+  publicCategoryBadgeClass,
+  publicCategoryBadgeSelectedClass,
+} from "@/components/site/public-ui";
 import heroRoad from "@/assets/hero-road.jpg";
 
 export const Route = createFileRoute("/alerts/")({
@@ -199,7 +203,9 @@ function AlertsPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 onClick={() => setHazard("all")}
-                className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-4 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={
+                  hazard === "all" ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
+                }
               >
                 All hazards
               </button>
@@ -207,7 +213,9 @@ function AlertsPage() {
                 <button
                   key={h.value}
                   onClick={() => setHazard(h.value)}
-                  className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-4 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className={
+                    hazard === h.value ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
+                  }
                 >
                   {h.label}
                 </button>

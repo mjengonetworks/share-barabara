@@ -84,7 +84,7 @@ export function NewsletterForm({
         disabled={subscribe.isPending}
         className={
           variant === "gold"
-            ? "bg-brand-navy text-white hover:bg-brand-blue"
+            ? "bg-brand-navy text-white shadow-sm hover:bg-brand-blue focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60"
             : "bg-accent text-accent-foreground hover:bg-accent/90"
         }
       >

@@ -32,6 +32,10 @@ import { PublicPageHero } from "@/components/site/public-page-hero";
 import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
 import { descendantsOf, incidentLabel } from "@/lib/incident-taxonomy";
 import { isAdInterval } from "@/lib/ad-placement";
+import {
+  publicCategoryBadgeClass,
+  publicCategoryBadgeSelectedClass,
+} from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/reports/")({
   validateSearch: (
@@ -208,7 +212,9 @@ function ReportsPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 onClick={() => setSeverity("all")}
-                className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-4 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={
+                  severity === "all" ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
+                }
               >
                 All severities
               </button>
@@ -216,7 +222,11 @@ function ReportsPage() {
                 <button
                   key={s.value}
                   onClick={() => setSeverity(s.value)}
-                  className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-4 py-1.5 text-sm font-medium text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className={
+                    severity === s.value
+                      ? publicCategoryBadgeSelectedClass
+                      : publicCategoryBadgeClass
+                  }
                 >
                   {s.label}
                 </button>

@@ -11,7 +11,9 @@ const ecosystem = read("src/components/site/discovery-sections.tsx");
 const styles = read("src/styles.css");
 const article = read("src/routes/news.$slug.tsx");
 const alerts = read("src/routes/alerts.$alertId.tsx");
+const alertsIndex = read("src/routes/alerts.index.tsx");
 const reports = read("src/routes/reports.$reportId.tsx");
+const reportsIndex = read("src/routes/reports.index.tsx");
 const campaigns = read("src/routes/campaigns.$slug.tsx");
 const infrastructure = read("src/routes/infrastructure-issues.$issueId.tsx");
 
@@ -35,12 +37,15 @@ test("publisher actions use distinct Google and Google News branding and the ver
   assert.doesNotMatch(toolbar, /Find on Google News/);
 });
 
-test("public newsletter and ecosystem cards use shared premium gold treatments", () => {
+test("public newsletter stays gold while ecosystem cards use shared navy glass treatment", () => {
   assert.match(newsletter, /PublicNewsletterCard/);
   assert.match(newsletter, /from-amber-300/);
   assert.match(newsletterForm, /variant === "gold"/);
-  assert.match(ecosystem, /from-amber-500/);
-  assert.doesNotMatch(ecosystem, /bg-primary p-5 text-primary-foreground/);
+  assert.match(newsletterForm, /bg-brand-navy text-white/);
+  assert.match(ecosystem, /from-brand-navy via-brand-blue to-brand-navy/);
+  assert.match(ecosystem, /backdrop-blur/);
+  assert.match(ecosystem, /text-blue-100/);
+  assert.doesNotMatch(ecosystem, /from-amber-500/);
 });
 
 test("public responsive foundations prevent accumulated mobile width overflow", () => {
@@ -52,6 +57,11 @@ test("public responsive foundations prevent accumulated mobile width overflow", 
 
 test("category badges share the navy glass treatment without changing route semantics", () => {
   assert.match(newsletter, /publicCategoryBadgeClass/);
-  assert.match(newsletter, /bg-brand-navy\/90/);
+  assert.match(newsletter, /from-brand-navy via-brand-blue to-brand-navy/);
+  assert.match(newsletter, /publicCategoryBadgeSelectedClass/);
+  assert.match(styles, /--color-brand-navy: var\(--brand-navy\)/);
+  assert.match(styles, /--brand-navy:/);
   assert.match(article, /publicCategoryBadgeClass/);
+  assert.match(alertsIndex, /publicCategoryBadgeSelectedClass/);
+  assert.match(reportsIndex, /publicCategoryBadgeSelectedClass/);
 });

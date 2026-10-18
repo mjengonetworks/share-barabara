@@ -62,6 +62,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-hi-vis: var(--hi-vis);
   --color-brand-blue: var(--brand-blue);
+  --color-brand-navy: var(--brand-navy);
   --color-caution: var(--caution);
   --color-safe: var(--safe);
   --color-surface-dark: var(--surface-dark);
@@ -91,6 +92,7 @@
   --input: oklch(0.9 0.012 258);
   --ring: oklch(0.77 0.155 68);
   --brand-blue: oklch(0.45 0.14 268);
+  --brand-navy: oklch(0.25 0.095 265);
   --hi-vis: oklch(0.8 0.165 72);
   --caution: oklch(0.74 0.16 60);
   --safe: oklch(0.6 0.13 155);
