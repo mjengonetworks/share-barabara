@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Flame, Newspaper } from "lucide-react";
+import type { ReactNode } from "react";
 import { BannerAd } from "@/components/site/banner-ad";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import {
@@ -7,7 +8,18 @@ import {
   ReportPreviewCard,
   SisterPlatformPreviews,
 } from "@/components/site/discovery-sections";
-import { PublicSidebar, SidebarModule } from "@/components/site/public-layout";
+
+function PublicSidebar({ children }: { children: ReactNode }) {
+  return <aside className="min-w-0 space-y-5 lg:sticky lg:top-24 lg:self-start">{children}</aside>;
+}
+
+function SidebarModule({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <section className={`rounded-2xl border border-border bg-card p-5 shadow-sm ${className}`}>
+      {children}
+    </section>
+  );
+}
 
 export type ArticleSidebarArticle = {
   id: string;
