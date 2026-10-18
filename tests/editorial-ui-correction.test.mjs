@@ -16,13 +16,16 @@ test("article editor normalizes pasted paragraph blocks without losing structure
 test("mixed paragraph/link/list fixture survives the body lifecycle contract", async () => {
   const editor = await source("src/components/site/rich-text-editor.tsx");
   const renderer = await source("src/lib/richtext.tsx");
-  const fixture = [
-    "Paragraph one has multiple sentences and stays together as one paragraph. It must not split.",
-    "Paragraph two also contains multiple sentences. It remains one paragraph.",
-    "A third paragraph contains a [link](https://example.com) and **bold text**.",
-    "- First list item",
-    "- Second list item",
-  ].slice(0, 3).join("\n\n") + "\n\n- First list item\n- Second list item";
+  const fixture =
+    [
+      "Paragraph one has multiple sentences and stays together as one paragraph. It must not split.",
+      "Paragraph two also contains multiple sentences. It remains one paragraph.",
+      "A third paragraph contains a [link](https://example.com) and **bold text**.",
+      "- First list item",
+      "- Second list item",
+    ]
+      .slice(0, 3)
+      .join("\n\n") + "\n\n- First list item\n- Second list item";
   const blocks = fixture.split(/\n\s*\n/).filter(Boolean);
   assert.equal(blocks.length, 4);
   assert.match(blocks[0], /sentences[\s\S]*split/);
@@ -56,13 +59,16 @@ test("Editorial AI provider matrix is enforced by action", async () => {
   }
   assert.match(editorial, /mode === "autopopulate" \? "groq" : "grok"/);
   assert.match(panel, /mode === "autopopulate" \? "Groq" : "xAI Grok"/);
-  assert.match((await source("src/lib/ai/public.functions.ts")), /completeWithProvider\("groq"/);
+  assert.match(await source("src/lib/ai/public.functions.ts"), /completeWithProvider\("groq"/);
 });
 
 test("article Auto-Populate returns and applies all SEO fields", async () => {
   const editorial = await source("src/lib/ai/editorial.functions.ts");
   const form = await source("src/components/site/article-form.tsx");
-  assert.match(editorial, /\["title", "summary", "body", "seo_title", "seo_description", "seo_keywords"\]/);
+  assert.match(
+    editorial,
+    /\["title", "summary", "body", "seo_title", "seo_description", "seo_keywords"\]/,
+  );
   for (const field of ["seo_title", "seo_description", "seo_keywords"]) {
     assert.match(form, new RegExp(`draft\\["${field}"\\]`));
   }
@@ -72,7 +78,7 @@ test("article detail related and latest sections cap at four cards", async () =>
   const detail = await source("src/routes/news.$slug.tsx");
   assert.match(detail, /\.limit\(4\)/);
   assert.match(detail, /related\.slice\(0, 4\)/);
-  assert.match(detail, /latest\.slice\(0, 4\)/);
+  assert.match(detail, /sidebarLatest\.slice\(0, 4\)/);
   assert.match(detail, /image_url/);
 });
 
