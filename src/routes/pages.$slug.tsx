@@ -18,6 +18,7 @@ import { timeAgo } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { PageForm } from "@/components/site/page-form";
+import { publicCategoryBadgeClass } from "@/components/site/public-ui";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/pages/$slug")({
@@ -132,9 +133,7 @@ function PageProfile() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        {page.category}
-      </p>
+      <p className={publicCategoryBadgeClass}>{page.category}</p>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <h1 className="mt-2 flex items-center gap-2 text-[1.7325rem] font-extrabold">
           <span className="flex size-10 items-center justify-center rounded bg-accent/20 text-accent-foreground">
@@ -209,9 +208,7 @@ function PageProfile() {
             {articles.map((a) => (
               <li key={a.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-                    {a.category}
-                  </span>
+                  <span className={publicCategoryBadgeClass}>{a.category}</span>
                   <Link
                     to="/news/$slug"
                     params={{ slug: a.slug }}

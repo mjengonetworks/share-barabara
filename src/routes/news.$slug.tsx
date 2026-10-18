@@ -21,6 +21,7 @@ import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
 import heroRoad from "@/assets/hero-road.jpg";
+import { publicCategoryBadgeClass } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -336,7 +337,7 @@ function NewsDetail() {
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className="inline-block rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-accent-foreground hover:border-accent hover:bg-accent/20"
+                className={publicCategoryBadgeClass}
               >
                 {c}
               </Link>
@@ -460,7 +461,7 @@ function NewsDetail() {
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className="rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium hover:border-accent hover:bg-accent/10 hover:text-accent-foreground"
+                className={publicCategoryBadgeClass}
               >
                 {c}
               </Link>

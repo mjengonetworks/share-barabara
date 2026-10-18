@@ -19,10 +19,13 @@ test("Task 41 discovery queries use public visibility filters and four-card caps
 test("Task 41 discovery uses existing taxonomy routes and safe sister links", () => {
   assert.match(discovery, /useHazardTypes/);
   assert.match(discovery, /useReportSeverities/);
-  assert.match(discovery, /search=\{kind === "alerts" \? \{ hazard: value\.value \} : \{ severity: value\.value \}\}/);
+  assert.match(
+    discovery,
+    /search=\{kind === "alerts" \? \{ hazard: value\.value \} : \{ severity: value\.value \}\}/,
+  );
   assert.match(discovery, /https:\/\/mjengohub\.co\.ke/);
   assert.match(discovery, /https:\/\/mjengonetworks\.co\.ke/);
-  assert.match(discovery, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(discovery, /target="_blank"[\s\S]*rel="noopener noreferrer"/);
 });
 
 test("Task 41 homepage filters public alerts and exposes platform previews", () => {
@@ -40,7 +43,16 @@ test("Task 41 ad inventory exposes named placement identifiers", () => {
 
 test("Task 41 is permanently recorded in pending work", () => {
   assert.match(pending, /Task 41 — Cross-site discovery, content previews & ad inventory/);
-  for (const subtask of ["41.1 Article discovery", "41.2 Alert discovery", "41.3 Report discovery", "41.4 Homepage whole-platform previews", "41.5 Alert\/Report category discovery", "41.6 Mjengo Hub\/Mjengo Networks previews", "41.7 Expanded banner-ad inventory", "41.8 Responsive\/performance\/security verification"]) {
+  for (const subtask of [
+    "41.1 Article discovery",
+    "41.2 Alert discovery",
+    "41.3 Report discovery",
+    "41.4 Homepage whole-platform previews",
+    "41.5 Alert\/Report category discovery",
+    "41.6 Mjengo Hub\/Mjengo Networks previews",
+    "41.7 Expanded banner-ad inventory",
+    "41.8 Responsive\/performance\/security verification",
+  ]) {
     assert.match(pending, new RegExp(subtask));
   }
 });

@@ -1,13 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { Flame, Newspaper } from "lucide-react";
 import { BannerAd } from "@/components/site/banner-ad";
-import { NewsletterForm } from "@/components/site/newsletter-form";
+import {
+  PublicNewsletterCard,
+  PublicSidebar,
+  PublicSidebarSection,
+} from "@/components/site/public-ui";
 import {
   AlertPreviewCard,
   ReportPreviewCard,
   SisterPlatformPreviews,
 } from "@/components/site/discovery-sections";
-import { PublicSidebar, SidebarModule } from "@/components/site/public-layout";
 
 export type ArticleSidebarArticle = {
   id: string;
@@ -80,19 +83,10 @@ export function ArticleSidebar({
 
   return (
     <PublicSidebar>
-      <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-navy via-brand-blue to-primary text-primary-foreground">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">
-          Share Barabara newsletter
-        </p>
-        <h2 className="mt-2 text-xl font-bold text-white">Stay informed</h2>
-        <p className="mt-2 text-sm text-primary-foreground/75">
-          Get important road-safety stories and community updates in your inbox.
-        </p>
-        <NewsletterForm className="mt-4" variant="sidebar" />
-      </SidebarModule>
+      <PublicNewsletterCard />
 
       {related.length > 0 ? (
-        <SidebarModule>
+        <PublicSidebarSection>
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             Related articles
           </h2>
@@ -103,11 +97,11 @@ export function ArticleSidebar({
           >
             Read more
           </Link>
-        </SidebarModule>
+        </PublicSidebarSection>
       ) : null}
 
       {latest.length > 0 ? (
-        <SidebarModule>
+        <PublicSidebarSection>
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             Latest articles
           </h2>
@@ -118,11 +112,11 @@ export function ArticleSidebar({
           >
             Read more
           </Link>
-        </SidebarModule>
+        </PublicSidebarSection>
       ) : null}
 
       {categories.length > 0 ? (
-        <SidebarModule>
+        <PublicSidebarSection>
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             Browse articles by category
           </h2>
@@ -132,17 +126,17 @@ export function ArticleSidebar({
                 key={category}
                 to="/news"
                 search={{ category }}
-                className="rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1.5 text-xs font-semibold text-accent-foreground transition-colors hover:border-accent hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex items-center rounded-md border border-white/20 bg-brand-navy/90 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {category}
               </Link>
             ))}
           </div>
-        </SidebarModule>
+        </PublicSidebarSection>
       ) : null}
 
       {trending.length > 0 ? (
-        <SidebarModule>
+        <PublicSidebarSection>
           <h2 className="flex items-center gap-1 text-sm font-bold uppercase tracking-widest text-muted-foreground">
             <Flame className="size-4 text-accent" aria-hidden="true" /> Trending articles
           </h2>
@@ -153,11 +147,11 @@ export function ArticleSidebar({
           >
             Read more
           </Link>
-        </SidebarModule>
+        </PublicSidebarSection>
       ) : null}
 
       {hasRoadContext ? (
-        <SidebarModule>
+        <PublicSidebarSection>
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             Road safety context
           </h2>
@@ -188,17 +182,17 @@ export function ArticleSidebar({
               </Link>
             ) : null}
           </div>
-        </SidebarModule>
+        </PublicSidebarSection>
       ) : null}
 
-      <SidebarModule>
+      <PublicSidebarSection>
         <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
           Our ecosystem
         </h2>
         <div className="mt-4">
           <SisterPlatformPreviews />
         </div>
-      </SidebarModule>
+      </PublicSidebarSection>
 
       <BannerAd placement="article-sidebar" />
     </PublicSidebar>

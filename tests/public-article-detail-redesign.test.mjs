@@ -9,6 +9,7 @@ async function source(path) {
 test("public article detail uses one responsive article/sidebar shell", async () => {
   const detail = await source("src/routes/news.$slug.tsx");
   const sidebar = await source("src/components/site/article-detail-sidebar.tsx");
+  const publicUi = await source("src/components/site/public-ui.tsx");
 
   assert.match(
     detail,
@@ -18,7 +19,7 @@ test("public article detail uses one responsive article/sidebar shell", async ()
   assert.match(detail, /ArticleSidebar/);
   assert.doesNotMatch(detail, /DiscoverySections/);
   assert.doesNotMatch(detail, /title="Related articles"[\s\S]*grid gap-5 md:grid-cols-3/);
-  assert.match(sidebar, /Stay informed/);
+  assert.match(publicUi, /Stay informed/);
   assert.match(sidebar, /Related articles/);
   assert.match(sidebar, /Latest articles/);
   assert.match(sidebar, /Browse articles by category/);
@@ -50,7 +51,7 @@ test("article share toolbar has four primary actions and an accessible social me
   assert.match(share, /GOOGLE_NEWS_SEARCH_URL/);
   assert.match(share, /news\.google\.com\/search\?q=share%20barabara&hl=en-ZA&gl=ZA&ceid=ZA%3Aen/);
   assert.match(share, /Add as preferred source on Google/);
-  assert.match(share, /Find on Google News/);
+  assert.match(share, /Follow on Google News/);
   assert.match(share, /socialLinks\.map/);
 });
 

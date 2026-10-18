@@ -50,8 +50,22 @@ export function SiteFooter() {
           Our Platforms
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-semibold">
-          <a href="https://mjengohub.co.ke" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Mjengo Hub</a>
-          <a href="https://mjengonetworks.co.ke" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">Mjengo Networks</a>
+          <a
+            href="https://mjengohub.co.ke"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline"
+          >
+            Mjengo Hub
+          </a>
+          <a
+            href="https://mjengonetworks.co.ke"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline"
+          >
+            Mjengo Networks
+          </a>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-4">
           {socials.map((s) => (
@@ -91,7 +105,7 @@ export function SiteFooter() {
           <p className="mt-5 text-xs font-semibold uppercase tracking-widest text-accent">
             Newsletter
           </p>
-          <NewsletterForm className="mt-3" />
+          <NewsletterForm className="mt-3" variant="gold" />
           {!alreadySubscribed ? (
             <Button
               asChild
