@@ -15,6 +15,9 @@ test("public article detail uses one responsive article/sidebar shell", async ()
     detail,
     /max-w-\[1500px\][\s\S]*lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/,
   );
+  assert.match(detail, /gap-4 px-2 py-3/);
+  assert.match(detail, /rounded-xl border border-border bg-card p-3/);
+  assert.match(detail, /<div className="flex flex-wrap gap-1\.5">/);
   assert.match(detail, /longDateWithDay\(article\.published_at\)/);
   assert.match(detail, /ArticleSidebar/);
   assert.doesNotMatch(detail, /DiscoverySections/);
@@ -26,6 +29,17 @@ test("public article detail uses one responsive article/sidebar shell", async ()
   assert.match(sidebar, /Trending articles/);
   assert.match(sidebar, /Road safety context/);
   assert.match(sidebar, /Our ecosystem/);
+  for (const label of [
+    "Alerts",
+    "Accident Reports",
+    "Statistics",
+    "Campaigns",
+    "Media & Feed",
+    "Infrastructure Issues",
+  ]) {
+    assert.match(sidebar, new RegExp(`label: "${label}"`));
+  }
+  assert.match(sidebar, /Explore Share Barabara/);
   assert.match(detail, /sidebarLatest = latest\.filter/);
   assert.match(detail, /sidebarTrending = trending\.filter/);
   assert.match(detail, /!relatedIds\.has\(item\.id\)/);
@@ -50,9 +64,13 @@ test("article share toolbar has four primary actions and an accessible social me
   assert.match(share, /navigator\.clipboard\.writeText\(url\)/);
   assert.match(share, /GOOGLE_NEWS_SEARCH_URL/);
   assert.match(share, /news\.google\.com\/search\?q=share%20barabara&hl=en-ZA&gl=ZA&ceid=ZA%3Aen/);
-  assert.match(share, /Add as preferred source on Google/);
+  assert.match(share, /Add as a preferred source on Google/);
   assert.match(share, /Follow on Google News/);
   assert.match(share, /socialLinks\.map/);
+  assert.match(share, /grid max-w-full grid-cols-2 gap-1\.5 sm:flex sm:flex-nowrap/);
+  assert.match(share, /border-brand-navy\/70 bg-card/);
+  assert.match(share, /Add as a preferred source on Google/);
+  assert.match(share, /aria-label="Follow on Google News"/);
 });
 
 test("article detail uses a canonical production URL for sharing", async () => {
@@ -62,5 +80,13 @@ test("article detail uses a canonical production URL for sharing", async () => {
     /canonicalUrl=\{`https:\/\/sharebarabara\.co\.ke\/news\/\$\{encodeURIComponent\(article\.slug\)\}`\}/,
   );
   assert.match(detail, /article-quick-summary/);
-  assert.match(detail, /placement="article-body"/);
+  assert.match(detail, /placement="article-body-mid"/);
+});
+
+test("article body places one related link mid-story and removes article update requests", async () => {
+  const detail = await source("src/routes/news.$slug.tsx");
+  assert.match(detail, /blocks\.length >= 4/);
+  assert.match(detail, /Math\.floor\(blocks\.length \/ 2\)/);
+  assert.match(detail, /Read also:/);
+  assert.doesNotMatch(detail, /ContentRequestActions/);
 });

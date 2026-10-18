@@ -23,7 +23,7 @@ test("all public detail share surfaces resolve to one four-action toolbar", () =
   }
   assert.match(compatibilityShare, /PublicShareToolbar/);
   assert.match(toolbar, /Copy link/);
-  assert.match(toolbar, /Add as preferred source on Google/);
+  assert.match(toolbar, /Add as a preferred source on Google/);
   assert.match(toolbar, /Follow on Google News/);
   assert.match(toolbar, /positionMenu/);
   assert.match(toolbar, /Escape/);

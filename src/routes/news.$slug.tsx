@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
@@ -16,9 +16,8 @@ import { UserAvatar } from "@/components/site/user-avatar";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ArticleShareToolbar } from "@/components/site/article-share-toolbar";
-import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
-import { AdRichText } from "@/components/site/ad-interleave";
+import { renderRichText, splitRichTextBlocks } from "@/lib/richtext";
 import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
 import heroRoad from "@/assets/hero-road.jpg";
 import { publicCategoryBadgeClass } from "@/components/site/public-ui";
@@ -307,7 +306,7 @@ function NewsDetail() {
         aria-label="Breadcrumb"
         className="bg-gradient-to-r from-brand-blue via-primary to-brand-blue text-primary-foreground"
       >
-        <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-4 py-2 text-xs sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-2 py-2 text-xs sm:px-6 lg:px-8">
           <Link to="/" className="shrink-0 hover:underline">
             Home
           </Link>
@@ -329,9 +328,9 @@ function NewsDetail() {
           </span>
         </div>
       </nav>
-      <div className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5 sm:px-6 sm:py-7 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
-        <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6 lg:p-6">
-          <div className="mt-3 flex flex-wrap gap-1.5">
+      <div className="mx-auto grid max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-7 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
+        <article className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-6 lg:p-6">
+          <div className="flex flex-wrap gap-1.5">
             {(article.categories?.length ? article.categories : [article.category]).map((c) => (
               <Link
                 key={c}
@@ -434,23 +433,7 @@ function NewsDetail() {
               sourceText={`${article.summary ?? ""}\n${article.body ?? ""}`}
             />
           ) : null}
-          <div className="mt-8 space-y-5 text-[1.05rem] leading-8 text-foreground/90 sm:text-[1.12rem]">
-            <AdRichText content={article.body} placement="article-body" />
-            {related[0] ? (
-              <p className="mx-auto max-w-2xl rounded border-l-4 border-caution bg-caution/10 px-4 py-2 text-center text-sm">
-                <span className="font-semibold">Read also: </span>
-                <Link to="/news/$slug" params={{ slug: related[0].slug }} className="underline">
-                  {related[0].title}
-                </Link>
-              </p>
-            ) : null}
-          </div>
-
-          <ContentRequestActions
-            entityType="news"
-            entityId={article.id}
-            ownerId={article.author_id}
-          />
+          <ArticleBody content={article.body} related={related[0]} />
 
           <div className="mt-8 flex flex-wrap gap-2">
             <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -479,6 +462,41 @@ function NewsDetail() {
           contextualAlerts={contextualAlerts}
         />
       </div>
+    </div>
+  );
+}
+
+function ArticleBody({
+  content,
+  related,
+}: {
+  content: string;
+  related?: { slug: string; title: string };
+}) {
+  const blocks = splitRichTextBlocks(content);
+  const readAlsoAfter =
+    related && blocks.length >= 4 ? Math.max(1, Math.floor(blocks.length / 2)) : null;
+
+  return (
+    <div className="mt-8 space-y-5 text-[1.05rem] leading-8 text-foreground/90 sm:text-[1.12rem]">
+      {blocks.map((block, index) => (
+        <Fragment key={`article-body-${index}`}>
+          {renderRichText(block)}
+          {blocks.length > 1 && index + 1 === Math.floor(blocks.length / 2) ? (
+            <div className="my-5">
+              <BannerAd placement="article-body-mid" />
+            </div>
+          ) : null}
+          {readAlsoAfter === index + 1 ? (
+            <p className="mx-auto max-w-2xl rounded border-l-4 border-caution bg-caution/10 px-4 py-2 text-center text-sm leading-6">
+              <span className="font-semibold">Read also: </span>
+              <Link to="/news/$slug" params={{ slug: related.slug }} className="underline">
+                {related.title}
+              </Link>
+            </p>
+          ) : null}
+        </Fragment>
+      ))}
     </div>
   );
 }
