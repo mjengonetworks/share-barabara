@@ -185,8 +185,8 @@ function ReportDetail() {
   return (
     <>
       <PublicBreadcrumbStrip items={[{ label: "Home", to: "/" }, { label: "Accident Reports", to: "/reports" }, { label: report.title }]} />
-      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
-        <article className="min-w-0 rounded-xl border border-border bg-card p-5 card-elevated sm:p-6">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
           <Link
             to="/reports"
             className="inline-flex items-center gap-1 text-sm text-muted-foreground"

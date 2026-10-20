@@ -11,7 +11,9 @@ const previews = read("src/components/site/mjengo-previews.tsx");
 const ads = read("src/components/site/banner-ad.tsx");
 const discovery = read("src/components/site/discovery-sections.tsx");
 const share = read("src/components/site/share-buttons.tsx");
+const shareToolbar = read("src/components/site/article-share-toolbar.tsx");
 const article = read("src/routes/news.$slug.tsx");
+const publicUi = read("src/components/site/public-ui.tsx");
 const publicAI = read("src/lib/ai/public.functions.ts");
 const newsletter = read("src/components/site/newsletter-form.tsx");
 const newsIndex = read("src/routes/news.index.tsx");
@@ -82,15 +84,16 @@ test("related articles are centered and ecosystem language is accurate", () => {
 });
 
 test("Google preferred-source control is compact rather than circular", () => {
-  assert.match(share, /google_source_url/);
-  assert.match(share, /rounded-md border border-border/);
-  assert.doesNotMatch(share, /google_source_label[^\n]*rounded-full/);
+  assert.match(shareToolbar, /google_source_url/);
+  assert.match(shareToolbar, /rounded-md border border-border/);
+  assert.doesNotMatch(shareToolbar, /google_source_label[^\n]*rounded-full/);
 });
 
 test("public article surfaces have a lead story, newsletter capture, and honest subscription states", () => {
   assert.match(newsIndex, /CompactEditorialColumns/);
   assert.match(newsIndex, /Featured \/ Prime Articles/);
-  assert.match(article, /NewsletterForm/);
+  assert.match(article, /ArticleSidebar/);
+  assert.match(publicUi, /PublicNewsletterCard/);
   assert.match(newsletter, /already subscribed/);
   assert.match(newsletter, /valid email address/);
   assert.match(newsletter, /error\?\.code === "23505"/);

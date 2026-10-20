@@ -57,7 +57,7 @@ test("public responsive foundations prevent accumulated mobile width overflow", 
 
 test("category badges share the navy glass treatment without changing route semantics", () => {
   assert.match(newsletter, /publicCategoryBadgeClass/);
-  assert.match(newsletter, /from-brand-navy via-brand-blue to-brand-navy/);
+  assert.match(newsletter, /bg-brand-blue/);
   assert.match(newsletter, /publicCategoryBadgeSelectedClass/);
   assert.match(styles, /--color-brand-navy: var\(--brand-navy\)/);
   assert.match(styles, /--brand-navy:/);

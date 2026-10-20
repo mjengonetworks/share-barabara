@@ -37,6 +37,10 @@ import {
   SectionHeader,
   type PublicIncidentCard,
 } from "@/components/site/public-layout";
+import {
+  publicCategoryBadgeClass,
+  publicCategoryBadgeSelectedClass,
+} from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/reports/")({
   validateSearch: (
@@ -227,11 +231,11 @@ function ReportsPage() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   onClick={() => setSeverity("all")}
-                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                  className={
                     severity === "all"
-                      ? "border-accent bg-accent/15 text-accent-foreground"
-                      : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                  }`}
+                      ? publicCategoryBadgeSelectedClass
+                      : publicCategoryBadgeClass
+                  }
                 >
                   All severities
                 </button>
@@ -239,11 +243,11 @@ function ReportsPage() {
                   <button
                     key={s.value}
                     onClick={() => setSeverity(s.value)}
-                    className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    className={
                       severity === s.value
-                        ? "border-accent bg-accent/15 text-accent-foreground"
-                        : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                    }`}
+                        ? publicCategoryBadgeSelectedClass
+                        : publicCategoryBadgeClass
+                    }
                   >
                     {s.label}
                   </button>

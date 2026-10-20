@@ -38,6 +38,10 @@ import {
   SectionHeader,
   type PublicIncidentCard,
 } from "@/components/site/public-layout";
+import {
+  publicCategoryBadgeClass,
+  publicCategoryBadgeSelectedClass,
+} from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/alerts/")({
   validateSearch: (search: Record<string, unknown>): { county?: string; hazard?: string } => {
@@ -254,11 +258,9 @@ function AlertsPage() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   onClick={() => setHazard("all")}
-                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                    hazard === "all"
-                      ? "border-accent bg-accent/15 text-accent-foreground"
-                      : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                  }`}
+                  className={
+                    hazard === "all" ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
+                  }
                 >
                   All hazards
                 </button>
@@ -266,11 +268,11 @@ function AlertsPage() {
                   <button
                     key={h.value}
                     onClick={() => setHazard(h.value)}
-                    className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    className={
                       hazard === h.value
-                        ? "border-accent bg-accent/15 text-accent-foreground"
-                        : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-                    }`}
+                        ? publicCategoryBadgeSelectedClass
+                        : publicCategoryBadgeClass
+                    }
                   >
                     {h.label}
                   </button>

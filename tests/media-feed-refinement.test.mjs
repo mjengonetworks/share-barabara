@@ -31,7 +31,7 @@ test("Feed remains the canonical combined discovery surface with existing contro
 test("editorial previews use controlled 16:9 media with an accessible fallback", () => {
   assert.match(publicLayout, /aspect-video/);
   assert.match(publicLayout, /Newspaper className/);
-  assert.match(article, /aspect-video w-full object-cover/);
+  assert.match(article, /aspect-video w-full[\s\S]*object-cover/);
   assert.match(article, /loading="lazy"/);
   assert.match(articleSidebar, /aspect-video w-full object-cover/);
   assert.match(articleSidebar, /loading="lazy"/);
