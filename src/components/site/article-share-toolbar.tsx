@@ -227,8 +227,8 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
       >
         <GoogleLogo className="size-3.5 shrink-0 sm:size-4" />
         <span aria-hidden="true" className="min-w-0 text-left">
-          <span className="block truncate">Preferred</span>
-          <span className="block truncate">source</span>
+          <span className="block whitespace-nowrap">Add as a preferred</span>
+          <span className="block whitespace-nowrap">source on Google</span>
         </span>
       </a>
       <a
@@ -240,8 +240,8 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
       >
         <GoogleNewsLogo className="size-3.5 shrink-0 sm:size-4" />
         <span aria-hidden="true" className="min-w-0 text-left">
-          <span className="block truncate">Google</span>
-          <span className="block truncate">News</span>
+          <span className="block whitespace-nowrap">Follow on Google</span>
+          <span className="block whitespace-nowrap">News</span>
         </span>
       </a>
     </div>

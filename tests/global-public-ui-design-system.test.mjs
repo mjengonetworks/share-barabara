@@ -31,8 +31,9 @@ test("all public detail share surfaces resolve to one four-action toolbar", () =
   assert.match(toolbar, /share-toolbar-actions grid w-full max-w-full min-w-0/);
   assert.match(toolbar, /grid-cols-\[auto_auto_minmax\(0,1fr\)_minmax\(0,1fr\)\]/);
   assert.match(toolbar, /size-8 shrink-0 items-center justify-center/);
-  assert.match(toolbar, /Preferred[\s\S]*source/);
   assert.match(toolbar, /Google[\s\S]*News/);
+  assert.match(toolbar, /Add as a preferred[\s\S]*source on Google/);
+  assert.match(toolbar, /Follow on Google[\s\S]*News/);
   assert.doesNotMatch(toolbar, /flex-wrap/);
   assert.doesNotMatch(toolbar, /grid-cols-2/);
 });
