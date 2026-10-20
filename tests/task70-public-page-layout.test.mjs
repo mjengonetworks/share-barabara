@@ -170,9 +170,9 @@ test("post-release editorial controls preserve compact public navigation and Goo
   assert.match(header, /border-accent bg-accent text-brand-navy/);
   assert.match(header, /item\.to === "\/feed"/);
   assert.match(header, /max-w-\[1600px\]/);
-  assert.match(share, /share-toolbar-actions flex max-w-full flex-wrap items-center/);
-  assert.match(share, /w-max shrink-0/);
-  assert.match(share, /max-\[430px\]:gap-1/);
+  assert.match(share, /share-toolbar-actions grid w-full max-w-full min-w-0/);
+  assert.match(share, /grid-cols-\[auto_auto_minmax\(0,1fr\)_minmax\(0,1fr\)\]/);
+  assert.match(share, /aria-label="Copy link"/);
   assert.match(share, /whitespace-nowrap/);
   assert.match(share, /news\.google\.com\/search\?q=share%20barabara/);
   assert.doesNotMatch(share, /q=mjengo%20hub/);

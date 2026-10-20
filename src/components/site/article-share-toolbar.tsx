@@ -165,16 +165,16 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
 
   return (
     <div
-      className="share-toolbar-actions flex max-w-full flex-wrap items-center justify-start gap-1.5 max-[430px]:gap-1 sm:flex-nowrap"
+      className="share-toolbar-actions grid w-full max-w-full min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] items-center gap-1"
       aria-label="Public sharing actions"
     >
-      <div className="relative" ref={menuRef}>
+      <div className="relative min-w-0" ref={menuRef}>
         <button
           type="button"
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="inline-flex h-8 w-max shrink-0 whitespace-nowrap items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-white px-2 text-[0.7rem] font-semibold leading-none text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-[430px]:px-1.5 sm:px-2.5 sm:text-xs"
+          className="inline-flex h-8 w-max max-w-full shrink-0 whitespace-nowrap items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-white px-1.5 text-[0.68rem] font-semibold leading-none text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2 sm:text-xs"
         >
           <Share2 className="size-4" aria-hidden="true" />
           Share
@@ -207,34 +207,42 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
       <button
         type="button"
         onClick={copyLink}
-        className="inline-flex h-8 w-max shrink-0 whitespace-nowrap items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-white px-2 text-[0.7rem] font-semibold leading-none text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-[430px]:px-1.5 sm:px-2.5 sm:text-xs"
+        aria-label="Copy link"
+        title="Copy link"
+        className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-brand-navy/70 bg-white p-0 text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {copied ? (
           <Check className="size-4 text-safe" aria-hidden="true" />
         ) : (
           <Copy className="size-4" aria-hidden="true" />
         )}
-        <span>{copied ? "Copied" : "Copy link"}</span>
+        <span className="sr-only">{copied ? "Copied" : "Copy link"}</span>
       </button>
       <a
         href={settings?.google_source_url?.trim() || GOOGLE_SOURCE_FALLBACK_URL}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={settings?.google_source_label?.trim() || "Add as a preferred source on Google"}
-        className="inline-flex h-8 w-max shrink-0 whitespace-nowrap items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-2 text-[0.68rem] font-semibold leading-none text-brand-navy transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-[430px]:px-1.5 sm:px-2.5 sm:text-xs"
+        className="inline-flex h-8 min-w-0 max-w-full items-center justify-center gap-1 overflow-hidden rounded-md border border-slate-300 bg-white px-1 text-[0.58rem] font-semibold leading-[1.05] text-brand-navy transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-1.5 sm:text-[0.68rem]"
       >
-        <GoogleLogo className="size-4 shrink-0" />
-        <span aria-hidden="true">Preferred source</span>
+        <GoogleLogo className="size-3.5 shrink-0 sm:size-4" />
+        <span aria-hidden="true" className="min-w-0 text-left">
+          <span className="block truncate">Preferred</span>
+          <span className="block truncate">source</span>
+        </span>
       </a>
       <a
         href={GOOGLE_NEWS_SEARCH_URL}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Follow on Google News"
-        className="inline-flex h-8 w-max shrink-0 whitespace-nowrap items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-2 text-[0.68rem] font-semibold leading-none text-brand-navy transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-[430px]:px-1.5 sm:px-2.5 sm:text-xs"
+        className="inline-flex h-8 min-w-0 max-w-full items-center justify-center gap-1 overflow-hidden rounded-md border border-slate-300 bg-white px-1 text-[0.58rem] font-semibold leading-[1.05] text-brand-navy transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-1.5 sm:text-[0.68rem]"
       >
-        <GoogleNewsLogo className="size-4 shrink-0" />
-        <span aria-hidden="true">Google News</span>
+        <GoogleNewsLogo className="size-3.5 shrink-0 sm:size-4" />
+        <span aria-hidden="true" className="min-w-0 text-left">
+          <span className="block truncate">Google</span>
+          <span className="block truncate">News</span>
+        </span>
       </a>
     </div>
   );
