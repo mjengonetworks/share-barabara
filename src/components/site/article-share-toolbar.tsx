@@ -50,15 +50,7 @@ function GoogleLogo({ className }: { className?: string }) {
 }
 
 function GoogleNewsLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <rect x="2" y="4" width="20" height="16" rx="2" fill="#4285f4" />
-      <rect x="5" y="7" width="9" height="2" rx="1" fill="#fff" />
-      <rect x="5" y="11" width="6" height="6" rx="1" fill="#34a853" />
-      <rect x="13" y="11" width="6" height="2" rx="1" fill="#fbbc04" />
-      <rect x="13" y="15" width="6" height="2" rx="1" fill="#ea4335" />
-    </svg>
-  );
+  return <img src="/google-news-icon.svg" className={className} alt="" aria-hidden="true" />;
 }
 
 type ShareButtonsProps = { title: string; canonicalUrl?: string };
@@ -226,9 +218,10 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
         className="inline-flex h-8 min-w-0 max-w-full items-center justify-center gap-1 overflow-hidden rounded-md border border-slate-300 bg-white px-1 text-[0.58rem] font-semibold leading-[1.05] text-brand-navy transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-1.5 sm:text-[0.68rem]"
       >
         <GoogleLogo className="size-3.5 shrink-0 sm:size-4" />
-        <span aria-hidden="true" className="min-w-0 text-left">
-          <span className="block whitespace-nowrap">Add as a preferred</span>
-          <span className="block whitespace-nowrap">source on Google</span>
+        <span aria-hidden="true" className="min-w-0 text-left sm:whitespace-nowrap">
+          <span className="block sm:hidden">Add as a preferred</span>
+          <span className="block sm:hidden">source on Google</span>
+          <span className="hidden sm:inline">Add as a preferred source on Google</span>
         </span>
       </a>
       <a
@@ -239,9 +232,10 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
         className="inline-flex h-8 min-w-0 max-w-full items-center justify-center gap-1 overflow-hidden rounded-md border border-slate-300 bg-white px-1 text-[0.58rem] font-semibold leading-[1.05] text-brand-navy transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-1.5 sm:text-[0.68rem]"
       >
         <GoogleNewsLogo className="size-3.5 shrink-0 sm:size-4" />
-        <span aria-hidden="true" className="min-w-0 text-left">
-          <span className="block whitespace-nowrap">Follow on Google</span>
-          <span className="block whitespace-nowrap">News</span>
+        <span aria-hidden="true" className="min-w-0 text-left sm:whitespace-nowrap">
+          <span className="block sm:hidden">Follow on Google</span>
+          <span className="block sm:hidden">News</span>
+          <span className="hidden sm:inline">Follow on Google News</span>
         </span>
       </a>
     </div>
