@@ -8,7 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
  * falls back to a house placeholder promoting Partner With Us, rather than
  * rendering nothing, since a promotional slot is a site-wide requirement.
  */
-export function BannerAd({ className = "", placement = "site-default" }: { className?: string; placement?: string }) {
+export function BannerAd({
+  className = "",
+  placement = "site-default",
+}: {
+  className?: string;
+  placement?: string;
+}) {
   const { data: ads = [] } = useQuery({
     queryKey: ["banner-ads"],
     queryFn: async () => {
@@ -23,7 +29,14 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
     staleTime: 60_000,
   });
 
-  const ad = ads.length > 0 ? ads[Math.floor(Math.random() * ads.length)] : null;
+  const eligibleAds = ads.filter((candidate) => {
+    const title = String(candidate.title ?? "")
+      .trim()
+      .toLowerCase();
+    return !/^(emergency response, 24\/7|genuine parts, trusted fit)$/.test(title);
+  });
+  const ad =
+    eligibleAds.length > 0 ? eligibleAds[Math.floor(Math.random() * eligibleAds.length)] : null;
 
   if (ad) {
     return (
@@ -40,24 +53,34 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
           <Megaphone className="size-6 text-accent" />
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/70">
-            Sponsored
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/70">Sponsored</p>
           <p className="font-semibold text-white">{ad.title}</p>
         </div>
-        <span className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground">Visit Advertiser</span>
+        <span className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground">
+          Visit Advertiser
+        </span>
       </a>
     );
   }
 
   return (
-    <div data-ad-placement={placement} className={`flex flex-wrap items-center gap-3 rounded-xl border border-brand-blue/30 bg-brand-navy p-4 text-white ${className}`}>
+    <div
+      data-ad-placement={placement}
+      className={`flex flex-wrap items-center justify-center gap-3 rounded-xl border border-accent/60 bg-brand-navy p-4 text-center text-white ${className}`}
+    >
       <Megaphone className="size-6 shrink-0 text-accent" />
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-full">
         <p className="font-semibold uppercase tracking-wide text-white">YOUR AD HERE</p>
-        <p className="mt-0.5 text-xs text-white/70">Reach road users and the wider transport community.</p>
+        <p className="mt-0.5 text-xs text-white/70">
+          Reach Share Barabara’s road-safety community.
+        </p>
       </div>
-      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90">Advertise with us</Link>
+      <Link
+        to="/partner-with-us"
+        className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90"
+      >
+        Advertise with us
+      </Link>
     </div>
   );
 }

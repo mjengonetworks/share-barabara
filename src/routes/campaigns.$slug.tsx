@@ -75,7 +75,7 @@ function CampaignDetail() {
           { label: campaign.title },
         ]}
       />
-      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
+      <div className="mx-auto grid w-full max-w-[1500px] items-start gap-4 px-2 py-2 sm:gap-5 sm:px-6 sm:py-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-6">
         <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={STATUS_VARIANT[status]} className="capitalize">

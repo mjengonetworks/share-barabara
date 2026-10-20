@@ -174,12 +174,12 @@ export function SisterPlatformPreviews() {
     <section className="grid gap-2" aria-label="Share Barabara ecosystem platforms">
       <ExternalPreview
         name="Mjengo Hub"
-        description="A construction and infrastructure information platform covering news, projects and developments in Kenya and beyond."
+        description="Construction news, industry insights, project tracking and documentation from Kenya and beyond."
         href="https://mjengohub.co.ke"
       />
       <ExternalPreview
         name="Mjengo Networks"
-        description="A professional and business networking platform connecting people, organisations and opportunities across the built environment."
+        description="Find rated fundis, contractors, consultants and other service providers. Explore pricing, material price indices and AI-powered quotations from registered suppliers."
         href="https://mjengonetworks.co.ke"
       />
     </section>
@@ -211,7 +211,6 @@ function ExternalPreview({
         </span>
         <div className="min-w-0">
           <p className="text-sm font-bold">{name}</p>
-          <p className="text-xs text-blue-100/80">Across our ecosystem</p>
         </div>
         <ExternalLink className="ml-auto size-4 shrink-0" aria-hidden="true" />
       </div>
@@ -416,10 +415,7 @@ export function DiscoverySections({ focus, currentId }: { focus: Focus; currentI
       <section>
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-              Across our ecosystem
-            </p>
-            <h2 className="mt-1 text-xl font-bold">Explore our platforms</h2>
+            <h2 className="text-xl font-bold">Explore our platforms</h2>
           </div>
         </div>
         <SisterPlatformPreviews />

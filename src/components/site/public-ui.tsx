@@ -8,6 +8,9 @@ export const publicCategoryBadgeClass =
 export const publicCategoryBadgeSelectedClass =
   "inline-flex max-w-full items-center rounded-md border border-blue-100/40 bg-brand-navy px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+export const publicRecommendationBadgeClass =
+  "inline-flex max-w-full items-center rounded-md border border-amber-300/80 bg-amber-200 px-1.5 py-0.5 text-[10px] font-semibold leading-tight text-brand-navy shadow-sm";
+
 export function PublicCategoryBadge({ category }: { category: string }) {
   return (
     <Link to="/news" search={{ category }} className={publicCategoryBadgeClass}>

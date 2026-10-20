@@ -19,7 +19,10 @@ import {
   ReportPreviewCard,
   SisterPlatformPreviews,
 } from "@/components/site/discovery-sections";
-import { publicCategoryBadgeClass } from "@/components/site/public-ui";
+import {
+  publicCategoryBadgeClass,
+  publicRecommendationBadgeClass,
+} from "@/components/site/public-ui";
 
 export type ArticleSidebarArticle = {
   id: string;
@@ -55,9 +58,13 @@ export function ArticleSidebarList({ articles }: { articles: ArticleSidebarArtic
             <span className="block line-clamp-2 text-sm font-bold leading-snug text-foreground group-hover:text-brand-blue group-hover:underline">
               {article.title}
             </span>
-            <span className="mt-1 block truncate text-[0.68rem] font-semibold uppercase tracking-wide text-accent-foreground">
-              {article.category ?? "News"}
-              {article.source ? ` · ${article.source}` : ""}
+            <span className="mt-1 block">
+              <span className={publicRecommendationBadgeClass}>{article.category ?? "News"}</span>
+              {article.source ? (
+                <span className="ml-1 text-[0.68rem] text-muted-foreground">
+                  · {article.source}
+                </span>
+              ) : null}
             </span>
           </span>
           <span className="order-2 w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
@@ -163,23 +170,26 @@ export function ArticleSidebar({
       ) : null}
 
       {categories.length > 0 ? (
-        <PublicSidebarSection>
-          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-            Browse articles by category
-          </h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <Link
-                key={category}
-                to="/news"
-                search={{ category }}
-                className={publicCategoryBadgeClass}
-              >
-                {category}
-              </Link>
-            ))}
-          </div>
-        </PublicSidebarSection>
+        <>
+          <PublicSidebarSection>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Browse articles by category
+            </h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <Link
+                  key={category}
+                  to="/news"
+                  search={{ category }}
+                  className={publicCategoryBadgeClass}
+                >
+                  {category}
+                </Link>
+              ))}
+            </div>
+          </PublicSidebarSection>
+          <BannerAd placement="article-sidebar-after-categories" />
+        </>
       ) : null}
 
       {trending.length > 0 ? (

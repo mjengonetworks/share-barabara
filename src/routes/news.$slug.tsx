@@ -328,8 +328,8 @@ function NewsDetail() {
           </span>
         </div>
       </nav>
-      <div className="mx-auto grid max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-7 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
-        <article className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-6 lg:p-6">
+      <div className="mx-auto grid items-start max-w-[1500px] gap-4 px-2 py-2 sm:gap-5 sm:px-6 sm:py-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
+        <article className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-5 lg:p-6">
           <div className="flex flex-wrap gap-1.5">
             {(article.categories?.length ? article.categories : [article.category]).map((c) => (
               <Link

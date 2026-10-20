@@ -78,9 +78,8 @@ test("unsold ads use the Partner With Us CTA while paid ads remain untouched", (
 
 test("related articles are centered and ecosystem language is accurate", () => {
   assert.match(article, /mx-auto max-w-2xl rounded border-l-4/);
-  assert.match(discovery, /Across our ecosystem/);
   assert.match(discovery, /Explore our platforms/);
-  assert.doesNotMatch(discovery, /Explore sister platforms/);
+  assert.doesNotMatch(discovery, /Across our ecosystem/);
 });
 
 test("Google preferred-source control is compact rather than circular", () => {
