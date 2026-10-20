@@ -12,7 +12,7 @@ const migration = read(
 );
 
 test("public ecosystem previews use persisted settings with complete approved defaults", () => {
-  assert.match(discovery, /from\("ecosystem_previews"\)/);
+  assert.match(discovery, /from\("ecosystem_previews_public"\)/);
   assert.match(
     discovery,
     /Construction news, industry insights, project tracking and documentation from Kenya and beyond\./,
@@ -39,15 +39,30 @@ test("reviewed migration protects ecosystem and fallback settings with admin-onl
   assert.match(migration, /has_min_role\(auth\.uid\(\), 'admin'\)/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS public\.advertising_settings/);
   assert.match(migration, /advertising_settings_admin_write/);
+  assert.match(migration, /ecosystem_previews_public/);
+  assert.match(migration, /advertising_settings_public/);
+  assert.match(
+    migration,
+    /REVOKE ALL ON TABLE public\.ecosystem_previews FROM anon, authenticated/,
+  );
+  assert.match(
+    migration,
+    /REVOKE ALL ON TABLE public\.advertising_settings FROM anon, authenticated/,
+  );
+  assert.doesNotMatch(migration, /UPDATE public\.banner_ads[\s\S]*WHERE[\s\S]*title/i);
+  assert.doesNotMatch(migration, /example\./i);
+  assert.match(migration, /security_invoker = false/);
+  assert.match(migration, /touch_updated_at/);
+  assert.match(migration, /enabled_order_idx/);
   assert.match(migration, /ON CONFLICT \(slug\) DO NOTHING/);
   assert.match(migration, /ON CONFLICT \(id\) DO NOTHING/);
 });
 
 test("ads only render eligible campaigns and use the configurable house fallback", () => {
-  assert.match(ads, /from\("advertising_settings"\)/);
+  assert.match(ads, /from\("advertising_settings_public"\)/);
   assert.match(ads, /isGenuinePaidAd/);
   assert.match(ads, /candidate\.is_demo !== true/);
-  assert.match(ads, /example\./);
+  assert.doesNotMatch(ads, /DEMO_AD_TITLES|lower\(title\)|example\./i);
   assert.match(ads, /fallback\.fallback_headline/);
   assert.match(ads, /Your Ad Here/);
   assert.match(ads, /fallback\.fallback_enabled/);

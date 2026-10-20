@@ -49,7 +49,11 @@ test("sidebar inserts the shared ad slot directly after categories", () => {
 
 test("generic seeded placeholder ads are filtered while genuine ads and fallback remain", () => {
   assert.match(ads, /eligibleAds = ads\.filter/);
-  assert.match(ads, /emergency response, 24\\\/7|genuine parts, trusted fit/);
+  assert.match(ads, /candidate\.is_demo !== true/);
+  assert.doesNotMatch(
+    ads,
+    /DEMO_AD_TITLES|lower\(title\)|emergency response, 24\\\/7|genuine parts, trusted fit/i,
+  );
   assert.match(ads, /Your Ad Here/);
   assert.match(ads, /partner-with-us/);
   assert.match(ads, /data-ad-placement/);

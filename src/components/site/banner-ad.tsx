@@ -32,7 +32,7 @@ export function BannerAd({
     queryKey: ["advertising-settings"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("advertising_settings")
+        .from("advertising_settings_public")
         .select(
           "fallback_headline, fallback_supporting_text, fallback_destination_url, fallback_enabled",
         )
@@ -110,29 +110,6 @@ const DEFAULT_FALLBACK = {
   fallback_enabled: true,
 };
 
-const DEMO_AD_TITLES = new Set([
-  "road safety starts with you",
-  "drive safe, arrive alive",
-  "comprehensive motor cover",
-  "tyres that grip when it matters",
-  "fuel up safely, every stop",
-  "ride safe with us",
-  "book your roadworthiness test",
-  "emergency response, 24/7",
-  "genuine parts, trusted fit",
-  "plan your journey, check road status",
-]);
-
-function isGenuinePaidAd(candidate: {
-  title?: string | null;
-  link_url?: string | null;
-  is_demo?: boolean | null;
-}) {
-  const title = String(candidate.title ?? "")
-    .trim()
-    .toLowerCase();
-  const link = String(candidate.link_url ?? "")
-    .trim()
-    .toLowerCase();
-  return candidate.is_demo !== true && !DEMO_AD_TITLES.has(title) && !link.includes("example.");
+function isGenuinePaidAd(candidate: { is_demo?: boolean | null }) {
+  return candidate.is_demo !== true;
 }

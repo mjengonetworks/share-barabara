@@ -1879,7 +1879,28 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      advertising_settings_public: {
+        Row: {
+          fallback_destination_url: string;
+          fallback_enabled: boolean;
+          fallback_headline: string;
+          fallback_style: string;
+          fallback_supporting_text: string;
+          id: number;
+        };
+        Relationships: [];
+      };
+      ecosystem_previews_public: {
+        Row: {
+          description: string;
+          destination_url: string;
+          display_name: string;
+          icon_url: string | null;
+          slug: string;
+          sort_order: number;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       apply_referral_code: { Args: { _code: string }; Returns: boolean };

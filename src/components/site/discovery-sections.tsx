@@ -174,9 +174,8 @@ export function SisterPlatformPreviews() {
     queryKey: ["ecosystem-previews"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("ecosystem_previews")
-        .select("slug, display_name, description, destination_url, icon_url, sort_order, enabled")
-        .eq("enabled", true)
+        .from("ecosystem_previews_public")
+        .select("slug, display_name, description, destination_url, icon_url, sort_order")
         .order("sort_order", { ascending: true });
       if (error || !data?.length) return DEFAULT_ECOSYSTEM_PREVIEWS;
       return data as EcosystemPreview[];
