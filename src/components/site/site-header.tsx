@@ -55,9 +55,8 @@ export function SiteHeader() {
   const { data: ownNames = {} } = useProfileNames(user ? [user.id] : []);
   const { rank } = useRoles();
   const profileName = user ? ownNames[user.id]?.trim() || "Profile name unavailable" : "Profile";
-  const activeIdentityName = identity.type === "page"
-    ? activePage?.name?.trim() || "Page unavailable"
-    : profileName;
+  const activeIdentityName =
+    identity.type === "page" ? activePage?.name?.trim() || "Page unavailable" : profileName;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const headerRef = useRef<HTMLElement>(null);
 
@@ -90,7 +89,7 @@ export function SiteHeader() {
       ref={headerRef}
       className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur"
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:grid lg:h-16 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-4">
+      <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center gap-2 px-3 sm:gap-3 sm:px-5 lg:grid lg:h-16 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-5 lg:px-6">
         <button
           className="order-first flex size-9 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-muted lg:hidden"
           aria-label="Toggle menu"
@@ -104,13 +103,15 @@ export function SiteHeader() {
           <img src={logoUrl} alt="Share Barabara" className="h-11 w-auto sm:h-12 lg:h-12" />
         </Link>
 
-        <nav className="hidden min-w-0 items-center justify-center gap-0.5 overflow-x-auto lg:flex">
+        <nav className="hidden min-w-0 items-center justify-center gap-1 overflow-hidden lg:flex">
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className={`whitespace-nowrap rounded px-2 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent lg:px-3 ${item.to === "/feed" ? "border border-accent/70 text-accent-foreground hover:bg-accent/10" : ""}`}
-              activeProps={{ className: `whitespace-nowrap rounded px-2 py-2 text-sm font-semibold text-foreground lg:px-3 ${item.to === "/feed" ? "border border-accent bg-accent/10 text-accent-foreground" : ""}` }}
+              className={`inline-flex whitespace-nowrap rounded-md border px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:text-sm ${item.to === "/feed" ? "border-accent bg-accent text-brand-navy shadow-sm hover:bg-accent/90" : "border-border/80 bg-card/70 text-foreground hover:border-brand-blue hover:bg-brand-blue/5"}`}
+              activeProps={{
+                className: `inline-flex whitespace-nowrap rounded-md border px-2.5 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:text-sm ${item.to === "/feed" ? "border-accent bg-accent text-brand-navy shadow-sm" : "border-brand-blue bg-brand-blue/10 text-brand-navy"}`,
+              }}
             >
               {item.label}
             </Link>
@@ -122,15 +123,15 @@ export function SiteHeader() {
           <HeaderShareBarabaraAI />
           {user ? (
             <>
-              <span className="hidden lg:inline-flex"><SubscribeButton /></span>
+              <span className="hidden lg:inline-flex">
+                <SubscribeButton />
+              </span>
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     aria-label="Profile menu"
-                    title={
-                      `Browsing as ${activeIdentityName}`
-                    }
+                    title={`Browsing as ${activeIdentityName}`}
                     className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-accent hover:text-foreground"
                   >
                     {activePage ? (
@@ -205,45 +206,53 @@ export function SiteHeader() {
       {open ? (
         <>
           <div className="fixed inset-0 top-14 z-40 bg-black/45 lg:hidden" aria-hidden="true" />
-          <nav id="mobile-site-navigation" aria-label="Mobile navigation" className="absolute left-0 top-full z-50 w-[min(88vw,22rem)] border-r border-t border-border/60 bg-background px-4 py-3 shadow-xl lg:hidden">
-          <div className="max-w-sm">
-            {NAV.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className="block rounded px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
-                activeProps={{ className: "block rounded bg-accent/10 px-3 py-2.5 text-sm font-semibold text-foreground" }}
-              >
-                {item.label}
-              </Link>
-            ))}
-            <div className="mt-3 border-t border-border/60 pt-3">
-              {user ? (
-                <>
-                  <Link
-                    to="/u/$userId"
-                    params={{ userId: ownUsername[user.id] ?? user.id }}
-                    onClick={() => setOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-md border border-primary bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
-                  >
-                    <CircleUserRound className="size-4" /> <span className="truncate">{profileName}</span>
-                  </Link>
-                  <Link
-                    to="/subscribe"
-                    onClick={() => setOpen(false)}
-                    className="mt-2 flex w-full items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
-                  >
-                    <BadgeCheck className="size-4" /> Verification &amp; subscriptions
-                  </Link>
-                </>
-              ) : (
-                <Button asChild size="sm" onClick={() => setOpen(false)}>
-                  <Link to="/auth">Sign in</Link>
-                </Button>
-              )}
+          <nav
+            id="mobile-site-navigation"
+            aria-label="Mobile navigation"
+            className="absolute left-0 top-full z-50 w-[min(88vw,22rem)] border-r border-t border-border/60 bg-background px-4 py-3 shadow-xl lg:hidden"
+          >
+            <div className="max-w-sm">
+              {NAV.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setOpen(false)}
+                  className="block rounded px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+                  activeProps={{
+                    className:
+                      "block rounded bg-accent/10 px-3 py-2.5 text-sm font-semibold text-foreground",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <div className="mt-3 border-t border-border/60 pt-3">
+                {user ? (
+                  <>
+                    <Link
+                      to="/u/$userId"
+                      params={{ userId: ownUsername[user.id] ?? user.id }}
+                      onClick={() => setOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-md border border-primary bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                    >
+                      <CircleUserRound className="size-4" />{" "}
+                      <span className="truncate">{profileName}</span>
+                    </Link>
+                    <Link
+                      to="/subscribe"
+                      onClick={() => setOpen(false)}
+                      className="mt-2 flex w-full items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+                    >
+                      <BadgeCheck className="size-4" /> Verification &amp; subscriptions
+                    </Link>
+                  </>
+                ) : (
+                  <Button asChild size="sm" onClick={() => setOpen(false)}>
+                    <Link to="/auth">Sign in</Link>
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
           </nav>
         </>
       ) : null}

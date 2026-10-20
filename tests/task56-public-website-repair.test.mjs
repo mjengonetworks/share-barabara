@@ -91,7 +91,7 @@ test("Google preferred-source control is compact rather than circular", () => {
 
 test("public article surfaces have a lead story, newsletter capture, and honest subscription states", () => {
   assert.match(newsIndex, /CompactEditorialColumns/);
-  assert.match(newsIndex, /Featured \/ Prime Articles/);
+  assert.match(newsIndex, /title="Featured Articles"/);
   assert.match(article, /ArticleSidebar/);
   assert.match(publicUi, /PublicNewsletterCard/);
   assert.match(newsletter, /already subscribed/);
@@ -102,7 +102,7 @@ test("public article surfaces have a lead story, newsletter capture, and honest 
 test("mobile navigation has an accessible compact disclosure and full-width account actions", () => {
   assert.match(headerSource, /aria-expanded=\{open\}/);
   assert.match(headerSource, /aria-controls="mobile-site-navigation"/);
-  assert.match(headerSource, /id="mobile-site-navigation" aria-label="Mobile navigation"/);
+  assert.match(headerSource, /id="mobile-site-navigation"[\s\S]*aria-label="Mobile navigation"/);
   assert.doesNotMatch(headerSource, /className="flex w-2\/3/);
 });
 

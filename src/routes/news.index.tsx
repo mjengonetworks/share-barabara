@@ -51,7 +51,7 @@ export const Route = createFileRoute("/news/")({
   loader: async (): Promise<NewsIndexLoaderData> => {
     const [all, trendingResult, relatedAlertsResult, relatedReportsResult] = await Promise.all([
       fetchPublishedArticles(),
-      supabase.rpc("trending_news", { hours_back: 48, result_limit: 12 }),
+      supabase.rpc("trending_news", { hours_back: 168, result_limit: 12 }),
       supabase
         .from("alerts")
         .select("id, title, description, county, road, hazard_type, severity, created_at")
@@ -115,8 +115,8 @@ function MostViewed({ articles }: { articles: ArticleCard[] }) {
   return (
     <EditorialBand tone="plain">
       <SectionHeader
-        eyebrow="Verified view activity · 48 hours"
-        title="Most Viewed"
+        eyebrow="Verified view activity · 7 days"
+        title="Most Viewed This Week"
         to="/news"
         actionLabel="Browse all"
       />
@@ -162,6 +162,42 @@ function LatestStrip({ articles }: { articles: ArticleCard[] }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function CategoryFilters({ categories, active }: { categories: string[]; active?: string }) {
+  return (
+    <nav
+      aria-label="Filter articles by category"
+      className="flex min-w-0 gap-2 overflow-x-auto pb-1 scrollbar-none"
+    >
+      <Link
+        to="/news"
+        aria-current={!active ? "page" : undefined}
+        className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 sm:py-2 sm:text-sm ${
+          !active
+            ? "border-accent bg-accent text-brand-navy"
+            : "border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
+        }`}
+      >
+        All articles
+      </Link>
+      {categories.map((category) => (
+        <Link
+          key={category}
+          to="/news"
+          search={{ category }}
+          aria-current={active === category ? "page" : undefined}
+          className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 sm:py-2 sm:text-sm ${
+            active === category
+              ? "border-accent bg-accent text-brand-navy"
+              : "border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:border-accent hover:bg-accent/20"
+          }`}
+        >
+          {category}
+        </Link>
+      ))}
+    </nav>
   );
 }
 const articleSelect =
@@ -249,7 +285,11 @@ function CategoryEditorialModules({ articles }: { articles: ArticleCard[] }) {
     <div className="space-y-0">
       {modules.map(([category, items], index) => (
         <div key={category}>
-          {index > 0 && index % 4 === 0 ? <div className="py-6"><BannerAd placement={`news-more-category-interval-${index / 4}`} /></div> : null}
+          {index > 0 && index % 4 === 0 ? (
+            <div className="py-6">
+              <BannerAd placement={`news-more-category-interval-${index / 4}`} />
+            </div>
+          ) : null}
           <div className="border-b border-border/70 py-7 first:pt-0 last:border-b-0">
             <SectionHeader
               eyebrow="Published category"
@@ -374,7 +414,7 @@ function NewsIndex() {
     initialData: loaderData.trending.slice(0, trendingLimit),
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
-        hours_back: 48,
+        hours_back: 168,
         result_limit: trendingLimit,
       });
       if (error) throw error;
@@ -424,40 +464,13 @@ function NewsIndex() {
         description="Road safety reporting, transport insight and community stories about how Kenyans travel and how we can make every journey safer."
         image={heroRoad}
         fullBleed
-      />
+      >
+        <div className="basis-full min-w-0">
+          <CategoryFilters categories={loaderData.categories} active={category} />
+        </div>
+      </PublicPageHero>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {!category ? <LatestStrip articles={latest} /> : null}
-        <nav
-          aria-label="Filter articles by category"
-          className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none"
-        >
-          <Link
-            to="/news"
-            aria-current={!category ? "page" : undefined}
-            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              !category
-                ? "border-brand-blue bg-brand-blue text-white"
-                : "border-border bg-card hover:border-accent hover:text-accent-foreground"
-            }`}
-          >
-            All articles
-          </Link>
-          {loaderData.categories.map((categoryName) => (
-            <Link
-              key={categoryName}
-              to="/news"
-              search={{ category: categoryName }}
-              aria-current={category === categoryName ? "page" : undefined}
-              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                category === categoryName
-                  ? "border-brand-blue bg-brand-blue text-white"
-                  : "border-[#CFE2FA] bg-[#EAF3FF] text-[#174A87] hover:border-brand-blue"
-              }`}
-            >
-              {categoryName}
-            </Link>
-          ))}
-        </nav>
         {user && canWrite ? (
           <div className="mt-4 flex justify-end">
             <WriteButton signedIn={!!user} canWrite={canWrite} />
@@ -485,27 +498,16 @@ function NewsIndex() {
         ) : (
           <div className="mt-8 space-y-0">
             <TopicSection
-              title="Trending Articles"
-              eyebrow="What readers are opening"
-              articles={trending}
-              tone="pale"
-              placement="news-trending"
-            />
-            {trending.length === trendingLimit ? (
-              <LoadMore onClick={() => setTrendingLimit((value) => value + 6)} />
-            ) : null}
-            <TopicSection
-              title="Latest Articles"
+              title="Latest News"
               eyebrow="The newsroom"
               articles={latest}
               placement="news-latest"
             />
-            <MostViewed articles={trending} />
             {featured.length ? (
               <EditorialBand tone="pale">
                 <SectionHeader
                   eyebrow="Editors' selection"
-                  title="Featured / Prime Articles"
+                  title="Featured Articles"
                   icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
                   to="/news"
                   actionLabel="Read more"
@@ -522,6 +524,18 @@ function NewsIndex() {
                 ) : null}
               </EditorialBand>
             ) : null}
+            <TopicSection
+              title="Trending Articles"
+              eyebrow="What readers are opening"
+              articles={trending}
+              tone="pale"
+              placement="news-trending"
+              optional
+            />
+            {trending.length === trendingLimit ? (
+              <LoadMore onClick={() => setTrendingLimit((value) => value + 6)} />
+            ) : null}
+            <MostViewed articles={trending} />
             <EditorialBand tone="plain">
               <SectionHeader
                 eyebrow="Browse the newsroom"

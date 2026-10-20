@@ -76,10 +76,10 @@ export function ArticlePreviewCard({ article }: { article: ArticlePreview }) {
         </div>
       )}
       <div className="p-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">
+        <p className="inline-flex w-fit rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold leading-tight text-brand-navy">
           {article.category}
         </p>
-        <h3 className="mt-1 line-clamp-2 font-bold leading-snug group-hover:underline">
+        <h3 className="mt-1 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">
           {article.title}
         </h3>
         <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{article.summary}</p>

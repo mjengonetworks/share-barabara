@@ -96,7 +96,7 @@ function ArticleMeta({
       {article.category ? (
         <span
           className={cn(
-            "rounded bg-accent/20 px-2 py-0.5 font-semibold uppercase tracking-wider text-accent-foreground",
+            "rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold leading-tight text-brand-navy",
             compact && "px-1.5",
           )}
         >
@@ -121,7 +121,7 @@ export function FeaturedLeadCard({ article }: { article: PublicArticleCard }) {
       <ArticleImage article={article} lead />
       <div className="p-5 sm:p-6">
         <ArticleMeta article={article} />
-        <h3 className="mt-3 text-2xl font-extrabold leading-tight text-foreground group-hover:underline sm:text-3xl">
+        <h3 className="mt-3 text-2xl font-extrabold leading-tight text-brand-navy group-hover:underline sm:text-3xl">
           {article.title}
         </h3>
         {article.summary ? (
@@ -146,7 +146,7 @@ export function CompactArticleCard({ article }: { article: PublicArticleCard }) 
       </div>
       <div className="min-w-0 sm:p-4">
         <ArticleMeta article={article} />
-        <h3 className="mt-1.5 line-clamp-3 font-bold leading-snug text-foreground group-hover:underline sm:text-base">
+        <h3 className="mt-1.5 line-clamp-3 font-bold leading-snug text-brand-navy group-hover:underline sm:text-base">
           {article.title}
         </h3>
         {article.summary ? (
@@ -171,7 +171,7 @@ export function CompactArticleRow({ article }: { article: PublicArticleCard }) {
       </div>
       <div className="min-w-0 py-0.5">
         <ArticleMeta article={article} compact />
-        <h3 className="mt-1 line-clamp-3 text-[13px] font-bold leading-snug text-foreground group-hover:underline sm:text-sm">
+        <h3 className="mt-1 line-clamp-3 text-[13px] font-bold leading-snug text-brand-navy group-hover:underline sm:text-sm">
           {article.title}
         </h3>
       </div>
@@ -255,7 +255,7 @@ export function CompactEditorialColumn({
       >
         <ArticleImage article={lead} lead />
         <ArticleMeta article={lead} compact />
-        <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-brand-blue group-hover:underline">
+        <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-brand-navy group-hover:underline">
           {lead.title}
         </h4>
       </Link>

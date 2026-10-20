@@ -38,7 +38,7 @@ test("news listing keeps the editorial lead, compact cards, sections and ad plac
   assert.match(news, /EditorialBand tone="pale"/);
   assert.match(news, /news-latest/);
   assert.match(news, /news-trending/);
-  assert.match(news, /Featured \/ Prime Articles/);
+  assert.match(news, /title="Featured Articles"/);
   assert.match(news, /Articles by Category/);
   assert.match(news, /Road Safety Analysis/);
   assert.match(news, /Related Accident Reports/);
@@ -53,6 +53,9 @@ test("news listing keeps the editorial lead, compact cards, sections and ad plac
   assert.match(news, /Filter articles by category/);
   assert.match(news, /from\("accident_reports"\)/);
   assert.match(news, /from\("alerts"\)/);
+  assert.ok(news.indexOf('title="Latest News"') < news.indexOf('title="Featured Articles"'));
+  assert.ok(news.indexOf('title="Featured Articles"') < news.indexOf('title="Trending Articles"'));
+  assert.match(news, /hours_back: 168/);
 });
 
 test("article detail keeps SEO, sharing, discussion, newsletter, midpoint ad and contextual recommendations", () => {
@@ -159,4 +162,24 @@ test("editorial preview cards omit dates while preserving allowed detail and fee
     assert.doesNotMatch(source, /longDate\(r\.occurred_at\)/);
   }
   assert.match(detail, /longDateWithDay\(article\.published_at\)/);
+});
+
+test("post-release editorial controls preserve compact public navigation and Google destinations", () => {
+  const header = read("src/components/site/site-header.tsx");
+  const share = read("src/components/site/article-share-toolbar.tsx");
+  assert.match(header, /border-accent bg-accent text-brand-navy/);
+  assert.match(header, /item\.to === "\/feed"/);
+  assert.match(header, /max-w-\[1600px\]/);
+  assert.match(share, /grid max-w-full grid-cols-2 gap-1 sm:flex sm:flex-nowrap/);
+  assert.match(share, /whitespace-nowrap/);
+  assert.match(share, /news\.google\.com\/search\?q=share%20barabara/);
+  assert.doesNotMatch(share, /q=mjengo%20hub/);
+});
+
+test("related editorial previews use subordinate gold category labels and navy titles", () => {
+  const layout = read("src/components/site/public-layout.tsx");
+  const discovery = read("src/components/site/discovery-sections.tsx");
+  assert.match(layout, /bg-amber-200 px-1\.5 py-0\.5 text-\[10px\].*text-brand-navy/);
+  assert.match(layout, /text-brand-navy group-hover:underline/);
+  assert.match(discovery, /bg-amber-200 px-1\.5 py-0\.5 text-\[10px\].*text-brand-navy/);
 });

@@ -174,7 +174,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="inline-flex h-8 min-w-0 items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-card px-1.5 text-[0.68rem] font-semibold text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-9 sm:px-2.5 sm:text-sm"
+          className="inline-flex h-8 min-w-0 whitespace-nowrap items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-card px-1.5 text-[0.68rem] font-semibold text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-8 sm:px-2 sm:text-xs"
         >
           <Share2 className="size-4" aria-hidden="true" />
           Share
@@ -207,7 +207,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
       <button
         type="button"
         onClick={copyLink}
-        className="inline-flex h-8 min-w-0 items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-card px-1.5 text-[0.68rem] font-semibold text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-9 sm:px-2.5 sm:text-sm"
+        className="inline-flex h-8 min-w-0 whitespace-nowrap items-center justify-center gap-1 rounded-md border border-brand-navy/70 bg-card px-1.5 text-[0.68rem] font-semibold text-brand-navy transition-colors hover:border-brand-blue hover:bg-brand-blue/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-8 sm:px-2 sm:text-xs"
       >
         {copied ? (
           <Check className="size-4 text-safe" aria-hidden="true" />
@@ -221,7 +221,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
         target="_blank"
         rel="noopener noreferrer"
         aria-label={settings?.google_source_label?.trim() || "Add as a preferred source on Google"}
-        className="inline-flex min-w-0 max-w-full items-center justify-center gap-1 rounded-md border border-border bg-card px-1.5 py-1 text-[0.62rem] font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2.5 sm:py-1.5 sm:text-xs"
+        className="inline-flex min-w-0 max-w-full whitespace-nowrap items-center justify-center gap-1 rounded-md border border-border bg-card px-1.5 py-1 text-[0.62rem] font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2 sm:py-1 sm:text-xs"
       >
         <GoogleLogo className="size-4 shrink-0" />
         <span aria-hidden="true">Preferred source</span>
@@ -231,7 +231,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Follow on Google News"
-        className="inline-flex min-w-0 max-w-full items-center justify-center gap-1 rounded-md border border-border bg-card px-1.5 py-1 text-[0.62rem] font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2.5 sm:py-1.5 sm:text-xs"
+        className="inline-flex min-w-0 max-w-full whitespace-nowrap items-center justify-center gap-1 rounded-md border border-border bg-card px-1.5 py-1 text-[0.62rem] font-semibold leading-tight text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-2 sm:py-1 sm:text-xs"
       >
         <GoogleNewsLogo className="size-4 shrink-0" />
         <span aria-hidden="true">Google News</span>
