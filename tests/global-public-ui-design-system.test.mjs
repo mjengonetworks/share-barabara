@@ -37,6 +37,7 @@ test("all public detail share surfaces resolve to one four-action toolbar", () =
   assert.match(toolbar, /hidden sm:inline.*Add as a preferred source on Google/);
   assert.match(toolbar, /hidden sm:inline.*Follow on Google News/);
   assert.match(toolbar, /src="\/google-news-icon\.svg"/);
+  assert.match(toolbar, /sm:w-max sm:grid-cols-\[auto_auto_max-content_max-content\]/);
   assert.doesNotMatch(toolbar, /flex-wrap/);
   assert.doesNotMatch(toolbar, /grid-cols-2/);
 });

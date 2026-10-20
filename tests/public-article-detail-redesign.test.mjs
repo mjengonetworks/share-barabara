@@ -77,6 +77,7 @@ test("article share toolbar has four primary actions and an accessible social me
   assert.match(share, /hidden sm:inline.*Add as a preferred source on Google/);
   assert.match(share, /hidden sm:inline.*Follow on Google News/);
   assert.match(share, /src="\/google-news-icon\.svg"/);
+  assert.match(share, /sm:w-max sm:grid-cols-\[auto_auto_max-content_max-content\]/);
   assert.match(share, /border-brand-navy\/70 bg-white/);
   assert.match(share, /Add as a preferred source on Google/);
   assert.match(share, /aria-label="Follow on Google News"/);

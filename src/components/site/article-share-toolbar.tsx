@@ -157,7 +157,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
 
   return (
     <div
-      className="share-toolbar-actions grid w-full max-w-full min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] items-center gap-1"
+      className="share-toolbar-actions grid w-full max-w-full min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] items-center gap-1 sm:w-max sm:grid-cols-[auto_auto_max-content_max-content]"
       aria-label="Public sharing actions"
     >
       <div className="relative min-w-0" ref={menuRef}>
