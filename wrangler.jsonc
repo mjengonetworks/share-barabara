@@ -3,6 +3,7 @@
   "name": "share-barabara",
   "compatibility_date": "2026-09-21",
   "vars": {
+    "DEPLOYMENT_ENV": "production",
     "WEB_PUSH_ENABLED": "true"
   },
   "triggers": {
@@ -26,5 +27,23 @@
         "period": 60
       }
     }
-  ]
+  ],
+  "env": {
+    "staging": {
+      "name": "share-barabara-staging",
+      "vars": {
+        "DEPLOYMENT_ENV": "staging",
+        "WEB_PUSH_ENABLED": "false"
+      },
+      "routes": [
+        {
+          "pattern": "staging.sharebarabara.co.ke",
+          "zone_name": "sharebarabara.co.ke",
+          "custom_domain": true,
+          "enabled": true,
+          "previews_enabled": false
+        }
+      ]
+    }
+  }
 }
