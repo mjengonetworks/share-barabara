@@ -27,7 +27,11 @@ import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
 import { NewsletterForm } from "@/components/site/newsletter-form";
-import { PublicBreadcrumbStrip, PublicSidebar, SidebarModule } from "@/components/site/public-layout";
+import {
+  PublicBreadcrumbStrip,
+  PublicSidebar,
+  SidebarModule,
+} from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -66,16 +70,20 @@ function ReportList({ reports }: { reports: RelatedReport[] }) {
     <ul className="mt-3 space-y-3">
       {reports.map((r, index) => (
         <Fragment key={r.id}>
-          {isAdInterval(index + 1) ? <li><BannerAd placement={`report-sidebar-interval-${(index + 1) / 4}`} /></li> : null}
-        <li key={r.id}>
-          <Link
-            to="/reports/$reportId"
-            params={{ reportId: r.id }}
-            className="text-sm text-brand-blue hover:underline"
-          >
-            {r.title}
-          </Link>
-        </li>
+          {isAdInterval(index + 1) ? (
+            <li>
+              <BannerAd placement={`report-sidebar-interval-${(index + 1) / 4}`} />
+            </li>
+          ) : null}
+          <li key={r.id}>
+            <Link
+              to="/reports/$reportId"
+              params={{ reportId: r.id }}
+              className="text-sm text-brand-blue hover:underline"
+            >
+              {r.title}
+            </Link>
+          </li>
         </Fragment>
       ))}
     </ul>
@@ -184,7 +192,13 @@ function ReportDetail() {
 
   return (
     <>
-      <PublicBreadcrumbStrip items={[{ label: "Home", to: "/" }, { label: "Accident Reports", to: "/reports" }, { label: report.title }]} />
+      <PublicBreadcrumbStrip
+        items={[
+          { label: "Home", to: "/" },
+          { label: "Accident Reports", to: "/reports" },
+          { label: report.title },
+        ]}
+      />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
         <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
           <Link
@@ -215,7 +229,9 @@ function ReportDetail() {
               {report.rejection_reason}
             </p>
           ) : null}
-          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">{report.title}</h1>
+          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            {report.title}
+          </h1>
           <div className="mt-3">
             <ShareButtons title={report.title} />
           </div>
@@ -302,7 +318,9 @@ function ReportDetail() {
 
           <div className="mt-6 grid grid-cols-3 gap-4">
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
-              <p className="font-display text-2xl font-extrabold">{displayReportCount(report.vehicles_involved)}</p>
+              <p className="font-display text-2xl font-extrabold">
+                {displayReportCount(report.vehicles_involved)}
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">Vehicles involved</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
@@ -318,7 +336,9 @@ function ReportDetail() {
               <p className="mt-1 text-xs text-muted-foreground">Deaths</p>
             </div>
           </div>
-          {report.status === "approved" ? <ShareBarabaraAI contextType="report" contextId={report.id} title={report.title} /> : null}
+          {report.status === "approved" ? (
+            <ShareBarabaraAI contextType="report" contextId={report.id} title={report.title} />
+          ) : null}
 
           {report.parties_involved.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
@@ -371,7 +391,9 @@ function ReportDetail() {
         <PublicSidebar>
           <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-navy via-brand-blue to-primary text-primary-foreground">
             <h2 className="text-center text-lg font-bold text-white">Stay informed</h2>
-            <p className="mt-2 text-center text-sm text-white/75">Get relevant road safety updates in your inbox.</p>
+            <p className="mt-2 text-center text-sm text-white/75">
+              Get relevant road safety updates in your inbox.
+            </p>
             <NewsletterForm className="mt-4" variant="sidebar" />
           </SidebarModule>
           {related.length > 0 ? (

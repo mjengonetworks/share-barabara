@@ -24,7 +24,11 @@ import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { NewsletterForm } from "@/components/site/newsletter-form";
-import { PublicBreadcrumbStrip, PublicSidebar, SidebarModule } from "@/components/site/public-layout";
+import {
+  PublicBreadcrumbStrip,
+  PublicSidebar,
+  SidebarModule,
+} from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   head: () => ({
@@ -144,7 +148,13 @@ function AlertDetail() {
 
   return (
     <>
-      <PublicBreadcrumbStrip items={[{ label: "Home", to: "/" }, { label: "Alerts", to: "/alerts" }, { label: alert.title }]} />
+      <PublicBreadcrumbStrip
+        items={[
+          { label: "Home", to: "/" },
+          { label: "Alerts", to: "/alerts" },
+          { label: alert.title },
+        ]}
+      />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
         <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
           <Link
@@ -163,7 +173,9 @@ function AlertDetail() {
             <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
           </div>
 
-          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">{alert.title}</h1>
+          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            {alert.title}
+          </h1>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {alert.county}
             {alert.road ? (
@@ -192,7 +204,7 @@ function AlertDetail() {
               pageName={alert.page_id ? pages[alert.page_id]?.name : undefined}
             />
           </p>
-            <div className="mt-3">
+          <div className="mt-3">
             <ShareButtons title={alert.title} />
           </div>
 
@@ -229,17 +241,26 @@ function AlertDetail() {
             parties={alert.parties_involved}
           />
 
-            <div className="mt-8">
-              <BannerAd placement="alert-primary-content" />
-            </div>
-            {alert.status === "active" ? <ShareBarabaraAI mode="chat" contextType="alert" contextId={alert.id} title={alert.title} /> : null}
-            <CommentSection entityType="alert" entityId={alert.id} />
+          <div className="mt-8">
+            <BannerAd placement="alert-primary-content" />
+          </div>
+          {alert.status === "active" ? (
+            <ShareBarabaraAI
+              mode="chat"
+              contextType="alert"
+              contextId={alert.id}
+              title={alert.title}
+            />
+          ) : null}
+          <CommentSection entityType="alert" entityId={alert.id} />
         </article>
 
         <PublicSidebar>
           <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-navy via-brand-blue to-primary text-primary-foreground">
             <h2 className="text-center text-lg font-bold text-white">Stay informed</h2>
-            <p className="mt-2 text-center text-sm text-white/75">Get relevant road safety updates in your inbox.</p>
+            <p className="mt-2 text-center text-sm text-white/75">
+              Get relevant road safety updates in your inbox.
+            </p>
             <NewsletterForm className="mt-4" variant="sidebar" />
           </SidebarModule>
           {related.length > 0 ? (

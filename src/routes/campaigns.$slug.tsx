@@ -9,7 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { NewsletterForm } from "@/components/site/newsletter-form";
-import { PublicBreadcrumbStrip, PublicSidebar, SidebarModule } from "@/components/site/public-layout";
+import {
+  PublicBreadcrumbStrip,
+  PublicSidebar,
+  SidebarModule,
+} from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   head: () => ({
@@ -64,69 +68,79 @@ function CampaignDetail() {
 
   return (
     <>
-      <PublicBreadcrumbStrip items={[{ label: "Home", to: "/" }, { label: "Campaigns", to: "/campaigns" }, { label: campaign.title }]} />
+      <PublicBreadcrumbStrip
+        items={[
+          { label: "Home", to: "/" },
+          { label: "Campaigns", to: "/campaigns" },
+          { label: campaign.title },
+        ]}
+      />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
         <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant={STATUS_VARIANT[status]} className="capitalize">
-          {status}
-        </Badge>
-        <span className="flex items-center gap-1 text-sm text-muted-foreground">
-          <Megaphone className="size-4" />
-          {longDate(campaign.start_date)} – {longDate(campaign.end_date)}
-        </span>
-        {campaign.location ? (
-          <span className="flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-4" />
-            {campaign.location}
-          </span>
-        ) : null}
-      </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={STATUS_VARIANT[status]} className="capitalize">
+              {status}
+            </Badge>
+            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Megaphone className="size-4" />
+              {longDate(campaign.start_date)} – {longDate(campaign.end_date)}
+            </span>
+            {campaign.location ? (
+              <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                <MapPin className="size-4" />
+                {campaign.location}
+              </span>
+            ) : null}
+          </div>
 
-      <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">{campaign.title}</h1>
+          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            {campaign.title}
+          </h1>
 
-      <div className="mt-3">
-        <ShareButtons title={campaign.title} />
-      </div>
+          <div className="mt-3">
+            <ShareButtons title={campaign.title} />
+          </div>
 
-      {heroImage ? (
-        <img
-          src={heroImage}
-          alt={campaign.title}
-          className="mt-4 aspect-video w-full rounded-lg border border-border object-cover"
-        />
-      ) : null}
-
-      <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
-        {campaign.description}
-      </p>
-
-      <AttachmentGallery attachments={(campaign.attachments as AttachmentRow[] | null) ?? []} />
-
-      {isPast ? (
-        campaign.report_content ? (
-          <>
-            <div className="mt-8 border-t border-border pt-6 text-foreground/90">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                What happened
-              </h2>
-              <div className="mt-4 space-y-4">{renderRichText(campaign.report_content)}</div>
-            </div>
-            <AttachmentGallery
-              attachments={(campaign.report_attachments as AttachmentRow[] | null) ?? []}
+          {heroImage ? (
+            <img
+              src={heroImage}
+              alt={campaign.title}
+              className="mt-4 aspect-video w-full rounded-lg border border-border object-cover"
             />
-          </>
-        ) : (
-          <p className="mt-6 text-sm text-muted-foreground">
-            The write-up for this campaign is coming soon.
+          ) : null}
+
+          <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
+            {campaign.description}
           </p>
-        )
-      ) : null}
+
+          <AttachmentGallery attachments={(campaign.attachments as AttachmentRow[] | null) ?? []} />
+
+          {isPast ? (
+            campaign.report_content ? (
+              <>
+                <div className="mt-8 border-t border-border pt-6 text-foreground/90">
+                  <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                    What happened
+                  </h2>
+                  <div className="mt-4 space-y-4">{renderRichText(campaign.report_content)}</div>
+                </div>
+                <AttachmentGallery
+                  attachments={(campaign.report_attachments as AttachmentRow[] | null) ?? []}
+                />
+              </>
+            ) : (
+              <p className="mt-6 text-sm text-muted-foreground">
+                The write-up for this campaign is coming soon.
+              </p>
+            )
+          ) : null}
         </article>
         <PublicSidebar>
           <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-navy via-brand-blue to-primary text-primary-foreground">
             <h2 className="text-center text-lg font-bold text-white">Stay informed</h2>
-            <p className="mt-2 text-center text-sm text-white/75">Get campaign updates and road safety stories.</p>
+            <p className="mt-2 text-center text-sm text-white/75">
+              Get campaign updates and road safety stories.
+            </p>
             <NewsletterForm className="mt-4" variant="sidebar" />
           </SidebarModule>
         </PublicSidebar>

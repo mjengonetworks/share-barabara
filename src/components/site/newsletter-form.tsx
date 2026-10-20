@@ -81,7 +81,7 @@ export function NewsletterForm({
             ? "w-full border-white/20 bg-white/10 text-primary-foreground placeholder:text-primary-foreground/60"
             : variant === "gold"
               ? "w-full border-slate-900/15 bg-white/75 text-slate-950 placeholder:text-slate-700/60"
-            : "max-w-xs bg-background"
+              : "max-w-xs bg-background"
         }
         aria-invalid={Boolean(validationError)}
       />

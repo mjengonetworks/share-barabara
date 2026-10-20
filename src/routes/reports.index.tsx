@@ -232,9 +232,7 @@ function ReportsPage() {
                 <button
                   onClick={() => setSeverity("all")}
                   className={
-                    severity === "all"
-                      ? publicCategoryBadgeSelectedClass
-                      : publicCategoryBadgeClass
+                    severity === "all" ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
                   }
                 >
                   All severities
