@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { Megaphone } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -29,12 +28,23 @@ export function BannerAd({
     staleTime: 60_000,
   });
 
-  const eligibleAds = ads.filter((candidate) => {
-    const title = String(candidate.title ?? "")
-      .trim()
-      .toLowerCase();
-    return !/^(emergency response, 24\/7|genuine parts, trusted fit)$/.test(title);
+  const { data: fallback = DEFAULT_FALLBACK } = useQuery({
+    queryKey: ["advertising-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("advertising_settings")
+        .select(
+          "fallback_headline, fallback_supporting_text, fallback_destination_url, fallback_enabled",
+        )
+        .eq("id", 1)
+        .maybeSingle();
+      if (error || !data) return DEFAULT_FALLBACK;
+      return { ...DEFAULT_FALLBACK, ...data };
+    },
+    staleTime: 60_000,
   });
+
+  const eligibleAds = ads.filter(isGenuinePaidAd);
   const ad =
     eligibleAds.length > 0 ? eligibleAds[Math.floor(Math.random() * eligibleAds.length)] : null;
 
@@ -63,6 +73,8 @@ export function BannerAd({
     );
   }
 
+  if (!fallback.fallback_enabled) return null;
+
   return (
     <div
       data-ad-placement={placement}
@@ -70,17 +82,57 @@ export function BannerAd({
     >
       <Megaphone className="size-6 shrink-0 text-accent" />
       <div className="min-w-0 flex-1 basis-full">
-        <p className="font-semibold uppercase tracking-wide text-white">YOUR AD HERE</p>
-        <p className="mt-0.5 text-xs text-white/70">
-          Reach Share Barabara’s road-safety community.
+        <p className="font-semibold uppercase tracking-wide text-white">
+          {fallback.fallback_headline}
         </p>
+        {fallback.fallback_supporting_text ? (
+          <p className="mt-0.5 text-xs text-white/70">{fallback.fallback_supporting_text}</p>
+        ) : null}
       </div>
-      <Link
-        to="/partner-with-us"
+      <a
+        href={fallback.fallback_destination_url}
+        target={fallback.fallback_destination_url.startsWith("http") ? "_blank" : undefined}
+        rel={
+          fallback.fallback_destination_url.startsWith("http") ? "noopener noreferrer" : undefined
+        }
         className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90"
       >
         Advertise with us
-      </Link>
+      </a>
     </div>
   );
+}
+
+const DEFAULT_FALLBACK = {
+  fallback_headline: "Your Ad Here",
+  fallback_supporting_text: "",
+  fallback_destination_url: "/partner-with-us",
+  fallback_enabled: true,
+};
+
+const DEMO_AD_TITLES = new Set([
+  "road safety starts with you",
+  "drive safe, arrive alive",
+  "comprehensive motor cover",
+  "tyres that grip when it matters",
+  "fuel up safely, every stop",
+  "ride safe with us",
+  "book your roadworthiness test",
+  "emergency response, 24/7",
+  "genuine parts, trusted fit",
+  "plan your journey, check road status",
+]);
+
+function isGenuinePaidAd(candidate: {
+  title?: string | null;
+  link_url?: string | null;
+  is_demo?: boolean | null;
+}) {
+  const title = String(candidate.title ?? "")
+    .trim()
+    .toLowerCase();
+  const link = String(candidate.link_url ?? "")
+    .trim()
+    .toLowerCase();
+  return candidate.is_demo !== true && !DEMO_AD_TITLES.has(title) && !link.includes("example.");
 }

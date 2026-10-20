@@ -71,8 +71,8 @@ test("article cards use accessible responsive 16:9 presentation", () => {
 });
 
 test("unsold ads use the Partner With Us CTA while paid ads remain untouched", () => {
-  assert.match(ads, /YOUR AD HERE/);
-  assert.match(ads, /to="\/partner-with-us"/);
+  assert.match(ads, /Your Ad Here/);
+  assert.match(ads, /href=\{fallback\.fallback_destination_url\}/);
   assert.match(ads, /Visit Advertiser/);
 });
 

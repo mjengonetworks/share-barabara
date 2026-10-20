@@ -115,8 +115,18 @@ const SECTIONS: NavSection[] = [
   {
     label: "Road safety operations",
     items: [
-      { to: "/admin/incident-sources", label: "Incident Sources", icon: RadioTower, minRank: ROLE_RANK.editor },
-      { to: "/admin/crash-statistics", label: "Crash Statistics", icon: BarChart3, minRank: ROLE_RANK.moderator },
+      {
+        to: "/admin/incident-sources",
+        label: "Incident Sources",
+        icon: RadioTower,
+        minRank: ROLE_RANK.editor,
+      },
+      {
+        to: "/admin/crash-statistics",
+        label: "Crash Statistics",
+        icon: BarChart3,
+        minRank: ROLE_RANK.moderator,
+      },
       { to: "/admin/categories", label: "Taxonomy", icon: LayoutGrid, minRank: ROLE_RANK.editor },
     ],
   },
@@ -133,7 +143,7 @@ const SECTIONS: NavSection[] = [
       { to: "/admin/banner-ads", label: "Banner Ads", icon: Bell, minRank: ROLE_RANK.editor },
       {
         to: "/admin/footer",
-        label: "Footer & Contact",
+        label: "Site Settings",
         icon: Building2,
         minRank: ROLE_RANK.editor,
       },
@@ -179,8 +189,18 @@ const SECTIONS: NavSection[] = [
     label: "System management",
     items: [
       { to: "/admin/users", label: "Users & Roles", icon: Users, minRank: ROLE_RANK.moderator },
-      { to: "/admin/notification-health", label: "Notification Health", icon: Activity, minRank: ROLE_RANK.admin },
-      { to: "/admin/recycle-bin", label: "Recycle Bin", icon: ArchiveRestore, minRank: ROLE_RANK.admin },
+      {
+        to: "/admin/notification-health",
+        label: "Notification Health",
+        icon: Activity,
+        minRank: ROLE_RANK.admin,
+      },
+      {
+        to: "/admin/recycle-bin",
+        label: "Recycle Bin",
+        icon: ArchiveRestore,
+        minRank: ROLE_RANK.admin,
+      },
       { to: "/admin/featured", label: "Featured Picks", icon: Sparkles, minRank: ROLE_RANK.editor },
     ],
   },

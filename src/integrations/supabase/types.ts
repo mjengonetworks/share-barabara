@@ -81,15 +81,15 @@ export type Database = {
       };
       alert_severities: {
         Row: {
-            active: boolean;
-            created_at: string;
+          active: boolean;
+          created_at: string;
           id: string;
           label: string;
           sort_order: number;
           value: string;
         };
         Insert: {
-            active?: boolean;
+          active?: boolean;
           created_at?: string;
           id?: string;
           label: string;
@@ -97,7 +97,7 @@ export type Database = {
           value: string;
         };
         Update: {
-            active?: boolean;
+          active?: boolean;
           created_at?: string;
           id?: string;
           label?: string;
@@ -108,7 +108,7 @@ export type Database = {
       };
       hazard_types: {
         Row: {
-            active: boolean;
+          active: boolean;
           created_at: string;
           id: string;
           label: string;
@@ -116,7 +116,7 @@ export type Database = {
           value: string;
         };
         Insert: {
-            active?: boolean;
+          active?: boolean;
           created_at?: string;
           id?: string;
           label: string;
@@ -124,7 +124,7 @@ export type Database = {
           value: string;
         };
         Update: {
-            active?: boolean;
+          active?: boolean;
           created_at?: string;
           id?: string;
           label?: string;
@@ -135,7 +135,7 @@ export type Database = {
       };
       news_categories: {
         Row: {
-            active: boolean;
+          active: boolean;
           created_at: string;
           id: string;
           label: string | null;
@@ -143,7 +143,7 @@ export type Database = {
           sort_order: number;
         };
         Insert: {
-            active?: boolean;
+          active?: boolean;
           created_at?: string;
           id?: string;
           label?: string | null;
@@ -151,7 +151,7 @@ export type Database = {
           sort_order?: number;
         };
         Update: {
-            active?: boolean;
+          active?: boolean;
           created_at?: string;
           id?: string;
           label?: string | null;
@@ -162,15 +162,15 @@ export type Database = {
       };
       report_severities: {
         Row: {
-            active: boolean;
-            created_at: string;
+          active: boolean;
+          created_at: string;
           id: string;
           label: string;
           sort_order: number;
           value: string;
         };
         Insert: {
-            active?: boolean;
+          active?: boolean;
           created_at?: string;
           id?: string;
           label: string;
@@ -178,7 +178,7 @@ export type Database = {
           value: string;
         };
         Update: {
-            active?: boolean;
+          active?: boolean;
           created_at?: string;
           id?: string;
           label?: string;
@@ -453,6 +453,7 @@ export type Database = {
           created_at: string;
           id: string;
           image_url: string | null;
+          is_demo: boolean;
           link_url: string;
           title: string;
         };
@@ -462,6 +463,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           image_url?: string | null;
+          is_demo?: boolean;
           link_url: string;
           title: string;
         };
@@ -471,8 +473,78 @@ export type Database = {
           created_at?: string;
           id?: string;
           image_url?: string | null;
+          is_demo?: boolean;
           link_url?: string;
           title?: string;
+        };
+        Relationships: [];
+      };
+      advertising_settings: {
+        Row: {
+          fallback_destination_url: string;
+          fallback_enabled: boolean;
+          fallback_headline: string;
+          fallback_style: string;
+          fallback_supporting_text: string;
+          id: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          fallback_destination_url?: string;
+          fallback_enabled?: boolean;
+          fallback_headline?: string;
+          fallback_style?: string;
+          fallback_supporting_text?: string;
+          id?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          fallback_destination_url?: string;
+          fallback_enabled?: boolean;
+          fallback_headline?: string;
+          fallback_style?: string;
+          fallback_supporting_text?: string;
+          id?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      ecosystem_previews: {
+        Row: {
+          description: string;
+          destination_url: string;
+          display_name: string;
+          enabled: boolean;
+          icon_url: string | null;
+          slug: string;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          description: string;
+          destination_url: string;
+          display_name: string;
+          enabled?: boolean;
+          icon_url?: string | null;
+          slug: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          description?: string;
+          destination_url?: string;
+          display_name?: string;
+          enabled?: boolean;
+          icon_url?: string | null;
+          slug?: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
         };
         Relationships: [];
       };

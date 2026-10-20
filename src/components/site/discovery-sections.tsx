@@ -170,34 +170,76 @@ export function TaxonomyDiscovery({ kind }: { kind: "alerts" | "reports" }) {
 }
 
 export function SisterPlatformPreviews() {
+  const { data: previews = DEFAULT_ECOSYSTEM_PREVIEWS } = useQuery<EcosystemPreview[]>({
+    queryKey: ["ecosystem-previews"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ecosystem_previews")
+        .select("slug, display_name, description, destination_url, icon_url, sort_order, enabled")
+        .eq("enabled", true)
+        .order("sort_order", { ascending: true });
+      if (error || !data?.length) return DEFAULT_ECOSYSTEM_PREVIEWS;
+      return data as EcosystemPreview[];
+    },
+    staleTime: 60_000,
+  });
+
   return (
     <section className="grid gap-2" aria-label="Share Barabara ecosystem platforms">
-      <ExternalPreview
-        name="Mjengo Hub"
-        description="Construction news, industry insights, project tracking and documentation from Kenya and beyond."
-        href="https://mjengohub.co.ke"
-      />
-      <ExternalPreview
-        name="Mjengo Networks"
-        description="Find rated fundis, contractors, consultants and other service providers. Explore pricing, material price indices and AI-powered quotations from registered suppliers."
-        href="https://mjengonetworks.co.ke"
-      />
+      {previews.map((preview) => (
+        <ExternalPreview key={preview.slug} {...preview} />
+      ))}
     </section>
   );
 }
 
-function ExternalPreview({
-  name,
-  description,
-  href,
-}: {
-  name: string;
+type EcosystemPreview = {
+  slug: string;
+  display_name: string;
   description: string;
-  href: string;
+  destination_url: string;
+  icon_url?: string | null;
+  sort_order: number;
+  enabled: boolean;
+};
+
+const DEFAULT_ECOSYSTEM_PREVIEWS: EcosystemPreview[] = [
+  {
+    slug: "mjengo-hub",
+    display_name: "Mjengo Hub",
+    description:
+      "Construction news, industry insights, project tracking and documentation from Kenya and beyond.",
+    destination_url: "https://mjengohub.co.ke/",
+    icon_url: null,
+    sort_order: 1,
+    enabled: true,
+  },
+  {
+    slug: "mjengo-networks",
+    display_name: "Mjengo Networks",
+    description:
+      "Find rated fundis, contractors, consultants and other professionals and service providers, with pricing, material price indices and automated quote generation from registered suppliers.",
+    destination_url: "https://mjengonetworks.co.ke/",
+    icon_url: null,
+    sort_order: 2,
+    enabled: true,
+  },
+];
+
+function ExternalPreview({
+  display_name,
+  description,
+  destination_url,
+  icon_url,
+}: {
+  display_name: string;
+  description: string;
+  destination_url: string;
+  icon_url?: string | null;
 }) {
   return (
     <a
-      href={href}
+      href={destination_url}
       target="_blank"
       rel="noopener noreferrer"
       className="group rounded-xl border border-blue-200/25 bg-gradient-to-br from-brand-navy via-brand-blue to-brand-navy p-3 text-white shadow-md shadow-brand-navy/20 backdrop-blur transition-colors hover:from-brand-blue hover:to-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -207,16 +249,20 @@ function ExternalPreview({
           className="flex size-8 shrink-0 items-center justify-center rounded-md border border-accent/40 bg-white/10 text-accent"
           aria-hidden="true"
         >
-          <Building2 className="size-5" />
+          {icon_url ? (
+            <img src={icon_url} alt="" className="size-5 rounded object-cover" />
+          ) : (
+            <Building2 className="size-5" />
+          )}
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-bold">{name}</p>
+          <p className="text-sm font-bold">{display_name}</p>
         </div>
         <ExternalLink className="ml-auto size-4 shrink-0" aria-hidden="true" />
       </div>
-      <p className="mt-2 line-clamp-2 text-xs leading-5 text-blue-100/85">{description}</p>
+      <p className="mt-2 text-xs leading-5 text-blue-100/85">{description}</p>
       <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent underline-offset-2 group-hover:underline">
-        Visit {name} <ArrowRight className="size-3.5" />
+        Visit {display_name} <ArrowRight className="size-3.5" />
       </span>
     </a>
   );

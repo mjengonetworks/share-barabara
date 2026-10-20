@@ -38,7 +38,7 @@ test("ecosystem cards use the exact approved copy and omit the old slogan", () =
   assert.match(discovery, /documentation from Kenya and beyond/);
   assert.match(
     discovery,
-    /Find rated fundis, contractors, consultants and other service providers\. Explore pricing, material price indices and AI-powered quotations from registered suppliers\./,
+    /Find rated fundis, contractors, consultants and other professionals and service providers, with pricing, material price indices and automated quote generation from registered suppliers\./,
   );
   assert.doesNotMatch(discovery, /Across our ecosystem/);
 });
@@ -50,7 +50,7 @@ test("sidebar inserts the shared ad slot directly after categories", () => {
 test("generic seeded placeholder ads are filtered while genuine ads and fallback remain", () => {
   assert.match(ads, /eligibleAds = ads\.filter/);
   assert.match(ads, /emergency response, 24\\\/7|genuine parts, trusted fit/);
-  assert.match(ads, /YOUR AD HERE/);
+  assert.match(ads, /Your Ad Here/);
   assert.match(ads, /partner-with-us/);
   assert.match(ads, /data-ad-placement/);
 });
