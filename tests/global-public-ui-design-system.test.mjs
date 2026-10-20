@@ -28,6 +28,9 @@ test("all public detail share surfaces resolve to one four-action toolbar", () =
   assert.match(toolbar, /positionMenu/);
   assert.match(toolbar, /Escape/);
   assert.match(toolbar, /maxHeight/);
+  assert.match(toolbar, /share-toolbar-actions flex max-w-full flex-wrap/);
+  assert.match(toolbar, /w-max shrink-0/);
+  assert.doesNotMatch(toolbar, /grid-cols-2/);
 });
 
 test("publisher actions use distinct Google and Google News branding and the verified URL", () => {

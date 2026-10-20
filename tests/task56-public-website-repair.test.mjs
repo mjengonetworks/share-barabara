@@ -85,7 +85,7 @@ test("related articles are centered and ecosystem language is accurate", () => {
 
 test("Google preferred-source control is compact rather than circular", () => {
   assert.match(shareToolbar, /google_source_url/);
-  assert.match(shareToolbar, /rounded-md border border-border/);
+  assert.match(shareToolbar, /rounded-md border border-slate-300 bg-white/);
   assert.doesNotMatch(shareToolbar, /google_source_label[^\n]*rounded-full/);
 });
 

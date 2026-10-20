@@ -67,8 +67,10 @@ test("article share toolbar has four primary actions and an accessible social me
   assert.match(share, /Add as a preferred source on Google/);
   assert.match(share, /Follow on Google News/);
   assert.match(share, /socialLinks\.map/);
-  assert.match(share, /grid max-w-full grid-cols-2 gap-1 sm:flex sm:flex-nowrap/);
-  assert.match(share, /border-brand-navy\/70 bg-card/);
+  assert.match(share, /share-toolbar-actions flex max-w-full flex-wrap items-center/);
+  assert.match(share, /w-max shrink-0/);
+  assert.match(share, /max-\[430px\]:gap-1/);
+  assert.match(share, /border-brand-navy\/70 bg-white/);
   assert.match(share, /Add as a preferred source on Google/);
   assert.match(share, /aria-label="Follow on Google News"/);
 });
