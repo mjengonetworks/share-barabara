@@ -67,7 +67,7 @@ test("AI surfaces keep signed-out chat inactive and use the shared compact compo
   assert.match(ai, /aria-label="Send message"/);
   assert.match(ai, /<ArrowUp/);
   assert.match(ai, /mode === "chat"/);
-  assert.match(alert, /mode="chat" contextType="alert"/);
+  assert.match(alert, /mode="chat"\s+contextType="alert"/);
 });
 
 test("article summaries remain optional without rendering an empty public block", async () => {
@@ -91,8 +91,14 @@ test("Editorial AI is server-authorized and separated from contributor forms", a
   assert.match(article, /CategoryMultiSelect/);
   assert.match(article, /mode="generate"/);
   assert.match(article, /mode="autopopulate"/);
-  assert.doesNotMatch(alert, /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i);
-  assert.doesNotMatch(report, /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i);
+  assert.doesNotMatch(
+    alert,
+    /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i,
+  );
+  assert.doesNotMatch(
+    report,
+    /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i,
+  );
   assert.doesNotMatch(article, /EditorialAIButton[\s\S]{0,80}canEditSeo/);
 });
 
@@ -110,7 +116,10 @@ test("all Article, Alert and Report editors render the three editorial workflows
     assert.match(form, /mode="update"/);
   }
   for (const publicForm of [alertForm, reportForm]) {
-    assert.doesNotMatch(publicForm, /EditorialAIButton|mode="generate"|mode="autopopulate"|mode="update"/);
+    assert.doesNotMatch(
+      publicForm,
+      /EditorialAIButton|mode="generate"|mode="autopopulate"|mode="update"/,
+    );
   }
   for (const editor of [articles, alerts, reports]) {
     assert.match(editor, /mode="generate"|\["generate", "autopopulate"\]/);
