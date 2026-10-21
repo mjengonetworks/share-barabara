@@ -26,6 +26,7 @@ import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
+import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -42,17 +43,8 @@ export const Route = createFileRoute("/reports/$reportId")({
     const description =
       loaderData?.seo_description ||
       "Read the full accident report and join the community discussion.";
-    return {
-      meta: [
-        { title: `${title}: Share Barabara` },
-        { name: "description", content: description },
-        ...(loaderData?.seo_keywords
-          ? [{ name: "keywords", content: loaderData.seo_keywords }]
-          : []),
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-      ],
-    };
+    const head = socialHead({ title, description, pathname: `/reports/${loaderData?.id ?? ""}`, imageUrl: loaderData?.image_url });
+    return { ...head, meta: [...head.meta, ...(loaderData?.seo_keywords ? [{ name: "keywords", content: loaderData.seo_keywords }] : [])] };
   },
   component: ReportDetail,
 });

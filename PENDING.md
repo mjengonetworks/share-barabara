@@ -32,6 +32,15 @@ marked COMPLETED without an explicit acceptance record.
 
 ## Unnumbered future and correction work
 
+**PENDING — priority sharing fix:** add the content title and exactly one blank
+line before the canonical URL in Copy Link output; provide SSR Open Graph and
+Twitter Card metadata (title, summary, featured/fallback image and canonical
+production URL) for published articles, accident reports, alerts and other
+shareable content. Preserve existing Share, Copy Link, Google Preferred Source
+and Follow controls. Regression tests are required. Production acceptance also
+requires representative crawler checks, WhatsApp preview-cache documentation,
+and any required deployment configuration for the production domain/assets.
+
 **PENDING — internationalisation:** make the static `KENYA` in `SHARE BARABARA
 KENYA` market-aware. Do not add geolocation or country detection as part of the
 current homepage work.

@@ -23,16 +23,18 @@ import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachm
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
+import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/alerts/$alertId")({
-  head: () => ({
-    meta: [
-      { title: "Road Hazard Alert: Share Barabara" },
-      {
-        name: "description",
-        content: "Read the full hazard alert and join the community discussion.",
-      },
-    ],
+  loader: async ({ params }) => {
+    const { data } = await supabase.from("alerts").select("*").eq("id", params.alertId).eq("status", "active").maybeSingle();
+    return data;
+  },
+  head: ({ loaderData }) => socialHead({
+    title: loaderData?.title || "Road Hazard Alert",
+    description: loaderData?.description || "Read the full hazard alert and join the community discussion.",
+    pathname: `/alerts/${loaderData?.id ?? ""}`,
+    imageUrl: loaderData?.image_url,
   }),
   component: AlertDetail,
 });
@@ -59,6 +61,7 @@ function AlertList({ alerts }: { alerts: RelatedAlert[] }) {
 
 function AlertDetail() {
   const { alertId } = Route.useParams();
+  const loaderData = Route.useLoaderData();
   const { data: hazardTypes = [] } = useHazardTypes();
 
   const { data: alert, isLoading } = useQuery({
@@ -73,6 +76,7 @@ function AlertDetail() {
       if (error) throw error;
       return data;
     },
+    initialData: loaderData,
   });
 
   const recordedFor = useRef<string | null>(null);

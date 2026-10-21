@@ -3,6 +3,11 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { canonicalUrl } from "@/lib/seo";
+
+export function formatShareClipboard(title: string, url: string) {
+  return `${title}\n\n${url}`;
+}
 
 function XLogo({ className }: { className?: string }) {
   return (
@@ -37,7 +42,7 @@ function GoogleLogo({ className }: { className?: string }) {
 
 export function ShareButtons({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.href : "";
+  const url = typeof window !== "undefined" ? canonicalUrl(window.location.pathname) : canonicalUrl("/");
 
   const { data: settings } = useQuery({
     queryKey: ["site-settings"],
@@ -57,7 +62,7 @@ export function ShareButtons({ title }: { title: string }) {
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(`${title}\n${url}`);
+      await navigator.clipboard.writeText(formatShareClipboard(title, url));
       setCopied(true);
       toast.success("Link copied");
       setTimeout(() => setCopied(false), 2000);

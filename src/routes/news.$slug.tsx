@@ -22,6 +22,7 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { AdInterleave } from "@/components/site/ad-interleave";
+import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -35,15 +36,12 @@ export const Route = createFileRoute("/news/$slug")({
       loaderData?.seo_description ||
       loaderData?.summary ||
       "Read the full road safety story and join the community discussion.";
+    const head = socialHead({ title, description, pathname: `/news/${loaderData?.slug ?? ""}`, imageUrl: loaderData?.image_url });
     return {
+      ...head,
       meta: [
-        { title: `${title}: Share Barabara Kenya` },
-        { name: "description", content: description },
-        ...(loaderData?.seo_keywords
-          ? [{ name: "keywords", content: loaderData.seo_keywords }]
-          : []),
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
+        ...head.meta,
+        ...(loaderData?.seo_keywords ? [{ name: "keywords", content: loaderData.seo_keywords }] : []),
       ],
     };
   },
