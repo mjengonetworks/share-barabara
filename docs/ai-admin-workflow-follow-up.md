@@ -1,6 +1,6 @@
 # AI administrator workflow follow-up
 
-Status: TESTING / VERIFICATION. Repository implementation is complete for the available code paths. Deployed to staging at commit `607568e`, Worker version `1fd5d006-57b3-47c2-afd4-df496382c0cd`. Staging acceptance remains dependent on the existing AI secrets and review/application of the related accident-report draft schema migration.
+Status: TESTING / VERIFICATION. Repository implementation is complete for the available code paths. The latest contextual-chat repair is deployed to staging at commit `e621d58`, Worker version `8c1d63a2-2a07-46cb-94da-c13d09a5258c`. Staging acceptance remains dependent on the existing AI secrets and review/application of the related accident-report draft schema migration.
 
 ## Migration review: `20261021130000_accident_report_admin_drafts_review.sql`
 
