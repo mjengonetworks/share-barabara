@@ -243,6 +243,17 @@ public settings views. Remaining acceptance work is authenticated administrator 
 non-admin write-denial testing, browser verification of fallback rendering and responsive layouts, and
 supported migration-ledger reconciliation. Keep this task TESTING; do not mark it COMPLETED.
 
+Task 70 final acceptance evidence — The production public routes `/`, `/news`, the approved article detail,
+`/alerts`, `/reports`, `/campaigns`, `/statistics` and `/feed` returned HTTP 200 in read-only smoke tests.
+Production HTML contained Share Barabara branding, ecosystem surfaces and YOUR AD HERE fallback text; no
+staging marker or noindex marker was detected. The application source and focused tests confirm explicit
+`is_demo = true` advertisements are excluded and the restricted public settings views are consumed.
+Authenticated administrator save/refresh persistence, non-admin write denial through the live UI, actual
+desktop/tablet/mobile visual rendering, and exact production-code fingerprint matching remain untested in
+this session because no authenticated browser session or browser surface was available. Keep Task 70 in
+TESTING; do not mark it COMPLETED until those checks and supported migration-ledger reconciliation are
+recorded.
+
 Admin Workspace Separation — TESTING. The authenticated management area now has dedicated admin chrome,
 independent navigation, role-filtered management surfaces, admin-owned Article/Alert/Report authoring entry
 points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
