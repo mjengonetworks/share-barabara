@@ -268,10 +268,14 @@ Worker `e1821be9-58ec-4fc3-b1a0-2d7a3fd8e787`; HTTP smoke checks passed for `/ne
 flows remain unverified because browser tooling was unavailable. Keep Batch 1 TESTING and do not mark either
 batch COMPLETED without owner visual acceptance.
 
-Task 70 Batch 3 — Remaining Public Responsive Consistency is PENDING. The audit and implementation are
+Task 70 Batch 3 — Remaining Public Responsive Consistency is TESTING. The audit and implementation are
 limited to remaining public consumers: Statistics and Media & Feed now use the shared wide-page gutter
 system, Search feed queries use an explicit local row/query type instead of the route-level explicit-any
 cast, and Batch 3 regression coverage is being added for the responsive width contract. News, Alerts,
 Reports, Campaigns and Infrastructure Issues remain covered by the Batch 1/2 shared editorial primitives.
-Browser viewport interaction is not yet verified; keep this batch PENDING until focused tests, Bun build,
-lint, staging deployment and route smoke checks complete.
+Browser viewport interaction is not verified because browser tooling is unavailable. Focused tests pass
+24/24, the Bun production build passes, Prettier and git diff --check pass, and targeted ESLint is clear for
+Search; existing explicit-any findings remain in Feed and Statistics. Batch 3 is deployed to staging Worker
+`d399af90-e933-4239-b637-95ba2111b1cf`; HTTP smoke checks returned 200 for News, Alerts, Reports, Campaigns,
+Infrastructure Issues, Statistics, Feed and Search. Keep Batches 1, 2 and 3 in TESTING pending owner visual
+acceptance.
