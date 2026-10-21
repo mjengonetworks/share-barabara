@@ -275,11 +275,22 @@ Sharing production promotion attempt — A fresh candidate branch `release/shari
 was created from `origin/main` at `c85792b`. It contains only the shared Copy Link format correction,
 production-safe News/Reports social metadata, and focused regression coverage; staging-only `be4ce89` was
 not included. The focused sharing tests passed and `git diff --check` passed. Production promotion did not
-occur because this isolated worktree has no installed dependencies or lockfile, `vite` was unavailable, and
-the dependency installation could not complete; consequently the production build and Cloudflare deployment
-gates remain unsatisfied. No production or database changes were made. Keep the sharing task pending until a
-release operator reruns the build, deploys the candidate, and verifies raw production HTML and Copy Link
-output.
+occur because this isolated worktree initially had no installed dependencies and the repository’s tracked
+package manager was not identified: it uses Bun and `bun.lock`, while the initial npm install did not complete.
+After `bun install --frozen-lockfile`, the candidate built successfully and focused sharing tests passed; no
+new Cloudflare deployment was made because the verified production revision was already live. No production
+or database changes were made. Keep the sharing task pending for physical clipboard verification and owner
+acceptance.
+
+Sharing deployment reconciliation — The earlier production record is valid: `70a67c7` was deployed to Worker
+`share-barabara` as Cloudflare version `d5c96a2a-9cd6-4a8f-b21b-346449e5ceea`. Live production verification
+returned HTTP 200 for the article, `og:title`, `og:description`, `og:image`, `og:url`, `twitter:card`,
+`twitter:title`, `twitter:description`, `twitter:image`, and the production canonical URL. The fallback
+image returned HTTP 200 with `image/png`; Facebook, Twitter and WhatsApp crawler user agents received the
+same metadata. The live toolbar bundle contains the title/blank-line formatter and clipboard call. The newer
+`ed7b868` branch is not promoted because it is not based on the deployed revision and regresses the canonical
+URL fallback; no replacement deployment is necessary. Physical clipboard interaction still requires browser
+verification.
 
 Admin Workspace Separation — TESTING. The authenticated management area now has dedicated admin chrome,
 independent navigation, role-filtered management surfaces, admin-owned Article/Alert/Report authoring entry
