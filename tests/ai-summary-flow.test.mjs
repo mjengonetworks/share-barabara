@@ -40,3 +40,12 @@ test("return-to validation rejects external and auth destinations", () => {
   assert.ok(source.includes('value.startsWith("//")'));
   assert.ok(source.includes('url.pathname === "/auth"'));
 });
+
+test("Quick AI returns a plain structured error instead of throwing to Worker serialization", () => {
+  const source = read("src/lib/ai/public.functions.ts");
+  assert.match(source, /export function normalizePublicAIResult/);
+  assert.match(source, /function publicAIExceptionResult/);
+  assert.match(source, /try \{[\s\S]*const input = validate\(data\)/);
+  assert.match(source, /return publicAIExceptionResult\(error\)/);
+  assert.match(source, /return normalizePublicAIResult\(await runPublicAI/);
+});
