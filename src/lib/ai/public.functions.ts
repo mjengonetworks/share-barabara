@@ -16,6 +16,65 @@ type Input = {
 };
 type AuthContext = { userId: string; supabase: SupabaseClient<Database> };
 
+/**
+ * Server functions must return data that is safe for the Worker serializer.
+ * In particular, do not let Error/Response/provider SDK objects escape the
+ * public AI boundary. This also makes provider failures predictable to the
+ * signed-out UI instead of relying on framework exception serialization.
+ */
+export function normalizePublicAIResult(value: Partial<PublicAIResult>): PublicAIResult {
+  const evidence = Array.isArray(value.evidence)
+    ? value.evidence
+        .filter((item): item is NonNullable<PublicAIResult["evidence"]>[number] => !!item && typeof item === "object")
+        .map((item) => ({
+          id: typeof item.id === "string" ? item.id.slice(0, 120) : "unknown",
+          kind: item.kind,
+          title: typeof item.title === "string" ? item.title.slice(0, 240) : "Untitled evidence",
+          text: typeof item.text === "string" ? item.text.slice(0, 5000) : "",
+          ...(typeof item.href === "string" ? { href: item.href.slice(0, 500) } : {}),
+          ...(typeof item.sourceClass === "string" ? { sourceClass: item.sourceClass } : {}),
+          ...(typeof item.verificationState === "string" ? { verificationState: item.verificationState } : {}),
+          ...(typeof item.publishedAt === "string" ? { publishedAt: item.publishedAt.slice(0, 80) } : {}),
+          ...(typeof item.retrievedAt === "string" ? { retrievedAt: item.retrievedAt.slice(0, 80) } : {}),
+        }))
+    : [];
+  const citations = Array.isArray(value.citations)
+    ? value.citations
+        .filter((item): item is NonNullable<PublicAIResult["citations"]>[number] => !!item && typeof item === "object")
+        .map((item, index) => ({
+          id: Number.isInteger(item.id) ? item.id : index + 1,
+          title: typeof item.title === "string" ? item.title.slice(0, 200) : "External source",
+          url: typeof item.url === "string" ? item.url.slice(0, 1000) : "",
+          domain: typeof item.domain === "string" ? item.domain.slice(0, 200) : "",
+          ...(typeof item.snippet === "string" ? { snippet: item.snippet.slice(0, 500) } : {}),
+          ...(typeof item.sourceId === "string" ? { sourceId: item.sourceId.slice(0, 80) } : {}),
+          ...(typeof item.publishedAt === "string" ? { publishedAt: item.publishedAt.slice(0, 80) } : {}),
+        }))
+    : [];
+  return {
+    ok: value.ok === true,
+    ...(typeof value.answer === "string" ? { answer: value.answer.slice(0, 5000) } : {}),
+    ...(value.error ? { error: value.error } : {}),
+    provenance: value.provenance === "external" || value.provenance === "mixed" || value.provenance === "share_barabara" ? value.provenance : "none",
+    citations,
+    evidence,
+    ...(typeof value.threadId === "string" ? { threadId: value.threadId } : {}),
+  };
+}
+
+function publicAIExceptionResult(error: unknown): PublicAIResult {
+  console.warn("[Share Barabara AI] public server function failed", {
+    error: error instanceof Error ? error.name : "unknown",
+  });
+  return normalizePublicAIResult({
+    ok: false,
+    error: error instanceof Error && error.message === "Message is required" ? "invalid_request" : "provider_unavailable",
+    provenance: "none",
+    citations: [],
+    evidence: [],
+  });
+}
+
 function validate(input: unknown): Input {
   if (!input || typeof input !== "object") throw new Error("Invalid AI request");
   const value = input as Record<string, unknown>;
@@ -122,24 +181,28 @@ async function runPublicAI(input: Input, userId?: string): Promise<PublicAIResul
       citations: [],
       evidence: finalEvidence,
     };
-  return {
+  return normalizePublicAIResult({
     ok: true,
     answer: completion.answer,
     provenance,
     citations: externalCitations.filter((citation) => !completion.citationIds?.length || completion.citationIds.includes(citation.sourceId ?? "")),
     evidence: finalEvidence,
     ...(userId ? { threadId: input.threadId } : {}),
-  };
+  });
 }
 
 export const quickAISummary = createServerFn({ method: "POST" }).handler(
   async ({ data }: { data: unknown }) => {
-    const input = validate(data);
-    await enforceAIRateLimit("summary");
-    return runPublicAI({
-      ...input,
-      message: `Create a short, factual Quick AI Summary of this ${input.contextType}. Use about 80-110 words when the source supports that much, but be substantially shorter for short source content. Start with one-sentence synthesis, then include at most 3 high-value points only when useful. Prioritize the central development, key actors, implications, and essential dates or numbers. For alerts, prioritize what happened, affected road/location, current status, timing, and supported safety/diversion information. For reports, prioritize subject/event, location/date, key findings or impact, and verified actions or recommendations. Do not repeat the title or source, do not restate the full content, do not invent or infer facts, and do not add a heading, label, advice, or an unnecessary “Quick AI Summary” phrase.`,
-    });
+    try {
+      const input = validate(data);
+      await enforceAIRateLimit("summary");
+      return normalizePublicAIResult(await runPublicAI({
+        ...input,
+        message: `Create a short, factual Quick AI Summary of this ${input.contextType}. Use about 80-110 words when the source supports that much, but be substantially shorter for short source content. Start with one-sentence synthesis, then include at most 3 high-value points only when useful. Prioritize the central development, key actors, implications, and essential dates or numbers. For alerts, prioritize what happened, affected road/location, current status, timing, and supported safety/diversion information. For reports, prioritize subject/event, location/date, key findings or impact, and verified actions or recommendations. Do not repeat the title or source, do not restate the full content, do not invent or infer facts, and do not add a heading, label, advice, or an unnecessary “Quick AI Summary” phrase.`,
+      }));
+    } catch (error) {
+      return publicAIExceptionResult(error);
+    }
   },
 );
 
