@@ -7,8 +7,12 @@ const CURRENT_SIGNAL = /\b(current|currently|latest|today|tonight|now|breaking|r
 /** Conservative, deterministic gate. A small local result set can still be sufficient. */
 export function assessLocalEvidence(query: string, evidence: Evidence[], contextType: PublicContextType) {
   if (!evidence.length) return { sufficient: false, reason: "no_local_evidence" as const };
-  if (CURRENT_SIGNAL.test(query)) return { sufficient: false, reason: "freshness_requested" as const };
+  // A content-scoped request is already anchored to the published record.
+  // Its generated summary instruction mentions words such as "current" and
+  // "recent" as field priorities; those words must not turn direct evidence
+  // into an unrelated external search.
   if (contextType !== "general" && evidence.length > 0) return { sufficient: true, reason: "direct_context" as const };
+  if (CURRENT_SIGNAL.test(query)) return { sufficient: false, reason: "freshness_requested" as const };
   const terms = [...new Set(query.toLowerCase().split(/[^a-z0-9]+/).filter((term) => term.length >= 3))].slice(0, 8);
   const relevant = evidence.filter((item) => {
     const haystack = `${item.title} ${item.text}`.toLowerCase();
