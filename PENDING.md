@@ -1,10 +1,17 @@
 # Pending
 
-- **Priority sharing fix:** Copy Link includes the content title and exactly one
-  blank line before the canonical production URL. Published shareable content
-  emits SSR Open Graph/Twitter metadata with absolute featured or fallback
-  images. Production deployment and live crawler verification remain required;
-  see `docs/sharing-preview-qa.md`.
+- **TESTING — priority sharing fix:** Production candidate `70a67c7` was
+  deployed to Worker `share-barabara` as Cloudflare version
+  `d5c96a2a-9cd6-4a8f-b21b-346449e5ceea` on 2026-10-21. Live article, alert,
+  accident-report and profile HTML returned `og:title`, `og:description`,
+  `og:image`, `og:url`, `twitter:card`, `twitter:image` and production
+  canonical links. Fallback PNG and profile JPEG returned HTTP 200 with image
+  content types. WhatsApp, Facebook, X and LinkedIn crawler user-agent checks
+  could read the metadata. No approved live infrastructure-issue or campaign
+  record was available for a content-specific check. A browser surface was not
+  available for a physical clipboard click; the deployed toolbar bundle was
+  verified to contain the title + blank-line + canonical-URL formatter. Await
+  owner acceptance before marking COMPLETED. See `docs/sharing-preview-qa.md`.
 
 - Future sharebarabara.com internationalization: make the static `KENYA` in
   `SHARE BARABARA KENYA` market-aware so it reflects the active country (for
