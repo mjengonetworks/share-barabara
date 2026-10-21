@@ -5,6 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { longDate } from "@/lib/format";
 import { SearchResultCard } from "@/components/site/public-layout";
 
+type FeedSearchRow = { id: string; body: string; created_at: string };
+type FeedSearchQuery = {
+  select: (columns: string) => FeedSearchQuery;
+  eq: (column: string, value: string) => FeedSearchQuery;
+  ilike: (column: string, value: string) => FeedSearchQuery;
+  limit: (count: number) => Promise<{ data: FeedSearchRow[] | null; error: Error | null }>;
+};
+
 function escapeIlike(value: string) {
   return value
     .trim()
@@ -82,7 +90,8 @@ function SearchPage() {
     queryKey: ["search-feed", term],
     enabled: term.length >= 2,
     queryFn: async () => {
-      const { data, error } = await (supabase.from("feed_posts") as any)
+      const feedQuery = supabase.from("feed_posts") as unknown as FeedSearchQuery;
+      const { data, error } = await feedQuery
         .select("id,body,created_at")
         .eq("status", "published")
         .eq("moderation_status", "approved")

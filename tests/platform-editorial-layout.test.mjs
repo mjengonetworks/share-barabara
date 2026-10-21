@@ -59,3 +59,15 @@ test("cross-category discovery ranks verified location and topic matches first",
   assert.match(discovery, /context\.topic/);
   assert.match(discovery, /incident_type/);
 });
+
+test("batch three functional public pages use the shared width system", async () => {
+  const [statistics, feed, search] = await Promise.all([
+    read("src/routes/statistics.tsx"),
+    read("src/routes/feed.tsx"),
+    read("src/routes/search.tsx"),
+  ]);
+  assert.match(statistics, /max-w-\[1500px\]/);
+  assert.match(feed, /max-w-\[1500px\]/);
+  assert.match(search, /FeedSearchQuery/);
+  assert.doesNotMatch(search, /from\("feed_posts"\) as any/);
+});

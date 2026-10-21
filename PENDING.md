@@ -267,3 +267,11 @@ Worker `e1821be9-58ec-4fc3-b1a0-2d7a3fd8e787`; HTTP smoke checks passed for `/ne
 `/campaigns`, `/infrastructure-issues` and search. Browser screenshots, viewport interaction and authenticated
 flows remain unverified because browser tooling was unavailable. Keep Batch 1 TESTING and do not mark either
 batch COMPLETED without owner visual acceptance.
+
+Task 70 Batch 3 — Remaining Public Responsive Consistency is PENDING. The audit and implementation are
+limited to remaining public consumers: Statistics and Media & Feed now use the shared wide-page gutter
+system, Search feed queries use an explicit local row/query type instead of the route-level explicit-any
+cast, and Batch 3 regression coverage is being added for the responsive width contract. News, Alerts,
+Reports, Campaigns and Infrastructure Issues remain covered by the Batch 1/2 shared editorial primitives.
+Browser viewport interaction is not yet verified; keep this batch PENDING until focused tests, Bun build,
+lint, staging deployment and route smoke checks complete.
