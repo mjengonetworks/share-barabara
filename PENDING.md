@@ -1,5 +1,7 @@
 # Pending
 
+- **Editorial/AI integration handoff — TESTING / BLOCKED FOR DEPLOYMENT.** `integration/editorial-ai-acceptance` combines the verified editorial Batch 1–3 line with AI commits `16a552b` and `b839ae2` for review only. Current staging Worker `d399af90-e933-4239-b637-95ba2111b1cf` does not contain those AI commits. Browser visual checks, authenticated admin checks, provider-secret verification and review of later concurrent AI commits remain outstanding. See `docs/editorial-ai-integration-handoff.md`. No deployment, migration or hosted-data change was performed.
+
 - **HIGH PRIORITY — Platform-wide public editorial layout consistency (PENDING).** Audit and progressively
   align public detail pages and applicable listings around the approved News detail patterns without changing
   content-specific semantics. Batch 1 standardizes the public detail sidebar across Alerts, Accident Reports,
