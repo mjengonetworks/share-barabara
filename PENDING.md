@@ -262,7 +262,8 @@ normalizes cross-category Search result previews, improves image fallbacks for i
 Alert/Report discovery by verified road, county and incident-topic metadata before recency fallback. News,
 Alerts and Reports continue to use the shared lead-plus-supporting-column primitives; ads, maps, sharing,
 discussions, permissions and Task 70 database objects were not changed. Focused public-layout tests pass
-23/23, the Bun production build passes, formatting and git diff --check pass. Staging deployment is pending
-after commit/push; browser screenshots, viewport interaction and authenticated flows remain unverified because
-browser tooling was unavailable. Keep Batch 1 TESTING and do not mark either batch COMPLETED without owner
-visual acceptance.
+23/23, the Bun production build passes, formatting and git diff --check pass. Batch 2 is deployed to staging
+Worker `e1821be9-58ec-4fc3-b1a0-2d7a3fd8e787`; HTTP smoke checks passed for `/news`, `/alerts`, `/reports`,
+`/campaigns`, `/infrastructure-issues` and search. Browser screenshots, viewport interaction and authenticated
+flows remain unverified because browser tooling was unavailable. Keep Batch 1 TESTING and do not mark either
+batch COMPLETED without owner visual acceptance.
