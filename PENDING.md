@@ -254,6 +254,23 @@ this session because no authenticated browser session or browser surface was ava
 TESTING; do not mark it COMPLETED until those checks and supported migration-ledger reconciliation are
 recorded.
 
+Task 70 remaining-acceptance reconciliation — `origin/main` currently resolves to `c85792b`; no public
+Cloudflare response header exposed a deploy SHA or Worker version, so the exact production fingerprint is
+not independently verified. The public production route smoke checks above are not a substitute for rendered
+responsive verification: actual YOUR AD HERE dimensions/placement at desktop, tablet and mobile remain
+untested because no browser surface was available. Authenticated administrator save/refresh persistence and
+non-admin write denial likewise require an owner-provided authenticated browser session or equivalent live
+test credentials; static RLS/application checks are not claimed as live UI evidence. The manually executed
+migration remains unreconciled in the supported migration ledger; do not rerun it or insert ledger rows
+manually. The release operator must use the supported Supabase migration-repair/reconciliation procedure
+after confirming the project migration history.
+
+Sharing-preview deployment reconciliation — `7a8e071` (Copy Link title/URL format and metadata changes) and
+`be4ce89` (crawler QA notes) are present on `origin/staging` only and are not ancestors of `origin/main`.
+Production article HTML currently has no `og:image` or `twitter:image`, and production still uses the
+canonical-URL-only Copy Link behavior. Keep the high-priority Copy Link and social-preview task separate and
+pending; do not assume staging changes are production-live.
+
 Admin Workspace Separation — TESTING. The authenticated management area now has dedicated admin chrome,
 independent navigation, role-filtered management surfaces, admin-owned Article/Alert/Report authoring entry
 points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
