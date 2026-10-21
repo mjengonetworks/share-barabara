@@ -26,6 +26,8 @@ test("summary UI prevents duplicate requests and preserves the sign-in handoff",
   assert.ok(source.includes("disabled={busy}"));
   assert.ok(source.includes("Sign in to Chat"));
   assert.ok(source.includes('aiReturnTo("content")'));
+  assert.ok(source.includes('window.location.hash === "#share-barabara-ai"'));
+  assert.ok(source.includes("setChatOpen(true)"));
   assert.ok(source.includes('focusAISurface("share-barabara-ai")'));
 });
 
