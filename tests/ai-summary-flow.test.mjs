@@ -1,0 +1,42 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
+const root = new URL("..", import.meta.url);
+const read = (path) => fs.readFileSync(new URL(path, root), "utf8");
+
+test("content-scoped public AI remains grounded when the database resolver fails", () => {
+  const source = read("src/lib/ai/public.functions.ts");
+  assert.ok(source.includes("evidence = await resolvePublicEvidence"));
+  assert.ok(source.includes("assessLocalEvidence(input.message, finalEvidence"));
+  assert.ok(source.includes('input.contextType !== "general"'));
+  assert.ok(source.includes('error: "insufficient_evidence"'));
+});
+
+test("published alert and report pages pass bounded page context to public AI", () => {
+  assert.ok(read("src/routes/alerts.$alertId.tsx").includes("sourceText={`${alert.title}"));
+  assert.ok(read("src/routes/reports.$reportId.tsx").includes("sourceText={`${report.title}"));
+});
+
+test("summary UI prevents duplicate requests and preserves the sign-in handoff", () => {
+  const source = read("src/components/site/share-barabara-ai.tsx");
+  assert.ok(source.includes("setBusy(true)"));
+  assert.ok(source.includes("disabled={busy}"));
+  assert.ok(source.includes("Sign in to Chat"));
+  assert.ok(source.includes('aiReturnTo("content")'));
+  assert.ok(source.includes('focusAISurface("share-barabara-ai")'));
+});
+
+test("editorial provider mapping remains action-specific", () => {
+  const source = read("src/lib/ai/editorial.functions.ts");
+  assert.ok(source.includes('mode === "autopopulate" ? "groq" : "grok"'));
+  assert.ok(source.includes("generateEditorialDraft = createServerFn"));
+  assert.ok(source.includes("requireSupabaseAuth"));
+});
+
+test("return-to validation rejects external and auth destinations", () => {
+  const source = read("src/lib/ai/return-to-ai.ts");
+  assert.ok(source.includes('value.startsWith("/")'));
+  assert.ok(source.includes('value.startsWith("//")'));
+  assert.ok(source.includes('url.pathname === "/auth"'));
+});

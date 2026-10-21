@@ -54,11 +54,19 @@ async function runPublicAI(input: Input, userId?: string): Promise<PublicAIResul
   const { resolvePublicEvidence, assessLocalEvidence } = await import("./retrieval.server");
   const { searchExternal } = await import("./external.server");
   const { completeWithProvider } = await import("./providers.server");
-  const evidence = await resolvePublicEvidence(
-    input.contextType ?? "general",
-    input.contextId,
-    input.message,
-  );
+  let evidence: Awaited<ReturnType<typeof resolvePublicEvidence>> = [];
+  try {
+    evidence = await resolvePublicEvidence(
+      input.contextType ?? "general",
+      input.contextId,
+      input.message,
+    );
+  } catch (error) {
+    // A published page may still provide bounded sourceText when the public
+    // server client is unavailable. Do not turn a resolver outage into a
+    // generic provider error or expose a stack trace to visitors.
+    console.warn("[Share Barabara AI] public evidence resolution failed", error instanceof Error ? error.name : "unknown");
+  }
   let finalEvidence = evidence;
   // The article detail page already has the published body. This bounded
   // fallback keeps a useful article-grounded summary working when a public
@@ -69,7 +77,13 @@ async function runPublicAI(input: Input, userId?: string): Promise<PublicAIResul
   }
   let externalCitations: PublicAIResult["citations"] = [];
   let provenance: PublicAIResult["provenance"] = "share_barabara";
-  const localAssessment = assessLocalEvidence(input.message, evidence, input.contextType ?? "general");
+  // Content-scoped requests must remain grounded in the current published
+  // record/page. They must never become an unrelated web search when local
+  // context is unavailable.
+  const localAssessment = assessLocalEvidence(input.message, finalEvidence, input.contextType ?? "general");
+  if (!localAssessment.sufficient && input.contextType !== "general") {
+    return { ok: false, error: "insufficient_evidence", provenance: "none", citations: [], evidence: finalEvidence };
+  }
   if (!localAssessment.sufficient) {
     try {
       await enforceAIRateLimit("external", userId);

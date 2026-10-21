@@ -1,5 +1,7 @@
 # Pending
 
+- **HIGH PRIORITY — AI audit and repair (TESTING / VERIFICATION).** The repository audit and public Quick AI Summary repair are implemented in `docs/ai-audit-and-repair.md`. Content-scoped summaries now remain grounded in published page context, resolver failures fail safely, alert/report context is passed explicitly, and the existing signed-out `Sign in to Chat` handoff is preserved. Remaining acceptance is staging deployment, configured-provider smoke testing, admin Generate/Auto-Populate/Update verification, mobile/desktop browser checks, and live authentication/context restoration. Do not run migrations, modify Task 70 objects, or alter the demonstration advertisements.
+
 - **TESTING — priority sharing fix:** Production candidate `70a67c7` was
   deployed to Worker `share-barabara` as Cloudflare version
   `d5c96a2a-9cd6-4a8f-b21b-346449e5ceea` on 2026-10-21. Live article, alert,
