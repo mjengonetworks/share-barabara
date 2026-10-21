@@ -10,6 +10,10 @@ const GOOGLE_NEWS_SEARCH_URL =
 const GOOGLE_SOURCE_FALLBACK_URL =
   "https://www.google.com/preferences/source?q=sharebarabara.co.ke";
 
+export function formatShareClipboard(title: string, url: string) {
+  return `${title}\n\n${url}`;
+}
+
 function XLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
@@ -116,7 +120,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(formatShareClipboard(title, url));
       setCopied(true);
       toast.success("Article link copied");
       setTimeout(() => setCopied(false), 2000);

@@ -21,6 +21,7 @@ import { renderRichText, splitRichTextBlocks } from "@/lib/richtext";
 import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
 import heroRoad from "@/assets/hero-road.jpg";
 import { publicCategoryBadgeClass } from "@/components/site/public-ui";
+import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -122,13 +123,17 @@ export const Route = createFileRoute("/news/$slug")({
       article?.seo_description ||
       article?.summary ||
       "Read the full road safety story and join the community discussion.";
+    const head = socialHead({
+      title,
+      description,
+      pathname: `/news/${article?.slug ?? ""}`,
+      imageUrl: article?.image_url,
+    });
     return {
+      ...head,
       meta: [
-        { title: `${title}: Share Barabara Kenya` },
-        { name: "description", content: description },
+        ...head.meta,
         ...(article?.seo_keywords ? [{ name: "keywords", content: article.seo_keywords }] : []),
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
       ],
     };
   },

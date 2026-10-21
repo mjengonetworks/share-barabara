@@ -26,6 +26,7 @@ import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
+import { socialHead } from "@/lib/seo";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import {
   PublicBreadcrumbStrip,
@@ -48,15 +49,17 @@ export const Route = createFileRoute("/reports/$reportId")({
     const description =
       loaderData?.seo_description ||
       "Read the full accident report and join the community discussion.";
+    const head = socialHead({
+      title,
+      description,
+      pathname: `/reports/${loaderData?.id ?? ""}`,
+      imageUrl: loaderData?.image_url,
+    });
     return {
+      ...head,
       meta: [
-        { title: `${title}: Share Barabara` },
-        { name: "description", content: description },
-        ...(loaderData?.seo_keywords
-          ? [{ name: "keywords", content: loaderData.seo_keywords }]
-          : []),
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
+        ...head.meta,
+        ...(loaderData?.seo_keywords ? [{ name: "keywords", content: loaderData.seo_keywords }] : []),
       ],
     };
   },
