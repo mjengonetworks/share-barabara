@@ -11,6 +11,8 @@ test("content-scoped public AI remains grounded when the database resolver fails
   assert.ok(source.includes("assessLocalEvidence(input.message, finalEvidence"));
   assert.ok(source.includes('input.contextType !== "general"'));
   assert.ok(source.includes('error: "insufficient_evidence"'));
+  const retrieval = read("src/lib/ai/retrieval.server.ts");
+  assert.ok(retrieval.indexOf('contextType !== "general"') < retrieval.indexOf("CURRENT_SIGNAL.test(query)"));
 });
 
 test("published alert and report pages pass bounded page context to public AI", () => {

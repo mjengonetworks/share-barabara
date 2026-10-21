@@ -24,8 +24,9 @@ The public path has no access to editorial prompts, unpublished drafts or admini
 2. Content-scoped requests could fall through to external search. This was unsafe for a summary of a specific published item and could produce unrelated evidence.
 3. Resolver exceptions escaped before the page-context fallback could be used.
 4. Alert and accident-report detail pages did not pass their already-rendered published content to Quick AI Summary or contextual chat.
+5. The freshness detector ran before the direct-content check, so the summary prompt's own words such as “current” and “recent” could reject valid direct context.
 
-The repair catches public-evidence resolver failures, evaluates the final bounded evidence set, keeps content-scoped requests on the current published content, returns `insufficient_evidence` when that content is unavailable, and supplies bounded alert/report context from the page. Provider failures remain fail-closed; no fabricated summary is rendered.
+The repair catches public-evidence resolver failures, evaluates the final bounded evidence set, gives direct published context precedence over the freshness detector, keeps content-scoped requests on the current published content, returns `insufficient_evidence` when that content is unavailable, and supplies bounded alert/report context from the page. Provider failures remain fail-closed; no fabricated summary is rendered.
 
 ## Authentication handoff
 
