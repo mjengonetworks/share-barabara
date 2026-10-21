@@ -26,11 +26,9 @@ import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
-import { NewsletterForm } from "@/components/site/newsletter-form";
+import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import {
   PublicBreadcrumbStrip,
-  PublicSidebar,
-  SidebarModule,
 } from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/reports/$reportId")({
@@ -388,14 +386,7 @@ function ReportDetail() {
           <CommentSection entityType="report" entityId={report.id} />
         </article>
 
-        <PublicSidebar>
-          <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-navy via-brand-blue to-primary text-primary-foreground">
-            <h2 className="text-center text-lg font-bold text-white">Stay informed</h2>
-            <p className="mt-2 text-center text-sm text-white/75">
-              Get relevant road safety updates in your inbox.
-            </p>
-            <NewsletterForm className="mt-4" variant="sidebar" />
-          </SidebarModule>
+        <EditorialSidebar adPlacement="report-sidebar">
           {related.length > 0 ? (
             <div className="rounded-lg border border-border bg-card p-5 card-elevated">
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
@@ -438,7 +429,7 @@ function ReportDetail() {
               </Link>
             </div>
           ) : null}
-        </PublicSidebar>
+        </EditorialSidebar>
       </div>
       <DiscoverySections focus="report" currentId={report.id} />
     </>

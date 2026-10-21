@@ -1,5 +1,14 @@
 # Pending
 
+- **HIGH PRIORITY — Platform-wide public editorial layout consistency (PENDING).** Audit and progressively
+  align public detail pages and applicable listings around the approved News detail patterns without changing
+  content-specific semantics. Batch 1 standardizes the public detail sidebar across Alerts, Accident Reports,
+  Campaigns and Infrastructure Issues, updates ecosystem preview copy, and records findings in
+  `docs/public-editorial-layout-audit.md`. Remaining work is cross-category recommendations for applicable
+  routes, listing/category/search audit, browser verification at desktop/tablet/mobile widths, staging smoke
+  tests and owner acceptance. Do not alter Task 70 database objects, demonstration advertisements, admin
+  permissions or the approved sharing fix.
+
 - Future sharebarabara.com internationalization: make the static `KENYA` in
   `SHARE BARABARA KENYA` market-aware so it reflects the active country (for
   example, Uganda or Tanzania). Do not implement geolocation or country
