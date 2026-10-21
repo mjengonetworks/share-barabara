@@ -6,6 +6,7 @@ import type { CasualtyBreakdown } from "@/components/site/party-casualty-inputs"
 import { suggestIncidentDuplicates } from "@/lib/incident-duplicates";
 
 type ReportSubmission = {
+  requestedStatus?: "draft" | "pending" | "approved";
   title: string;
   description: string;
   county: string;
@@ -49,6 +50,7 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
       data: ReportSubmission;
       context: { supabase: SupabaseClient<Database>; userId: string };
     }) => {
+      const { requestedStatus = "pending", ...submission } = data;
       const { data: roles, error: rolesError } = await context.supabase
         .from("user_roles")
         .select("role")
@@ -59,9 +61,13 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
         (entry) => (roleRank[entry.role] ?? 0) >= roleRank.moderator,
       );
       const payload = {
-        ...data,
+        ...submission,
         user_id: context.userId,
-        status: canPublish ? "approved" : "pending",
+        // Public callers cannot self-approve, even if they tamper with the
+        // client payload. Staff may explicitly save a draft or publish.
+        status: canPublish && ["draft", "approved"].includes(requestedStatus)
+          ? requestedStatus
+          : "pending",
       };
 
       // The generated types still reflect the pre-nullability schema. Keep the

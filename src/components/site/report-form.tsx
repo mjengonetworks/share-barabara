@@ -31,9 +31,12 @@ import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
 import { submitAccidentReport } from "@/lib/report.functions";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { useRoles } from "@/hooks/useRoles";
 
 export function ReportForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
+  const { canReview } = useRoles();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
   const { data: severities = [] } = useReportSeverities();
@@ -63,7 +66,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const submit = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (requestedStatus: "draft" | "pending" | "approved") => {
       if (!user) throw new Error("Sign in required");
       const breakdownError = casualtyBreakdownError(casualtyBreakdown, {
         dead: form.fatalities,
@@ -73,6 +76,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
       const road_id = await findExistingRoad(form.road);
       return submitAccidentReport({ data: {
         ...form,
+        requestedStatus,
         ...(reportIncidentTypeAvailable ? { incident_type: form.incident_type || null } : {}),
         image_url: form.image_url.trim() || null,
         image_alt: form.image_alt.trim() || null,
@@ -280,15 +284,44 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         Reports are reviewed and may be edited for accuracy by a moderator or editor before they
         appear publicly. Published reports credit both of you.
       </p>
+      {canReview ? (
+        <div className="space-y-4">
+          {(["generate", "autopopulate"] as const).map((mode) => (
+            <EditorialAIButton
+              key={mode}
+              contentType="report"
+              mode={mode}
+              source={`${form.title}\n${form.description}\nCounty: ${form.county}\nRoad: ${form.road}`}
+              onDraft={(draft) => setForm((current) => ({
+                ...current,
+                ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
+                ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
+                ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
+                ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
+                ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
+                ...(typeof draft.occurred_at === "string" && draft.occurred_at.trim() ? { occurred_at: draft.occurred_at.slice(0, 16) } : {}),
+                ...(typeof draft.vehicles_involved === "number" ? { vehicles_involved: draft.vehicles_involved } : {}),
+                ...(typeof draft.casualties === "number" ? { casualties: draft.casualties } : {}),
+                ...(typeof draft.fatalities === "number" ? { fatalities: draft.fatalities } : {}),
+              }))}
+            />
+          ))}
+        </div>
+      ) : null}
       {identity.type === "profile" ? (
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <Checkbox checked={anonymous} onCheckedChange={(v) => setAnonymous(v === true)} />
           Submit anonymously
         </label>
       ) : null}
-      <Button type="submit" disabled={submit.isPending}>
-        {submit.isPending ? "Submitting…" : "Submit report for review"}
-      </Button>
+      {canReview ? (
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" disabled={submit.isPending} onClick={() => submit.mutate("draft")}>Save draft</Button>
+          <Button type="submit" disabled={submit.isPending}>{submit.isPending ? "Publishing…" : "Publish report"}</Button>
+        </div>
+      ) : (
+        <Button type="submit" disabled={submit.isPending}>{submit.isPending ? "Submitting…" : "Submit report for review"}</Button>
+      )}
     </form>
   );
 }
