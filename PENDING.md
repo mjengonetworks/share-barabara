@@ -9,6 +9,14 @@
   tests and owner acceptance. Do not alter Task 70 database objects, demonstration advertisements, admin
   permissions or the approved sharing fix.
 
+Batch 1 status — TESTING. Commit `d024fdf` is deployed to staging Worker
+`d90636f0-4fc6-4b29-883a-9f3ea1591a8e`. Read-only smoke checks returned HTTP 200 for `/news`, `/alerts`,
+`/reports`, `/campaigns`, `/infrastructure-issues`, `/statistics`, `/feed` and the approved article detail.
+Staging HTML confirmed the shared ecosystem sidebar marker, the full approved Mjengo Hub description and no
+`Across our ecosystem` slogan. Focused editorial/public regression tests passed (21/21), the Bun production
+build passed and `git diff --check` passed. Browser screenshots and authenticated interactions remain
+unverified; do not mark this batch COMPLETED or deploy production until owner review.
+
 - Future sharebarabara.com internationalization: make the static `KENYA` in
   `SHARE BARABARA KENYA` market-aware so it reflects the active country (for
   example, Uganda or Tanzania). Do not implement geolocation or country
