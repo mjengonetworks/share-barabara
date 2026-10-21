@@ -246,6 +246,7 @@ function AlertDetail() {
               contextType="alert"
               contextId={alert.id}
               title={alert.title}
+              sourceText={`${alert.title}\n${alert.description ?? ""}\nCounty: ${alert.county}\nRoad: ${alert.road ?? ""}\nHazard: ${alert.hazard_type}\nSeverity: ${alert.severity}\nStatus: ${alert.status}`}
             />
           ) : null}
           <CommentSection entityType="alert" entityId={alert.id} />

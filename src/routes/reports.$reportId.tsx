@@ -333,7 +333,12 @@ function ReportDetail() {
             </div>
           </div>
           {report.status === "approved" ? (
-            <ShareBarabaraAI contextType="report" contextId={report.id} title={report.title} />
+            <ShareBarabaraAI
+              contextType="report"
+              contextId={report.id}
+              title={report.title}
+              sourceText={`${report.title}\n${report.description ?? ""}\nCounty: ${report.county}\nRoad: ${report.road ?? ""}\nOccurred: ${report.occurred_at ?? ""}\nVehicles involved: ${report.vehicles_involved ?? "Not confirmed"}\nCasualties: ${report.casualties ?? "Not confirmed"}\nFatalities: ${report.fatalities ?? "Not confirmed"}\nSeverity: ${report.severity}`}
+            />
           ) : null}
 
           {report.parties_involved.length > 0 ? (
