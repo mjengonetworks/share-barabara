@@ -27,9 +27,12 @@ import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
 import { submitAlert } from "@/lib/alert.functions";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { useRoles } from "@/hooks/useRoles";
 
 export function AlertForm({ onDone }: { onDone?: () => void }) {
   const { user } = useAuth();
+  const { canReview } = useRoles();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
   const { data: hazardTypes = [] } = useIncidentTaxonomy();
@@ -86,6 +89,27 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         submit.mutate();
       }}
     >
+      {canReview ? (
+        <div className="space-y-4">
+          {(["generate", "autopopulate"] as const).map((mode) => (
+            <EditorialAIButton
+              key={mode}
+              contentType="alert"
+              mode={mode}
+              source={`${form.title}\n${form.description}\nCounty: ${form.county}\nRoad: ${form.road}`}
+              onDraft={(draft) => setForm((current) => ({
+                ...current,
+                ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
+                ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
+                ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
+                ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
+                ...(typeof draft.hazard_type === "string" && draft.hazard_type.trim() ? { hazard_type: draft.hazard_type } : {}),
+                ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
+              }))}
+            />
+          ))}
+        </div>
+      ) : null}
       <div>
         <Label htmlFor="a-title">What is happening?</Label>
         <Input

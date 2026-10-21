@@ -22,6 +22,12 @@ function contentLabel(contentType: EditorialContentType) {
   return contentType[0].toUpperCase() + contentType.slice(1);
 }
 
+function nonDestructiveDraft(draft: Record<string, EditorialValue>) {
+  return Object.fromEntries(
+    Object.entries(draft).filter(([, value]) => value !== "" && value !== null),
+  ) as Record<string, EditorialValue>;
+}
+
 export function EditorialAIButton({
   contentType,
   source,
@@ -76,7 +82,10 @@ export function EditorialAIButton({
         setProposal(result.proposal);
         toast.success("Editorial AI prepared a proposal. Review Current vs Proposed before applying it.");
       } else if (result.draft) {
-        onDraft(result.draft);
+        // Generate and Auto-Populate must not erase manually entered values
+        // when the model leaves a supported field blank or unknown. Update
+        // Existing remains proposal-based and preserves explicit nulls.
+        onDraft(nonDestructiveDraft(result.draft));
         toast.success("Editorial AI values placed in the form. Review them before saving or publishing.");
       } else {
         throw new Error("No draft returned");
