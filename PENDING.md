@@ -161,19 +161,17 @@ policy configuration. Do not execute SQL, deploy, provision SearXNG, or begin Ta
 
 Task 51 — Production Database Migration Readiness is TESTING / VERIFICATION. The repository migration
 chain, known-applied report/campaign patch, protected subscription boundary, dependency order, conflict
-gates, backup/rollback plan and exact read-only Supabase inspection queries are documented. No live
-database inspection or migration execution was performed because local configuration has no privileged
-metadata access. Remaining work is running the read-only queries, confirming applied versions, taking a
-backup, reviewing each migration against production, and executing the approved sequence manually.
+gates, backup/rollback plan and exact read-only Supabase inspection queries are documented. Task 70 now
+has confirmed live schema findings and a verified disposable restore of the pre-migration backup. Broader
+migration-chain reconciliation, live grants/RLS review and owner-approved execution remain pending.
 
 Task 53 — Supabase Production Database Verification is TESTING / VERIFICATION. A single consolidated,
-read-only SQL Editor audit now returns migration history, tables/columns, RLS policies, triggers,
-functions, constraints, indexes, grants, extensions, dependency checks and expected-object conflicts
-as one structured JSON result. A local comparison utility can analyze the exported JSON against the
-repository migrations without treating missing history as proof of non-application. No SQL was
-executed and no production data was changed. Remaining work is pasting the inspection query into
-Supabase, exporting the JSON result, reviewing conflicts, confirming backup readiness and approving
-the migration sequence manually. The protected subscription migration remains excluded.
+read-only SQL Editor audit and the Task 70 focused audit cover migration history, tables/columns, RLS
+policies, triggers, functions, constraints, indexes, grants, extensions, dependency checks and expected
+object conflicts. Confirmed live findings and the verified Task 70 backup now cover the current
+advertising prerequisite state. Remaining work is resolving the small Task 70 grant/view/trigger gaps,
+reviewing the complete migration chain, and approving execution manually. The protected subscription
+migration remains excluded.
 
 Task 54 — Urgent Editorial AI Repair is TESTING / VERIFICATION. The Cloudflare request environment is
 now bound for normal requests, editorial instructions are delivered as a server system instruction,
@@ -219,6 +217,12 @@ missing later feature objects, notification/vote conflicts and the dependency-aw
 No SQL was executed, no production data changed, the audit JSON was not committed, and protected
 subscription work remains excluded.
 
+Database-readiness reconciliation — Tasks 51, 53, 58 and 59 overlap and are consolidated under Task 53
+as the canonical live-audit and migration-ledger gate. Task 70-specific evidence now includes confirmed
+live banner_ads permissions/schema, absence of the new settings relations, ten example-domain ad records,
+and a verified disposable restore. No Task 70 migration or hosted write has been executed. Future
+database-readiness work should update this consolidated gate rather than create another audit task.
+
 Task 60 — Share Barabara Production Recovery, AI Functionality, Project Publishing and Deployment Audit is
 TESTING / VERIFICATION. The repository-side audit covers the current AI action paths, deployment evidence,
 project-publishing scope, Task 59 migration dependencies and recent public UI state. A safe primary-navigation
@@ -229,9 +233,10 @@ secret change or subscription work was performed.
 
 Task 70 — Public Page Layout System is TESTING. The approved Task 70 public editorial layout, shared detail
 architecture, advertising surfaces, Alerts and Accident Reports listing redesign, and global editorial-card date
-removal are deployed to production. Continuing owner visual refinement remains open; do not mark this task
-COMPLETED or begin later batches without approval. No database migration or hosted data change is part of this
-release.
+removal are deployed to production. The administrator-managed ecosystem/ad-settings migration remains
+unexecuted: live prerequisites and backup are verified, while final live grants/views/trigger checks and
+owner approval remain pending. Continuing owner visual refinement remains open; do not mark this task
+COMPLETED or begin later batches without approval.
 
 Admin Workspace Separation — TESTING. The authenticated management area now has dedicated admin chrome,
 independent navigation, role-filtered management surfaces, admin-owned Article/Alert/Report authoring entry
