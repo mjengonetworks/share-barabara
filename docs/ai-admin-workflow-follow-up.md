@@ -2,6 +2,27 @@
 
 Status: TESTING / VERIFICATION. Repository implementation is complete for the available code paths. Staging acceptance remains dependent on the existing AI secrets and review/application of the related accident-report draft schema migration.
 
+## Migration review: `20261021130000_accident_report_admin_drafts_review.sql`
+
+- Schema change: replaces the existing accident-report status check so it accepts `draft` in addition to `pending`, `approved`, and `rejected`. Existing rows and values are not rewritten.
+- RLS change: replaces `reports_insert_own` so owners can insert `draft` or `pending`, while `approved` inserts require `has_min_role(auth.uid(), 'moderator')`. It replaces `reports_read_approved` so approved rows remain public, owners can read their own rows, and moderators can read all rows.
+- Data impact: no direct data mutation is present, but the new read policy intentionally exposes an authenticated owner's own non-approved report to that owner. It does not make drafts public.
+- Reversibility: not automatically reversible. A rollback would need an explicit SQL change to restore the prior status constraint and policy definitions. Dropping the matching check constraint dynamically also makes rollback dependent on the live constraint name/definition.
+- Production effect: because staging and production share Supabase, applying this migration changes production database behavior immediately. It is therefore not to be run as part of Worker deployment or without explicit database approval.
+- Without the migration: direct `approved` publishing can work through the existing status constraint and server-side role check. `Save draft` cannot work because `draft` violates the current database check constraint; the UI must remain treated as blocked until the migration is reviewed and applied.
+
+## Secure staging secret commands
+
+Run these from an authenticated deployment shell. Wrangler prompts for each value; do not put values in chat, shell history, source files, or logs:
+
+```text
+npx wrangler secret put GROQ_API_KEY --name share-barabara-staging
+npx wrangler secret put XAI_API_KEY --name share-barabara-staging
+npx wrangler secret list --name share-barabara-staging
+```
+
+The list command verifies names only. It does not reveal secret values. The current audit found no staging secrets.
+
 ## Supported administrator forms
 
 | Content type | Add New | Edit | Generate | Auto-Populate | Update Existing |
@@ -34,5 +55,10 @@ The repository contains one editorial `autopopulate` operation, distinct from `g
 
 - New workflow regression tests: `tests/ai-admin-workflow.test.mjs`.
 - Live provider tests remain blocked by missing staging `GROQ_API_KEY` and `XAI_API_KEY` secrets; no secret values were read.
+- Staging smoke check: `https://staging.sharebarabara.co.ke/` returned HTTP 200 with server-rendered HTML. `npx wrangler secret list --name share-barabara-staging` returned no secrets, so provider-backed Generate, Auto-Populate, Update Existing and Quick AI Summary acceptance is still blocked. Required secret names are `GROQ_API_KEY` and `XAI_API_KEY`; values must be configured out of band.
+- The staging deployment preserved the existing `AI_RATE_LIMITER`, assets, `DEPLOYMENT_ENV=staging` and `WEB_PUSH_ENABLED=false` bindings. No production deployment was performed.
+- Quick AI Summary: code-path and security tests pass. Signed-out generation is intentionally public and content-grounded; provider-backed rendering is blocked by the missing staging Groq secret. The authentication return path now reopens the exact content AI surface and contextual composer after sign-in; live browser acceptance remains pending.
+- Sign in to Chat: return-path validation and context ownership checks pass in code tests. Live signed-out-to-signed-in and contextual continuation acceptance remains pending provider secrets and an authenticated staging browser session.
+- Infrastructure Issues and Campaigns: remaining content-type AI integration is DESIGN / NOT IMPLEMENTED. See `docs/ai-content-type-expansion-design.md`; no nonfunctional controls were added.
 - Draft publishing acceptance additionally requires review/application of the related migration because the current report status constraint is `pending/approved/rejected`.
 - No database migration was executed. Task 70, sharing fixes and demonstration advertisements were not modified.

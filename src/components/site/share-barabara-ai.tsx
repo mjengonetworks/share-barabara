@@ -77,8 +77,12 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
   const [threadId, setThreadId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
 
-  useEffect(() => focusAISurface("share-barabara-ai"), []);
+  useEffect(() => {
+    if (user && window.location.hash === "#share-barabara-ai") setChatOpen(true);
+    focusAISurface("share-barabara-ai");
+  }, [user]);
 
   async function summarize() {
     setBusy(true); setError(null);
@@ -104,7 +108,7 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
       {mode === "chat" ? <p className="mt-2 text-sm text-primary-foreground/80">Chat with Share Barabara AI about this alert.</p> : null}
       {mode === "summary" && !summary ? <Button className="mt-4 border-accent/70 bg-transparent text-primary-foreground hover:bg-accent hover:text-accent-foreground" variant="outline" onClick={summarize} disabled={busy}><Sparkles className="mr-2 size-4" />{busy ? "Preparing summary…" : "Quick AI Summary"}</Button> : null}
       {mode === "summary" && summary ? (summaryAvailable ? <div className="mt-4 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4 text-sm"><SafeAIRenderer content={summary.answer!} /></div> : <p className="mt-4 text-sm text-primary-foreground/75">{errorText(summary)}</p>) : null}
-      {mode === "chat" || summaryAvailable ? (
+      {mode === "chat" || summaryAvailable || chatOpen ? (
         user ? <div className="mt-5 space-y-3">{messages.map((item, index) => <Answer key={`${item.role}-${index}`} message={item} />)}<Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask Share Barabara AI…" /></div> : <p className="mt-4 text-sm text-primary-foreground/75"><Link className="font-semibold text-accent underline" to="/auth" search={{ returnTo: aiReturnTo("content") }}>Sign in to Chat</Link>{" "}to continue with Share Barabara AI.</p>
       ) : null}
       {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
