@@ -14,32 +14,28 @@ import { Button } from "@/components/ui/button";
 import { useRoleLabels, primaryRoleLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { useAuth } from "@/hooks/useAuth";
 import { useContributorScore } from "@/hooks/useContributorScore";
+import { socialHead } from "@/lib/seo";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const Route = createFileRoute("/u/$userId")({
-  head: () => ({
-    meta: [
-      { title: "Contributor Profile: Share Barabara" },
-      {
-        name: "description",
-        content:
-          "Everything a Share Barabara contributor has published: hazard alerts, accident reports and discussion comments.",
-      },
-      { property: "og:title", content: "Contributor Profile: Share Barabara" },
-      {
-        property: "og:description",
-        content: "Alerts, accident reports and comments contributed by this road user.",
-      },
-      { property: "og:type", content: "profile" },
-      { name: "twitter:card", content: "summary" },
-    ],
+  loader: async ({ params }) => {
+    const { data } = await supabase.from("profiles").select("id, username, display_name, county, avatar_url, created_at, occupation, bio, byline_title, road_safety_message, mjengo_networks_url, mjengo_hub_url, referral_points").eq(UUID_RE.test(params.userId) ? "id" : "username", params.userId).maybeSingle();
+    return data;
+  },
+  head: ({ loaderData, params }) => socialHead({
+    title: loaderData?.display_name ? `${loaderData.display_name} on Share Barabara` : "Contributor Profile",
+    description: loaderData?.bio || "Alerts, accident reports and comments contributed by this road user.",
+    pathname: `/u/${loaderData?.username || params.userId}`,
+    imageUrl: loaderData?.avatar_url,
+    type: "website",
   }),
   component: ContributorPage,
 });
 
 function ContributorPage() {
   const { userId: routeParam } = Route.useParams();
+  const loaderData = Route.useLoaderData();
   const { user: viewer } = useAuth();
   const navigate = useNavigate();
   const [showAllReports, setShowAllReports] = useState(false);
@@ -57,6 +53,7 @@ function ContributorPage() {
       if (error) throw error;
       return data;
     },
+    initialData: loaderData,
   });
 
   // Canonicalise to the username URL once the profile has loaded, so the

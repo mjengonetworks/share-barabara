@@ -1,5 +1,11 @@
 # Pending
 
+- **Priority sharing fix:** Copy Link includes the content title and exactly one
+  blank line before the canonical production URL. Published shareable content
+  emits SSR Open Graph/Twitter metadata with absolute featured or fallback
+  images. Production deployment and live crawler verification remain required;
+  see `docs/sharing-preview-qa.md`.
+
 - Future sharebarabara.com internationalization: make the static `KENYA` in
   `SHARE BARABARA KENYA` market-aware so it reflects the active country (for
   example, Uganda or Tanzania). Do not implement geolocation or country

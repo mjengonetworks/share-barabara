@@ -14,13 +14,18 @@ import {
   PublicSidebar,
   SidebarModule,
 } from "@/components/site/public-layout";
+import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/campaigns/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Campaign: Share Barabara" },
-      { name: "description", content: "Read about this Share Barabara campaign." },
-    ],
+  loader: async ({ params }) => {
+    const { data } = await supabase.from("campaigns").select("*").eq("slug", params.slug).maybeSingle();
+    return data;
+  },
+  head: ({ loaderData }) => socialHead({
+    title: loaderData?.title || "Share Barabara Campaign",
+    description: loaderData?.description || "Read about this Share Barabara campaign.",
+    pathname: `/campaigns/${loaderData?.slug ?? ""}`,
+    imageUrl: loaderData?.image_url || loaderData?.report_image_url,
   }),
   component: CampaignDetail,
 });
@@ -33,6 +38,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 
 function CampaignDetail() {
   const { slug } = Route.useParams();
+  const loaderData = Route.useLoaderData();
 
   const { data: campaign, isLoading } = useQuery({
     queryKey: ["campaign", slug],
@@ -45,6 +51,7 @@ function CampaignDetail() {
       if (error) throw error;
       return data;
     },
+    initialData: loaderData,
   });
 
   if (isLoading) {

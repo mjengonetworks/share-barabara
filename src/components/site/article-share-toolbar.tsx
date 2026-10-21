@@ -4,6 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronDown, Copy, Facebook, Linkedin, Send, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { canonicalUrl as publicCanonicalUrl } from "@/lib/seo";
+
+export function formatShareClipboard(title: string, url: string) {
+  return `${title}\n\n${url}`;
+}
 
 const GOOGLE_NEWS_SEARCH_URL =
   "https://news.google.com/search?q=share%20barabara&hl=en-ZA&gl=ZA&ceid=ZA%3Aen";
@@ -60,7 +65,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
   const [open, setOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
   const menuRef = useRef<HTMLDivElement>(null);
-  const url = canonicalUrl ?? (typeof window !== "undefined" ? window.location.href : "");
+  const url = canonicalUrl ?? (typeof window !== "undefined" ? publicCanonicalUrl(window.location.pathname) : publicCanonicalUrl("/"));
   const { data: settings } = useQuery({
     queryKey: ["site-settings"],
     queryFn: async () => {
@@ -116,7 +121,7 @@ export function PublicShareToolbar({ title, canonicalUrl }: ShareButtonsProps) {
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(formatShareClipboard(title, url));
       setCopied(true);
       toast.success("Article link copied");
       setTimeout(() => setCopied(false), 2000);
