@@ -271,6 +271,16 @@ Production article HTML currently has no `og:image` or `twitter:image`, and prod
 canonical-URL-only Copy Link behavior. Keep the high-priority Copy Link and social-preview task separate and
 pending; do not assume staging changes are production-live.
 
+Sharing production promotion attempt — A fresh candidate branch `release/sharing-production-fix-20261021`
+was created from `origin/main` at `c85792b`. It contains only the shared Copy Link format correction,
+production-safe News/Reports social metadata, and focused regression coverage; staging-only `be4ce89` was
+not included. The focused sharing tests passed and `git diff --check` passed. Production promotion did not
+occur because this isolated worktree has no installed dependencies or lockfile, `vite` was unavailable, and
+the dependency installation could not complete; consequently the production build and Cloudflare deployment
+gates remain unsatisfied. No production or database changes were made. Keep the sharing task pending until a
+release operator reruns the build, deploys the candidate, and verifies raw production HTML and Copy Link
+output.
+
 Admin Workspace Separation — TESTING. The authenticated management area now has dedicated admin chrome,
 independent navigation, role-filtered management surfaces, admin-owned Article/Alert/Report authoring entry
 points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
