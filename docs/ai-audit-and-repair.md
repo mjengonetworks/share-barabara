@@ -38,8 +38,9 @@ Signed-out visitors can request a summary. After a successful response, the exis
 - Focused regression tests: added in `tests/ai-summary-flow.test.mjs`; run with `node --test tests/ai-summary-flow.test.mjs`.
 - Local live-provider test: not available in this checkout because `GROQ_API_KEY` and `XAI_API_KEY` are not present. No credentials were printed or committed.
 - SearXNG/external retrieval: repository integration exists, but no local provider is configured. Do not claim live retrieval acceptance until staging credentials and the selected provider are verified.
-- Staging deployment: pending runtime deployment and browser acceptance.
+- Staging deployment: deployed twice from this branch. The final repair commit `39a7238` is on Worker `share-barabara-staging`, Cloudflare version `7db4b54b-62e2-4d93-b640-99796cc6e9ed`.
+- Staging live smoke: the serialized Quick AI Summary request reached the repaired handler and returned `not_configured` with the current bounded article evidence. `npx wrangler secret list --name share-barabara-staging` returned no secrets; staging therefore needs the approved `GROQ_API_KEY` secret before provider acceptance. Production has `GROQ_API_KEY` and `XAI_API_KEY` secret names present; values were not read.
 
 ## Remaining acceptance checks
 
-Run representative published article, alert and report flows on staging, with featured and fallback source content. Verify signed-out summary generation, provider error and malformed-response messaging, the sign-in return path, signed-in contextual chat, desktop/mobile layout, and authorization boundaries. Do not run migrations or change Task 70 objects or demonstration advertisements.
+After the staging Groq secret is configured by the deployment administrator, run representative published article, alert and report flows on staging, with featured and fallback source content. Verify signed-out summary generation, provider error and malformed-response messaging, the sign-in return path, signed-in contextual chat, desktop/mobile layout, and authorization boundaries. Do not run migrations or change Task 70 objects or demonstration advertisements.
