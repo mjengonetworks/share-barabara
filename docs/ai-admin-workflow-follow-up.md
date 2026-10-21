@@ -1,6 +1,6 @@
 # AI administrator workflow follow-up
 
-Status: TESTING / VERIFICATION. Repository implementation is complete for the available code paths. Staging acceptance remains dependent on the existing AI secrets and review/application of the related accident-report draft schema migration.
+Status: TESTING / VERIFICATION. Repository implementation is complete for the available code paths. Deployed to staging at commit `607568e`, Worker version `1fd5d006-57b3-47c2-afd4-df496382c0cd`. Staging acceptance remains dependent on the existing AI secrets and review/application of the related accident-report draft schema migration.
 
 ## Supported administrator forms
 
@@ -34,5 +34,7 @@ The repository contains one editorial `autopopulate` operation, distinct from `g
 
 - New workflow regression tests: `tests/ai-admin-workflow.test.mjs`.
 - Live provider tests remain blocked by missing staging `GROQ_API_KEY` and `XAI_API_KEY` secrets; no secret values were read.
+- Staging smoke check: `https://staging.sharebarabara.co.ke/` returned HTTP 200 with server-rendered HTML. `npx wrangler secret list --name share-barabara-staging` returned no secrets, so provider-backed Generate, Auto-Populate, Update Existing and Quick AI Summary acceptance is still blocked. Required secret names are `GROQ_API_KEY` and `XAI_API_KEY`; values must be configured out of band.
+- The staging deployment preserved the existing `AI_RATE_LIMITER`, assets, `DEPLOYMENT_ENV=staging` and `WEB_PUSH_ENABLED=false` bindings. No production deployment was performed.
 - Draft publishing acceptance additionally requires review/application of the related migration because the current report status constraint is `pending/approved/rejected`.
 - No database migration was executed. Task 70, sharing fixes and demonstration advertisements were not modified.
