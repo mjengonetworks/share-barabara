@@ -54,17 +54,18 @@ function CampaignListItem({
     <Link
       to="/campaigns/$slug"
       params={{ slug: c.slug }}
-      className="group flex gap-4 overflow-hidden rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
+      className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors card-elevated hover:border-accent"
     >
       {c.image_url ? (
-        <img
-          src={c.image_url}
-          alt={c.title}
-          className="aspect-video w-28 shrink-0 rounded object-cover sm:w-36"
-        />
+        <img src={c.image_url} alt={c.title} className="aspect-video w-full object-cover" />
       ) : null}
-      <div className="min-w-0">
-        <p className="font-bold text-brand-blue group-hover:underline">{c.title}</p>
+      <div className="min-w-0 p-4">
+        <p className="inline-flex rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold leading-tight text-brand-navy">
+          Campaign
+        </p>
+        <p className="mt-2 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">
+          {c.title}
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">
           {dateLabel}
           {c.location ? ` · ${c.location}` : ""}
@@ -93,7 +94,7 @@ function CampaignSection({
   const shown = expanded ? campaigns : campaigns.slice(0, 3);
 
   return (
-    <section className="mt-6 rounded-lg border border-border bg-card p-6 card-elevated">
+    <section className="mt-6 rounded-xl border border-border bg-card p-4 card-elevated sm:p-5">
       <h2 className="flex items-center gap-2 text-[0.9625rem] font-bold">
         <Icon className="size-5 text-accent" /> {title}
       </h2>
@@ -101,7 +102,7 @@ function CampaignSection({
         <p className="mt-2 text-sm text-muted-foreground">{emptyText}</p>
       ) : (
         <>
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {shown.map((c) => (
               <CampaignListItem key={c.id} campaign={c} dateLabel={dateLabel(c)} />
             ))}

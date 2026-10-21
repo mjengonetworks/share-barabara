@@ -24,10 +24,7 @@ import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
-import {
-  PublicBreadcrumbStrip,
-  SidebarModule,
-} from "@/components/site/public-layout";
+import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   head: () => ({
@@ -285,7 +282,11 @@ function AlertDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
-      <DiscoverySections focus="alert" currentId={alert.id} />
+      <DiscoverySections
+        focus="alert"
+        currentId={alert.id}
+        context={{ county: alert.county, road: alert.road, topic: alert.hazard_type }}
+      />
     </>
   );
 }

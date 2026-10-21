@@ -27,9 +27,7 @@ import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
-import {
-  PublicBreadcrumbStrip,
-} from "@/components/site/public-layout";
+import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -431,7 +429,11 @@ function ReportDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
-      <DiscoverySections focus="report" currentId={report.id} />
+      <DiscoverySections
+        focus="report"
+        currentId={report.id}
+        context={{ county: report.county, road: report.road, topic: report.incident_type }}
+      />
     </>
   );
 }

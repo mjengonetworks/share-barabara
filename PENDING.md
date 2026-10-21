@@ -255,3 +255,14 @@ independent navigation, role-filtered management surfaces, admin-owned Article/A
 points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
 existing shell and permissions. Browser/device review and any follow-up management-surface refinements remain
 open; no database migration or hosted data change is part of this release.
+
+Task 70 Batch 2 — Platform Editorial Listing Consistency is TESTING. Batch 2 standardizes the
+Infrastructure Issues and Campaign listing consumers around the approved compact editorial rhythm,
+normalizes cross-category Search result previews, improves image fallbacks for incident cards, and ranks
+Alert/Report discovery by verified road, county and incident-topic metadata before recency fallback. News,
+Alerts and Reports continue to use the shared lead-plus-supporting-column primitives; ads, maps, sharing,
+discussions, permissions and Task 70 database objects were not changed. Focused public-layout tests pass
+23/23, the Bun production build passes, formatting and git diff --check pass. Staging deployment is pending
+after commit/push; browser screenshots, viewport interaction and authenticated flows remain unverified because
+browser tooling was unavailable. Keep Batch 1 TESTING and do not mark either batch COMPLETED without owner
+visual acceptance.

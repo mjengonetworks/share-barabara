@@ -18,6 +18,13 @@ import { BannerAd } from "@/components/site/banner-ad";
 
 type Focus = "article" | "alert" | "report";
 
+export type DiscoveryContext = {
+  county?: string | null;
+  road?: string | null;
+  category?: string | null;
+  topic?: string | null;
+};
+
 type ArticlePreview = {
   id: string;
   slug: string;
@@ -26,6 +33,8 @@ type ArticlePreview = {
   image_url: string | null;
   published_at: string;
   summary: string;
+  county?: string | null;
+  road?: string | null;
 };
 
 type AlertPreview = {
@@ -35,6 +44,7 @@ type AlertPreview = {
   county: string;
   road: string | null;
   hazard_type: string;
+  incident_type?: string | null;
   severity: string;
   created_at: string;
 };
@@ -51,6 +61,7 @@ type ReportPreview = {
   vehicles_involved: number | null;
   casualties: number | null;
   fatalities: number | null;
+  incident_type?: string | null;
 };
 
 export function ArticlePreviewCard({ article }: { article: ArticlePreview }) {
@@ -223,13 +234,65 @@ function ExternalPreview({
   );
 }
 
-export function DiscoverySections({ focus, currentId }: { focus: Focus; currentId: string }) {
+function relevanceScore(
+  item: {
+    county?: string | null;
+    road?: string | null;
+    category?: string | null;
+    hazard_type?: string | null;
+    incident_type?: string | null;
+  },
+  context?: DiscoveryContext,
+) {
+  if (!context) return 0;
+  let score = 0;
+  if (context.road && item.road && item.road.toLowerCase() === context.road.toLowerCase())
+    score += 4;
+  if (context.county && item.county && item.county.toLowerCase() === context.county.toLowerCase())
+    score += 2;
+  if (
+    context.category &&
+    item.category &&
+    item.category.toLowerCase() === context.category.toLowerCase()
+  )
+    score += 2;
+  if (
+    context.topic &&
+    [item.hazard_type, item.incident_type].some(
+      (value) => value?.toLowerCase() === context.topic?.toLowerCase(),
+    )
+  )
+    score += 2;
+  return score;
+}
+
+function rankByContext<
+  T extends {
+    county?: string | null;
+    road?: string | null;
+    category?: string | null;
+    hazard_type?: string | null;
+    incident_type?: string | null;
+  },
+>(items: T[], context?: DiscoveryContext) {
+  return [...items].sort((a, b) => relevanceScore(b, context) - relevanceScore(a, context));
+}
+
+export function DiscoverySections({
+  focus,
+  currentId,
+  context,
+}: {
+  focus: Focus;
+  currentId: string;
+  context?: DiscoveryContext;
+}) {
   const { data: articles = [] } = useQuery<ArticlePreview[]>({
     queryKey: ["discovery-articles", focus, currentId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("id, slug, title, category, image_url, published_at, summary")
+        .select("id, slug, title, category, image_url, published_at, summary, county, road")
         .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(12);
@@ -256,7 +319,7 @@ export function DiscoverySections({ focus, currentId }: { focus: Focus; currentI
       const { data, error } = await supabase
         .from("accident_reports")
         .select(
-          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+          "id, title, description, county, road, severity, incident_type, occurred_at, image_url, vehicles_involved, casualties, fatalities",
         )
         .eq("status", "approved")
         .order("occurred_at", { ascending: false })
@@ -280,9 +343,18 @@ export function DiscoverySections({ focus, currentId }: { focus: Focus; currentI
   const currentArticleIds = focus === "article" ? new Set([currentId]) : new Set<string>();
   const currentAlertIds = focus === "alert" ? new Set([currentId]) : new Set<string>();
   const currentReportIds = focus === "report" ? new Set([currentId]) : new Set<string>();
-  const articlePool = articles.filter((item) => !currentArticleIds.has(item.id));
-  const alertPool = alerts.filter((item) => !currentAlertIds.has(item.id));
-  const reportPool = reports.filter((item) => !currentReportIds.has(item.id));
+  const articlePool = rankByContext(
+    articles.filter((item) => !currentArticleIds.has(item.id)),
+    context,
+  );
+  const alertPool = rankByContext(
+    alerts.filter((item) => !currentAlertIds.has(item.id)),
+    context,
+  );
+  const reportPool = rankByContext(
+    reports.filter((item) => !currentReportIds.has(item.id)),
+    context,
+  );
   const relatedArticles = focus === "article" ? articlePool.slice(0, 4) : [];
   const relatedAlerts = focus === "alert" ? alertPool.slice(0, 4) : [];
   const relatedReports = focus === "report" ? reportPool.slice(0, 4) : [];
@@ -456,7 +528,7 @@ function DiscoveryGroup<T>({
           Read more <ArrowRight className="size-3.5" />
         </Link>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {items.slice(0, 4).map((item, index) => (
           <div key={"id" in (item as object) ? String((item as { id: string }).id) : index}>
             {render(item)}
