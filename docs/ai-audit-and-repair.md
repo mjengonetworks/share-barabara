@@ -1,6 +1,6 @@
 # Share Barabara AI audit and repair
 
-Status: TESTING / VERIFICATION. The repository repair is implemented and the production build passes. Staging runtime acceptance and live provider checks remain required.
+Status: TESTING / VERIFICATION. The serialization repair is implemented and deployed to staging. The endpoint now has live HTTP evidence from Groq; browser rendering and authenticated acceptance remain required.
 
 ## Inventory
 
@@ -20,6 +20,12 @@ The public path has no access to editorial prompts, unpublished drafts or admini
 
 ## Defects found and repaired
 
+### Serialization diagnosis
+
+The reported `Seroval Error (step: 3)` was reproduced only when a direct diagnostic request sent ordinary JSON such as `{ "data": { ... } }`. TanStack Start server functions do not accept that shape directly: the browser wrapper serializes its payload with Seroval and sends the resulting envelope. The framework rejected the malformed request while deserializing/serializing the server-function call, before an AI provider request. This was confirmed by sending the correct Seroval envelope: the same public endpoint returned HTTP 200, including a structured validation error for invalid input and a real Groq response for valid bounded evidence.
+
+The application was also hardened so Quick AI Summary catches validation/provider/runtime failures and returns a normalized plain JSON-safe `PublicAIResult`. Successful results are normalized as well, preventing provider SDK objects, `Error` instances, streams, undefined values or circular data from crossing the server-function boundary.
+
 1. Content-scoped public AI assessed only database-resolved evidence. If that resolver failed, a valid bounded source text supplied by the published page was not considered sufficient.
 2. Content-scoped requests could fall through to external search. This was unsafe for a summary of a specific published item and could produce unrelated evidence.
 3. Resolver exceptions escaped before the page-context fallback could be used.
@@ -38,9 +44,9 @@ Signed-out visitors can request a summary. After a successful response, the exis
 - Focused regression tests: added in `tests/ai-summary-flow.test.mjs`; run with `node --test tests/ai-summary-flow.test.mjs`.
 - Local live-provider test: not available in this checkout because `GROQ_API_KEY` and `XAI_API_KEY` are not present. No credentials were printed or committed.
 - SearXNG/external retrieval: repository integration exists, but no local provider is configured. Do not claim live retrieval acceptance until staging credentials and the selected provider are verified.
-- Staging deployment: deployed twice from this branch. The final repair commit `39a7238` is on Worker `share-barabara-staging`, Cloudflare version `7db4b54b-62e2-4d93-b640-99796cc6e9ed`.
-- Staging live smoke: the serialized Quick AI Summary request reached the repaired handler and returned `not_configured` with the current bounded article evidence. `npx wrangler secret list --name share-barabara-staging` returned no secrets; staging therefore needs the approved `GROQ_API_KEY` secret before provider acceptance. Production has `GROQ_API_KEY` and `XAI_API_KEY` secret names present; values were not read.
+- Staging deployment: repair commit `ed2ec86` is pushed and deployed to Worker `share-barabara-staging`, Cloudflare version `1831b2fa-33c1-46cb-94da-c13d09a5258c`. Existing bindings were preserved; no production deployment or migration was performed.
+- Staging live smoke: `npx wrangler secret list --name share-barabara-staging` confirms the names `GROQ_API_KEY` and `XAI_API_KEY` without exposing values. A correctly serialized signed-out request returned HTTP 200 with a real Groq-generated summary grounded in supplied published-style evidence; an invalid request returned HTTP 200 with structured `invalid_request`. The direct test did not use an authenticated browser or a database-resolved article UUID.
 
 ## Remaining acceptance checks
 
-After the staging Groq secret is configured by the deployment administrator, run representative published article, alert and report flows on staging, with featured and fallback source content. Verify signed-out summary generation, provider error and malformed-response messaging, the sign-in return path, signed-in contextual chat, desktop/mobile layout, and authorization boundaries. Do not run migrations or change Task 70 objects or demonstration advertisements.
+Run representative published article, alert and report flows on staging, with featured and fallback source content. Verify browser rendering, the sign-in return path, signed-in contextual chat, desktop/mobile layout, and authorization boundaries. The remaining live blocker is an authenticated staging browser/session for UI and role acceptance, not secret configuration. Do not run migrations or change Task 70 objects or demonstration advertisements.
