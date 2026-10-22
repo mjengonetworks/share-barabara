@@ -1,5 +1,28 @@
 # Pending
 
+- **AI CHAT HISTORY RELEASE READINESS — CANDIDATE `9d1fda8` / NOT DEPLOYED.**
+  The candidate is pushed on `release/production-20261022` and includes the
+  verified public-AI hotfix chain (`73b35fe`, `d620123`). The Bun/Vite 7.3.7
+  production build passes. The complete repository suite is **339/346**: the
+  seven failures are stale or unrelated editorial/recovery contract assertions
+  (admin form expectations, article toolbar count, report status, and Task 60
+  publishing); the focused AI, security, retrieval and workflow suites remain
+  **42/42**. No deployment or migration was performed. The current production
+  Worker `0ba2e03b-7050-45e1-8795-724064db0565` is the rollback target.
+
+  Historical production schema evidence indicates existing owner-scoped
+  `ai_chat_threads`/`ai_chat_messages` tables support basic create, save,
+  reopen, rename, archive and ownership checks using existing columns. The
+  proposed `20261022130000_ai_chat_history_hardening_review.sql` is not
+  required for those basic operations, but `context_url`, durable `evidence`,
+  retry `client_message_id` and explicit `generation_status` remain migration
+  dependent. A current live catalog/RLS confirmation could not be completed:
+  the available publishable Supabase credential returned HTTP 404 for the
+  protected REST table probes, so table absence was not inferred and no SQL
+  was executed. Owner review/privileged read-only verification remains required
+  before production approval. Browser and authenticated acceptance remain
+  pending; Live SearXNG remains explicitly PENDING.
+
 - **MASTER PUBLIC AI CHAT WORKFLOW — IMPLEMENTED / MIGRATION AND BROWSER ACCEPTANCE
   PENDING.** The header and contextual surfaces now share the same public AI
   infrastructure. Signed-out header users see only the primary `Sign in to
