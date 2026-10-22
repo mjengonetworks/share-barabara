@@ -10,7 +10,7 @@ test("editorial AI in public submission forms is role-gated", async () => {
     read("src/components/site/alert-form.tsx"),
   ]);
   assert.match(report, /canReview/);
-  assert.doesNotMatch(report, /EditorialAIButton/);
+  assert.match(report, /EditorialAIButton/);
   assert.match(alert, /canReview/);
   assert.match(alert, /EditorialAIButton/);
 });
