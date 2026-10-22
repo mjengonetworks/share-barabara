@@ -196,6 +196,8 @@ gates, backup/rollback plan and exact read-only Supabase inspection queries are 
 database inspection or migration execution was performed because local configuration has no privileged
 metadata access. Remaining work is running the read-only queries, confirming applied versions, taking a
 backup, reviewing each migration against production, and executing the approved sequence manually.
+The canonical readiness document heading was corrected from the stale Task 58 label to Task 51;
+the existing verification-only status and execution blockers are unchanged.
 
 Task 53 — Supabase Production Database Verification is TESTING / VERIFICATION. A single consolidated,
 read-only SQL Editor audit now returns migration history, tables/columns, RLS policies, triggers,
