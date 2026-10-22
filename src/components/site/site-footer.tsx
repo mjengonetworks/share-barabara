@@ -8,6 +8,7 @@ import { SocialIcon } from "@/components/site/social-icon";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
+import { ALLOWED_SOCIAL_PLATFORMS, safeSocialUrl } from "@/lib/social-links";
 import logoUrl from "@/assets/share-barabara-logo.png";
 
 export function SiteFooter() {
@@ -20,11 +21,13 @@ export function SiteFooter() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("social_links")
-        .select("*")
+        .select("id,label,icon_key,href,sort_order")
         .eq("active", true)
         .order("sort_order", { ascending: true });
       if (error) throw error;
-      return data;
+      return (data ?? []).filter(
+        (item) => ALLOWED_SOCIAL_PLATFORMS.has(item.icon_key) && safeSocialUrl(item.href),
+      );
     },
     staleTime: 60_000,
   });
