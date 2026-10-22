@@ -154,6 +154,11 @@ Task 25 as part of this task.
 
 Task 45 — Mjengo Hub Content & Tracker Integration is TESTING / VERIFICATION. A bounded server-side Mjengo adapter now consumes the public RSS feed and documented public tracker/media HTML cards, with allowlisted URLs, schema-aware normalization, caching, timeout/fallback handling, attribution, and native preview modules on the homepage, News & Articles, Alerts, Reports, Statistics, and Media pages. Remaining verification is browser/source freshness checking and confirming the upstream HTML card contracts remain stable; Mjengo Hub does not currently expose public JSON endpoints for projects or media. Do not execute SQL, deploy, provision SearXNG, or begin Task 25 as part of this task.
 
+Task 45 upstream response hardening is implemented on `codex/task45-upstream-contract-hardening`:
+the adapter now rejects unexpected upstream content types before parsing while preserving
+bounded response sizes, timeouts, allowlisted destinations, cache behavior, attribution and
+graceful empty fallback. Live upstream freshness and browser acceptance remain pending.
+
 Task 46 — Feed, Replies, Mentions & Community Notifications is TESTING / VERIFICATION. The public Feed
 route, prominent navigation, moderated user-post model, automatic public-content stream, voting,
 threaded discussion reuse, hashtags/trending seam, persistent block/report controls, server-side AI

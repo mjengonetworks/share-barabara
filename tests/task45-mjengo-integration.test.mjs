@@ -8,9 +8,9 @@ const routes = ["src/routes/index.tsx", "src/routes/news.index.tsx", "src/routes
 
 test("Mjengo adapter uses the public RSS and bounded public page contracts", () => {
   assert.match(adapter, /https:\/\/mjengohub\.co\.ke/);
-  assert.match(adapter, /fetchText\("\/rss\.xml"\)/);
-  assert.match(adapter, /fetchText\("\/projects"\)/);
-  assert.match(adapter, /fetchText\("\/media"\)/);
+  assert.match(adapter, /fetchText\("\/rss\.xml", \["application\/rss\+xml"/);
+  assert.match(adapter, /fetchText\("\/projects", \["text\/html"/);
+  assert.match(adapter, /fetchText\("\/media", \["text\/html"/);
   assert.match(adapter, /AbortController/);
   assert.match(adapter, /MAX_BODY/);
   assert.match(adapter, /CACHE_TTL/);
@@ -49,6 +49,14 @@ test("upstream failure returns an empty result rather than breaking pages", () =
   assert.match(previews, /if \(!data \|\| data\.status !== "ok"\) return null/);
 });
 
+test("upstream contracts reject unexpected response content types before parsing", () => {
+  assert.match(adapter, /content-type/);
+  assert.match(adapter, /acceptedContentTypes/);
+  assert.match(adapter, /application\/rss\+xml/);
+  assert.match(adapter, /application\/xhtml\+xml/);
+  assert.match(adapter, /if \(contentType && !acceptedContentTypes\.includes\(contentType\)\) return ""/);
+});
+
 test("homepage and major public pages use the shared native preview module", () => {
   assert.equal(routes.filter((source) => source.includes("<MjengoPreviews")).length, 6);
   assert.match(previews, /Navy|Source: Mjengo Hub|From Mjengo Hub|Project Tracker/);
@@ -62,7 +70,7 @@ test("content remains clearly attributed and does not copy into Share Barabara r
 
 test("bounded result counts and caching prevent repeated upstream waterfalls", () => {
   assert.match(adapter, /MAX_ITEMS = 6/);
-  assert.match(adapter, /Promise\.all\(\[fetchText/);
+  assert.match(adapter, /Promise\.all\(\[[\s\S]*fetchText\("\/rss\.xml"/);
   assert.match(adapter, /cached && cached\.expiresAt > Date\.now\(\)/);
   assert.match(previews, /staleTime: 300_000/);
 });
