@@ -66,6 +66,22 @@
   pending because no browser or authenticated session is available. Save Draft
   migration and Live SearXNG remain explicitly PENDING.
 
+- **PRODUCTION ADMIN AI ACCEPTANCE — HTTP/SOURCE VERIFIED; BROWSER BLOCKED.**
+  Production `/admin/articles`, `/admin/alerts`, `/admin/reports`,
+  `/admin/infrastructure-issues` and `/admin/campaigns` are reachable, but no
+  browser or authenticated session is available in this environment, so Add/
+  Edit form interactions and live role acceptance are not claimed. Deployed
+  contracts and focused tests confirm Generate and Update Existing route to
+  xAI Grok, Auto-Populate routes to Groq, proposals require explicit review /
+  apply, cancellation does not mutate form state, blank values do not erase
+  manually entered values, rich-text fields use the existing synchronization
+  path, and unknown report casualty values remain null rather than zero. Admin
+  Publish remains role-gated; Save Draft was not tested and remains migration-
+  dependent. Required owner/browser checks are live Generate, Auto-Populate and
+  Update Existing on Article, Alert and Report Add/Edit forms, provider labels,
+  cancellation/value preservation, direct Publish authorization, and signed-
+  out/in chat flows.
+
 - **PRODUCTION RELEASE CANDIDATE — SUPERSEDED BY DEPLOYMENT.** Branch
   `release/production-20261022` consolidates the verified editorial/AI repair,
   Batches 1–3, Task 41.8, Task 45, Task 56, and the Task 24/51 documentation
