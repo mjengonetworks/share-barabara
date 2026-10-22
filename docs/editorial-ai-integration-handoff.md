@@ -26,16 +26,16 @@ No production configuration, database object, Task 70 demonstration advertisemen
 
 Run with browser screenshots or viewport interaction before moving any batch out of TESTING:
 
-| Route | Desktop 1440/1024 | Tablet 768 | Mobile 390/360 |
-| --- | --- | --- | --- |
-| `/news`, `/news/$slug` | Hero/list density, lead/supporting hierarchy, 70/30 detail shell, ads, toolbar | Two-column collapse and readable article measure | Single-column order, gutters, no overflow, compact toolbar |
-| `/alerts`, `/alerts/$alertId` | Severity/status prominence, timestamp, sidebar and recommendations | Facts remain above recommendations | Status/location readable; no clipped urgency data |
-| `/reports`, `/reports/$reportId` | Incident facts, verified casualty semantics, map, sidebar | Map and facts remain usable | Unknown casualties stay unknown; no horizontal scroll |
-| `/campaigns`, `/campaigns/$slug` | Campaign status/date/action hierarchy and related content | Card and sidebar collapse | Natural-height cards and actions |
-| `/infrastructure-issues`, `/infrastructure-issues/$issueId` | Issue facts, recommendations and sidebar | No stretched desktop layout | Compact content flow |
-| `/statistics` | Charts/map use full available width without editorial-card forcing | Functional controls remain usable | Charts/maps do not overflow |
-| `/feed` | Feed density, media previews and permissions | Responsive feed controls | Signed-in/out visibility preserved |
-| `/search` | Result spacing, filters and preview consistency | Narrow filter layout | No clipped result rows |
+| Route                                                       | Desktop 1440/1024                                                              | Tablet 768                                       | Mobile 390/360                                             |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------- |
+| `/news`, `/news/$slug`                                      | Hero/list density, lead/supporting hierarchy, 70/30 detail shell, ads, toolbar | Two-column collapse and readable article measure | Single-column order, gutters, no overflow, compact toolbar |
+| `/alerts`, `/alerts/$alertId`                               | Severity/status prominence, timestamp, sidebar and recommendations             | Facts remain above recommendations               | Status/location readable; no clipped urgency data          |
+| `/reports`, `/reports/$reportId`                            | Incident facts, verified casualty semantics, map, sidebar                      | Map and facts remain usable                      | Unknown casualties stay unknown; no horizontal scroll      |
+| `/campaigns`, `/campaigns/$slug`                            | Campaign status/date/action hierarchy and related content                      | Card and sidebar collapse                        | Natural-height cards and actions                           |
+| `/infrastructure-issues`, `/infrastructure-issues/$issueId` | Issue facts, recommendations and sidebar                                       | No stretched desktop layout                      | Compact content flow                                       |
+| `/statistics`                                               | Charts/map use full available width without editorial-card forcing             | Functional controls remain usable                | Charts/maps do not overflow                                |
+| `/feed`                                                     | Feed density, media previews and permissions                                   | Responsive feed controls                         | Signed-in/out visibility preserved                         |
+| `/search`                                                   | Result spacing, filters and preview consistency                                | Narrow filter layout                             | No clipped result rows                                     |
 
 Across every route check dark mode, focus states, image fallbacks, canonical/OG metadata, newsletter placement, paid-ad eligibility, `YOUR AD HERE` fallback, recommendation deduplication and alert/report data integrity.
 
