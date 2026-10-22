@@ -7,6 +7,7 @@ const doc = fs.readFileSync(new URL("../docs/production-database-migration-readi
 const pending = fs.readFileSync(new URL("../PENDING.md", import.meta.url), "utf8");
 
 test("Task 51 documents unavailable privileged live access without exposing credentials", () => {
+  assert.match(doc, /^# Task 51 — Production Database Migration Readiness/m);
   assert.match(doc, /no database connection URL,\s+service-role key/i);
   assert.match(doc, /No production request was made/);
   assert.doesNotMatch(doc, /eyJ[A-Za-z0-9_-]{20,}/);

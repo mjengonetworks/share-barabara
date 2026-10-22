@@ -1,4 +1,7 @@
-# Task 58 — Production Database Audit & Migration Readiness
+# Task 51 — Production Database Migration Readiness
+
+This document supersedes the earlier Task 58 audit label; the readiness
+gates and repository-side evidence below remain review-only.
 
 Status: review-only. No SQL was executed by Codex.
 
