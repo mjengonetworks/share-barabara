@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ROLE_RANK, useRoles } from "@/hooks/useRoles";
@@ -16,9 +16,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getAIChat, listAIChats } from "@/lib/ai/public.functions";
+import { archiveAIChat, getAIChat, listAIChats, renameAIChat } from "@/lib/ai/public.functions";
 import { displayReportCount } from "@/lib/report-metrics";
-import { SafeAIRenderer } from "@/components/site/safe-ai-renderer";
+import { SavedAIChat } from "@/components/site/share-barabara-ai";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -43,6 +43,8 @@ function DashboardPage() {
   const { user } = useAuth();
   const { rank } = useRoles();
   const userId = user?.id;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [creatingPage, setCreatingPage] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
@@ -162,6 +164,39 @@ function DashboardPage() {
     queryKey: ["my-ai-chat", selectedChatId],
     queryFn: () => getAIChat({ data: { threadId: selectedChatId } }),
   });
+  const renameChat = useMutation({
+    mutationFn: (data: { threadId: string; title: string }) => renameAIChat({ data }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["my-ai-chats", userId] }); },
+  });
+  const archiveChat = useMutation({
+    mutationFn: (threadId: string) => archiveAIChat({ data: { threadId } }),
+    onSuccess: () => { setSelectedChatId(null); void queryClient.invalidateQueries({ queryKey: ["my-ai-chats", userId] }); },
+  });
+  async function openSavedChat(chat: { id: string; context_type: string; context_id: string | null }) {
+    const hash = chat.context_type === "general"
+      ? `header-share-barabara-ai-chat=${encodeURIComponent(chat.id)}`
+      : `share-barabara-ai-chat=${encodeURIComponent(chat.id)}`;
+    if (chat.context_type === "general") {
+      await navigate({ to: "/", hash });
+      return;
+    }
+    if (chat.context_type === "alert" && chat.context_id) {
+      await navigate({ to: "/alerts/$alertId", params: { alertId: chat.context_id }, hash });
+      return;
+    }
+    if (chat.context_type === "report" && chat.context_id) {
+      await navigate({ to: "/reports/$reportId", params: { reportId: chat.context_id }, hash });
+      return;
+    }
+    if (chat.context_type === "article" && chat.context_id) {
+      const { data } = await supabase.from("news").select("slug").eq("id", chat.context_id).eq("status", "published").maybeSingle();
+      if (data?.slug) {
+        await navigate({ to: "/news/$slug", params: { slug: data.slug }, hash });
+        return;
+      }
+    }
+    setSelectedChatId(chat.id);
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-14">
@@ -203,15 +238,19 @@ function DashboardPage() {
           <ul className="mt-3 space-y-2">
             {aiChats.map((chat) => (
               <li key={chat.id} className="flex flex-wrap items-center justify-between gap-3 rounded border border-border p-3 text-sm">
-                <button type="button" className="min-w-0 text-left" onClick={() => setSelectedChatId(chat.id)}>
+                <button type="button" className="min-w-0 text-left" onClick={() => void openSavedChat(chat)}>
                 <span className="font-semibold">
                   {chat.title ?? `Share Barabara AI · ${chat.context_type}`}
                 </span>
                 <span className="ml-2 text-muted-foreground">
-                  {dateTime(chat.updated_at)}
+                  {chat.context_type === "general" ? "General chat" : `${chat.context_type} chat`} · {dateTime(chat.updated_at)}
                 </span>
                 </button>
-                <Button type="button" size="sm" variant="outline" onClick={() => setSelectedChatId(chat.id)}>Open chat</Button>
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => void openSavedChat(chat)}>Open chat</Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => { const title = window.prompt("Conversation title", chat.title ?? ""); if (title?.trim()) renameChat.mutate({ threadId: chat.id, title: title.trim() }); }}>Rename</Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => { if (window.confirm("Delete this conversation? You will no longer be able to access it from your chat history.")) archiveChat.mutate(chat.id); }}>Delete</Button>
+                </div>
               </li>
             ))}
           </ul>
@@ -223,14 +262,7 @@ function DashboardPage() {
           <DialogHeader><DialogTitle>{selectedChat.data?.thread.title ?? "Share Barabara AI chat"}</DialogTitle></DialogHeader>
           {selectedChat.isLoading ? <p className="text-sm text-muted-foreground">Loading conversation…</p> : null}
           {selectedChat.error ? <p className="text-sm text-destructive">This conversation could not be loaded.</p> : null}
-          <div className="space-y-3">
-            {(selectedChat.data?.messages ?? []).map((message: { id: string; role: string; content: string }) => (
-              <div key={message.id} className={`rounded-lg border border-border p-3 text-sm ${message.role === "user" ? "ml-8 bg-muted/40" : "mr-8 bg-card"}`}>
-                <p className="mb-1 text-[0.68rem] font-bold uppercase tracking-widest text-muted-foreground">{message.role === "user" ? "You" : "Share Barabara AI"}</p>
-                <SafeAIRenderer content={message.content} />
-              </div>
-            ))}
-          </div>
+          {selectedChat.data ? <SavedAIChat threadId={selectedChat.data.thread.id} contextType={selectedChat.data.thread.context_type as "article" | "alert" | "report" | "general"} contextId={selectedChat.data.thread.context_id} title={selectedChat.data.thread.title} initialMessages={selectedChat.data.messages as Array<{ id: string; role: "user" | "assistant"; content: string; citations?: never[] }>} /> : null}
         </DialogContent>
       </Dialog>
 

@@ -27,11 +27,11 @@ test("summary UI prevents duplicate requests and preserves the sign-in handoff",
   assert.ok(source.includes('focusAISurface("share-barabara-ai")'));
   assert.ok(source.includes("authLoading"));
   assert.ok(source.includes("user && !authLoading"));
-  assert.ok(source.includes("Continue Chatting"));
+  assert.doesNotMatch(source, /Continue Chatting/);
   assert.ok(source.includes("Sign in to ask follow-up questions about this content."));
   assert.ok(source.includes("<Button asChild"));
   assert.ok(source.includes("summaryRequested"));
-  assert.ok(source.includes('window.location.hash !== "#share-barabara-ai"'));
+  assert.ok(source.includes('!isContentAIHash(window.location.hash)'));
   assert.ok(source.includes("EvidenceLinks"));
   assert.ok(source.includes("EXTERNAL_RESEARCH_UNAVAILABLE"));
   assert.ok(source.includes("evidence: result.evidence"));
@@ -49,6 +49,24 @@ test("external retrieval stays explicitly unavailable while SearXNG is pending",
   const source = read("src/components/site/share-barabara-ai.tsx");
   assert.match(source, /This question requires information beyond Share Barabara's available reports/);
   assert.match(source, /wider web-search capability is being finalized/);
+});
+
+test("public AI uses one authenticated persistence path and owner-managed history", () => {
+  const source = read("src/lib/ai/public.functions.ts");
+  assert.match(source, /publicAIChat = createServerFn/);
+  assert.match(source, /listAIChats = createServerFn/);
+  assert.match(source, /renameAIChat = createServerFn/);
+  assert.match(source, /archiveAIChat = createServerFn/);
+  assert.match(source, /\.is\("archived_at", null\)/);
+  assert.match(source, /\.eq\("user_id", context\.userId\)/);
+});
+
+test("header and content chat use the direct composer without a second continuation action", () => {
+  const source = read("src/components/site/share-barabara-ai.tsx");
+  assert.match(source, /Sign in to Chat/);
+  assert.match(source, /Ask Share Barabara AI\.\.\./);
+  assert.doesNotMatch(source, /Continue Chatting/);
+  assert.match(source, /export function SavedAIChat/);
 });
 
 test("editorial provider mapping remains action-specific", () => {

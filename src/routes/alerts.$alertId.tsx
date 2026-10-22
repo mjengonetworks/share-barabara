@@ -246,7 +246,6 @@ function AlertDetail() {
           </div>
           {alert.status === "active" ? (
             <ShareBarabaraAI
-              mode="chat"
               contextType="alert"
               contextId={alert.id}
               title={alert.title}

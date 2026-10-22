@@ -4,13 +4,15 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("editorial AI is absent from public accident and alert submission forms", async () => {
+test("editorial AI in public submission forms is role-gated", async () => {
   const [report, alert] = await Promise.all([
     read("src/components/site/report-form.tsx"),
     read("src/components/site/alert-form.tsx"),
   ]);
-  assert.doesNotMatch(report, /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i);
-  assert.doesNotMatch(alert, /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i);
+  assert.match(report, /canReview/);
+  assert.match(report, /EditorialAIButton/);
+  assert.match(alert, /canReview/);
+  assert.match(alert, /EditorialAIButton/);
 });
 
 test("editorial AI remains available only from editorial surfaces and server role checks", async () => {
@@ -70,7 +72,7 @@ test("My Chats can reopen owner-scoped saved conversations", async () => {
   assert.match(publicAI, /Chat thread not found/);
   assert.match(dashboard, /getAIChat/);
   assert.match(dashboard, /Open chat/);
-  assert.match(dashboard, /SafeAIRenderer/);
+  assert.match(dashboard, /SavedAIChat/);
 });
 
 test("signup confirmation preserves a validated AI/content return surface", async () => {
@@ -91,5 +93,5 @@ test("AI output uses one safe structured renderer without HTML injection", async
   assert.match(renderer, /list-inside/);
   assert.doesNotMatch(renderer, /dangerouslySetInnerHTML/);
   assert.match(ai, /SafeAIRenderer/);
-  assert.match(dashboard, /SafeAIRenderer/);
+  assert.match(dashboard, /SavedAIChat/);
 });

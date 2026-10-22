@@ -10,6 +10,7 @@ type Input = {
   message: string;
   contextType?: PublicContextType;
   contextId?: string;
+  title?: string;
   threadId?: string;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
   sourceText?: string;
@@ -91,6 +92,7 @@ function validate(input: unknown): Input {
     message,
     contextType,
     ...(typeof value["contextId"] === "string" ? { contextId: value["contextId"] } : {}),
+    ...(typeof value["title"] === "string" ? { title: clampText(value["title"], 240) } : {}),
     ...(typeof value["threadId"] === "string" ? { threadId: value["threadId"] } : {}),
     ...(typeof value["sourceText"] === "string" ? { sourceText: clampText(value["sourceText"], 12000) } : {}),
     history: Array.isArray(value["history"])
@@ -217,9 +219,10 @@ export const publicAIChat = createServerFn({ method: "POST" })
     if (threadId) {
       const { data: thread } = await db
         .from("ai_chat_threads")
-        .select("id,context_type,context_id")
+        .select("id,title,context_type,context_id")
         .eq("id", threadId)
         .eq("user_id", userId)
+        .is("archived_at", null)
         .maybeSingle();
       if (!thread) throw new Error("Chat thread not found");
       input = {
@@ -232,6 +235,7 @@ export const publicAIChat = createServerFn({ method: "POST" })
         .from("ai_chat_threads")
         .insert({
           user_id: userId,
+          title: input.title || input.message.slice(0, 80),
           context_type: input.contextType ?? "general",
           context_id: input.contextId ?? null,
         })
@@ -280,6 +284,7 @@ export const listAIChats = createServerFn({ method: "GET" })
       .from("ai_chat_threads")
       .select("id,title,context_type,context_id,created_at,updated_at,archived_at")
       .eq("user_id", context.userId)
+      .is("archived_at", null)
       .order("updated_at", { ascending: false })
       .limit(50);
     if (error) throw new Error("Unable to load chats");
@@ -299,6 +304,7 @@ export const getAIChat = createServerFn({ method: "POST" })
       .select("id,title,context_type,context_id,created_at,updated_at")
       .eq("id", threadId)
       .eq("user_id", context.userId)
+      .is("archived_at", null)
       .maybeSingle();
     if (threadError || !thread) throw new Error("Chat thread not found");
     const { data: messages, error: messageError } = await db
@@ -310,4 +316,40 @@ export const getAIChat = createServerFn({ method: "POST" })
       .limit(MAX_HISTORY_MESSAGES * 2);
     if (messageError) throw new Error("Unable to load chat messages");
     return { thread, messages: messages ?? [] };
+  });
+
+export const renameAIChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ data, context }: { data: unknown; context: AuthContext }) => {
+    const value = data && typeof data === "object" ? data as Record<string, unknown> : {};
+    const threadId = typeof value.threadId === "string" ? value.threadId : "";
+    const title = typeof value.title === "string" ? clampText(value.title, 160) : "";
+    if (!threadId || !title) throw new Error("A conversation title is required");
+    const { data: thread, error } = await (context.supabase as SupabaseClient)
+      .from("ai_chat_threads")
+      .update({ title })
+      .eq("id", threadId)
+      .eq("user_id", context.userId)
+      .select("id,title")
+      .maybeSingle();
+    if (error || !thread) throw new Error("Conversation not found");
+    return thread;
+  });
+
+export const archiveAIChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ data, context }: { data: unknown; context: AuthContext }) => {
+    const threadId = data && typeof data === "object" && typeof (data as Record<string, unknown>).threadId === "string"
+      ? (data as Record<string, unknown>).threadId as string
+      : "";
+    if (!threadId) throw new Error("Chat thread is required");
+    const { data: thread, error } = await (context.supabase as SupabaseClient)
+      .from("ai_chat_threads")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", threadId)
+      .eq("user_id", context.userId)
+      .select("id,archived_at")
+      .maybeSingle();
+    if (error || !thread) throw new Error("Conversation not found");
+    return thread;
   });

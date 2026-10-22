@@ -1,5 +1,31 @@
 # Pending
 
+- **MASTER PUBLIC AI CHAT WORKFLOW — IMPLEMENTED / MIGRATION AND BROWSER ACCEPTANCE
+  PENDING.** The header and contextual surfaces now share the same public AI
+  infrastructure. Signed-out header users see only the primary `Sign in to
+  Chat` action; signed-in users get the direct `Ask Share Barabara AI...`
+  composer. Published Article, Alert and Report surfaces keep Quick AI Summary
+  and source links, show no active guest composer, and present the authenticated
+  composer immediately without a `Continue Chatting` step. Alerts now use the
+  same summary-plus-chat surface. Saved chats can be reopened through the
+  original published content when available, general chats reopen in the header
+  surface, and owner-scoped history supports rename and soft-delete/archive.
+  Existing server-side ownership checks and RLS are preserved. Focused AI,
+  retrieval, security and workflow tests pass **42/42**; Bun/Vite 7.3.7
+  production build passes. No deployment or migration was performed.
+
+  The existing `ai_chat_threads`/`ai_chat_messages` tables and owner-only RLS
+  are present in the reconciliation audit, but the new review-only migration
+  `supabase/migrations/20261022130000_ai_chat_history_hardening_review.sql`
+  is required before claiming durable evidence/source references, original
+  context URLs and retry idempotency. It adds nullable context URL, message
+  evidence, client request ID with a unique retry index, and generation status;
+  rollback SQL is included. It has not been executed. Owner approval and live
+  schema verification are required before enabling those fields or deploying a
+  persistence-dependent release. Browser login/OAuth return, saved-chat
+  continuation, desktop/tablet/mobile acceptance and live authenticated chat
+  remain pending. Live SearXNG remains explicitly PENDING.
+
 - **PRODUCTION CONTEXTUAL AI CHAT HOTFIX — DEPLOYED / BROWSER ACCEPTANCE OPEN.**
   Commit `d62012337f45cade5eb11032f3a8216dd2eebed2` preserves the exact
   content return context through the existing sign-in flow, restores the same

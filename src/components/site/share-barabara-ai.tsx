@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { ArrowUp, Bot, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
-import { publicAIChat, quickAISummary } from "@/lib/ai/public.functions";
+import { getAIChat, publicAIChat, quickAISummary } from "@/lib/ai/public.functions";
 import { aiReturnTo, focusAISurface } from "@/lib/ai/return-to-ai";
 import type { PublicContextType, PublicAIResult } from "@/lib/ai/types";
 import { SafeAIRenderer } from "@/components/site/safe-ai-renderer";
@@ -13,6 +13,7 @@ const callQuickAISummary = quickAISummary as unknown as (args: { data: unknown }
 const callPublicAIChat = publicAIChat as unknown as (args: { data: unknown }) => Promise<PublicAIResult & { threadId?: string }>;
 
 type Message = { role: "user" | "assistant"; content: string; citations?: PublicAIResult["citations"]; evidence?: PublicAIResult["evidence"] };
+type StoredMessage = { id: string; role: "user" | "assistant"; content: string; citations?: PublicAIResult["citations"] };
 type Props = {
   contextType: Exclude<PublicContextType, "general">;
   contextId: string;
@@ -78,6 +79,26 @@ function errorText(result: PublicAIResult) {
   return "There is not enough supported information to answer safely.";
 }
 
+const isContentAIHash = (hash: string) => hash === "#share-barabara-ai" || hash.startsWith("#share-barabara-ai-chat=");
+
+export function SavedAIChat({ threadId, contextType, contextId, title, initialMessages }: { threadId: string; contextType: PublicContextType; contextId?: string | null; title?: string | null; initialMessages: StoredMessage[] }) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages.map(({ role, content, citations }) => ({ role, content, citations })));
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function send() {
+    if (!message.trim() || busy) return;
+    const next = message.trim(); setMessage(""); setMessages((items) => [...items, { role: "user", content: next }]); setBusy(true); setError(null);
+    try {
+      const result = await callPublicAIChat({ data: { message: next, contextType, contextId, title: title ?? undefined, threadId, history: messages } });
+      if (result.answer) setMessages((items) => [...items, { role: "assistant", content: result.answer!, citations: result.citations, evidence: result.evidence }]);
+      else setError(errorText(result));
+    } catch { setError("Share Barabara AI is temporarily unavailable."); }
+    finally { setBusy(false); }
+  }
+  return <div className="space-y-3"><div className="space-y-3">{messages.map((item, index) => <Answer key={`${item.role}-${index}`} message={item} />)}</div><Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask Share Barabara AI..." />{error ? <p className="text-sm text-destructive">{error}</p> : null}</div>;
+}
+
 export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary", sourceText }: Props) {
   const { user, loading: authLoading } = useAuth();
   const [summary, setSummary] = useState<PublicAIResult | null>(null);
@@ -90,8 +111,15 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
   const summaryRequested = useRef(false);
 
   useEffect(() => {
-    if (user && window.location.hash === "#share-barabara-ai") setChatOpen(true);
-  }, [user]);
+    if (user && isContentAIHash(window.location.hash)) setChatOpen(true);
+    const match = window.location.hash.match(/^#share-barabara-ai-chat=([^&]+)$/);
+    if (!user || !match) return;
+    void getAIChat({ data: { threadId: decodeURIComponent(match[1]) } }).then((saved) => {
+      if (saved.thread.context_type !== contextType || saved.thread.context_id !== contextId) return;
+      setThreadId(saved.thread.id);
+      setMessages(saved.messages.map((item) => ({ role: item.role as "user" | "assistant", content: item.content, citations: Array.isArray(item.citations) ? item.citations as unknown as PublicAIResult["citations"] : [] })));
+    }).catch(() => setError("This saved conversation is no longer available for this content."));
+  }, [user, contextType, contextId]);
 
   async function summarize() {
     setBusy(true); setError(null);
@@ -100,7 +128,7 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
     finally { setBusy(false); }
   }
   useEffect(() => {
-    if (mode !== "summary" || window.location.hash !== "#share-barabara-ai" || summaryRequested.current || summary) return;
+    if (mode !== "summary" || !isContentAIHash(window.location.hash) || summaryRequested.current || summary) return;
     summaryRequested.current = true;
     void summarize();
   }, [mode, contextType, contextId, summary]);
@@ -108,7 +136,7 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
     if (!user || !message.trim() || busy) return;
     const next = message.trim(); setMessage(""); setMessages((items) => [...items, { role: "user", content: next }]); setBusy(true); setError(null);
     try {
-      const result = await callPublicAIChat({ data: { message: next, contextType, contextId, threadId, history: messages } });
+      const result = await callPublicAIChat({ data: { message: next, contextType, contextId, title, threadId, history: messages } });
       if (result.threadId) setThreadId(result.threadId);
       if (result.answer) setMessages((items) => [...items, { role: "assistant", content: result.answer!, citations: result.citations, evidence: result.evidence }]);
       else setError(errorText(result));
@@ -117,7 +145,7 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
   }
   const summaryAvailable = mode === "summary" && summary?.ok && summary.answer;
   useEffect(() => {
-    if (window.location.hash === "#share-barabara-ai" && (summaryAvailable || chatOpen)) focusAISurface("share-barabara-ai");
+    if (isContentAIHash(window.location.hash) && (summaryAvailable || chatOpen)) focusAISurface("share-barabara-ai");
   }, [summaryAvailable, chatOpen]);
   return (
     <section id="share-barabara-ai" className="mt-8 rounded-xl border border-primary bg-primary p-5 text-primary-foreground shadow-sm" aria-label="Share Barabara AI">
@@ -127,9 +155,8 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
       {mode === "summary" && summary ? (summaryAvailable ? <div className="mt-4 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4 text-sm"><SafeAIRenderer content={summary.answer!} /><EvidenceLinks evidence={summary.evidence} /></div> : <p className="mt-4 text-sm text-primary-foreground/75">{errorText(summary)}</p>) : null}
       {mode === "chat" || summaryAvailable || chatOpen ? (
         user && !authLoading ? <div className="mt-5 space-y-3">
-          {mode === "summary" ? <Button type="button" variant="outline" className="border-accent bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setChatOpen(true)}>Continue Chatting</Button> : null}
           {messages.map((item, index) => <Answer key={`${item.role}-${index}`} message={item} />)}
-          <Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask Share Barabara AI…" />
+          <Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask Share Barabara AI..." />
         </div> : <div className="mt-5 rounded-lg border border-accent/50 bg-primary-foreground/10 p-4">
           <p className="text-sm text-primary-foreground/85">Sign in to ask follow-up questions about this content.</p>
           <Button asChild type="button" className="mt-3 bg-accent text-accent-foreground hover:bg-accent/90"><Link to="/auth" search={{ returnTo: aiReturnTo("content") }}>Sign in to Chat</Link></Button>
@@ -142,14 +169,24 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
 }
 
 export function HeaderShareBarabaraAI() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [threadId, setThreadId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<PublicAIResult | null>(null);
-  useEffect(() => { if (window.location.hash === "#header-share-barabara-ai") setOpen(true); focusAISurface("header-share-barabara-ai"); }, []);
+  useEffect(() => { if (window.location.hash === "#header-share-barabara-ai" || window.location.hash.startsWith("#header-share-barabara-ai-chat=")) setOpen(true); }, []);
+  useEffect(() => {
+    const match = window.location.hash.match(/^#header-share-barabara-ai-chat=([^&]+)$/);
+    if (!user || !match) return;
+    void getAIChat({ data: { threadId: decodeURIComponent(match[1]) } }).then((saved) => {
+      if (saved.thread.context_type !== "general") return;
+      setThreadId(saved.thread.id);
+      setMessages(saved.messages.map((item) => ({ role: item.role as "user" | "assistant", content: item.content, citations: Array.isArray(item.citations) ? item.citations as unknown as PublicAIResult["citations"] : [] })));
+    }).catch(() => setResult({ ok: false, error: "provider_unavailable", provenance: "none", citations: [], evidence: [] }));
+  }, [user]);
+  useEffect(() => { if (open) focusAISurface("header-share-barabara-ai"); }, [open]);
   async function send() {
     if (!user || !message.trim() || busy) return;
     const next = message.trim(); setMessage(""); setMessages((items) => [...items, { role: "user", content: next }]); setBusy(true);
@@ -164,8 +201,8 @@ export function HeaderShareBarabaraAI() {
   return <div id="header-share-barabara-ai" className="relative">
     <Button variant="outline" size="icon" onClick={() => setOpen((value) => !value)} aria-label="Share Barabara AI" title="Share Barabara AI"><Sparkles className="size-4" /></Button>
     {open ? <div className="absolute right-0 top-11 z-50 w-[min(92vw,26rem)] rounded-xl border border-primary bg-primary p-4 text-primary-foreground shadow-xl">
-      <p className="text-xs font-bold uppercase tracking-widest text-accent">SHARE BARABARA AI</p><p className="mt-1 text-sm text-primary-foreground/75">Ask about public Share Barabara content.</p>
-      {user ? <><div className="mt-3 space-y-3">{messages.map((item, index) => <Answer key={`${item.role}-${index}`} message={item} />)}</div><div className="mt-3"><Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask a question…" /></div></> : <p className="mt-4 text-sm text-primary-foreground/80"><Link className="font-semibold text-accent underline" to="/auth" search={{ returnTo: aiReturnTo("header") }}>Sign in to Chat</Link>{" "}to start a conversation.</p>}
+      <p className="text-xs font-bold uppercase tracking-widest text-accent">SHARE BARABARA AI</p>{user ? <p className="mt-1 text-sm text-primary-foreground/75">Ask about public Share Barabara content.</p> : null}
+      {authLoading ? null : user ? <><div className="mt-3 space-y-3">{messages.map((item, index) => <Answer key={`${item.role}-${index}`} message={item} />)}</div><div className="mt-3"><Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask Share Barabara AI..." /></div></> : <Button asChild className="mt-4 w-full bg-accent text-accent-foreground hover:bg-accent/90"><Link to="/auth" search={{ returnTo: aiReturnTo("header") }}>Sign in to Chat</Link></Button>}
       {result && !result.answer ? <p className="mt-3 text-sm text-primary-foreground/75">{errorText(result)}</p> : null}{busy ? <Loader2 className="mt-3 size-4 animate-spin text-accent" /> : null}
     </div> : null}
   </div>;
