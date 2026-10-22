@@ -41,6 +41,10 @@ test("detail routes share editorial shell, sidebar and discovery parity", async 
   assert.match(sidebar, /BannerAd/);
   assert.match(discovery, /Explore our platforms/);
   assert.match(discovery, /SisterPlatformPreviews/);
+  assert.match(issue, /InfrastructureIssuePreviewCard/);
+  assert.match(campaign, /CampaignPreviewCard/);
+  assert.match(issue, /image_caption|image_credit/);
+  assert.match(campaign, /image_caption|image_credit/);
 });
 
 test("report and alert detail recommendations use editorial preview cards", async () => {

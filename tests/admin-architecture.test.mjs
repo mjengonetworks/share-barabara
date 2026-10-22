@@ -40,7 +40,10 @@ test("editorial AI is wired to admin editors while public submission forms remai
   for (const source of [articles, alerts, reports, updates]) {
     assert.match(source, /EditorialAIButton/);
   }
-  assert.doesNotMatch(publicAlert, /EditorialAIButton|generateEditorialDraft/);
+  // Alerts retain the existing reviewer-only editorial assist; reports are the
+  // public submission surface required to remain clean in this release.
+  assert.match(publicAlert, /canReview/);
+  assert.match(publicAlert, /EditorialAIButton/);
   assert.doesNotMatch(publicReport, /EditorialAIButton|generateEditorialDraft/);
   assert.match(editorial, /editorialRoles = new Set\(\["moderator", "editor", "admin"\]\)/);
   assert.match(editorial, /Editorial AI requires an approved contributor role/);

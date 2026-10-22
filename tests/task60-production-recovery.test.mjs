@@ -25,7 +25,7 @@ test("project publishing is not represented as a local Share Barabara schema", (
   const schema = read("docs/task60-project-publishing-schema.md");
   assert.match(schema, /no `projects` Supabase table/);
   assert.match(schema, /BLOCKED \/ NOT EVIDENCED/);
-  assert.match(read("src/lib/mjengo.functions.ts"), /fetchText\("\/projects"\)/);
+  assert.match(read("src/lib/mjengo.functions.ts"), /fetchText\("\/projects", \["text\/html"/);
 });
 
 test("Task 60 reports preserve deployment and migration safety boundaries", () => {

@@ -12,6 +12,7 @@ import { ShareButtons } from "@/components/site/share-buttons";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
+import { InfrastructureIssuePreviewCard } from "@/components/site/discovery-sections";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
   loader: async ({ params }) => {
@@ -27,26 +28,7 @@ export const Route = createFileRoute("/infrastructure-issues/$issueId")({
   component: IssueDetail,
 });
 
-type RelatedIssue = { id: string; title: string; road_name: string; county: string | null };
-
-function IssueList({ issues }: { issues: RelatedIssue[] }) {
-  return (
-    <ul className="mt-3 space-y-3">
-      {issues.map((i) => (
-        <li key={i.id}>
-          <Link
-            to="/infrastructure-issues/$issueId"
-            params={{ issueId: i.id }}
-            className="text-sm text-brand-blue hover:underline"
-          >
-            {i.title}
-          </Link>
-          <p className="text-xs text-muted-foreground">{i.road_name}</p>
-        </li>
-      ))}
-    </ul>
-  );
-}
+type RelatedIssue = { id: string; title: string; road_name: string; county: string | null; summary: string | null; image_url: string | null; structure_type: string | null; status: string | null };
 
 function IssueDetail() {
   const { issueId } = Route.useParams();
@@ -74,7 +56,7 @@ function IssueDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("infrastructure_issues")
-        .select("id, title, road_name, county")
+        .select("id, title, summary, road_name, county, structure_type, status, image_url")
         .eq("status", "approved")
         .eq("county", issue!.county as string)
         .neq("id", issue!.id)
@@ -91,7 +73,7 @@ function IssueDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("infrastructure_issues")
-        .select("id, title, road_name, county")
+        .select("id, title, summary, road_name, county, structure_type, status, image_url")
         .eq("status", "approved")
         .eq("authority", issue!.authority as string)
         .neq("id", issue!.id)
@@ -108,7 +90,7 @@ function IssueDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("infrastructure_issues")
-        .select("id, title, road_name, county")
+        .select("id, title, summary, road_name, county, structure_type, status, image_url")
         .eq("status", "approved")
         .eq("structure_type", issue!.structure_type)
         .neq("id", issue!.id)
@@ -152,7 +134,7 @@ function IssueDetail() {
             <ArrowLeft className="size-4" /> All infrastructure issues
           </Link>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2 text-xs">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
             <span className="flex items-center gap-1 rounded bg-accent/20 px-2 py-0.5 font-semibold uppercase tracking-wide text-accent-foreground">
               <Construction className="size-3.5" />
               {STRUCTURE_TYPES.find((s) => s.value === issue.structure_type)?.label ??
@@ -187,11 +169,10 @@ function IssueDetail() {
           </div>
 
           {issue.image_url ? (
-            <img
-              src={issue.image_url}
-              alt={issue.title}
-              className="mt-6 aspect-video w-full rounded-lg border border-border object-cover"
-            />
+            <figure className="mt-4">
+              <img src={issue.image_url} alt={issue.title} className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain" />
+              {issue.image_caption || issue.image_credit ? <figcaption className="mt-2 text-xs text-muted-foreground">{issue.image_caption}{issue.image_caption && issue.image_credit ? " · " : ""}{issue.image_credit ? <em>Credit: {issue.image_credit}</em> : null}</figcaption> : null}
+            </figure>
           ) : null}
 
           <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
@@ -217,7 +198,7 @@ function IssueDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 More in {issue.county}
               </h2>
-              <IssueList issues={byCounty} />
+              <div className="mt-3 grid gap-3">{byCounty.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
             </div>
           ) : null}
           {byAuthority.length > 0 ? (
@@ -227,7 +208,7 @@ function IssueDetail() {
                 {ROAD_AUTHORITIES.find((a) => a.value === issue.authority)?.label ??
                   issue.authority}
               </h2>
-              <IssueList issues={byAuthority} />
+              <div className="mt-3 grid gap-3">{byAuthority.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
             </div>
           ) : null}
           {byStructure.length > 0 ? (
@@ -240,7 +221,7 @@ function IssueDetail() {
                 ).toLowerCase()}{" "}
                 issues
               </h2>
-              <IssueList issues={byStructure} />
+              <div className="mt-3 grid gap-3">{byStructure.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
             </div>
           ) : null}
           <Link
