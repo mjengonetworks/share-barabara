@@ -41,6 +41,18 @@ test("Task 41 ad inventory exposes named placement identifiers", () => {
   assert.match(banner, /data-ad-placement=\{placement\}/);
 });
 
+test("Task 41 homepage discovery queries request bounded public preview fields", () => {
+  assert.match(home, /select\("id, title, description, county, road, hazard_type, severity"\)/);
+  assert.match(home, /select\("id, slug, title, category, image_url, published_at, summary, county, road"\)/);
+  assert.match(
+    home,
+    /select\(\s*"id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities"/s,
+  );
+  assert.doesNotMatch(home, /\.from\("alerts"\)[\s\S]{0,180}\.select\("\*"\)/);
+  assert.doesNotMatch(home, /\.from\("news"\)[\s\S]{0,180}\.select\("\*"\)/);
+  assert.doesNotMatch(home, /\.from\("accident_reports"\)[\s\S]{0,180}\.select\("\*"\)/);
+});
+
 test("Task 41 is permanently recorded in pending work", () => {
   assert.match(pending, /Task 41 — Cross-site discovery, content previews & ad inventory/);
   for (const subtask of [

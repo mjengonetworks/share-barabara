@@ -58,7 +58,7 @@ function Index() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("*")
+        .select("id, title, description, county, road, hazard_type, severity")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(3);
@@ -72,7 +72,7 @@ function Index() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("*")
+        .select("id, slug, title, category, image_url, published_at, summary, county, road")
         .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(3);
@@ -86,7 +86,9 @@ function Index() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
-        .select("*")
+        .select(
+          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+        )
         .eq("status", "approved")
         .order("occurred_at", { ascending: false })
         .limit(3);
