@@ -70,7 +70,7 @@ function errorText(result: PublicAIResult) {
 }
 
 export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary", sourceText }: Props) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [summary, setSummary] = useState<PublicAIResult | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
@@ -109,7 +109,14 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
       {mode === "summary" && !summary ? <Button className="mt-4 border-accent/70 bg-transparent text-primary-foreground hover:bg-accent hover:text-accent-foreground" variant="outline" onClick={summarize} disabled={busy}><Sparkles className="mr-2 size-4" />{busy ? "Preparing summary…" : "Quick AI Summary"}</Button> : null}
       {mode === "summary" && summary ? (summaryAvailable ? <div className="mt-4 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4 text-sm"><SafeAIRenderer content={summary.answer!} /></div> : <p className="mt-4 text-sm text-primary-foreground/75">{errorText(summary)}</p>) : null}
       {mode === "chat" || summaryAvailable || chatOpen ? (
-        user ? <div className="mt-5 space-y-3">{messages.map((item, index) => <Answer key={`${item.role}-${index}`} message={item} />)}<Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask Share Barabara AI…" /></div> : <p className="mt-4 text-sm text-primary-foreground/75"><Link className="font-semibold text-accent underline" to="/auth" search={{ returnTo: aiReturnTo("content") }}>Sign in to Chat</Link>{" "}to continue with Share Barabara AI.</p>
+        user && !authLoading ? <div className="mt-5 space-y-3">
+          {mode === "summary" ? <Button type="button" variant="outline" className="border-accent bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setChatOpen(true)}>Continue Chatting</Button> : null}
+          {messages.map((item, index) => <Answer key={`${item.role}-${index}`} message={item} />)}
+          <Composer value={message} onChange={setMessage} onSend={() => void send()} busy={busy} placeholder="Ask Share Barabara AI…" />
+        </div> : <div className="mt-5 rounded-lg border border-accent/50 bg-primary-foreground/10 p-4">
+          <p className="text-sm text-primary-foreground/85">Sign in to ask follow-up questions about this content.</p>
+          <Button asChild type="button" className="mt-3 bg-accent text-accent-foreground hover:bg-accent/90"><Link to="/auth" search={{ returnTo: aiReturnTo("content") }}>Sign in to Chat</Link></Button>
+        </div>
       ) : null}
       {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
       {busy ? <Loader2 className="mt-3 size-4 animate-spin text-accent" /> : null}

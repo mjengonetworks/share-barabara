@@ -25,6 +25,11 @@ test("summary UI prevents duplicate requests and preserves the sign-in handoff",
   assert.ok(source.includes("Sign in to Chat"));
   assert.ok(source.includes('aiReturnTo("content")'));
   assert.ok(source.includes('focusAISurface("share-barabara-ai")'));
+  assert.ok(source.includes("authLoading"));
+  assert.ok(source.includes("user && !authLoading"));
+  assert.ok(source.includes("Continue Chatting"));
+  assert.ok(source.includes("Sign in to ask follow-up questions about this content."));
+  assert.ok(source.includes("<Button asChild"));
 });
 
 test("editorial provider mapping remains action-specific", () => {
