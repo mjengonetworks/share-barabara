@@ -2,18 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialIcon } from "@/components/site/social-icon";
-
-const allowedPlatforms = new Set(["x", "facebook", "instagram", "tiktok", "youtube", "whatsapp"]);
-
-function safeSocialUrl(value: unknown) {
-  if (typeof value !== "string" || value.length > 2048) return null;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && ["x.com", "twitter.com", "facebook.com", "instagram.com", "tiktok.com", "youtube.com", "whatsapp.com"].some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`)) ? url.href : null;
-  } catch {
-    return null;
-  }
-}
+import { ALLOWED_SOCIAL_PLATFORMS, safeSocialUrl } from "@/lib/social-links";
 
 export function SocialFollowSection() {
   const { data: links = [] } = useQuery({
@@ -21,7 +10,7 @@ export function SocialFollowSection() {
     queryFn: async () => {
       const { data, error } = await supabase.from("social_links").select("id,label,icon_key,href,sort_order").eq("active", true).order("sort_order", { ascending: true });
       if (error) throw error;
-      return (data ?? []).filter((item) => allowedPlatforms.has(item.icon_key) && safeSocialUrl(item.href));
+      return (data ?? []).filter((item) => ALLOWED_SOCIAL_PLATFORMS.has(item.icon_key) && safeSocialUrl(item.href));
     },
     staleTime: 60_000,
   });
@@ -42,4 +31,4 @@ export function SocialFollowSection() {
   );
 }
 
-export const __socialFollowTest = { safeSocialUrl, allowedPlatforms };
+export const __socialFollowTest = { safeSocialUrl, allowedPlatforms: ALLOWED_SOCIAL_PLATFORMS };

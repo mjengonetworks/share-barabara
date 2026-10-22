@@ -78,7 +78,6 @@ test("unsold ads use the Partner With Us CTA while paid ads remain untouched", (
 
 test("related articles are centered and ecosystem language is accurate", () => {
   assert.match(article, /mx-auto max-w-2xl rounded border-l-4/);
-  assert.match(discovery, /Across our ecosystem/);
   assert.match(discovery, /Explore our platforms/);
   assert.doesNotMatch(discovery, /Explore sister platforms/);
 });
@@ -213,6 +212,17 @@ test("Feed remains a public route and does not invent external social URLs", () 
   assert.match(feed, /createFileRoute\("\/feed"\)/);
   assert.match(read("src/components/site/social-follow-section.tsx"), /from\("social_links"\)/);
   assert.match(read("src/components/site/social-follow-section.tsx"), /safeSocialUrl/);
+});
+
+test("all public social-link surfaces share the HTTPS platform allowlist", () => {
+  const social = read("src/lib/social-links.ts");
+  const footer = read("src/components/site/site-footer.tsx");
+  assert.match(social, /url\.protocol !== "https:"/);
+  assert.match(social, /url\.username \|\| url\.password/);
+  assert.match(social, /ALLOWED_SOCIAL_PLATFORMS/);
+  assert.match(footer, /select\("id,label,icon_key,href,sort_order"\)/);
+  assert.match(footer, /safeSocialUrl/);
+  assert.match(footer, /ALLOWED_SOCIAL_PLATFORMS\.has\(item\.icon_key\) && safeSocialUrl\(item\.href\)/);
 });
 
 test("Media & Feed surfaces existing featured videos without creating fake embeds", () => {

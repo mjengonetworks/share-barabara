@@ -238,6 +238,11 @@ verification. Remaining verification is browser/device visual review, configured
 Mjengo upstream freshness, and deployed public-AI runtime checks. No SQL, deployment, secret change or
 SearXNG provisioning was performed.
 
+Task 56 social-link hardening is implemented on `codex/task56-social-link-hardening`:
+public footer and Media & Feed links now share an HTTPS platform allowlist, reject
+credential-bearing URLs, and request only the fields required for rendering. Browser
+and configured-channel acceptance remain pending.
+
 Task 57 — Editorial AI Contracts & Update Existing is TESTING / VERIFICATION. The owner-supplied News
 Article and Accident Report prompts are preserved verbatim as separate source documents, with a distinct
 Alert contract derived from its actual fields. Generate remains Grok/xAI, Auto-Populate remains Groq, and
