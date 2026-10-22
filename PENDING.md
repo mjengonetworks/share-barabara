@@ -1,6 +1,29 @@
 # Pending
 
-- **PRODUCTION RELEASE CANDIDATE — AWAITING OWNER APPROVAL.** Branch
+- **PRODUCTION RELEASE — DEPLOYED / ACCEPTANCE TESTING.** Approved branch
+  `release/production-20261022` was deployed from exact commit `9b3fa93`
+  (full SHA `9b3fa93d447fc14e2b77fae8bd765163e9289`) to Worker
+  `share-barabara` as version `79645807-c816-4fc8-bb93-09f262ca8970` at
+  `2026-10-22T09:03:19Z`. The prior production version
+  `d5c96a2a-9cd6-4a8f-b21b-346449e5ceea` remains the rollback target. The
+  production build completed successfully and the public smoke routes `/`,
+  `/news`, `/alerts`, `/reports`, `/infrastructure-issues`, `/campaigns`,
+  `/statistics`, `/feed` and `/search` returned HTTP 200. Production secret
+  names `GROQ_API_KEY`, `XAI_API_KEY` and the existing VAPID names are present;
+  values were not read. The production binding audit preserved
+  `AI_RATE_LIMITER`, `ASSETS`, `DEPLOYMENT_ENV=production` and
+  `WEB_PUSH_ENABLED=true`. No migration, Task 70 object or demonstration ad
+  was changed. A published article returned server-rendered title,
+  description, absolute canonical URL, absolute public `og:image`, Twitter
+  card metadata and a valid HTTP 200 `image/webp` response. Browser clipboard,
+  signed-out rendered Quick AI, authenticated admin AI/publishing, contextual
+  Sign in to Chat and responsive visual acceptance remain pending because no
+  browser session was available; a direct CLI server-function POST was edge
+  rejected with HTTP 403 and is not treated as a provider failure. Worker tail
+  observed no error events during the short post-deploy window. Save Draft and
+  Live SearXNG remain explicitly PENDING.
+
+- **PRODUCTION RELEASE CANDIDATE — SUPERSEDED BY DEPLOYMENT.** Branch
   `release/production-20261022` consolidates the verified editorial/AI repair,
   Batches 1–3, Task 41.8, Task 45, Task 56, and the Task 24/51 documentation
   tests from production baseline `70a67c7`. It has not been deployed. The
