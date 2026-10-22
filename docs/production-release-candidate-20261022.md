@@ -68,3 +68,17 @@ rollback target is the previous production Worker version
   browser session was available. Direct CLI server-function probing received
   an edge HTTP 403 and is not evidence of a provider failure.
 - Save Draft remains migration-dependent and Live SearXNG remains pending.
+
+## Acceptance update — Quick AI edge blocker
+
+On 2026-10-22, the published article page returned HTTP 200 and retained its
+server-rendered AI surface. An ordinary JSON POST to the Quick AI server
+function reached the Worker and returned the expected serialized `Seroval Error
+(step: 3)` for a malformed request. A locally generated Seroval envelope using
+the same client protocol and a published article UUID received a plain
+Cloudflare HTTP 403 (`Server: cloudflare`, `Forbidden`) before a serialized
+application response. This is evidence of an edge/WAF or browser-access
+condition, not evidence of a successful Groq call. Browser access was
+unavailable, so Quick AI, authenticated admin AI, Sign in to Chat, Copy Link
+click behavior and responsive acceptance remain pending. No speculative hotfix
+was made.

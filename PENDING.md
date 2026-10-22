@@ -23,6 +23,19 @@
   observed no error events during the short post-deploy window. Save Draft and
   Live SearXNG remain explicitly PENDING.
 
+- **PRODUCTION ACCEPTANCE UPDATE — QUICK AI BLOCKED.** On 2026-10-22, a
+  normal published article page continued to return HTTP 200 with the expected
+  SSR content and AI surface. An ordinary JSON server-function POST reached the
+  Worker but returned HTTP 500 with `Seroval Error (step: 3)`, as expected for
+  a malformed TanStack Start payload. A locally generated Seroval payload using
+  the client protocol and the exact published article UUID was rejected before
+  application serialization with a plain Cloudflare HTTP 403 (`Server:
+  cloudflare`, `Content-Type: text/plain`, body `Forbidden`). This may be an
+  edge/WAF rule, but it is potentially user-facing because the browser client
+  uses that protocol. No real Groq result, browser summary rendering, admin AI,
+  Sign in to Chat, Copy Link click, or responsive visual acceptance is claimed
+  without browser access. No speculative production hotfix was applied.
+
 - **PRODUCTION RELEASE CANDIDATE — SUPERSEDED BY DEPLOYMENT.** Branch
   `release/production-20261022` consolidates the verified editorial/AI repair,
   Batches 1–3, Task 41.8, Task 45, Task 56, and the Task 24/51 documentation
