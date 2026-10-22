@@ -95,3 +95,15 @@ the live signed-out Worker-to-Groq path. The earlier 403 at
 header; it was not reproducible. Cloudflare Security Events access is not
 available in this session, so the exact rule/action remains owner verification.
 Browser rendering and authenticated acceptance remain open.
+
+## Production AI UI hotfix
+
+Commit `73b35fe` adds the auth-loading gate and shared contextual AI controls:
+signed-out users receive a prominent `Sign in to Chat` button and explanation;
+authenticated users receive `Continue Chatting` while retaining the composer.
+Focused AI/security/editorial tests pass **28/28** and the Bun/Vite 7.3.7
+production build passes. The hotfix was deployed as Worker
+`2daa3dbf-7f2c-419c-8f13-5ee8d3dd2b53`; the affected report route returned
+HTTP 200 and its served bundle contains both new labels. Browser login-return,
+responsive and authenticated admin Generate/Auto-Populate acceptance remain
+unverified because no browser/session surface is available.

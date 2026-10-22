@@ -53,6 +53,19 @@
   rendering, admin AI, Sign in to Chat, sharing clicks and responsive checks
   remain open.
 
+- **PRODUCTION AI UI HOTFIX — DEPLOYED / BROWSER ACCEPTANCE OPEN.** Commit
+  `73b35fe` adds an explicit auth-loading gate, a prominent signed-out
+  `Sign in to Chat` button with the existing exact-page return URL, contextual
+  follow-up explanation, and authenticated `Continue Chatting` treatment while
+  preserving the existing composer. Focused AI/security/editorial tests pass
+  **28/28** and the Bun/Vite 7.3.7 production build passes. Deployed to
+  `share-barabara` as Worker version `2daa3dbf-7f2c-419c-8f13-5ee8d3dd2b53`;
+  the affected report route returned HTTP 200 and its live bundle contains both
+  new labels. Browser signed-out/signed-in rendering, login return, responsive
+  behavior, and authenticated admin Generate/Auto-Populate acceptance remain
+  pending because no browser or authenticated session is available. Save Draft
+  migration and Live SearXNG remain explicitly PENDING.
+
 - **PRODUCTION RELEASE CANDIDATE — SUPERSEDED BY DEPLOYMENT.** Branch
   `release/production-20261022` consolidates the verified editorial/AI repair,
   Batches 1–3, Task 41.8, Task 45, Task 56, and the Task 24/51 documentation
