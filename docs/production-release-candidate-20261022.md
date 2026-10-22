@@ -82,3 +82,16 @@ condition, not evidence of a successful Groq call. Browser access was
 unavailable, so Quick AI, authenticated admin AI, Sign in to Chat, Copy Link
 click behavior and responsive acceptance remain pending. No speculative hotfix
 was made.
+
+## Acceptance update — signed-out Quick AI verified
+
+A correctly generated Seroval request with no cookies/session context and the
+published article UUID `d7aa6440-9544-4f70-9479-98aba3527cdf` returned HTTP 200
+at `2026-10-22T09:15:11Z`, with `x-tss-serialized: true`,
+`provenance: share_barabara`, and a grounded 6,209-byte answer. This verifies
+the live signed-out Worker-to-Groq path. The earlier 403 at
+`2026-10-22T09:09:43Z` had Ray ID `a4e75d602f1ab14b-LOS`, plain Cloudflare
+`Forbidden`, `Content-Type: text/plain`, and no application serialization
+header; it was not reproducible. Cloudflare Security Events access is not
+available in this session, so the exact rule/action remains owner verification.
+Browser rendering and authenticated acceptance remain open.

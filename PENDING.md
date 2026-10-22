@@ -36,6 +36,23 @@
   Sign in to Chat, Copy Link click, or responsive visual acceptance is claimed
   without browser access. No speculative production hotfix was applied.
 
+- **PRODUCTION ACCEPTANCE UPDATE — QUICK AI SIGNED-OUT HTTP VERIFIED.** A
+  correctly generated Seroval request with no cookies/session context and the
+  published article UUID `d7aa6440-9544-4f70-9479-98aba3527cdf` returned HTTP
+  200 at `2026-10-22T09:15:11Z`, `x-tss-serialized: true`, and a grounded
+  response with `provenance: share_barabara`. The response contained a factual
+  6,209-byte serialized answer referencing the article evidence, establishing
+  that the production Worker reached Groq successfully for the signed-out
+  path. The earlier 403 was captured at `2026-10-22T09:09:43Z` for the same
+  server-function path with Ray ID `a4e75d602f1ab14b-LOS`; it was plain
+  Cloudflare `Forbidden` with `Content-Type: text/plain`, no
+  `x-tss-serialized` header and did not appear to reach the Worker. It was not
+  reproducible in subsequent correctly encoded probes. Cloudflare Security
+  Events correlation for that Ray ID is still unavailable from this session;
+  owner review is required before attributing it to a specific rule. Browser
+  rendering, admin AI, Sign in to Chat, sharing clicks and responsive checks
+  remain open.
+
 - **PRODUCTION RELEASE CANDIDATE — SUPERSEDED BY DEPLOYMENT.** Branch
   `release/production-20261022` consolidates the verified editorial/AI repair,
   Batches 1–3, Task 41.8, Task 45, Task 56, and the Task 24/51 documentation
