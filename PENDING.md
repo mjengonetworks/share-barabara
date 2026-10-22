@@ -1,5 +1,28 @@
 # Pending
 
+- **PRODUCTION CONTEXTUAL AI CHAT HOTFIX — DEPLOYED / BROWSER ACCEPTANCE OPEN.**
+  Commit `d62012337f45cade5eb11032f3a8216dd2eebed2` preserves the exact
+  content return context through the existing sign-in flow, restores the same
+  published-context Quick AI Summary after login, opens/focuses contextual
+  chat from `#share-barabara-ai`, keeps the summary above the conversation,
+  and renders published Share Barabara evidence links for chat answers. While
+  Live SearXNG remains pending, external-research failure states now show the
+  approved “information beyond Share Barabara's available reports” message;
+  no external result is fabricated. Focused AI/security/retrieval tests pass
+  32/32 and the Bun/Vite 7.3.7 production build passes. Deployed to
+  `share-barabara` as Worker version `0ba2e03b-7050-45e1-8795-724064db0565`
+  on 2026-10-22; Wrangler confirmed `AI_RATE_LIMITER`, `ASSETS`, production
+  vars, and secret names `GROQ_API_KEY` and `XAI_API_KEY` remain present.
+  Public smoke HEAD requests for `/`, `/news`, `/alerts`, `/reports`,
+  `/infrastructure-issues`, `/campaigns`, `/statistics`, `/feed`, `/search`
+  and the affected report route returned HTTP 200. Browser signed-out login,
+  exact-page return, summary restoration, contextual chat continuation,
+  responsive behavior, and authenticated admin acceptance remain pending
+  because no browser/authenticated session is available. Full repository lint
+  remains blocked by the pre-existing CRLF/Prettier baseline errors; the
+  legacy privacy suite also retains its unrelated public-form assertion
+  failure. Save Draft migration and Live SearXNG remain explicitly PENDING.
+
 - **PRODUCTION RELEASE — DEPLOYED / ACCEPTANCE TESTING.** Approved branch
   `release/production-20261022` was deployed from exact commit `9b3fa93`
   (full SHA `9b3fa93d447fc14e2b77fae8bd765163e9289`) to Worker
