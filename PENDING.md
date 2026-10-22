@@ -82,6 +82,11 @@ unverified; do not mark this batch COMPLETED or deploy production until owner re
 
 Task 24 remains TESTING / VERIFICATION because no real SearXNG instance is connected yet.
 
+  Repository-side retrieval contract and deployment-readiness checks are covered by
+  `tests/task24-retrieval-readiness.test.mjs`. The remaining acceptance blocker is
+  operational: a reviewed, reachable SearXNG endpoint must be provisioned and
+  verified before enabling live external retrieval or Task 25 discovery agents.
+
 Task 25 — Share Barabara Agent System remains PENDING. External-discovery agents may begin after the selected retrieval provider is configured and live retrieval is verified.
 
 Task 26 — Statistics Modernization is TESTING / VERIFICATION. The public/admin implementation,
