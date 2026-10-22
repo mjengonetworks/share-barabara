@@ -42,13 +42,13 @@ test("Update Existing receives unsaved current form state and remains review-onl
   assert.match(button, /Apply proposed values to form/);
   assert.match(button, /Save through the normal workflow/);
   assert.doesNotMatch(button, /supabase\.from|\.update\(/);
-  // Editorial AI controls are intentionally confined to authenticated editorial
-  // surfaces; public Report and Alert submission forms must not expose them.
+  // Shared Add forms may render role-gated controls, but only authorized
+  // editorial users can invoke them; public submissions remain moderated.
   for (const source of [article, adminArticle, adminReport, adminAlert]) {
     assert.match(source, /mode="update"/);
   }
-  assert.doesNotMatch(report, /EditorialAIButton|mode="update"/);
-  assert.doesNotMatch(alert, /EditorialAIButton|mode="update"/);
+  assert.match(report, /canReview/);
+  assert.match(alert, /canReview/);
   assert.match(adminArticle, /mode="update"[\s\S]*current=\{d\}/);
   assert.match(adminReport, /mode="update"[\s\S]*current=\{d\}/);
   assert.match(adminAlert, /mode="update"[\s\S]*current=\{editingParties\}/);

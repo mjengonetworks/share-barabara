@@ -11,16 +11,18 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
+import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
-  head: () => ({
-    meta: [
-      { title: "Infrastructure Issue: Share Barabara" },
-      {
-        name: "description",
-        content: "Read the full infrastructure issue report and see related issues nearby.",
-      },
-    ],
+  loader: async ({ params }) => {
+    const { data } = await supabase.from("infrastructure_issues").select("*").eq("id", params.issueId).eq("status", "approved").maybeSingle();
+    return data;
+  },
+  head: ({ loaderData }) => socialHead({
+    title: loaderData?.title || "Infrastructure Issue",
+    description: loaderData?.summary || "Read the full infrastructure issue report and see related issues nearby.",
+    pathname: `/infrastructure-issues/${loaderData?.id ?? ""}`,
+    imageUrl: loaderData?.image_url,
   }),
   component: IssueDetail,
 });
@@ -48,6 +50,7 @@ function IssueList({ issues }: { issues: RelatedIssue[] }) {
 
 function IssueDetail() {
   const { issueId } = Route.useParams();
+  const loaderData = Route.useLoaderData();
 
   const { data: issue, isLoading } = useQuery({
     queryKey: ["infrastructure-issue", issueId],
@@ -60,6 +63,7 @@ function IssueDetail() {
       if (error) throw error;
       return data;
     },
+    initialData: loaderData,
   });
 
   const { data: names = {} } = useProfileNames(issue ? [issue.user_id] : []);
