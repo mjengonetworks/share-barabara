@@ -78,14 +78,16 @@ unverified; do not mark this batch COMPLETED or deploy production until owner re
 - [ ] 24.8 Distinct retrieval and provider failure states
 - [ ] 24.9 Server-only provider configuration
 - [ ] 24.10 Compatibility with the Task 25 Share Barabara Agent System
-- [ ] 24.11 SearXNG Provider Support & Deployment Readiness (adapter/docs complete; live instance not connected)
+  - [ ] 24.11 Live SearXNG Integration (PENDING: endpoint provisioning, secure server-side connectivity, real-request verification, citation/retrieval-quality checks, failure handling, rate-limit and SSRF validation, and Task 25 compatibility)
 
 Task 24 remains TESTING / VERIFICATION because no real SearXNG instance is connected yet.
 
-  Repository-side retrieval contract and deployment-readiness checks are covered by
-  `tests/task24-retrieval-readiness.test.mjs`. The remaining acceptance blocker is
-  operational: a reviewed, reachable SearXNG endpoint must be provisioned and
-  verified before enabling live external retrieval or Task 25 discovery agents.
+  Repository-side retrieval architecture and readiness checks are implemented and
+  covered by `tests/task24-retrieval-readiness.test.mjs`. Live SearXNG Integration
+  remains explicitly PENDING: provision a reviewed endpoint, configure secure
+  server-side connectivity, verify real requests, citations, retrieval quality,
+  failures, rate limiting, SSRF protections, and compatibility with Task 25.
+  Do not provision infrastructure without approval.
 
 Task 25 — Share Barabara Agent System remains PENDING. External-discovery agents may begin after the selected retrieval provider is configured and live retrieval is verified.
 
