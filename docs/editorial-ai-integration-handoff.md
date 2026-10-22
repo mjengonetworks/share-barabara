@@ -1,17 +1,18 @@
 # Editorial redesign and AI integration handoff
 
-Status: TESTING / HANDOFF ONLY. No staging or production deployment was performed from this integration branch.
+Status: TESTING / UNIFIED STAGING CANDIDATE READY. No staging or production deployment was performed from this integration branch.
 
 ## Compatibility audit
 
 - Current staging Worker reported by the owner: `d399af90-e933-4239-b637-95ba2111b1cf`.
 - The current staging deployment was built from the editorial Batch 3 line and does not contain AI commits `607568e` or `e621d58` in its source ancestry.
-- The clean integration branch is `integration/editorial-ai-acceptance` and contains the editorial Batch 1–3 line plus the two requested AI commits as `16a552b` and `b839ae2`.
-- The later AI follow-up commits remain outside this branch. They must be reviewed separately before any deployment because they touch additional public/detail and AI files and may represent active concurrent work.
+- The clean integration branch is `integration/editorial-ai-acceptance` and contains the editorial Batch 1–3 line plus the reviewed AI commits `16a552b`, `b839ae2`, `53d3417`, `6963640` and `c2f0e8e`.
+- The remaining AI release-line commits are deployment-status documentation only or are outside this candidate. They remain separate until the AI instance confirms no concurrent edits are in progress.
+- `c2f0e8e` is the integration-branch equivalent of verified repair `ed2ec86`; the implementation matches the verified normalization and safe-error behavior. Documentation commit `6afdd5e` remains on the release line and was not blindly cherry-picked because this branch has its own integration handoff records.
 
 ## AI changes included
 
-The integration branch includes the administrator Alert/Report AI workflow repair, role-gated controls, non-destructive field application, report publishing safeguards, contextual chat handoff, and the associated static regression tests. It also includes the review-only accident-report draft migration file. That migration is not executed by this work and must remain a separate database approval step.
+The integration branch includes the administrator Alert/Report AI workflow repair, role-gated controls, non-destructive field application, report publishing safeguards, contextual chat handoff, direct published-context grounding, resolver-failure fallback, bounded alert/report source context, safe Worker-serializable Quick AI responses, and the associated static regression tests. It also includes the review-only accident-report draft migration file. That migration is not executed by this work and must remain a separate database approval step.
 
 The approved public sharing toolbar was not changed by these cherry-picks.
 
@@ -42,7 +43,9 @@ Across every route check dark mode, focus states, image fallbacks, canonical/OG 
 
 - No browser or screenshot tooling was available in this environment, so visual acceptance is not claimed.
 - No authenticated staging session was available, so admin AI controls and role-denial behavior remain unverified live.
-- Provider-backed AI generation cannot be accepted until staging secret presence is confirmed out of band.
+- Combined regression suites pass: 43/43 tests across AI summary, AI security, admin AI workflow, editorial AI, platform editorial layout and sharing coverage. `npm run build` passes.
+- The unified candidate has not been deployed. Before deployment, confirm the AI instance has no competing Worker deployment and preserve the existing staging bindings and secret references.
+- Provider-backed AI generation cannot be accepted until staging secret presence is confirmed out of band; configured secret names are not evidence that live provider calls work.
 - The review-only draft migration was not run; Save draft remains database-dependent.
 - Existing targeted lint findings remain in unrelated Feed/Statistics `any` usage; they are not introduced by this integration.
 - The integration branch is not production-ready or deployable without review of the later AI branch changes and the above acceptance gates.
