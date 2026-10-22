@@ -30,6 +30,25 @@ test("summary UI prevents duplicate requests and preserves the sign-in handoff",
   assert.ok(source.includes("Continue Chatting"));
   assert.ok(source.includes("Sign in to ask follow-up questions about this content."));
   assert.ok(source.includes("<Button asChild"));
+  assert.ok(source.includes("summaryRequested"));
+  assert.ok(source.includes('window.location.hash !== "#share-barabara-ai"'));
+  assert.ok(source.includes("EvidenceLinks"));
+  assert.ok(source.includes("EXTERNAL_RESEARCH_UNAVAILABLE"));
+  assert.ok(source.includes("evidence: result.evidence"));
+});
+
+test("contextual continuation restores the same published context after auth", () => {
+  const source = read("src/components/site/share-barabara-ai.tsx");
+  assert.match(source, /contextType, contextId/);
+  assert.ok(source.includes("sourceText ? { sourceText } : {}"));
+  assert.match(source, /aiReturnTo\("content"\)/);
+  assert.match(source, /focusAISurface\("share-barabara-ai"\)/);
+});
+
+test("external retrieval stays explicitly unavailable while SearXNG is pending", () => {
+  const source = read("src/components/site/share-barabara-ai.tsx");
+  assert.match(source, /This question requires information beyond Share Barabara's available reports/);
+  assert.match(source, /wider web-search capability is being finalized/);
 });
 
 test("editorial provider mapping remains action-specific", () => {

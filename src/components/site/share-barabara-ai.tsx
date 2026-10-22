@@ -12,7 +12,7 @@ import { SafeAIRenderer } from "@/components/site/safe-ai-renderer";
 const callQuickAISummary = quickAISummary as unknown as (args: { data: unknown }) => Promise<PublicAIResult>;
 const callPublicAIChat = publicAIChat as unknown as (args: { data: unknown }) => Promise<PublicAIResult & { threadId?: string }>;
 
-type Message = { role: "user" | "assistant"; content: string; citations?: PublicAIResult["citations"] };
+type Message = { role: "user" | "assistant"; content: string; citations?: PublicAIResult["citations"]; evidence?: PublicAIResult["evidence"] };
 type Props = {
   contextType: Exclude<PublicContextType, "general">;
   contextId: string;
@@ -20,6 +20,14 @@ type Props = {
   mode?: "summary" | "chat";
   sourceText?: string;
 };
+
+const EXTERNAL_RESEARCH_UNAVAILABLE = "This question requires information beyond Share Barabara's available reports. Our wider web-search capability is being finalized and is not yet available. You can continue asking questions about information published on Share Barabara.";
+
+function EvidenceLinks({ evidence }: { evidence: PublicAIResult["evidence"] }) {
+  const links = evidence.filter((item) => item.href);
+  if (!links.length) return null;
+  return <div className="mt-3 border-t border-primary-foreground/20 pt-2 text-xs"><p className="font-semibold">Share Barabara sources</p>{links.map((item) => <a key={item.id} href={item.href} className="mt-1 block text-accent underline">{item.title}</a>)}</div>;
+}
 
 function Answer({ message }: { message: Message }) {
   return (
@@ -32,6 +40,7 @@ function Answer({ message }: { message: Message }) {
           {message.citations.map((citation) => <a key={citation.id} href={citation.url} target="_blank" rel="noopener noreferrer" className="mt-1 block text-accent underline">[{citation.id}] {citation.title}</a>)}
         </div>
       ) : null}
+      {message.evidence ? <EvidenceLinks evidence={message.evidence} /> : null}
     </div>
   );
 }
@@ -64,7 +73,7 @@ function Composer({ value, onChange, onSend, busy, placeholder }: { value: strin
 
 function errorText(result: PublicAIResult) {
   if (result.error === "not_configured") return "Share Barabara AI is not configured yet.";
-  if (result.error === "external_search_unavailable") return "Share Barabara could not check outside sources right now. Please try again later.";
+  if (result.error === "external_search_unavailable" || result.error === "external_search_failed" || result.error === "external_search_no_valid_results" || result.error === "external_sources_rejected") return EXTERNAL_RESEARCH_UNAVAILABLE;
   if (result.error === "external_search_rate_limited") return "Please wait a moment before asking Share Barabara AI again.";
   return "There is not enough supported information to answer safely.";
 }
@@ -78,10 +87,10 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const summaryRequested = useRef(false);
 
   useEffect(() => {
     if (user && window.location.hash === "#share-barabara-ai") setChatOpen(true);
-    focusAISurface("share-barabara-ai");
   }, [user]);
 
   async function summarize() {
@@ -90,24 +99,32 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
     catch { setError("Share Barabara AI is temporarily unavailable."); }
     finally { setBusy(false); }
   }
+  useEffect(() => {
+    if (mode !== "summary" || window.location.hash !== "#share-barabara-ai" || summaryRequested.current || summary) return;
+    summaryRequested.current = true;
+    void summarize();
+  }, [mode, contextType, contextId, summary]);
   async function send() {
     if (!user || !message.trim() || busy) return;
     const next = message.trim(); setMessage(""); setMessages((items) => [...items, { role: "user", content: next }]); setBusy(true); setError(null);
     try {
       const result = await callPublicAIChat({ data: { message: next, contextType, contextId, threadId, history: messages } });
       if (result.threadId) setThreadId(result.threadId);
-      if (result.answer) setMessages((items) => [...items, { role: "assistant", content: result.answer!, citations: result.citations }]);
+      if (result.answer) setMessages((items) => [...items, { role: "assistant", content: result.answer!, citations: result.citations, evidence: result.evidence }]);
       else setError(errorText(result));
     } catch { setError("Share Barabara AI is temporarily unavailable."); }
     finally { setBusy(false); }
   }
   const summaryAvailable = mode === "summary" && summary?.ok && summary.answer;
+  useEffect(() => {
+    if (window.location.hash === "#share-barabara-ai" && (summaryAvailable || chatOpen)) focusAISurface("share-barabara-ai");
+  }, [summaryAvailable, chatOpen]);
   return (
     <section id="share-barabara-ai" className="mt-8 rounded-xl border border-primary bg-primary p-5 text-primary-foreground shadow-sm" aria-label="Share Barabara AI">
       <div className="flex items-center gap-2"><Bot className="size-5 text-accent" /><p className="text-xs font-bold uppercase tracking-widest text-accent">SHARE BARABARA AI</p></div>
       {mode === "chat" ? <p className="mt-2 text-sm text-primary-foreground/80">Chat with Share Barabara AI about this alert.</p> : null}
       {mode === "summary" && !summary ? <Button className="mt-4 border-accent/70 bg-transparent text-primary-foreground hover:bg-accent hover:text-accent-foreground" variant="outline" onClick={summarize} disabled={busy}><Sparkles className="mr-2 size-4" />{busy ? "Preparing summary…" : "Quick AI Summary"}</Button> : null}
-      {mode === "summary" && summary ? (summaryAvailable ? <div className="mt-4 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4 text-sm"><SafeAIRenderer content={summary.answer!} /></div> : <p className="mt-4 text-sm text-primary-foreground/75">{errorText(summary)}</p>) : null}
+      {mode === "summary" && summary ? (summaryAvailable ? <div className="mt-4 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4 text-sm"><SafeAIRenderer content={summary.answer!} /><EvidenceLinks evidence={summary.evidence} /></div> : <p className="mt-4 text-sm text-primary-foreground/75">{errorText(summary)}</p>) : null}
       {mode === "chat" || summaryAvailable || chatOpen ? (
         user && !authLoading ? <div className="mt-5 space-y-3">
           {mode === "summary" ? <Button type="button" variant="outline" className="border-accent bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setChatOpen(true)}>Continue Chatting</Button> : null}
@@ -140,7 +157,7 @@ export function HeaderShareBarabaraAI() {
       const response = await callPublicAIChat({ data: { message: next, contextType: "general", threadId, history: messages } });
       if (response.threadId) setThreadId(response.threadId);
       setResult(response);
-      if (response.answer) setMessages((items) => [...items, { role: "assistant", content: response.answer!, citations: response.citations }]);
+      if (response.answer) setMessages((items) => [...items, { role: "assistant", content: response.answer!, citations: response.citations, evidence: response.evidence }]);
     } catch { setResult({ ok: false, error: "provider_unavailable", provenance: "none", citations: [], evidence: [] }); }
     finally { setBusy(false); }
   }
