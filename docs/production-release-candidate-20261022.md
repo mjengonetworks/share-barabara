@@ -10,8 +10,9 @@ Status: **Awaiting explicit owner approval; not deployed**.
 - Latest verified staging Worker: `e6e87490-ef4a-4f70-b0f1-669048655bd1`,
   with the verified server-function repair and Vite 7.3.7 toolchain.
 - Candidate branch: `release/production-20261022`.
-- Candidate HEAD: recorded after validation and approval; this document is
-  deliberately not a deployment claim.
+- Candidate source tip before this documentation update: `21ad326`.
+- This candidate is not deployed; the final documentation commit will be the
+  release-candidate tip presented for approval.
 
 ## Included
 
@@ -39,3 +40,12 @@ Production deployment requires explicit owner approval after the candidate build
 regression suites, artifact registration check and binding-name audit pass. The
 rollback target is the previous production Worker version
 `d5c96a2a-9cd6-4a8f-b21b-346449e5ceea`.
+
+## Validation evidence
+
+- Relevant regression suite: **130/130 passed**.
+- `bun install --frozen-lockfile`: passed; Vite resolved to **7.3.7**.
+- `bun run build`: passed; Cloudflare Nitro artifact generated.
+- Deployable Worker server-function registration test: passed.
+- Production secret-name audit: `GROQ_API_KEY`, `XAI_API_KEY`, and existing
+  VAPID secret names present; values were not read.
