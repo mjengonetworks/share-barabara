@@ -42,6 +42,14 @@ Across every route check dark mode, focus states, image fallbacks, canonical/OG 
 
 ## Verification limits and blockers
 
+### Runtime diagnosis update — 2026-10-22
+
+The deployed request path was traced from the Worker entrypoint through the lazy SSR service, TanStack Start request resolver, `/_serverFn/$id` route parser and `handleServerAction`. The exact registry consulted by the failing request is the generated TanStack Start `manifest` captured by `getServerFnById`. The exception occurs at `manifest[id]` lookup, before the provider request, provider-response parsing, Seroval response serialization or client hydration. The clean local Vite 8 artifact contained the ID in the separate resolver, and the direct prebuilt Cloudflare deployment reproduced the failure, ruling out stale client IDs, a missing source definition, nested Node rebuilds and the previously suspected artifact-cache mismatch.
+
+An upstream TanStack Router issue documents the same production-only missing-registry failure for server functions split across files under Vite 8, with Vite 7 reported as the working toolchain. This project has the same trigger: Vite 8, `src/lib/ai/public.functions.ts` as a separate server-function module, and the Cloudflare Nitro target. The smallest verified correction pins Vite to `^7.3.3` (resolved `7.3.7`). The new artifact emits the Quick AI registry in the SSR server module, the client and server ID remain identical, and no application/provider/security code was changed.
+
+The Vite 7 Bun build completed successfully. The combined AI, editorial, security, layout and sharing suite passes **44/44**, including the deployable-artifact registry regression. A local Wrangler Worker probe reached structured server-function handling and returned a structured request/validation error rather than `Server function info not found`; this is a runtime-registration check, not live Groq acceptance. Staging has not yet been redeployed with this correction. Do not claim Quick AI resolved until the corrected Worker returns a real signed-out Groq summary.
+
 - No browser or screenshot tooling was available in this environment, so visual acceptance is not claimed.
 - No authenticated staging session was available, so admin AI controls and role-denial behavior remain unverified live.
 - Combined regression suites pass: 44/44 tests across AI summary, AI security, admin AI workflow, editorial AI, platform editorial layout and sharing coverage. `bun run build` passes with the frozen lockfile.
