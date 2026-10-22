@@ -64,6 +64,27 @@ type ReportPreview = {
   incident_type?: string | null;
 };
 
+export type InfrastructureIssuePreview = {
+  id: string;
+  title: string;
+  summary?: string | null;
+  road_name: string;
+  county?: string | null;
+  structure_type?: string | null;
+  status?: string | null;
+  image_url?: string | null;
+};
+
+export type CampaignPreview = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  image_url?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+};
+
 export function ArticlePreviewCard({ article }: { article: ArticlePreview }) {
   return (
     <Link
@@ -155,6 +176,46 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
           <span>{displayReportCount(report.casualties)} injured</span>
           <span>{displayReportCount(report.fatalities)} deaths</span>
         </div>
+      </div>
+    </Link>
+  );
+}
+
+export function InfrastructureIssuePreviewCard({ issue }: { issue: InfrastructureIssuePreview }) {
+  return (
+    <Link
+      to="/infrastructure-issues/$issueId"
+      params={{ issueId: issue.id }}
+      className="group overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
+    >
+      {issue.image_url ? (
+        <img src={issue.image_url} alt={issue.title} loading="lazy" className="aspect-video w-full object-cover" />
+      ) : null}
+      <div className="p-4">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {issue.structure_type ? <span className="rounded bg-accent/20 px-1.5 py-0.5 font-semibold text-accent-foreground">{issue.structure_type}</span> : null}
+          {issue.status ? <span className="capitalize">{issue.status}</span> : null}
+        </div>
+        <h3 className="mt-2 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">{issue.title}</h3>
+        <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="size-4 shrink-0" aria-hidden="true" />{issue.road_name}{issue.county ? ` · ${issue.county}` : ""}</p>
+        {issue.summary ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{issue.summary}</p> : null}
+      </div>
+    </Link>
+  );
+}
+
+export function CampaignPreviewCard({ campaign }: { campaign: CampaignPreview }) {
+  return (
+    <Link
+      to="/campaigns/$slug"
+      params={{ slug: campaign.slug }}
+      className="group overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
+    >
+      {campaign.image_url ? <img src={campaign.image_url} alt={campaign.title} loading="lazy" className="aspect-video w-full object-cover" /> : null}
+      <div className="p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-accent-foreground">Campaign</p>
+        <h3 className="mt-1 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">{campaign.title}</h3>
+        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{campaign.description}</p>
       </div>
     </Link>
   );

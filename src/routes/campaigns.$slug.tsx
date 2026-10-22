@@ -13,6 +13,7 @@ import {
   PublicBreadcrumbStrip,
 } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
+import { CampaignPreviewCard } from "@/components/site/discovery-sections";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   loader: async ({ params }) => {
@@ -52,6 +53,21 @@ function CampaignDetail() {
     initialData: loaderData,
   });
 
+  const { data: relatedCampaigns = [] } = useQuery({
+    queryKey: ["campaign-related", campaign?.id],
+    enabled: !!campaign?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("campaigns")
+        .select("id, slug, title, description, image_url, start_date, end_date")
+        .neq("id", campaign!.id)
+        .order("start_date", { ascending: false })
+        .limit(4);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   if (isLoading) {
     return <p className="mx-auto max-w-3xl px-4 py-20 text-muted-foreground">Loading campaign…</p>;
   }
@@ -82,6 +98,7 @@ function CampaignDetail() {
       />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
         <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
+          <Link to="/campaigns" className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="size-4" /> All campaigns</Link>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={STATUS_VARIANT[status]} className="capitalize">
               {status}
@@ -107,11 +124,10 @@ function CampaignDetail() {
           </div>
 
           {heroImage ? (
-            <img
-              src={heroImage}
-              alt={campaign.title}
-              className="mt-4 aspect-video w-full rounded-lg border border-border object-cover"
-            />
+            <figure className="mt-4">
+              <img src={heroImage} alt={campaign.title} className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain" />
+              {campaign.image_caption || campaign.image_credit ? <figcaption className="mt-2 text-xs text-muted-foreground">{campaign.image_caption}{campaign.image_caption && campaign.image_credit ? " · " : ""}{campaign.image_credit ? <em>Credit: {campaign.image_credit}</em> : null}</figcaption> : null}
+            </figure>
           ) : null}
 
           <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
@@ -140,7 +156,9 @@ function CampaignDetail() {
             )
           ) : null}
         </article>
-        <EditorialSidebar adPlacement="campaign-sidebar" />
+        <EditorialSidebar adPlacement="campaign-sidebar">
+          {relatedCampaigns.length > 0 ? <section className="rounded-lg border border-border bg-card p-5 card-elevated"><h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Related campaigns</h2><div className="mt-3 grid gap-3">{relatedCampaigns.map((item) => <CampaignPreviewCard key={item.id} campaign={item} />)}</div><Link to="/campaigns" className="mt-4 inline-flex text-sm font-semibold text-brand-blue underline">View more campaigns</Link></section> : null}
+        </EditorialSidebar>
       </div>
     </>
   );

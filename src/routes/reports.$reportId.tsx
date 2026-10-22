@@ -28,6 +28,7 @@ import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
+import { ReportPreviewCard } from "@/components/site/discovery-sections";
 import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/reports/$reportId")({
@@ -45,36 +46,51 @@ export const Route = createFileRoute("/reports/$reportId")({
     const description =
       loaderData?.seo_description ||
       "Read the full accident report and join the community discussion.";
-    const head = socialHead({ title, description, pathname: `/reports/${loaderData?.id ?? ""}`, imageUrl: loaderData?.image_url });
-    return { ...head, meta: [...head.meta, ...(loaderData?.seo_keywords ? [{ name: "keywords", content: loaderData.seo_keywords }] : [])] };
+    const head = socialHead({
+      title,
+      description,
+      pathname: `/reports/${loaderData?.id ?? ""}`,
+      imageUrl: loaderData?.image_url,
+    });
+    return {
+      ...head,
+      meta: [
+        ...head.meta,
+        ...(loaderData?.seo_keywords
+          ? [{ name: "keywords", content: loaderData.seo_keywords }]
+          : []),
+      ],
+    };
   },
   component: ReportDetail,
 });
 
-type RelatedReport = { id: string; title: string; severity: string; county: string };
+type RelatedReport = {
+  id: string;
+  title: string;
+  description: string;
+  severity: string;
+  county: string;
+  road: string | null;
+  image_url: string | null;
+  casualties: number | null;
+  fatalities: number | null;
+};
 
 function ReportList({ reports }: { reports: RelatedReport[] }) {
   return (
-    <ul className="mt-3 space-y-3">
+    <div className="mt-4 space-y-4">
       {reports.map((r, index) => (
         <Fragment key={r.id}>
           {isAdInterval(index + 1) ? (
-            <li>
+            <div>
               <BannerAd placement={`report-sidebar-interval-${(index + 1) / 4}`} />
-            </li>
+            </div>
           ) : null}
-          <li key={r.id}>
-            <Link
-              to="/reports/$reportId"
-              params={{ reportId: r.id }}
-              className="text-sm text-brand-blue hover:underline"
-            >
-              {r.title}
-            </Link>
-          </li>
+          <ReportPreviewCard report={r} />
         </Fragment>
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -120,7 +136,7 @@ function ReportDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
-        .select("id, title, severity, county")
+        .select("id, title, description, severity, county, road, image_url, casualties, fatalities")
         .eq("status", "approved")
         .eq("county", report!.county)
         .neq("id", report!.id)
@@ -137,7 +153,7 @@ function ReportDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("accident_reports")
-        .select("id, title, severity, county")
+        .select("id, title, description, severity, county, road, image_url, casualties, fatalities")
         .eq("status", "approved")
         .neq("id", report!.id)
         .order("occurred_at", { ascending: false })
@@ -196,7 +212,7 @@ function ReportDetail() {
             <ArrowLeft className="size-4" /> All reports
           </Link>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <SeverityBadge value={report.severity} />
             {report.status !== "approved" ? (
               <span
@@ -228,7 +244,7 @@ function ReportDetail() {
               <img
                 src={report.image_url}
                 alt={report.image_alt || report.title}
-                className="mx-auto max-h-[70vh] max-w-full rounded-lg border border-border object-contain"
+                className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
               />
               {report.image_caption || report.image_credit ? (
                 <figcaption className="mt-1.5 text-xs text-muted-foreground">

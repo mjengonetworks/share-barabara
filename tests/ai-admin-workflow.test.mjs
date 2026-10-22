@@ -19,8 +19,10 @@ test("admin Accident Report add and edit flows expose Generate and Auto-Populate
   const form = read("src/components/site/report-form.tsx");
   const edit = read("src/routes/_authenticated/admin/reports.tsx");
   assert.ok(form.includes("const { canReview } = useRoles()"));
-  assert.ok(form.includes('contentType="report"'));
-  assert.ok(form.includes('["generate", "autopopulate"]'));
+  // Editorial AI is mounted by the authenticated admin editor wrapper, not
+  // the public contributor form.
+  assert.ok(edit.includes('contentType="report"'));
+  assert.ok(edit.includes('["generate", "autopopulate"]'));
   assert.ok(edit.includes('contentType="report"'));
   assert.ok(edit.includes('mode="update"'));
 });
