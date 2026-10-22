@@ -8,7 +8,7 @@ test("report creation derives status from the authenticated role, not request da
   const text = await source("src/lib/report.functions.ts");
   assert.match(text, /context\.userId/);
   assert.match(text, /roleRank\[entry\.role\]/);
-  assert.match(text, /status: canPublish \? "approved" : "pending"/);
+  assert.match(text, /status: canPublish && requestedStatus === "approved"[\s\S]*?: "pending"/);
   assert.match(text, /user_id: context\.userId/);
   assert.doesNotMatch(text, /data\.status/);
 });
@@ -67,7 +67,7 @@ test("AI surfaces keep signed-out chat inactive and use the shared compact compo
   assert.match(ai, /aria-label="Send message"/);
   assert.match(ai, /<ArrowUp/);
   assert.match(ai, /mode === "chat"/);
-  assert.match(alert, /mode="chat"\s+contextType="alert"/);
+  assert.doesNotMatch(alert, /mode="chat"/);
 });
 
 test("article summaries remain optional without rendering an empty public block", async () => {
@@ -91,14 +91,10 @@ test("Editorial AI is server-authorized and separated from contributor forms", a
   assert.match(article, /CategoryMultiSelect/);
   assert.match(article, /mode="generate"/);
   assert.match(article, /mode="autopopulate"/);
-  assert.doesNotMatch(
-    alert,
-    /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i,
-  );
-  assert.doesNotMatch(
-    report,
-    /EditorialAIButton|generateEditorialDraft|Auto-Populate|Update Existing/i,
-  );
+  assert.match(alert, /useRoles|canReview/);
+  assert.match(alert, /\[\"generate\", \"autopopulate\"\]/);
+  assert.match(report, /useRoles|canReview/);
+  assert.match(report, /\[\"generate\", \"autopopulate\"\]/);
   assert.doesNotMatch(article, /EditorialAIButton[\s\S]{0,80}canEditSeo/);
 });
 
@@ -115,11 +111,9 @@ test("all Article, Alert and Report editors render the three editorial workflows
     assert.match(form, /mode="autopopulate"|\["generate", "autopopulate"\]/);
     assert.match(form, /mode="update"/);
   }
-  for (const publicForm of [alertForm, reportForm]) {
-    assert.doesNotMatch(
-      publicForm,
-      /EditorialAIButton|mode="generate"|mode="autopopulate"|mode="update"/,
-    );
+  for (const protectedForm of [alertForm, reportForm]) {
+    assert.match(protectedForm, /canReview/);
+    assert.match(protectedForm, /\[\("generate", "autopopulate"\)|\[\"generate\", \"autopopulate\"\]/);
   }
   for (const editor of [articles, alerts, reports]) {
     assert.match(editor, /mode="generate"|\["generate", "autopopulate"\]/);

@@ -61,7 +61,7 @@ test("article share toolbar has four primary actions and an accessible social me
   assert.match(share, /aria-expanded=\{open\}/);
   assert.match(share, /event\.key === "Escape"/);
   assert.match(share, /closeOnOutsideClick/);
-  assert.match(share, /navigator\.clipboard\.writeText\(url\)/);
+  assert.match(share, /navigator\.clipboard\.writeText\(formatShareClipboard\(title, url\)\)/);
   assert.match(share, /GOOGLE_NEWS_SEARCH_URL/);
   assert.match(share, /news\.google\.com\/search\?q=share%20barabara&hl=en-ZA&gl=ZA&ceid=ZA%3Aen/);
   assert.match(share, /Add as a preferred source on Google/);
