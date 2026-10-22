@@ -121,12 +121,14 @@ function parseMedia(html: string): MjengoMediaPreview[] {
   return rows;
 }
 
-async function fetchText(path: string) {
+async function fetchText(path: string, acceptedContentTypes: readonly string[]) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8_000);
   try {
     const response = await fetch(`${MJENGO_ORIGIN}${path}`, { signal: controller.signal, headers: { accept: "text/html, application/rss+xml" } });
     if (!response.ok) return "";
+    const contentType = response.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
+    if (contentType && !acceptedContentTypes.includes(contentType)) return "";
     const length = Number(response.headers.get("content-length") ?? 0);
     if (length > MAX_BODY) return "";
     const text = await response.text();
@@ -136,7 +138,11 @@ async function fetchText(path: string) {
 }
 
 async function loadMjengoContent(): Promise<MjengoContent> {
-  const [rss, projects, media] = await Promise.all([fetchText("/rss.xml"), fetchText("/projects"), fetchText("/media")]);
+  const [rss, projects, media] = await Promise.all([
+    fetchText("/rss.xml", ["application/rss+xml", "application/xml", "text/xml"]),
+    fetchText("/projects", ["text/html", "application/xhtml+xml"]),
+    fetchText("/media", ["text/html", "application/xhtml+xml"]),
+  ]);
   const articles = parseRss(rss);
   const projectRows = parseProjects(projects);
   const mediaRows = parseMedia(media);
