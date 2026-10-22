@@ -1,5 +1,7 @@
 # Pending
 
+- **EDITORIAL UI RELEASE CANDIDATE — LOCAL / NOT DEPLOYED.** Candidate branch `release/editorial-ui-candidate` is based on `1c4bf5b` and therefore includes AI commit `9d1fda8` without rebasing or overwriting it. The compact report form, report/alert editorial preview sidebars, featured-image parity and focused regression coverage are implemented. Focused UI/discovery/Mjengo tests pass **27/27** and `bun run build` passes. No database migration, Task 70/advertisement change, SearXNG activation, staging deployment or production deployment was performed. Browser surfaces were unavailable for screenshots; owner/release review is still required.
+
 - **AI CHAT HISTORY RELEASE READINESS — CANDIDATE `9d1fda8` / NOT DEPLOYED.**
   The candidate is pushed on `release/production-20261022` and includes the
   verified public-AI hotfix chain (`73b35fe`, `d620123`). The Bun/Vite 7.3.7
@@ -26,7 +28,7 @@
 - **MASTER PUBLIC AI CHAT WORKFLOW — IMPLEMENTED / MIGRATION AND BROWSER ACCEPTANCE
   PENDING.** The header and contextual surfaces now share the same public AI
   infrastructure. Signed-out header users see only the primary `Sign in to
-  Chat` action; signed-in users get the direct `Ask Share Barabara AI...`
+Chat` action; signed-in users get the direct `Ask Share Barabara AI...`
   composer. Published Article, Alert and Report surfaces keep Quick AI Summary
   and source links, show no active guest composer, and present the authenticated
   composer immediately without a `Continue Chatting` step. Alerts now use the
@@ -102,7 +104,7 @@
   a malformed TanStack Start payload. A locally generated Seroval payload using
   the client protocol and the exact published article UUID was rejected before
   application serialization with a plain Cloudflare HTTP 403 (`Server:
-  cloudflare`, `Content-Type: text/plain`, body `Forbidden`). This may be an
+cloudflare`, `Content-Type: text/plain`, body `Forbidden`). This may be an
   edge/WAF rule, but it is potentially user-facing because the browser client
   uses that protocol. No real Groq result, browser summary rendering, admin AI,
   Sign in to Chat, Copy Link click, or responsive visual acceptance is claimed
@@ -233,10 +235,10 @@
 
 Task 24 remains TESTING / VERIFICATION because no real SearXNG instance is connected yet.
 
-  Repository-side retrieval contract and deployment-readiness checks are covered by
-  `tests/task24-retrieval-readiness.test.mjs`. The remaining acceptance blocker is
-  operational: a reviewed, reachable SearXNG endpoint must be provisioned and
-  verified before enabling live external retrieval or Task 25 discovery agents.
+Repository-side retrieval contract and deployment-readiness checks are covered by
+`tests/task24-retrieval-readiness.test.mjs`. The remaining acceptance blocker is
+operational: a reviewed, reachable SearXNG endpoint must be provisioned and
+verified before enabling live external retrieval or Task 25 discovery agents.
 
 Task 25 — Share Barabara Agent System remains PENDING. External-discovery agents may begin after the selected retrieval provider is configured and live retrieval is verified.
 

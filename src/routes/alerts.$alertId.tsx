@@ -22,6 +22,7 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { DiscoverySections } from "@/components/site/discovery-sections";
+import { AlertPreviewCard } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-layout";
@@ -29,35 +30,42 @@ import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   loader: async ({ params }) => {
-    const { data } = await supabase.from("alerts").select("*").eq("id", params.alertId).eq("status", "active").maybeSingle();
+    const { data } = await supabase
+      .from("alerts")
+      .select("*")
+      .eq("id", params.alertId)
+      .eq("status", "active")
+      .maybeSingle();
     return data;
   },
-  head: ({ loaderData }) => socialHead({
-    title: loaderData?.title || "Road Hazard Alert",
-    description: loaderData?.description || "Read the full hazard alert and join the community discussion.",
-    pathname: `/alerts/${loaderData?.id ?? ""}`,
-    imageUrl: loaderData?.image_url,
-  }),
+  head: ({ loaderData }) =>
+    socialHead({
+      title: loaderData?.title || "Road Hazard Alert",
+      description:
+        loaderData?.description || "Read the full hazard alert and join the community discussion.",
+      pathname: `/alerts/${loaderData?.id ?? ""}`,
+      imageUrl: loaderData?.image_url,
+    }),
   component: AlertDetail,
 });
 
-type RelatedAlert = { id: string; title: string; severity: string; county: string };
+type RelatedAlert = {
+  id: string;
+  title: string;
+  description: string;
+  county: string;
+  road: string | null;
+  hazard_type: string;
+  severity: string;
+};
 
 function AlertList({ alerts }: { alerts: RelatedAlert[] }) {
   return (
-    <ul className="mt-3 space-y-3">
+    <div className="mt-4 space-y-4">
       {alerts.map((a) => (
-        <li key={a.id}>
-          <Link
-            to="/alerts/$alertId"
-            params={{ alertId: a.id }}
-            className="text-sm text-brand-blue hover:underline"
-          >
-            {a.title}
-          </Link>
-        </li>
+        <AlertPreviewCard key={a.id} alert={a} />
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -101,7 +109,7 @@ function AlertDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("id, title, severity, county")
+        .select("id, title, description, county, road, hazard_type, severity")
         .eq("county", alert!.county)
         .eq("status", "active")
         .neq("id", alert!.id)
@@ -119,7 +127,7 @@ function AlertDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("id, title, severity, county")
+        .select("id, title, description, county, road, hazard_type, severity")
         .neq("id", alert!.id)
         .order("created_at", { ascending: false })
         .limit(5 + related.length);
@@ -164,7 +172,7 @@ function AlertDetail() {
             <ArrowLeft className="size-4" /> All alerts
           </Link>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <TriangleAlert className="size-4 text-caution" />
             <SeverityBadge value={alert.severity} />
             <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
@@ -207,6 +215,23 @@ function AlertDetail() {
           <div className="mt-3">
             <ShareButtons title={alert.title} />
           </div>
+
+          {alert.image_url ? (
+            <figure className="mt-4">
+              <img
+                src={alert.image_url}
+                alt={alert.image_alt || alert.title}
+                className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
+              />
+              {alert.image_caption || alert.image_credit ? (
+                <figcaption className="mt-1.5 text-xs text-muted-foreground">
+                  {alert.image_caption}
+                  {alert.image_caption && alert.image_credit ? " · " : ""}
+                  {alert.image_credit ? <em>Credit: {alert.image_credit}</em> : null}
+                </figcaption>
+              ) : null}
+            </figure>
+          ) : null}
 
           {alert.parties_involved.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
