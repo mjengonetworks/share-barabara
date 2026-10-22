@@ -63,6 +63,16 @@ export function SectionHeader({
   );
 }
 
+/** Shared compact result treatment for cross-category search previews. */
+export function SearchResultCard({ title, meta }: { title: string; meta?: string | null }) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 card-elevated transition-colors hover:border-accent sm:p-5">
+      <p className="line-clamp-2 font-bold leading-snug text-brand-navy">{title}</p>
+      {meta ? <p className="mt-2 text-xs text-muted-foreground">{meta}</p> : null}
+    </div>
+  );
+}
+
 function ArticleImage({ article, lead = false }: { article: PublicArticleCard; lead?: boolean }) {
   return article.image_url ? (
     <img
@@ -493,7 +503,17 @@ function IncidentImage({ item, lead = false }: { item: PublicIncidentCard; lead?
       loading={lead ? "eager" : "lazy"}
       className={cn("w-full rounded-md object-cover", lead ? "aspect-video" : "aspect-[4/3]")}
     />
-  ) : null;
+  ) : (
+    <div
+      className={cn(
+        "flex w-full items-center justify-center rounded-md bg-primary/5 text-primary/45",
+        lead ? "aspect-video" : "aspect-[4/3]",
+      )}
+      aria-label="Incident image unavailable"
+    >
+      <MapPin className={lead ? "size-9" : "size-7"} aria-hidden="true" />
+    </div>
+  );
 }
 
 function IncidentRow({
@@ -513,11 +533,9 @@ function IncidentRow({
       params={params as never}
       className="group flex min-w-0 gap-3 border-b border-border/70 py-3 first:pt-0 last:border-0 last:pb-0"
     >
-      {item.image_url ? (
-        <div className="w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
-          <IncidentImage item={item} />
-        </div>
-      ) : null}
+      <div className="w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
+        <IncidentImage item={item} />
+      </div>
       <div className="min-w-0 py-0.5">
         <div className="flex flex-wrap items-center gap-1.5">
           {item.severity ? <SeverityBadge value={item.severity} /> : null}

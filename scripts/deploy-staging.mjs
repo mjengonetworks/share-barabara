@@ -1,10 +1,12 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 
-const buildResult = spawnSync(process.execPath, ["scripts/build-staging.mjs"], {
-  stdio: "inherit",
-});
-if (buildResult.status !== 0) process.exit(buildResult.status ?? 1);
+if (process.env.SKIP_STAGING_BUILD !== "1") {
+  const buildResult = spawnSync(process.execPath, ["scripts/build-staging.mjs"], {
+    stdio: "inherit",
+  });
+  if (buildResult.status !== 0) process.exit(buildResult.status ?? 1);
+}
 
 const generatedConfig = ".output/server/wrangler.json";
 const config = JSON.parse(await readFile(generatedConfig, "utf8"));

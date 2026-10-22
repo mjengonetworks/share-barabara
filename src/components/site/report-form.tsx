@@ -66,7 +66,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const submit = useMutation({
-    mutationFn: async (requestedStatus: "draft" | "pending" | "approved") => {
+    mutationFn: async (requestedStatus: "pending" | "approved") => {
       if (!user) throw new Error("Sign in required");
       const breakdownError = casualtyBreakdownError(casualtyBreakdown, {
         dead: form.fatalities,
@@ -315,10 +315,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         </label>
       ) : null}
       {canReview ? (
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" disabled={submit.isPending} onClick={() => submit.mutate("draft")}>Save draft</Button>
-          <Button type="submit" disabled={submit.isPending}>{submit.isPending ? "Publishing…" : "Publish report"}</Button>
-        </div>
+        <Button type="submit" disabled={submit.isPending}>{submit.isPending ? "Publishing…" : "Publish report"}</Button>
       ) : (
         <Button type="submit" disabled={submit.isPending}>{submit.isPending ? "Submitting…" : "Submit report for review"}</Button>
       )}

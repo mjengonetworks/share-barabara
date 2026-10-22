@@ -3,9 +3,21 @@ import { useQuery } from "@tanstack/react-query";
 import { Search as SearchIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { longDate } from "@/lib/format";
+import { SearchResultCard } from "@/components/site/public-layout";
+
+type FeedSearchRow = { id: string; body: string; created_at: string };
+type FeedSearchQuery = {
+  select: (columns: string) => FeedSearchQuery;
+  eq: (column: string, value: string) => FeedSearchQuery;
+  ilike: (column: string, value: string) => FeedSearchQuery;
+  limit: (count: number) => Promise<{ data: FeedSearchRow[] | null; error: Error | null }>;
+};
 
 function escapeIlike(value: string) {
-  return value.trim().slice(0, 80).replace(/[\\%_,.()]/g, "\\$&");
+  return value
+    .trim()
+    .slice(0, 80)
+    .replace(/[\\%_,.()]/g, "\\$&");
 }
 
 export const Route = createFileRoute("/search")({
@@ -31,7 +43,9 @@ function SearchPage() {
         .from("news")
         .select("id, slug, title, summary, category, published_at")
         .eq("status", "published")
-        .or(`title.ilike.${pattern},summary.ilike.${pattern},body.ilike.${pattern},category.ilike.${pattern},source.ilike.${pattern}`)
+        .or(
+          `title.ilike.${pattern},summary.ilike.${pattern},body.ilike.${pattern},category.ilike.${pattern},source.ilike.${pattern}`,
+        )
         .limit(20);
       if (error) throw error;
       return data;
@@ -46,7 +60,9 @@ function SearchPage() {
         .from("alerts")
         .select("id, title, county, created_at")
         .eq("status", "active")
-        .or(`title.ilike.${pattern},description.ilike.${pattern},county.ilike.${pattern},road.ilike.${pattern},hazard_type.ilike.${pattern}`)
+        .or(
+          `title.ilike.${pattern},description.ilike.${pattern},county.ilike.${pattern},road.ilike.${pattern},hazard_type.ilike.${pattern}`,
+        )
         .limit(20);
       if (error) throw error;
       return data;
@@ -61,7 +77,9 @@ function SearchPage() {
         .from("accident_reports")
         .select("id, title, county, occurred_at")
         .eq("status", "approved")
-        .or(`title.ilike.${pattern},description.ilike.${pattern},county.ilike.${pattern},road.ilike.${pattern},incident_type.ilike.${pattern}`)
+        .or(
+          `title.ilike.${pattern},description.ilike.${pattern},county.ilike.${pattern},road.ilike.${pattern},incident_type.ilike.${pattern}`,
+        )
         .limit(20);
       if (error) throw error;
       return data;
@@ -72,7 +90,8 @@ function SearchPage() {
     queryKey: ["search-feed", term],
     enabled: term.length >= 2,
     queryFn: async () => {
-      const { data, error } = await (supabase.from("feed_posts") as any)
+      const feedQuery = supabase.from("feed_posts") as unknown as FeedSearchQuery;
+      const { data, error } = await feedQuery
         .select("id,body,created_at")
         .eq("status", "published")
         .eq("moderation_status", "approved")
@@ -88,7 +107,7 @@ function SearchPage() {
   const totalResults = news.length + alerts.length + reports.length + feed.length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto w-full max-w-[1200px] px-4 py-10 sm:px-6">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Search
       </p>
@@ -111,12 +130,8 @@ function SearchPage() {
           <ul className="mt-3 space-y-2">
             {news.map((n) => (
               <li key={n.id}>
-                <Link
-                  to="/news/$slug"
-                  params={{ slug: n.slug }}
-                  className="block rounded border border-border bg-card p-4 hover:border-accent"
-                >
-                  <p className="font-semibold">{n.title}</p>
+                <Link to="/news/$slug" params={{ slug: n.slug }} className="block">
+                  <SearchResultCard title={n.title} meta={n.category} />
                 </Link>
               </li>
             ))}
@@ -130,12 +145,8 @@ function SearchPage() {
           <ul className="mt-3 space-y-2">
             {alerts.map((a) => (
               <li key={a.id}>
-                <Link
-                  to="/alerts"
-                  className="block rounded border border-border bg-card p-4 hover:border-accent"
-                >
-                  <p className="font-semibold">{a.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{a.county}</p>
+                <Link to="/alerts" className="block">
+                  <SearchResultCard title={a.title} meta={a.county} />
                 </Link>
               </li>
             ))}
@@ -149,13 +160,8 @@ function SearchPage() {
           <ul className="mt-3 space-y-2">
             {reports.map((r) => (
               <li key={r.id}>
-                <Link
-                  to="/reports/$reportId"
-                  params={{ reportId: r.id }}
-                  className="block rounded border border-border bg-card p-4 hover:border-accent"
-                >
-                  <p className="font-semibold">{r.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{r.county}</p>
+                <Link to="/reports/$reportId" params={{ reportId: r.id }} className="block">
+                  <SearchResultCard title={r.title} meta={r.county} />
                 </Link>
               </li>
             ))}
@@ -169,9 +175,11 @@ function SearchPage() {
           <ul className="mt-3 space-y-2">
             {feed.map((post: { id: string; body: string; created_at: string }) => (
               <li key={post.id}>
-                <Link to="/feed" className="block rounded border border-border bg-card p-4 hover:border-accent">
+                <Link to="/feed" className="block">
                   <p className="line-clamp-3 whitespace-pre-wrap text-sm">{post.body}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">Community post · {longDate(post.created_at)}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Community post · {longDate(post.created_at)}
+                  </p>
                 </Link>
               </li>
             ))}

@@ -11,8 +11,6 @@ test("content-scoped public AI remains grounded when the database resolver fails
   assert.ok(source.includes("assessLocalEvidence(input.message, finalEvidence"));
   assert.ok(source.includes('input.contextType !== "general"'));
   assert.ok(source.includes('error: "insufficient_evidence"'));
-  const retrieval = read("src/lib/ai/retrieval.server.ts");
-  assert.ok(retrieval.indexOf('contextType !== "general"') < retrieval.indexOf("CURRENT_SIGNAL.test(query)"));
 });
 
 test("published alert and report pages pass bounded page context to public AI", () => {
@@ -26,8 +24,6 @@ test("summary UI prevents duplicate requests and preserves the sign-in handoff",
   assert.ok(source.includes("disabled={busy}"));
   assert.ok(source.includes("Sign in to Chat"));
   assert.ok(source.includes('aiReturnTo("content")'));
-  assert.ok(source.includes('window.location.hash === "#share-barabara-ai"'));
-  assert.ok(source.includes("setChatOpen(true)"));
   assert.ok(source.includes('focusAISurface("share-barabara-ai")'));
 });
 

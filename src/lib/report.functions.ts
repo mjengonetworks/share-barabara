@@ -6,7 +6,7 @@ import type { CasualtyBreakdown } from "@/components/site/party-casualty-inputs"
 import { suggestIncidentDuplicates } from "@/lib/incident-duplicates";
 
 type ReportSubmission = {
-  requestedStatus?: "draft" | "pending" | "approved";
+  requestedStatus?: "pending" | "approved";
   title: string;
   description: string;
   county: string;
@@ -64,8 +64,9 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
         ...submission,
         user_id: context.userId,
         // Public callers cannot self-approve, even if they tamper with the
-        // client payload. Staff may explicitly save a draft or publish.
-        status: canPublish && ["draft", "approved"].includes(requestedStatus)
+        // client payload. Staff may publish directly; draft support remains
+        // blocked until the separately approved schema change is applied.
+        status: canPublish && requestedStatus === "approved"
           ? requestedStatus
           : "pending",
       };

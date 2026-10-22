@@ -9,18 +9,18 @@ import { ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { UserLink } from "@/components/site/user-link";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
-import { socialHead } from "@/lib/seo";
+import { EditorialSidebar } from "@/components/site/editorial-sidebar";
+import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
-  loader: async ({ params }) => {
-    const { data } = await supabase.from("infrastructure_issues").select("*").eq("id", params.issueId).eq("status", "approved").maybeSingle();
-    return data;
-  },
-  head: ({ loaderData }) => socialHead({
-    title: loaderData?.title || "Infrastructure Issue",
-    description: loaderData?.summary || "Read the full infrastructure issue report and see related issues nearby.",
-    pathname: `/infrastructure-issues/${loaderData?.id ?? ""}`,
-    imageUrl: loaderData?.image_url,
+  head: () => ({
+    meta: [
+      { title: "Infrastructure Issue: Share Barabara" },
+      {
+        name: "description",
+        content: "Read the full infrastructure issue report and see related issues nearby.",
+      },
+    ],
   }),
   component: IssueDetail,
 });
@@ -48,7 +48,6 @@ function IssueList({ issues }: { issues: RelatedIssue[] }) {
 
 function IssueDetail() {
   const { issueId } = Route.useParams();
-  const loaderData = Route.useLoaderData();
 
   const { data: issue, isLoading } = useQuery({
     queryKey: ["infrastructure-issue", issueId],
@@ -61,7 +60,6 @@ function IssueDetail() {
       if (error) throw error;
       return data;
     },
-    initialData: loaderData,
   });
 
   const { data: names = {} } = useProfileNames(issue ? [issue.user_id] : []);
@@ -133,9 +131,16 @@ function IssueDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
-        <article className="min-w-0">
+    <>
+      <PublicBreadcrumbStrip
+        items={[
+          { label: "Home", to: "/" },
+          { label: "Infrastructure Issues", to: "/infrastructure-issues" },
+          { label: issue.title },
+        ]}
+      />
+      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-4 card-elevated sm:rounded-2xl sm:p-6">
           <Link
             to="/infrastructure-issues"
             className="inline-flex items-center gap-1 text-sm text-muted-foreground"
@@ -202,7 +207,7 @@ function IssueDetail() {
           </div>
         </article>
 
-        <aside className="space-y-8">
+        <EditorialSidebar adPlacement="infrastructure-sidebar">
           {byCounty.length > 0 ? (
             <div className="rounded-lg border border-border bg-card p-5 card-elevated">
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
@@ -240,8 +245,8 @@ function IssueDetail() {
           >
             Browse all issues
           </Link>
-        </aside>
+        </EditorialSidebar>
       </div>
-    </div>
+    </>
   );
 }

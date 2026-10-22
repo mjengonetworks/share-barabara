@@ -27,17 +27,16 @@ test("admin Accident Report add and edit flows expose Generate and Auto-Populate
 
 test("report publishing is role-authoritative and public submissions remain pending", () => {
   const source = read("src/lib/report.functions.ts");
-  assert.ok(source.includes('status: canPublish && ["draft", "approved"].includes(requestedStatus)'));
+  assert.ok(source.includes('status: canPublish && requestedStatus === "approved"'));
   assert.ok(source.includes(': "pending"'));
   assert.ok(read("src/components/site/report-form.tsx").includes("Publish report"));
   assert.ok(read("src/components/site/report-form.tsx").includes("Submit report for review"));
+  assert.equal(read("src/components/site/report-form.tsx").includes("Save draft"), false);
 });
 
-test("report draft support is explicitly documented as a review-only schema change", () => {
-  const migration = read("supabase/migrations/20261021130000_accident_report_admin_drafts_review.sql");
-  assert.ok(migration.includes("REVIEW ONLY"));
-  assert.ok(migration.includes("'draft', 'pending', 'approved', 'rejected'"));
-  assert.ok(migration.includes("public.has_min_role(auth.uid(), 'moderator')"));
+test("report draft publishing remains blocked without the approved schema change", () => {
+  assert.equal(read("src/lib/report.functions.ts").includes('"draft"'), false);
+  assert.equal(read("src/components/site/report-form.tsx").includes('mutate("draft")'), false);
 });
 
 test("editorial AI application is non-destructive for blank model fields", () => {

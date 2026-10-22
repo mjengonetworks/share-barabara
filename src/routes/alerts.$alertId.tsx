@@ -23,24 +23,18 @@ import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachm
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
-import { NewsletterForm } from "@/components/site/newsletter-form";
-import {
-  PublicBreadcrumbStrip,
-  PublicSidebar,
-  SidebarModule,
-} from "@/components/site/public-layout";
-import { socialHead } from "@/lib/seo";
+import { EditorialSidebar } from "@/components/site/editorial-sidebar";
+import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-layout";
 
 export const Route = createFileRoute("/alerts/$alertId")({
-  loader: async ({ params }) => {
-    const { data } = await supabase.from("alerts").select("*").eq("id", params.alertId).eq("status", "active").maybeSingle();
-    return data;
-  },
-  head: ({ loaderData }) => socialHead({
-    title: loaderData?.title || "Road Hazard Alert",
-    description: loaderData?.description || "Read the full hazard alert and join the community discussion.",
-    pathname: `/alerts/${loaderData?.id ?? ""}`,
-    imageUrl: loaderData?.image_url,
+  head: () => ({
+    meta: [
+      { title: "Road Hazard Alert: Share Barabara" },
+      {
+        name: "description",
+        content: "Read the full hazard alert and join the community discussion.",
+      },
+    ],
   }),
   component: AlertDetail,
 });
@@ -67,7 +61,6 @@ function AlertList({ alerts }: { alerts: RelatedAlert[] }) {
 
 function AlertDetail() {
   const { alertId } = Route.useParams();
-  const loaderData = Route.useLoaderData();
   const { data: hazardTypes = [] } = useHazardTypes();
 
   const { data: alert, isLoading } = useQuery({
@@ -82,7 +75,6 @@ function AlertDetail() {
       if (error) throw error;
       return data;
     },
-    initialData: loaderData,
   });
 
   const recordedFor = useRef<string | null>(null);
@@ -260,14 +252,7 @@ function AlertDetail() {
           <CommentSection entityType="alert" entityId={alert.id} />
         </article>
 
-        <PublicSidebar>
-          <SidebarModule className="border-brand-blue/50 bg-gradient-to-br from-brand-navy via-brand-blue to-primary text-primary-foreground">
-            <h2 className="text-center text-lg font-bold text-white">Stay informed</h2>
-            <p className="mt-2 text-center text-sm text-white/75">
-              Get relevant road safety updates in your inbox.
-            </p>
-            <NewsletterForm className="mt-4" variant="sidebar" />
-          </SidebarModule>
+        <EditorialSidebar adPlacement="alert-sidebar">
           {related.length > 0 ? (
             <div className="rounded-lg border border-border bg-card p-5 card-elevated">
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
@@ -296,9 +281,13 @@ function AlertDetail() {
               </Link>
             </div>
           ) : null}
-        </PublicSidebar>
+        </EditorialSidebar>
       </div>
-      <DiscoverySections focus="alert" currentId={alert.id} />
+      <DiscoverySections
+        focus="alert"
+        currentId={alert.id}
+        context={{ county: alert.county, road: alert.road, topic: alert.hazard_type }}
+      />
     </>
   );
 }
