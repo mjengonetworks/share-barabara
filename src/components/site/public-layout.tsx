@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { longDateWithDay } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { displayReportCount } from "@/lib/report-metrics";
+import { groupLatestByEntity } from "@/lib/category-entity";
 
 export type PublicArticleCard = {
   id: string;
@@ -312,6 +313,54 @@ export function CompactEditorialColumn({
   );
 }
 
+/** One CMS category/entity card: its lead and two supporting items share one entity. */
+export function CategoryEntityCard({
+  entity,
+  articles,
+  viewMoreHref,
+  placement,
+}: {
+  entity: string;
+  articles: PublicArticleCard[];
+  viewMoreHref: string;
+  placement?: string;
+}) {
+  const [lead, ...supporting] = articles.slice(0, 3);
+  if (!lead) return null;
+
+  return (
+    <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
+        <h3 className="min-w-0 text-base font-extrabold text-brand-navy">{entity}</h3>
+        {placement ? <span className="sr-only">{placement}</span> : null}
+      </div>
+      <a
+        href={`/news/${encodeURIComponent(lead.slug)}`}
+        className="group mt-4 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <ArticleImage article={lead} lead />
+        <ArticleMeta article={lead} compact />
+        <h4 className="mt-2 text-base font-bold leading-snug text-brand-navy group-hover:underline">
+          {lead.title}
+        </h4>
+      </a>
+      {supporting.length ? (
+        <div className="mt-3 border-t border-border/70">
+          {supporting.slice(0, 2).map((article) => (
+            <CompactArticleRow key={article.id} article={article} />
+          ))}
+        </div>
+      ) : null}
+      <a
+        href={viewMoreHref}
+        className="mt-auto inline-flex items-center pt-4 text-xs font-bold text-brand-blue underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        View more <ArrowRight className="ml-1 size-3.5" aria-hidden="true" />
+      </a>
+    </section>
+  );
+}
+
 export function CompactEditorialColumns({
   articles,
   titles,
@@ -586,6 +635,59 @@ function IncidentRow({
       </div>
     </Link>
   );
+}
+
+/** One incident entity card: the newest three records share one real classification. */
+export function IncidentEntityGrid({
+  items,
+  kind,
+  entity,
+  renderActions,
+}: {
+  items: PublicIncidentCard[];
+  kind: "alert" | "report";
+  entity: string;
+  renderActions?: (item: PublicIncidentCard) => ReactNode;
+}) {
+  const [lead, ...supporting] = items.slice(0, 3);
+  if (!lead) return null;
+  const itemTo = kind === "alert" ? "/alerts/$alertId" : "/reports/$reportId";
+  const itemParams = kind === "alert" ? { alertId: lead.id } : { reportId: lead.id };
+  return (
+    <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 shadow-sm">
+      <h3 className="min-w-0 border-b border-border pb-3 text-base font-extrabold text-brand-navy">{entity}</h3>
+      <Link to={itemTo as never} params={itemParams as never} className="group mt-4 block min-w-0">
+        <IncidentImage item={lead} lead />
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {lead.severity ? <SeverityBadge value={lead.severity} /> : null}
+          <span className="text-[11px] text-muted-foreground">
+            {kind === "alert" ? longDateWithDay(lead.occurred_at ?? lead.created_at ?? "") : [lead.county, lead.road].filter(Boolean).join(" · ")}
+          </span>
+        </div>
+        <h4 className="mt-2 text-base font-bold leading-snug text-foreground group-hover:underline">{lead.title}</h4>
+        <p className="mt-1 text-xs text-muted-foreground">{[lead.county, lead.road, lead.status].filter(Boolean).join(" · ") || "Location not provided"}</p>
+        {kind === "report" ? <p className="mt-2 text-xs text-muted-foreground"><strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles · <strong>{displayReportCount(lead.casualties)}</strong> injured · <strong>{displayReportCount(lead.fatalities)}</strong> deaths</p> : null}
+        {renderActions ? <div className="mt-3">{renderActions(lead)}</div> : null}
+      </Link>
+      {supporting.length ? <div className="mt-3 border-t border-border/70">{supporting.slice(0, 2).map((item) => <IncidentRow key={item.id} item={item} kind={kind} actions={renderActions} />)}</div> : null}
+    </section>
+  );
+}
+
+export function IncidentEntityGroups({
+  items,
+  kind,
+  getEntity,
+  renderActions,
+}: {
+  items: PublicIncidentCard[];
+  kind: "alert" | "report";
+  getEntity: (item: PublicIncidentCard) => string | null | undefined;
+  renderActions?: (item: PublicIncidentCard) => ReactNode;
+}) {
+  const groups = groupLatestByEntity(items, getEntity, (item) => item.occurred_at ?? item.created_at);
+  if (!groups.length) return null;
+  return <div className="grid min-w-0 gap-5 md:grid-cols-2 lg:grid-cols-3">{groups.map((group) => <IncidentEntityGrid key={group.entity} items={group.items} kind={kind} entity={group.entity} renderActions={renderActions} />)}</div>;
 }
 
 export function CompactIncidentColumns({

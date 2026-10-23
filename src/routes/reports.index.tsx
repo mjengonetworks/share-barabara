@@ -34,6 +34,7 @@ import { descendantsOf, incidentLabel } from "@/lib/incident-taxonomy";
 import { isAdInterval } from "@/lib/ad-placement";
 import {
   CompactIncidentColumns,
+  IncidentEntityGroups,
   EditorialBand,
   SectionHeader,
   type PublicIncidentCard,
@@ -217,11 +218,10 @@ function ReportsPage() {
                   actionLabel="View all"
                 />
                 <div className="mt-5">
-                  <CompactIncidentColumns
+                  <IncidentEntityGroups
                     items={latest as PublicIncidentCard[]}
                     kind="report"
-                    titles={["Latest reports", "On the road", "Community watch"]}
-                    placement="reports-latest"
+                    getEntity={(item) => item.incident_type ?? "Other reports"}
                     renderActions={reportActions}
                   />
                 </div>
@@ -330,11 +330,10 @@ function ReportsPage() {
             ) : null}
 
             <div className="mt-6">
-              <CompactIncidentColumns
+              <IncidentEntityGroups
                 items={visible as PublicIncidentCard[]}
                 kind="report"
-                titles={["Filtered reports", "County watch", "Road watch"]}
-                placement="reports-filtered"
+                getEntity={(item) => item.incident_type ?? "Other reports"}
                 renderActions={reportActions}
               />
             </div>

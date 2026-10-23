@@ -35,6 +35,7 @@ import { PublicPageHero } from "@/components/site/public-page-hero";
 import heroRoad from "@/assets/hero-road.jpg";
 import {
   CompactIncidentColumns,
+  IncidentEntityGroups,
   EditorialBand,
   SectionHeader,
   type PublicIncidentCard,
@@ -223,11 +224,10 @@ function AlertsPage() {
                   actionLabel="View all"
                 />
                 <div className="mt-5">
-                  <CompactIncidentColumns
+                  <IncidentEntityGroups
                     items={latest as PublicIncidentCard[]}
                     kind="alert"
-                    titles={["Latest reports", "On the road", "Community watch"]}
-                    placement="alerts-latest"
+                    getEntity={(item) => item.hazard_type ?? "Other alerts"}
                     renderActions={alertActions}
                   />
                 </div>
@@ -311,11 +311,10 @@ function AlertsPage() {
             ) : null}
 
             <div className="mt-6">
-              <CompactIncidentColumns
+              <IncidentEntityGroups
                 items={visible as PublicIncidentCard[]}
                 kind="alert"
-                titles={["Filtered alerts", "County watch", "Road watch"]}
-                placement="alerts-filtered"
+                getEntity={(item) => item.hazard_type ?? "Other alerts"}
                 renderActions={alertActions}
               />
             </div>

@@ -33,29 +33,22 @@ test("Task 70 shared public layout exposes the planned editorial primitives", ()
 });
 
 test("news listing keeps the editorial lead, compact cards, sections and ad placements", () => {
-  assert.match(news, /CompactEditorialColumns/);
+  // The main listing is category/entity-first; lead/latest/trending section
+  // labels belong to the category-detail experience, not this grid.
+  assert.match(news, /CategoryEntityCard/);
+  assert.match(news, /groupLatestByEntity/);
   assert.match(news, /CompactArticleCard/);
-  assert.match(news, /EditorialBand tone="pale"/);
-  assert.match(news, /news-latest/);
-  assert.match(news, /news-trending/);
-  assert.match(news, /title="Featured Articles"/);
-  assert.match(news, /Articles by Category/);
-  assert.match(news, /Road Safety Analysis/);
+  assert.match(news, /title="Browse by Category"/);
   assert.match(news, /Related Accident Reports/);
   assert.match(news, /Relevant Alerts/);
-  assert.match(news, /More Articles/);
   assert.match(news, /news-context-midpoint/);
-  assert.match(news, /function MostViewed/);
-  assert.match(news, /Verified view activity/);
   assert.match(news, /function LatestStrip/);
   assert.match(news, /Latest update/);
   assert.match(news, /fullBleed/);
   assert.match(news, /Filter articles by category/);
   assert.match(news, /from\("accident_reports"\)/);
   assert.match(news, /from\("alerts"\)/);
-  assert.ok(news.indexOf('title="Latest News"') < news.indexOf('title="Featured Articles"'));
-  assert.ok(news.indexOf('title="Featured Articles"') < news.indexOf('title="Trending Articles"'));
-  assert.match(news, /hours_back: 168/);
+  assert.doesNotMatch(news, /Lead story|Latest in this topic|More from this topic/);
 });
 
 test("article detail keeps SEO, sharing, discussion, newsletter, midpoint ad and contextual recommendations", () => {
@@ -91,16 +84,12 @@ test("public news data is loader-backed and published-only before hydration", ()
 });
 
 test("optional editorial sections collapse without synthetic content", () => {
-  assert.match(news, /optional = false/);
-  assert.match(news, /if \(optional && !articles\.length\) return null/);
-  assert.match(news, /optional\s*\/>/);
+  assert.match(news, /groupLatestByEntity/);
+  assert.match(news, /if \(!modules\.length\) return <EmptyState/);
   assert.doesNotMatch(news, /No featured published articles are available yet/);
-  assert.match(news, /all\.filter\(\(article\) => article\.featured\)/);
-  assert.match(news, /analysis = all\.filter/);
   assert.match(news, /relatedReports\.length \? \(/);
   assert.match(news, /relatedAlerts\.length/);
-  assert.match(news, /key=\{categoryName\}/);
-  assert.match(news, /search=\{\{ category: categoryName \}\}/);
+  assert.match(news, /encodeURIComponent\(entity\)/);
 });
 
 test("article detail preserves stored images and has a neutral fallback for image-less published records", () => {
@@ -112,9 +101,7 @@ test("article detail preserves stored images and has a neutral fallback for imag
 test("batch one visual correction keeps listing and detail density compact", () => {
   assert.match(layout, /CompactEditorialColumn/);
   assert.match(layout, /w-\[38%\]/);
-  assert.match(news, /Lead stories/);
-  assert.match(news, /On the road/);
-  assert.match(news, /Community watch/);
+  assert.match(news, /CategoryEntityCard/);
   assert.match(detail, /text-\[28px\].*sm:text-\[34px\]/);
   assert.match(detail, /max-w-\[1500px\].*lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/s);
   assert.match(detail, /ArticleSidebar/);
@@ -123,16 +110,13 @@ test("batch one visual correction keeps listing and detail density compact", () 
 });
 
 test("editorial modules provide balanced unique lead-and-supporting card columns", () => {
-  assert.match(layout, /\.slice\(0, 12\)/);
-  // The current browsing contract is three total records per group: one lead
-  // and two supporting records, with variants alternating by column.
+  assert.match(layout, /articles\.slice\(0, 3\)/);
+  // The category contract is one entity card with one lead and two rows.
   assert.match(layout, /supporting\.slice\(0, 2\)/);
-  assert.match(layout, /candidate\.id === article\.id \|\| candidate\.slug === article\.slug/);
-  assert.match(layout, /columns\[index % columnCount\]\.push\(article\)/);
-  assert.match(news, /articles\.slice\(0, 12\)/);
+  assert.match(news, /articles=\{items\}/);
+  assert.match(news, /groupLatestByEntity/);
   assert.match(news, /latest: all\.slice\(0, 12\)/);
   assert.match(news, /name: "latest",\s*limit: 12/);
-  assert.match(news, /result_limit: 12/);
 });
 
 test("alerts and reports listings use shared multi-column incident editorial sections", () => {

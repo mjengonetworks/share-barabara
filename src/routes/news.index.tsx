@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
@@ -13,13 +11,14 @@ import heroRoad from "@/assets/hero-road.jpg";
 import { AdInterleave } from "@/components/site/ad-interleave";
 import {
   CompactArticleCard,
-  CompactEditorialColumns,
+  CategoryEntityCard,
   EditorialBand,
   SectionHeader,
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
+import { groupLatestByEntity } from "@/lib/category-entity";
 import {
   Dialog,
   DialogContent,
@@ -110,36 +109,6 @@ type ArticleCard = {
   image_url?: string | null;
   categories?: string[] | null;
 };
-
-function MostViewed({ articles }: { articles: ArticleCard[] }) {
-  if (!articles.length) return null;
-  return (
-    <EditorialBand tone="plain">
-      <SectionHeader
-        eyebrow="Verified view activity · 7 days"
-        title="Most Viewed This Week"
-        to="/news"
-        actionLabel="Browse all"
-      />
-      <ol className="mt-5 grid gap-x-8 gap-y-4 md:grid-cols-2 lg:grid-cols-3">
-        {articles.slice(0, 6).map((article, index) => (
-          <li key={article.id} className="flex gap-3 border-b border-border/70 pb-4">
-            <span className="font-display text-3xl font-extrabold leading-none text-accent">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <Link
-              to="/news/$slug"
-              params={{ slug: article.slug }}
-              className="font-bold leading-snug text-brand-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {article.title}
-            </Link>
-          </li>
-        ))}
-      </ol>
-    </EditorialBand>
-  );
-}
 
 function LatestStrip({ articles }: { articles: ArticleCard[] }) {
   if (!articles.length) return null;
@@ -271,83 +240,21 @@ function ArticleGridWithAds({
   );
 }
 
-function CategoryEditorialModules({ articles }: { articles: ArticleCard[] }) {
-  const groups = new Map<string, ArticleCard[]>();
-  for (const article of articles) {
-    const category = article.category?.trim();
-    if (!category) continue;
-    const group = groups.get(category) ?? [];
-    if (!group.some((item) => item.id === article.id)) group.push(article);
-    groups.set(category, group);
-  }
-  const modules = Array.from(groups.entries()).filter(([, items]) => items.length > 0);
+function CategoryEntityGrid({ articles }: { articles: ArticleCard[] }) {
+  const modules = groupLatestByEntity(articles);
   if (!modules.length) return <EmptyState label="No published articles have categories yet." />;
   return (
-    <div className="space-y-0">
-      {modules.map(([category, items], index) => (
-        <div key={category}>
-          {index > 0 && index % 4 === 0 ? (
-            <div className="py-6">
-              <BannerAd placement={`news-more-category-interval-${index / 4}`} />
-            </div>
-          ) : null}
-          <div className="border-b border-border/70 py-7 first:pt-0 last:border-b-0">
-            <SectionHeader
-              eyebrow="Published category"
-              title={category}
-              to="/news"
-              actionLabel="View more"
-            />
-            <div className="mt-5">
-              <CompactEditorialColumns
-                articles={items.slice(0, 9)}
-                placement={`news-category-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
-                titles={["Lead story", "Latest in this topic", "More from this topic"]}
-              />
-            </div>
-          </div>
-        </div>
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {modules.map(({ entity, items }) => (
+        <CategoryEntityCard
+          key={entity}
+          entity={entity}
+          articles={items}
+          viewMoreHref={`/news?category=${encodeURIComponent(entity)}`}
+          placement={`news-category-${entity.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+        />
       ))}
     </div>
-  );
-}
-
-function TopicSection({
-  title,
-  eyebrow,
-  articles,
-  tone = "plain",
-  placement,
-  optional = false,
-}: {
-  title: string;
-  eyebrow?: string;
-  articles: ArticleCard[];
-  tone?: "plain" | "pale";
-  placement: string;
-  optional?: boolean;
-}) {
-  if (optional && !articles.length) return null;
-
-  return (
-    <EditorialBand tone={tone}>
-      <SectionHeader eyebrow={eyebrow} title={title} to="/news" actionLabel="Read more" />
-      {articles.length ? (
-        <div className="mt-6">
-          <CompactEditorialColumns
-            articles={articles.slice(0, 12)}
-            placement={placement}
-            titles={
-              title === "Trending Articles"
-                ? ["Most opened", "Trending now", "More trending"]
-                : ["Lead stories", "On the road", "Community watch"]
-            }
-          />
-        </div>
-      ) : (
-        <EmptyState label="No published articles are available in this section yet." />
-      )}
-    </EditorialBand>
   );
 }
 
@@ -356,8 +263,6 @@ function NewsIndex() {
   const canWrite = useCanWriteArticles();
   const { category } = Route.useSearch();
   const loaderData = Route.useLoaderData();
-  const [featuredLimit, setFeaturedLimit] = useState(12);
-  const [trendingLimit, setTrendingLimit] = useState(12);
   const { data: filtered = [], isLoading: filteredLoading } = usePublishedQuery({
     name: "category",
     category,
@@ -377,51 +282,6 @@ function NewsIndex() {
     name: "all",
     limit: 50,
     initialData: loaderData.all,
-  });
-  const { data: featured = [] } = useQuery({
-    queryKey: ["news-task70-featured", featuredLimit],
-    initialData: loaderData.featured.slice(0, featuredLimit),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("news")
-        .select(articleSelect)
-        .eq("status", "published")
-        .eq("featured", true)
-        .order("published_at", { ascending: false })
-        .limit(featuredLimit);
-      if (error) throw error;
-      return data as ArticleCard[];
-    },
-    enabled: !category,
-  });
-  const { data: analysis = [] } = useQuery({
-    queryKey: ["news-task70-analysis"],
-    initialData: loaderData.analysis,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("news")
-        .select(articleSelect)
-        .eq("status", "published")
-        .or("category.ilike.%analysis%,category.ilike.%safety%")
-        .order("published_at", { ascending: false })
-        .limit(6);
-      if (error) throw error;
-      return data as ArticleCard[];
-    },
-    enabled: !category,
-  });
-  const { data: trending = [] } = useQuery({
-    queryKey: ["news-task70-trending", trendingLimit],
-    initialData: loaderData.trending.slice(0, trendingLimit),
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("trending_news", {
-        hours_back: 168,
-        result_limit: trendingLimit,
-      });
-      if (error) throw error;
-      return (data ?? []) as ArticleCard[];
-    },
-    enabled: !category,
   });
   const { data: relatedAlerts = [] } = useQuery({
     queryKey: ["news-task70-alerts"],
@@ -498,73 +358,17 @@ function NewsIndex() {
           </EditorialBand>
         ) : (
           <div className="mt-8 space-y-0">
-            <TopicSection
-              title="Latest News"
-              eyebrow="The newsroom"
-              articles={latest}
-              placement="news-latest"
-            />
-            {featured.length ? (
-              <EditorialBand tone="pale">
-                <SectionHeader
-                  eyebrow="Editors' selection"
-                  title="Featured Articles"
-                  icon={<Sparkles className="size-5 text-caution" aria-hidden="true" />}
-                  to="/news"
-                  actionLabel="Read more"
-                />
-                <div className="mt-6">
-                  <CompactEditorialColumns
-                    articles={featured}
-                    placement="news-featured"
-                    titles={["Featured lead", "Prime selection", "Editor picks"]}
-                  />
-                </div>
-                {featured.length === featuredLimit ? (
-                  <LoadMore onClick={() => setFeaturedLimit((value) => value + 6)} />
-                ) : null}
-              </EditorialBand>
-            ) : null}
-            <TopicSection
-              title="Trending Articles"
-              eyebrow="What readers are opening"
-              articles={trending}
-              tone="pale"
-              placement="news-trending"
-              optional
-            />
-            {trending.length === trendingLimit ? (
-              <LoadMore onClick={() => setTrendingLimit((value) => value + 6)} />
-            ) : null}
-            <MostViewed articles={trending} />
             <EditorialBand tone="plain">
               <SectionHeader
                 eyebrow="Browse the newsroom"
-                title="Articles by Category"
+                title="Browse by Category"
                 description="Explore published reporting by the topics that shape safer journeys."
               />
-              <div className="mt-5 flex flex-wrap gap-2">
-                {loaderData.categories.map((categoryName) => (
-                  <Link
-                    key={categoryName}
-                    to="/news"
-                    search={{ category: categoryName }}
-                    aria-current={category === categoryName ? "page" : undefined}
-                    className="rounded-full border border-[#CFE2FA] bg-[#EAF3FF] px-4 py-2 text-sm font-semibold text-[#174A87] transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {categoryName}
-                  </Link>
-                ))}
+              <div className="mt-6">
+                {allLoading ? <p className="text-muted-foreground">Loading published categories…</p> : null}
+                {!allLoading ? <CategoryEntityGrid articles={all} /> : null}
               </div>
             </EditorialBand>
-            <TopicSection
-              title="Road Safety Analysis"
-              eyebrow="Evidence and context"
-              articles={analysis}
-              tone="pale"
-              placement="news-analysis"
-              optional
-            />
             {relatedReports.length ? (
               <EditorialBand tone="plain">
                 <SectionHeader
@@ -600,22 +404,6 @@ function NewsIndex() {
                 </div>
               </EditorialBand>
             ) : null}
-            <EditorialBand tone="plain" className="scroll-mt-24">
-              <div id="all-articles">
-                <SectionHeader
-                  eyebrow="Keep reading"
-                  title="More Articles"
-                  to="/news"
-                  actionLabel="Browse all"
-                />
-                {allLoading ? (
-                  <p className="mt-6 text-muted-foreground">Loading published stories…</p>
-                ) : null}
-                <div className="mt-6">
-                  {allLoading ? null : <CategoryEditorialModules articles={all} />}
-                </div>
-              </div>
-            </EditorialBand>
           </div>
         )}
         <EditorialDiscoveryRail exclude="news" />
@@ -630,19 +418,6 @@ function EmptyState({ label }: { label: string }) {
     <p className="mt-6 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
       {label}
     </p>
-  );
-}
-function LoadMore({ onClick }: { onClick: () => void }) {
-  return (
-    <div className="bg-background py-3 text-center">
-      <button
-        type="button"
-        onClick={onClick}
-        className="text-sm font-bold text-brand-blue underline"
-      >
-        Read more
-      </button>
-    </div>
   );
 }
 function WriteButton({ signedIn, canWrite }: { signedIn: boolean; canWrite: boolean }) {

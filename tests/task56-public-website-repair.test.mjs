@@ -90,8 +90,9 @@ test("Google preferred-source control is compact rather than circular", () => {
 });
 
 test("public article surfaces have a lead story, newsletter capture, and honest subscription states", () => {
-  assert.match(newsIndex, /CompactEditorialColumns/);
-  assert.match(newsIndex, /title="Featured Articles"/);
+  // The main listing now renders one shared card per CMS category/entity.
+  assert.match(newsIndex, /CategoryEntityCard/);
+  assert.doesNotMatch(newsIndex, /title="Featured Articles"/);
   assert.match(article, /ArticleSidebar/);
   assert.match(publicUi, /PublicNewsletterCard/);
   assert.match(newsletter, /already subscribed/);
