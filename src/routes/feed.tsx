@@ -664,7 +664,7 @@ function FeedPage() {
       </div>
       <div className="mt-12 space-y-10">
         <SocialFollowSection />
-        <EditorialDiscoveryRail exclude="feed" start={4} />
+        <EditorialDiscoveryRail exclude="feed" />
         <MjengoPreviews context="feed" />
       </div>
       <Dialog

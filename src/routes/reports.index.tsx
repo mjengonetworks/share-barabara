@@ -155,6 +155,26 @@ function ReportsPage() {
     </div>
   );
 
+  const reportSubmissionCard = (
+    <section id="report-form" className="scroll-mt-24 rounded-lg border border-border bg-card p-4 card-elevated sm:p-5">
+      <h2 className="text-lg font-bold">File a report</h2>
+      {user ? (
+        <div className="mt-4">
+          <ReportForm />
+        </div>
+      ) : (
+        <>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Sign in to file an accident report. Call 999 or 112 first if anyone is injured.
+          </p>
+          <Button asChild className="mt-4 w-full">
+            <Link to="/auth">Sign in to report</Link>
+          </Button>
+        </>
+      )}
+    </section>
+  );
+
   return (
     <div className="w-full py-8 sm:py-10">
       <PublicPageHero
@@ -165,8 +185,7 @@ function ReportsPage() {
       />
 
       <div className="mx-auto mt-8 max-w-[1500px] px-4 sm:px-6">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)]">
-          <div className="min-w-0">
+        <div className="min-w-0">
             {featured.length > 0 ? (
               <EditorialBand tone="pale">
                 <SectionHeader
@@ -187,6 +206,8 @@ function ReportsPage() {
               </EditorialBand>
             ) : null}
 
+            {featured.length > 0 ? <div className="mt-5 grid gap-5 lg:grid-cols-3">{reportSubmissionCard}</div> : null}
+
             {latest.length > 0 ? (
               <EditorialBand tone="plain">
                 <SectionHeader
@@ -206,6 +227,9 @@ function ReportsPage() {
                 </div>
               </EditorialBand>
             ) : null}
+
+            {!featured.length && latest.length > 0 ? <div className="mt-5 grid gap-5 lg:grid-cols-3">{reportSubmissionCard}</div> : null}
+            {!featured.length && !latest.length && !isLoading ? <div className="mt-5 grid gap-5 lg:grid-cols-3">{reportSubmissionCard}</div> : null}
             <div className="mt-6">
               <BannerAd placement="reports-list-interval-1" />
             </div>
@@ -314,31 +338,9 @@ function ReportsPage() {
                 renderActions={reportActions}
               />
             </div>
-          </div>
-
-          <aside
-            id="report-form"
-            className="h-fit scroll-mt-24 rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24"
-          >
-            <h2 className="text-lg font-bold">File a report</h2>
-            {user ? (
-              <div className="mt-4">
-                <ReportForm />
-              </div>
-            ) : (
-              <>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Sign in to file an accident report. Call 999 or 112 first if anyone is injured.
-                </p>
-                <Button asChild className="mt-4 w-full">
-                  <Link to="/auth">Sign in to report</Link>
-                </Button>
-              </>
-            )}
-          </aside>
         </div>
       </div>
-      <EditorialDiscoveryRail exclude="reports" start={2} />
+      <EditorialDiscoveryRail exclude="reports" />
       <MjengoPreviews context="reports" />
     </div>
   );

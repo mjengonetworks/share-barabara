@@ -618,7 +618,7 @@ function NewsIndex() {
             </EditorialBand>
           </div>
         )}
-        <EditorialDiscoveryRail exclude="news" start={0} />
+        <EditorialDiscoveryRail exclude="news" />
         <MjengoPreviews context="articles" />
       </div>
     </div>

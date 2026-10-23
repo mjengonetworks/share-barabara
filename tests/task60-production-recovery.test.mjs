@@ -6,9 +6,10 @@ const read = (p) => fs.readFileSync(p, "utf8");
 
 test("primary navigation consolidates Videos under Media & Feed without removing its route", () => {
   const header = read("src/components/site/site-header.tsx");
+  const navigation = read("src/lib/public-navigation.ts");
   const videos = read("src/routes/videos.tsx");
-  assert.match(header, /to: "\/feed", label: "Media & Feed"/);
-  assert.doesNotMatch(header, /to: "\/videos", label: "Videos"/);
+  assert.match(navigation, /to: "\/feed", label: "Media & Feed"/);
+  assert.doesNotMatch(navigation, /to: "\/videos", label: "Videos"/);
   assert.match(videos, /createFileRoute\("\/videos"\)/);
 });
 

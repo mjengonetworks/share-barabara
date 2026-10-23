@@ -219,7 +219,7 @@ function InfrastructureIssuesPage() {
             </div>
           </EditorialBand>
         ) : null}
-        <EditorialDiscoveryRail exclude="infrastructure" start={6} />
+        <EditorialDiscoveryRail exclude="infrastructure" />
       </div>
     </div>
   );

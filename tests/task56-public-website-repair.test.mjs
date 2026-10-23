@@ -4,6 +4,7 @@ import fs from "node:fs";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 const header = read("src/components/site/site-header.tsx");
+const navigation = read("src/lib/public-navigation.ts");
 const richtext = read("src/lib/richtext.tsx");
 const feed = read("src/routes/feed.tsx");
 const mjengo = read("src/lib/mjengo.functions.ts");
@@ -37,12 +38,12 @@ const discoveryMigration = read(
 );
 
 test("primary navigation keeps /feed compatibility with the requested Media & Feed order", () => {
-  assert.match(header, /to: "\/news", label: "News & Articles"/);
+  assert.match(navigation, /to: "\/news", label: "News & Articles"/);
   assert.match(
-    header,
+    navigation,
     /to: "\/statistics", label: "Statistics"[\s\S]*to: "\/feed", label: "Media & Feed"[\s\S]*to: "\/campaigns", label: "Campaigns"/,
   );
-  assert.doesNotMatch(header, /to: "\/contributors", label: "Contributors"/);
+  assert.doesNotMatch(navigation, /to: "\/contributors", label: "Contributors"/);
 });
 
 test("legacy paragraph markup becomes safe spaced text blocks", () => {

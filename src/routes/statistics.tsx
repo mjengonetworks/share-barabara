@@ -1298,7 +1298,7 @@ function StatisticsPage() {
           </p>
         </div>
       </section>
-      <EditorialDiscoveryRail exclude="statistics" start={3} />
+      <EditorialDiscoveryRail exclude="statistics" />
       <MjengoPreviews context="statistics" />
     </div>
   );

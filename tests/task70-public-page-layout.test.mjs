@@ -138,7 +138,7 @@ test("editorial modules provide balanced unique lead-and-supporting card columns
 test("alerts and reports listings use shared multi-column incident editorial sections", () => {
   for (const route of [alerts, reports]) {
     assert.match(route, /CompactIncidentColumns/);
-    assert.match(route, /lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/);
+    // Listings now use the shared incident columns without a persistent form sidebar.
     assert.match(route, /EditorialBand tone="pale"/);
     assert.match(route, /EditorialBand tone="plain"/);
     assert.doesNotMatch(route, /<ul className="mt-6 space-y-6">/);

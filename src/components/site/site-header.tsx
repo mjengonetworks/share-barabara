@@ -33,17 +33,7 @@ import { NotificationBell } from "@/components/site/notification-bell";
 import { SubscribeButton } from "@/components/site/subscribe-button";
 import { HeaderSearch } from "@/components/site/header-search";
 import { HeaderShareBarabaraAI } from "@/components/site/share-barabara-ai";
-
-const NAV = [
-  { to: "/news", label: "News & Articles" },
-  { to: "/alerts", label: "Alerts" },
-  { to: "/reports", label: "Reports" },
-  { to: "/statistics", label: "Statistics" },
-  { to: "/feed", label: "Media & Feed" },
-  { to: "/campaigns", label: "Campaigns" },
-  { to: "/merch", label: "Merch" },
-  { to: "/partner-with-us", label: "Partner With Us" },
-] as const;
+import { PUBLIC_NAV_ITEMS } from "@/lib/public-navigation";
 
 export function SiteHeader() {
   const { user } = useAuth();
@@ -104,7 +94,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden min-w-0 items-center justify-center gap-1 overflow-hidden lg:flex">
-          {NAV.map((item) => (
+          {PUBLIC_NAV_ITEMS.map((item) => (
             <Link
               key={item.to}
               to={item.to}
@@ -212,7 +202,7 @@ export function SiteHeader() {
             className="absolute left-0 top-full z-50 w-[min(88vw,22rem)] border-r border-t border-border/60 bg-background px-4 py-3 shadow-xl lg:hidden"
           >
             <div className="max-w-sm">
-              {NAV.map((item) => (
+              {PUBLIC_NAV_ITEMS.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}

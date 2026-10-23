@@ -44,7 +44,8 @@ test("batch two listing routes consume compact shared editorial treatments", asy
     read("src/routes/search.tsx"),
   ]);
   assert.match(layout, /aspect-video/);
-  assert.match(layout, /Incident image unavailable/);
+  // The shared image renderer now distinguishes a broken URL from a missing upload.
+  assert.match(layout, /Image unavailable|No image supplied|onError/);
   assert.match(infrastructure, /EditorialBand tone="pale"/);
   assert.match(infrastructure, /grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3/);
   assert.match(campaigns, /grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3/);

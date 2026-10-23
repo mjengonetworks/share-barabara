@@ -4,6 +4,7 @@ import fs from "node:fs";
 
 const read = (file) => fs.readFileSync(file, "utf8");
 const header = read("src/components/site/site-header.tsx");
+const navigation = read("src/lib/public-navigation.ts");
 const footer = read("src/components/site/site-footer.tsx");
 const hero = read("src/components/site/public-page-hero.tsx");
 const news = read("src/routes/news.index.tsx");
@@ -22,7 +23,7 @@ const routes = [
 ].map(read);
 
 test("public navigation uses News & Articles while preserving /news", () => {
-  assert.match(header, /to: "\/news", label: "News & Articles"/);
+  assert.match(navigation, /to: "\/news", label: "News & Articles"/);
   assert.match(footer, /to="\/news">News &amp; Articles/);
   assert.match(news, /createFileRoute\("\/news\/"\)/);
   assert.match(news, /title="News & Articles"/);

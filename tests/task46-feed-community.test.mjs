@@ -6,12 +6,13 @@ const read = (path) => fs.readFileSync(path, "utf8");
 const route = read("src/routes/feed.tsx");
 const migration = read("supabase/migrations/20261001100000_feed_community_review.sql");
 const header = read("src/components/site/site-header.tsx");
+const navigation = read("src/lib/public-navigation.ts");
 const moderation = read("src/lib/feed.functions.ts");
 const admin = read("src/routes/_authenticated/admin/feed.tsx");
 
 test("Feed route and prominent main navigation exist", () => {
   assert.match(route, /createFileRoute\("\/feed"\)/);
-  assert.match(header, /to: "\/feed", label: "Media & Feed"/);
+  assert.match(navigation, /to: "\/feed", label: "Media & Feed"/);
   assert.match(route, /Sort:|latest|popular|trending/);
 });
 

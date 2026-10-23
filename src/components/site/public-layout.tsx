@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { ArrowRight, MapPin, Newspaper } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
@@ -522,22 +523,26 @@ export type PublicIncidentCard = {
 };
 
 function IncidentImage({ item, lead = false }: { item: PublicIncidentCard; lead?: boolean }) {
-  return item.image_url ? (
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const imageUrl = item.image_url && item.image_url !== failedUrl ? item.image_url : null;
+  return imageUrl ? (
     <img
-      src={item.image_url}
+      src={imageUrl}
       alt={item.title}
       loading={lead ? "eager" : "lazy"}
-      className={cn("w-full rounded-md object-cover", lead ? "aspect-video" : "aspect-[4/3]")}
+      onError={() => setFailedUrl(imageUrl)}
+      className={cn("w-full rounded-md bg-muted object-contain", lead ? "aspect-video" : "aspect-video")}
     />
   ) : (
     <div
       className={cn(
-        "flex w-full items-center justify-center rounded-md bg-primary/5 text-primary/45",
-        lead ? "aspect-video" : "aspect-[4/3]",
+        "flex w-full items-center justify-center gap-2 rounded-md bg-muted/60 px-2 text-center text-[10px] text-muted-foreground",
+        lead ? "aspect-video" : "aspect-video",
       )}
-      aria-label="Incident image unavailable"
+      aria-label={item.image_url ? "Incident image could not be loaded" : "No incident image supplied"}
     >
-      <MapPin className={lead ? "size-9" : "size-7"} aria-hidden="true" />
+      <MapPin className={lead ? "size-6" : "size-5"} aria-hidden="true" />
+      <span>{item.image_url ? "Image unavailable" : "No image supplied"}</span>
     </div>
   );
 }

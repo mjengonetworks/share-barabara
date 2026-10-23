@@ -345,7 +345,7 @@ function AlertsPage() {
         </div>
       </div>
 
-      <EditorialDiscoveryRail exclude="alerts" start={1} />
+      <EditorialDiscoveryRail exclude="alerts" />
       <TopContributingProfiles />
       <MjengoPreviews context="alerts" />
     </div>

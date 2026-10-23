@@ -5,10 +5,11 @@ import test from "node:test";
 const source = (file) => readFile(file, "utf8");
 
 test("alternating browsing variants and verified discovery destinations are wired", async () => {
-  const [layout, discovery, news, alerts, reports, feed, statistics, campaigns, infrastructure] =
+  const [layout, discovery, navigation, news, alerts, reports, feed, statistics, campaigns, infrastructure] =
     await Promise.all([
       source("src/components/site/public-layout.tsx"),
       source("src/components/site/editorial-discovery.tsx"),
+      source("src/lib/public-navigation.ts"),
       source("src/routes/news.index.tsx"),
       source("src/routes/alerts.index.tsx"),
       source("src/routes/reports.index.tsx"),
@@ -23,13 +24,14 @@ test("alternating browsing variants and verified discovery destinations are wire
   assert.match(layout, /variant=\{index % 2 === 0 \? "equal" : "featured-compact"\}/);
   assert.match(layout, /variantOffset = 0/);
   assert.match(layout, /supporting\.slice\(0, 2\)/);
+  assert.doesNotMatch(discovery, /slice\(start\)|start = 0/);
 
   for (const route of [news, alerts, reports, feed, statistics, campaigns, infrastructure]) {
     assert.match(route, /EditorialDiscoveryRail/);
   }
-  for (const path of ["/news", "/alerts", "/reports", "/statistics", "/feed", "/campaigns", "/infrastructure-issues", "/pages/"]) {
-    assert.ok(discovery.includes(`to: "${path}"`), `missing verified discovery path ${path}`);
-  }
+  for (const path of ["/news", "/alerts", "/reports", "/statistics", "/feed", "/campaigns"]) assert.ok(navigation.includes(`to: "${path}"`), `missing header path ${path}`);
+  for (const path of ["/infrastructure-issues", "/pages/"]) assert.ok(discovery.includes(`to: "${path}"`), `missing verified secondary path ${path}`);
+  assert.match(discovery, /PUBLIC_NAV_ITEMS/);
   assert.doesNotMatch(discovery, /to: "\/categories"/);
 });
 

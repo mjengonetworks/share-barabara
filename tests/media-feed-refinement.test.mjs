@@ -4,6 +4,7 @@ import test from "node:test";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 const header = read("src/components/site/site-header.tsx");
+const navigation = read("src/lib/public-navigation.ts");
 const feed = read("src/routes/feed.tsx");
 const article = read("src/routes/news.$slug.tsx");
 const articleSidebar = read("src/components/site/article-detail-sidebar.tsx");
@@ -14,11 +15,11 @@ const ads = read("src/components/site/banner-ad.tsx");
 
 test("Media & Feed has branded navigation, correct ordering, and no contributor nav item", () => {
   assert.match(
-    header,
+    navigation,
     /to: "\/statistics", label: "Statistics"[\s\S]*to: "\/feed", label: "Media & Feed"[\s\S]*to: "\/campaigns", label: "Campaigns"/,
   );
   assert.match(header, /item\.to === "\/feed"/);
-  assert.doesNotMatch(header, /to: "\/contributors"/);
+  assert.doesNotMatch(navigation, /to: "\/contributors"/);
 });
 
 test("Feed remains the canonical combined discovery surface with existing controls", () => {

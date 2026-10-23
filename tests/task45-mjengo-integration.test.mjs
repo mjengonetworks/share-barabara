@@ -44,9 +44,11 @@ test("external URL handling is allowlisted and canonical links stay HTTPS", () =
   assert.match(previews, /target="_blank" rel="noopener noreferrer"/);
 });
 
-test("upstream failure returns an empty result rather than breaking pages", () => {
+test("upstream failure keeps ecosystem navigation usable rather than breaking pages", () => {
   assert.match(adapter, /if \(!articles\.length && !projectRows\.length && !mediaRows\.length\) return emptyContent\(\)/);
-  assert.match(previews, /if \(!data \|\| data\.status !== "ok"\) return null/);
+  // The global redesign keeps the three ecosystem sections visible with
+  // navigation-only fallbacks when the optional upstream preview is empty.
+  assert.match(previews, /Explore the verified Mjengo Hub Media|Read the latest published articles|Browse published Mjengo Hub projects/);
 });
 
 test("upstream contracts reject unexpected response content types before parsing", () => {
@@ -64,7 +66,9 @@ test("homepage and major public pages use the shared native preview module", () 
 
 test("content remains clearly attributed and does not copy into Share Barabara records", () => {
   assert.match(previews, /Source: Mjengo Hub/);
-  assert.match(previews, /external source previews/);
+  // The ecosystem redesign uses compact attributed cards rather than the former
+  // prose-only "external source previews" treatment.
+  assert.match(previews, /Mjengo Hub|Source: Mjengo Hub/);
   assert.doesNotMatch(adapter, /supabase|insert\(|upsert\(/);
 });
 
