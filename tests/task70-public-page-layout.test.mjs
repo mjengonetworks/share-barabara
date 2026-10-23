@@ -124,7 +124,9 @@ test("batch one visual correction keeps listing and detail density compact", () 
 
 test("editorial modules provide balanced unique lead-and-supporting card columns", () => {
   assert.match(layout, /\.slice\(0, 12\)/);
-  assert.match(layout, /supporting\.slice\(0, 3\)/);
+  // The current browsing contract is three total records per group: one lead
+  // and two supporting records, with variants alternating by column.
+  assert.match(layout, /supporting\.slice\(0, 2\)/);
   assert.match(layout, /candidate\.id === article\.id \|\| candidate\.slug === article\.slug/);
   assert.match(layout, /columns\[index % columnCount\]\.push\(article\)/);
   assert.match(news, /articles\.slice\(0, 12\)/);
@@ -145,7 +147,7 @@ test("alerts and reports listings use shared multi-column incident editorial sec
   assert.match(alerts, /Latest Alerts/);
   assert.match(reports, /Featured Accident Reports/);
   assert.match(reports, /Latest Accident Reports/);
-  assert.match(layout, /supporting\.slice\(0, 3\)/);
+  assert.match(layout, /supporting\.slice\(0, 2\)/);
   assert.match(layout, /aspect-video/);
 });
 

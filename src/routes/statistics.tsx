@@ -42,6 +42,7 @@ import {
   summarizeIncidentRows,
 } from "@/lib/statistics.mjs";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 
 export const Route = createFileRoute("/statistics")({
   head: () => ({
@@ -1297,6 +1298,7 @@ function StatisticsPage() {
           </p>
         </div>
       </section>
+      <EditorialDiscoveryRail exclude="statistics" start={3} />
       <MjengoPreviews context="statistics" />
     </div>
   );

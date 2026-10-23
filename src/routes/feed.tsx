@@ -35,6 +35,7 @@ import {
 import { createFeedPost } from "@/lib/feed.functions";
 import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { SocialFollowSection } from "@/components/site/social-follow-section";
 import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
@@ -663,6 +664,7 @@ function FeedPage() {
       </div>
       <div className="mt-12 space-y-10">
         <SocialFollowSection />
+        <EditorialDiscoveryRail exclude="feed" start={4} />
         <MjengoPreviews context="feed" />
       </div>
       <Dialog

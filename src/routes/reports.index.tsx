@@ -23,6 +23,7 @@ import { KENYA_COUNTIES } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
 import { BannerAd } from "@/components/site/banner-ad";
@@ -337,6 +338,7 @@ function ReportsPage() {
           </aside>
         </div>
       </div>
+      <EditorialDiscoveryRail exclude="reports" start={2} />
       <MjengoPreviews context="reports" />
     </div>
   );

@@ -19,6 +19,7 @@ import {
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import {
   Dialog,
   DialogContent,
@@ -617,6 +618,7 @@ function NewsIndex() {
             </EditorialBand>
           </div>
         )}
+        <EditorialDiscoveryRail exclude="news" start={0} />
         <MjengoPreviews context="articles" />
       </div>
     </div>

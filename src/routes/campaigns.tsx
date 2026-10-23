@@ -17,6 +17,7 @@ import { EMERGENCY_CONTACTS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
 import { PublicPageHero } from "@/components/site/public-page-hero";
+import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -272,6 +273,8 @@ function CampaignsPage() {
         <FeaturedProfileCard slot="campaigns_profile_of_week" />
         <FeaturedPageCard slot="campaigns_page_of_week" />
       </section>
+
+      <EditorialDiscoveryRail exclude="campaigns" start={5} />
 
       <section className="mt-14 border-t border-border pt-10">
         <h2 className="flex items-center gap-2 text-[1.155rem] font-bold">

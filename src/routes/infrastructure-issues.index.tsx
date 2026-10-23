@@ -24,6 +24,7 @@ import { InfrastructureIssueForm } from "@/components/site/infrastructure-issue-
 import { BannerAd } from "@/components/site/banner-ad";
 import { EditorialBand, SectionHeader } from "@/components/site/public-layout";
 import { PublicPageHero } from "@/components/site/public-page-hero";
+import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 
 export const Route = createFileRoute("/infrastructure-issues/")({
   validateSearch: (
@@ -218,6 +219,7 @@ function InfrastructureIssuesPage() {
             </div>
           </EditorialBand>
         ) : null}
+        <EditorialDiscoveryRail exclude="infrastructure" start={6} />
       </div>
     </div>
   );

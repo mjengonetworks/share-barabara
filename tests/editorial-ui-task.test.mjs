@@ -57,9 +57,11 @@ test("report and alert detail recommendations use editorial preview cards", asyn
   assert.match(alert, /description, county, road, hazard_type, severity/);
 });
 
-test("listing hierarchy retains three columns with up to three supporting previews", async () => {
+test("listing hierarchy retains three columns with three records per logical group", async () => {
   const layout = await source("src/components/site/public-layout.tsx");
   assert.match(layout, /lg:grid-cols-3/);
-  assert.match(layout, /supporting\.slice\(0, 3\)/);
+  // The alternating browsing specification defines each group as one lead plus
+  // two supporting records; the outer three-column category structure remains.
+  assert.match(layout, /supporting\.slice\(0, 2\)/);
   assert.match(layout, /View more/);
 });

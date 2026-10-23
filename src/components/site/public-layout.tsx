@@ -241,11 +241,13 @@ export function CompactEditorialColumn({
   articles,
   to = "/news",
   placement,
+  variant = "featured-compact",
 }: {
   title: string;
   articles: PublicArticleCard[];
   to?: "/news" | "/alerts" | "/reports";
   placement?: string;
+  variant?: "equal" | "featured-compact";
 }) {
   const [lead, ...supporting] = articles;
   if (!lead) return null;
@@ -258,24 +260,47 @@ export function CompactEditorialColumn({
         </h3>
         {placement ? <span className="sr-only">{placement}</span> : null}
       </div>
-      <Link
-        to="/news/$slug"
-        params={{ slug: lead.slug }}
-        className="group mt-4 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <ArticleImage article={lead} lead />
-        <ArticleMeta article={lead} compact />
-        <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-brand-navy group-hover:underline">
-          {lead.title}
-        </h4>
-      </Link>
-      {supporting.length ? (
-        <div className="mt-3 border-t border-border/70">
-          {supporting.slice(0, 3).map((article) => (
-            <CompactArticleRow key={article.id} article={article} />
+      {variant === "equal" ? (
+        <div className="mt-4 space-y-3">
+          {[lead, ...supporting.slice(0, 2)].map((article) => (
+            <Link
+              key={article.id}
+              to="/news/$slug"
+              params={{ slug: article.slug }}
+              className="group block rounded-lg border border-border/70 bg-background p-2.5 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ArticleImage article={article} />
+              <div className="mt-2">
+                <ArticleMeta article={article} compact />
+                <h4 className="mt-1 line-clamp-3 text-sm font-bold leading-snug text-brand-navy group-hover:underline">
+                  {article.title}
+                </h4>
+              </div>
+            </Link>
           ))}
         </div>
-      ) : null}
+      ) : (
+        <>
+          <Link
+            to="/news/$slug"
+            params={{ slug: lead.slug }}
+            className="group mt-4 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ArticleImage article={lead} lead />
+            <ArticleMeta article={lead} compact />
+            <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-brand-navy group-hover:underline">
+              {lead.title}
+            </h4>
+          </Link>
+          {supporting.length ? (
+            <div className="mt-3 border-t border-border/70">
+              {supporting.slice(0, 2).map((article) => (
+                <CompactArticleRow key={article.id} article={article} />
+              ))}
+            </div>
+          ) : null}
+        </>
+      )}
       <Link
         to={to}
         className="mt-auto inline-flex items-center pt-4 text-xs font-bold text-brand-blue underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -319,6 +344,7 @@ export function CompactEditorialColumns({
           articles={column}
           placement={placement}
           to={to}
+          variant={index % 2 === 0 ? "equal" : "featured-compact"}
         />
       ))}
     </div>
@@ -563,12 +589,14 @@ export function CompactIncidentColumns({
   titles = ["Lead reports", "On the road", "Community watch"],
   placement,
   renderActions,
+  variantOffset = 0,
 }: {
   items: PublicIncidentCard[];
   kind: "alert" | "report";
   titles?: string[];
   placement?: string;
   renderActions?: (item: PublicIncidentCard) => ReactNode;
+  variantOffset?: number;
 }) {
   const unique = items
     .filter((item, index, all) => all.findIndex((candidate) => candidate.id === item.id) === index)
@@ -585,6 +613,7 @@ export function CompactIncidentColumns({
         const [lead, ...supporting] = column;
         const to = kind === "alert" ? "/alerts/$alertId" : "/reports/$reportId";
         const params = kind === "alert" ? { alertId: lead.id } : { reportId: lead.id };
+        const variant = (index + variantOffset) % 2 === 0 ? "equal" : "featured-compact";
         return (
           <section
             key={`${placement ?? kind}-${index}`}
@@ -593,39 +622,41 @@ export function CompactIncidentColumns({
             <h3 className="border-b border-border pb-3 text-sm font-extrabold uppercase tracking-[0.12em] text-brand-blue">
               {titles[index] ?? `Stories ${index + 1}`}
             </h3>
-            <Link to={to as never} params={params as never} className="group mt-4 block">
-              <IncidentImage item={lead} lead />
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                {lead.severity ? <SeverityBadge value={lead.severity} /> : null}
-                {kind === "alert" ? (
-                  <span className="text-[11px] text-muted-foreground">
-                    {longDateWithDay(lead.occurred_at ?? lead.created_at ?? "")}
-                  </span>
-                ) : null}
+            {variant === "equal" ? (
+              <div className="mt-4 space-y-3">
+                {[lead, ...supporting.slice(0, 2)].map((item) => {
+                  const itemTo = kind === "alert" ? "/alerts/$alertId" : "/reports/$reportId";
+                  const itemParams = kind === "alert" ? { alertId: item.id } : { reportId: item.id };
+                  return (
+                    <Link key={item.id} to={itemTo as never} params={itemParams as never} className="group block rounded-lg border border-border/70 bg-background p-2.5">
+                      <IncidentImage item={item} />
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        {item.severity ? <SeverityBadge value={item.severity} /> : null}
+                        <span className="text-[11px] text-muted-foreground">{kind === "alert" ? longDateWithDay(item.occurred_at ?? item.created_at ?? "") : [item.county, item.road].filter(Boolean).join(" · ")}</span>
+                      </div>
+                      <h4 className="mt-1 line-clamp-3 text-sm font-bold leading-snug text-foreground group-hover:underline">{item.title}</h4>
+                      {kind === "report" ? <p className="mt-1 text-[11px] text-muted-foreground"><strong>{displayReportCount(item.casualties)}</strong> injured · <strong>{displayReportCount(item.fatalities)}</strong> deaths</p> : null}
+                      {renderActions ? <div className="mt-2">{renderActions(item)}</div> : null}
+                    </Link>
+                  );
+                })}
               </div>
-              <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-foreground group-hover:underline">
-                {lead.title}
-              </h4>
-              <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
-                {[lead.county, lead.road, lead.status].filter(Boolean).join(" · ") ||
-                  "Location not provided"}
-              </p>
-              {kind === "report" ? (
-                <p className="mt-2 text-xs text-muted-foreground">
-                  <strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles ·{" "}
-                  <strong>{displayReportCount(lead.casualties)}</strong> injured ·{" "}
-                  <strong>{displayReportCount(lead.fatalities)}</strong> deaths
-                </p>
-              ) : null}
-              {renderActions ? <div className="mt-3">{renderActions(lead)}</div> : null}
-            </Link>
-            {supporting.length ? (
-              <div className="mt-3 border-t border-border/70">
-                {supporting.slice(0, 3).map((item) => (
-                  <IncidentRow key={item.id} item={item} kind={kind} actions={renderActions} />
-                ))}
-              </div>
-            ) : null}
+            ) : (
+              <>
+                <Link to={to as never} params={params as never} className="group mt-4 block">
+                  <IncidentImage item={lead} lead />
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    {lead.severity ? <SeverityBadge value={lead.severity} /> : null}
+                    {kind === "alert" ? <span className="text-[11px] text-muted-foreground">{longDateWithDay(lead.occurred_at ?? lead.created_at ?? "")}</span> : null}
+                  </div>
+                  <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-foreground group-hover:underline">{lead.title}</h4>
+                  <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{[lead.county, lead.road, lead.status].filter(Boolean).join(" · ") || "Location not provided"}</p>
+                  {kind === "report" ? <p className="mt-2 text-xs text-muted-foreground"><strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles · <strong>{displayReportCount(lead.casualties)}</strong> injured · <strong>{displayReportCount(lead.fatalities)}</strong> deaths</p> : null}
+                  {renderActions ? <div className="mt-3">{renderActions(lead)}</div> : null}
+                </Link>
+                {supporting.length ? <div className="mt-3 border-t border-border/70">{supporting.slice(0, 2).map((item) => <IncidentRow key={item.id} item={item} kind={kind} actions={renderActions} />)}</div> : null}
+              </>
+            )}
           </section>
         );
       })}
