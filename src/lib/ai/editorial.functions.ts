@@ -20,7 +20,7 @@ import { EDITORIAL_PROMPTS } from "./editorial-prompts";
 // null means not confirmed; currentValue === null is preserved as null, and preserved[field] = null.
 // Legacy editable fields: ["title", "summary", "body", "seo_title", "seo_description", "seo_keywords"]
 
-export type EditorialContentType = "article" | "alert" | "report";
+export type EditorialContentType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 export type EditorialMode = "generate" | "autopopulate" | "update";
 export type EditorialValue = string | number | null | string[];
 type EditorialDraft = Record<string, EditorialValue>;
@@ -44,7 +44,8 @@ function fieldsFor(contentType: EditorialContentType): string[] {
     ? ["title", "summary", "body", "category", "seo_title", "seo_description", "seo_keywords", "image_alt", "image_caption", "image_credit"]
     : contentType === "alert"
       ? ["title", "description", "county", "road", "hazard_type", "severity", "parties_involved"]
-      : [
+      : contentType === "report"
+        ? [
           "title",
           "description",
           "county",
@@ -62,7 +63,12 @@ function fieldsFor(contentType: EditorialContentType): string[] {
           "image_alt",
           "image_caption",
           "image_credit",
-        ];
+        ]
+        : contentType === "campaign"
+          ? ["title", "location", "description", "start_date", "end_date"]
+          : contentType === "infrastructure"
+            ? ["title", "road_name", "county", "authority", "structure_type", "summary", "content", "editor_note"]
+            : [];
 }
 
 function securityLayer() {
@@ -118,6 +124,13 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
     if (typeof draft.seo_description === "string" && draft.seo_description.length > 160) throw new Error("Article SEO description exceeds 160 characters");
     if (typeof draft.seo_keywords === "string" && draft.seo_keywords.length > 500) throw new Error("SEO keywords exceed 500 characters");
   }
+  if (contentType === "campaign") {
+    for (const field of ["start_date", "end_date"]) {
+      if (draft[field] !== undefined && draft[field] !== null && (typeof draft[field] !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(draft[field]))) {
+        throw new Error(`${field} must be an ISO calendar date`);
+      }
+    }
+  }
   if (Object.keys(draft).length === 0) throw new Error("Editorial AI returned no usable fields");
   return draft;
 }
@@ -165,7 +178,9 @@ async function controlledValues(
     ? ["news_categories"] as const
     : contentType === "alert"
       ? ["hazard_types", "alert_severities"] as const
-      : ["hazard_types", "report_severities"] as const;
+      : contentType === "report"
+        ? ["hazard_types", "report_severities"] as const
+        : [] as const;
   const results = await Promise.all(tables.map((table) => db.from(table).select("*")));
   if (results.some((result) => result.error)) throw new Error("Controlled taxonomy is unavailable");
   const values = results.map((result) =>
@@ -177,7 +192,9 @@ async function controlledValues(
   if (contentType === "article") return { newsCategories: values[0] };
   return contentType === "alert"
     ? { hazardTypes: values[0], severities: values[1] }
-    : { hazardTypes: values[0], severities: values[1] };
+    : contentType === "report"
+      ? { hazardTypes: values[0], severities: values[1] }
+      : {};
 }
 
 function assertControlledDraftValues(contentType: EditorialContentType, draft: EditorialDraft, allowed: ControlledValues) {
@@ -255,13 +272,27 @@ async function resolveEditorialRecord(
   contentType: EditorialContentType,
   contentId: string,
 ) {
-  const table = contentType === "article" ? "news" : contentType === "alert" ? "alerts" : "accident_reports";
+  const table = contentType === "article"
+    ? "news"
+    : contentType === "alert"
+      ? "alerts"
+      : contentType === "report"
+        ? "accident_reports"
+        : contentType === "campaign"
+          ? "campaigns"
+          : "infrastructure_issues";
   const select =
     contentType === "article"
       ? "id,title,summary,body,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,author_id"
       : contentType === "alert"
         ? "id,title,description,county,road,hazard_type,severity,parties_involved,status,user_id"
-        : "id,title,description,county,road,severity,occurred_at,vehicles_involved,casualties,fatalities,parties_involved,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,user_id";
+        : contentType === "report"
+          ? "id,title,description,county,road,severity,occurred_at,vehicles_involved,casualties,fatalities,parties_involved,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,user_id"
+          : contentType === "campaign"
+            ? "id,title,location,description,start_date,end_date,report_published,created_by"
+            : contentType === "infrastructure"
+              ? "id,title,road_name,county,authority,structure_type,summary,content,editor_note,status,user_id"
+              : "id";
   const { data, error } = await db.from(table).select(select).eq("id", contentId).maybeSingle();
   if (error || !data) throw new Error("The saved record is unavailable for editorial review");
   return data as unknown as Record<string, unknown>;
@@ -291,7 +322,7 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
       };
       const contentType = input.contentType;
       const mode = input.mode ?? "generate";
-      if (!contentType || !["article", "alert", "report"].includes(contentType))
+      if (!contentType || !["article", "alert", "report", "campaign", "infrastructure"].includes(contentType))
         throw new Error("Invalid editorial content type");
       if (!["generate", "autopopulate", "update"].includes(mode))
         throw new Error("Invalid editorial AI mode");
@@ -316,6 +347,7 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
         source = `AUTHORITATIVE CURRENT CONTENT:\n${recordEvidence(current, contentType)}\n\nNEW UPDATE MATERIAL:\n${source}`;
       }
       if (!source) throw new Error("Source material is required");
+      source = await resolveSourceMaterial(source);
       await enforceAIRateLimit("editorial", context.userId);
       const { completeWithProvider } = await import("./providers.server");
       // Provider assignment is action-specific: Auto-Populate uses Groq;
@@ -363,3 +395,43 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
       }
     },
   );
+
+async function resolveSourceMaterial(source: string) {
+  const urls = [...source.matchAll(/https?:\/\/[^\s<>()]+/gi)].map((match) => match[0].replace(/[),.;]+$/, ""));
+  if (urls.length === 0) return source;
+  const uniqueUrls = [...new Set(urls)].slice(0, 3);
+  const retrieved: string[] = [];
+  for (const rawUrl of uniqueUrls) {
+    let url: URL;
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      throw new Error("Source URL is invalid");
+    }
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+      throw new Error("Source URL must be a public HTTP or HTTPS URL");
+    }
+    const hostname = url.hostname.toLowerCase();
+    if (hostname === "localhost" || hostname.endsWith(".localhost") || hostname === "127.0.0.1" || hostname === "::1" || hostname.startsWith("10.") || hostname.startsWith("192.168.") || hostname.startsWith("169.254.")) {
+      throw new Error("Source URL is not publicly retrievable");
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(url, { signal: controller.signal, headers: { accept: "text/html,text/plain,application/xhtml+xml" } });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!/text\/(plain|html)|application\/xhtml\+xml/i.test(contentType)) throw new Error("unsupported content type");
+      const body = await response.text();
+      const text = body.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 12000);
+      if (!text) throw new Error("empty response");
+      retrieved.push(`RETRIEVED SOURCE: ${url.href}\n${text}`);
+    } catch {
+      throw new Error(`Could not retrieve source URL: ${url.href}. Paste the source text instead.`);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  const withoutUrls = source.replace(/https?:\/\/[^\s<>()]+/gi, "").trim();
+  return [withoutUrls, ...retrieved].filter(Boolean).join("\n\n").slice(0, 12000);
+}
