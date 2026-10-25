@@ -173,6 +173,26 @@ function AlertsPage() {
     </div>
   );
 
+  const hazardSubmissionCard = (
+    <section id="alert-form" className="scroll-mt-24 rounded-lg border border-border bg-card p-4 card-elevated sm:p-5">
+      <h2 className="text-lg font-bold">Report a hazard</h2>
+      {user ? (
+        <div className="mt-4">
+          <AlertForm />
+        </div>
+      ) : (
+        <>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Sign in to publish an alert. Never use your phone while driving: stop safely first, or ask a passenger to report.
+          </p>
+          <Button asChild className="mt-4 w-full">
+            <Link to="/auth">Sign in to report</Link>
+          </Button>
+        </>
+      )}
+    </section>
+  );
+
   return (
     <div className="w-full py-8 sm:py-10">
       <PublicPageHero
@@ -184,8 +204,7 @@ function AlertsPage() {
       />
 
       <div className="mx-auto mt-8 max-w-[1500px] px-4 sm:px-6">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)]">
-          <div className="min-w-0">
+        <div className="min-w-0">
             {important.length > 0 ? (
               <EditorialBand tone="pale">
                 <SectionHeader
@@ -205,6 +224,10 @@ function AlertsPage() {
                 </div>
               </EditorialBand>
             ) : null}
+
+            <div className="mt-5 grid min-w-0 gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {hazardSubmissionCard}
+            </div>
 
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4">
               <p className="text-sm text-muted-foreground">
@@ -318,29 +341,6 @@ function AlertsPage() {
                 renderActions={alertActions}
               />
             </div>
-          </div>
-
-          <aside
-            id="alert-form"
-            className="h-fit scroll-mt-24 rounded-lg border border-border bg-card p-6 card-elevated lg:sticky lg:top-24"
-          >
-            <h2 className="text-lg font-bold">Report a hazard</h2>
-            {user ? (
-              <div className="mt-4">
-                <AlertForm />
-              </div>
-            ) : (
-              <>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Sign in to publish an alert. Never use your phone while driving: stop safely
-                  first, or ask a passenger to report.
-                </p>
-                <Button asChild className="mt-4 w-full">
-                  <Link to="/auth">Sign in to report</Link>
-                </Button>
-              </>
-            )}
-          </aside>
         </div>
       </div>
 

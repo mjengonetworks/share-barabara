@@ -15,6 +15,28 @@ test("report submission is a post-group card rather than a persistent sidebar", 
   assert.match(form, /Additional details \(optional\)/);
 });
 
+test("hazard submission is a post-critical-group card without a persistent sidebar", async () => {
+  const alerts = await source("src/routes/alerts.index.tsx");
+  assert.doesNotMatch(alerts, /lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/);
+  assert.match(alerts, /hazardSubmissionCard/);
+  assert.match(alerts, /titles=\{\["Critical now", "High priority", "Act before travel"\]\}/);
+  assert.match(alerts, /<div className="mt-5 grid min-w-0 gap-5 md:grid-cols-2 lg:grid-cols-3">/);
+  assert.match(alerts, /id="alert-form"/);
+});
+
+test("category grouping and incident grouping remain separate from urgent collections", async () => {
+  const [news, alerts, reports] = await Promise.all([
+    source("src/routes/news.index.tsx"),
+    source("src/routes/alerts.index.tsx"),
+    source("src/routes/reports.index.tsx"),
+  ]);
+  assert.match(news, /groupLatestByEntity/);
+  assert.match(alerts, /IncidentEntityGroups/);
+  assert.match(reports, /IncidentEntityGroups/);
+  assert.match(alerts, /CompactIncidentColumns/);
+  assert.match(reports, /CompactIncidentColumns/);
+});
+
 test("incident images fail closed to compact intentional fallbacks", async () => {
   const layout = await source("src/components/site/public-layout.tsx");
   assert.match(layout, /onError=\{\(\) => setFailedUrl\(imageUrl\)\}/);
