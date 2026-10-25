@@ -47,9 +47,11 @@ test("editorial AI application is non-destructive for blank model fields", () =>
   assert.ok(source.includes("value !== \"\" && value !== null"));
 });
 
-test("Infrastructure Issues and Campaigns are not presented as supported Editorial AI types", () => {
+test("existing Infrastructure Issues and Campaigns use the shared Editorial AI contract", () => {
   const source = read("src/lib/ai/editorial.functions.ts");
-  assert.ok(source.includes('"article" | "alert" | "report"'));
-  assert.equal(source.includes('"infrastructure"'), false);
-  assert.equal(source.includes('"campaign"'), false);
+  assert.ok(source.includes('"article" | "alert" | "report" | "campaign" | "infrastructure"'));
+  assert.ok(source.includes('contentType === "infrastructure"'));
+  assert.ok(source.includes('contentType === "campaign"'));
+  assert.match(read("src/routes/_authenticated/admin/campaigns.tsx"), /contentType="campaign"/);
+  assert.match(read("src/routes/_authenticated/admin/infrastructure-issues.tsx"), /contentType="infrastructure"/);
 });
