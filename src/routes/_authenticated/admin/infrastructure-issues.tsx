@@ -36,6 +36,7 @@ import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
   head: () => ({ meta: [{ title: "Infrastructure Issues: Share Barabara Admin" }] }),
@@ -367,6 +368,19 @@ function InfrastructureIssuesAdminPage() {
                         value={d.content}
                         onChange={(v) => set({ content: v })}
                       />
+                    </div>
+                    <div className="space-y-3">
+                      {(["generate", "autopopulate", "update"] as const).map((mode) => (
+                        <EditorialAIButton
+                          key={mode}
+                          contentType="infrastructure"
+                          mode={mode}
+                          contentId={i.id}
+                          current={d}
+                          source={`${d.title}\n${d.road_name}\n${d.county}\n${d.summary}\n${d.content}`}
+                          onDraft={(draft) => set(Object.fromEntries(Object.entries(draft).filter(([key]) => key in d)) as Partial<Draft>)}
+                        />
+                      ))}
                     </div>
                     <div>
                       <Label htmlFor={`n-${i.id}`}>Moderator's note (shown publicly)</Label>
