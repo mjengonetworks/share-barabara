@@ -72,3 +72,11 @@ test("Existing persistent engagement and moderation primitives remain wired", ()
   assert.match(feed, /feed_blocks/);
   assert.match(feed, /moveToRecycleBin\("feed_post"/);
 });
+
+test("Cloudflare preview uses the Windows npx shim without changing deployment behavior", () => {
+  const config = read("vite.config.ts");
+  assert.match(config, /process\.platform === "win32"/);
+  assert.match(config, /cmd\.exe \/d \/s \/c npx\.cmd/);
+  assert.match(config, /preview:/);
+  assert.match(config, /wrangler --cwd \.\/ dev/);
+});
