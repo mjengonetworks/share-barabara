@@ -482,6 +482,22 @@ the production build passed. Public and admin route shells returned HTTP 200. Au
 Grok/Groq generation remains pending because no authorized provider test session was available.
 No migration, advertisement, Task 70, unrelated AI/authentication, or SearXNG change was made.
 
+Editorial AI Source Textarea and Transient Provider Repair — DEPLOYED / LIVE AUTHENTICATED ACCEPTANCE
+PENDING. Commit `012843a8e41b566ee78c1ff46e88b003b0ee9e0a` removes draft-derived `source` values from all
+Article, Alert, Report, Campaign, Infrastructure Issue and editorial-update AI controls. The prior artifact
+was caused by forms passing strings such as `Title: ...`, `Summary: ...` and `Body: ...` into the component,
+which used them as the initial source textarea value. Source inputs now start empty and only contain material
+entered or attached by the editor. Provider calls now allow at most two automatic retries after the initial
+attempt, only for 408/425/429/5xx responses, network errors or timeouts, with bounded exponential backoff,
+jitter and `Retry-After` support. Authorization and deterministic validation failures are not retried, and
+the existing client deduplication/stale-response protections remain active. Focused tests passed (27/27),
+full regression passed (377/377; one suite-load timeout passed independently and on rerun), security tests
+passed (14/14), and the production build passed. Deployed Worker `9282cddd-d668-4da1-8d28-6a76b8d90e7d`
+receives 100% traffic; rollback target is `4684cefb-d62b-4948-aafc-14860ddb2d7e`. Public and admin route
+shell smoke tests returned HTTP 200. Authenticated browser/provider acceptance remains pending; no live
+Grok/Groq credentialed call or visual browser review was available. No migration, advertisement, Task 70,
+unrelated AI/authentication, or SearXNG change was made.
+
 Editorial AI UX Cleanup and Direct Field Population — DEPLOYED / BROWSER AND LIVE-PROVIDER ACCEPTANCE
 PENDING. Code commit `7371afd1253348ad537ffcc61ff0c4618ab6c5f6` removes the obsolete preview/confirmation
 UI, applies validated Generate, Groq Auto-Populate, Grok Auto-Populate and Update Existing results directly
