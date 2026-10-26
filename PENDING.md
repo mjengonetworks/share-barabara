@@ -614,3 +614,18 @@ It defines canonical tags, polymorphic content assignments, relationship provena
 server-owned draft/public RPC seams; it ends with `rollback` and was not added to `supabase/migrations` or executed.
 Cross-content generation, reusable tags and bidirectional relationships therefore remain incomplete pending owner
 approval of the schema/RLS/RPC design. No deployment was performed. Live SearXNG remains PENDING.
+
+Cross-Content Editorial Functionality Continuation — SCHEMA APPROVAL REQUIRED / NOT DEPLOYED. Independent live
+inspection found Worker `e69cd270-9006-4f0e-8b9f-50ffdfaceefe` at 100% traffic, corresponding to runtime Git
+commit `053ce19cf4a4a3620c19f05cfc2090b35d1db7d2`. That deployed commit was merged and pushed as integration
+commit `75988af`; no unrelated worktree was merged and no production deployment occurred. Existing Article and
+Accident Report AI controls and content-type boundaries remain preserved. The review-only schema package at
+`supabase/inspection/cross-content-relationships-proposal.sql` remains unexecuted and unapproved; it specifies
+tag vocabulary, polymorphic assignments, relationship provenance, editor-only RLS, indexes, constraints and
+server-owned draft/public RPC seams. Because the current production schema has no generic tag/relationship tables
+or conversion RPCs, persistent tagging, bidirectional relationships, duplicate prevention and provenance-backed
+cross-content saves cannot be safely completed in application code alone. No existing content or relationship was
+changed. Verification on the integrated tree: focused master/admin/AI tests passed 19/19; full regression had
+409 passes and one pre-existing 5-second `ai-server-function-artifact` timeout; security passed 14/14; production
+build passed; `git diff --check` passed. Authenticated browser and live provider verification remain unavailable.
+No migrations were executed, no deployment was performed, and Live SearXNG remains PENDING.
