@@ -77,8 +77,8 @@ test("unsold ads use the Partner With Us CTA while paid ads remain untouched", (
   assert.match(ads, /Visit Advertiser/);
 });
 
-test("related articles are centered and ecosystem language is accurate", () => {
-  assert.match(article, /mx-auto max-w-2xl rounded border-l-4/);
+test("related articles use the shared left-aligned editorial treatment and ecosystem language is accurate", () => {
+  assert.match(article, /<ReadAlso related=\{related\} \/>/);
   assert.match(discovery, /Explore our platforms/);
   assert.doesNotMatch(discovery, /Explore sister platforms/);
 });
