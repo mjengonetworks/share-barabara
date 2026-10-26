@@ -38,6 +38,7 @@ import { UserLink } from "@/components/site/user-link";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
   head: () => ({ meta: [{ title: "Infrastructure Issues: Share Barabara Admin" }] }),
@@ -125,13 +126,11 @@ function InfrastructureIssuesAdminPage() {
 
   return (
     <div className="w-full max-w-[1500px]">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Moderation queue
-      </p>
-      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Infrastructure issues</h1>
-      <p className="mt-2 text-muted-foreground">
-        Roads, bridges, drainage and signage problems reported by the community.
-      </p>
+      <AdminPageHeader
+        eyebrow="Content & moderation"
+        title="Manage Infrastructure Issues"
+        description="Roads, bridges, drainage and signage problems reported by the community."
+      />
 
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>
@@ -164,7 +163,7 @@ function InfrastructureIssuesAdminPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="min-w-48 flex-1">
+        <div className="min-w-48 flex-1 sm:col-span-2 lg:col-span-4">
           <Label htmlFor="infra-search">Search</Label>
           <Input
             id="infra-search"
@@ -183,7 +182,7 @@ function InfrastructureIssuesAdminPage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span>Featured image &amp; title</span><span>Location / reporter</span><span>Status</span><span>Created</span><span className="text-right">Actions</span></AdminListingHeader>
+        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Issue / location</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {issues.map((i) => {
           const d: Draft = drafts[i.id] ?? {
@@ -202,26 +201,32 @@ function InfrastructureIssuesAdminPage() {
 
           return (
             <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4">
+              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
                 <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <button
                   type="button"
                   onClick={() => setExpandedId(expanded ? null : i.id)}
-                  className="flex min-w-0 items-center gap-3 text-left"
+                  className="min-w-0 text-left"
                 >
                   {i.image_url ? (
                     <img
                       src={i.image_url}
                       alt=""
-                      className="size-14 shrink-0 rounded object-cover"
+                      className="h-12 w-[70px] shrink-0 rounded object-cover"
                     />
                   ) : (
-                    <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
                       <Construction className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{i.title}</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : i.id)}
+                    className="min-w-0 text-left"
+                  >
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 font-semibold">{i.title}</p>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {i.road_name}
                       {i.county ? ` · ${i.county}` : ""} · by{" "}
@@ -229,8 +234,9 @@ function InfrastructureIssuesAdminPage() {
                       {dateTime(i.created_at)}
                     </p>
                   </div>
-                </button>
+                  </button>
 
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="size-8 shrink-0">

@@ -196,9 +196,9 @@ function CampaignsAdminPage() {
     <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Site content"
-        title="Campaigns"
+        title="Manage Campaigns"
         websiteHref="/campaigns"
-        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> New campaign</Button>}
+        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> Add New Campaign</Button>}
         description={
           <>
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
@@ -317,18 +317,18 @@ function CampaignsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span>Featured image &amp; title</span><span>Dates / location</span><span>Status</span><span>Created</span><span className="text-right">Actions</span></AdminListingHeader>
+        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Campaign / dates</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {campaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
             <li
               key={c.id}
-              className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border/70 px-3 py-4 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4"
+              className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border/70 px-3 py-4 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]"
             >
               <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
               {c.image_url ? (
-                <img src={c.image_url} alt="" className="size-12 shrink-0 rounded object-cover" />
+                <img src={c.image_url} alt="" className="h-12 w-[70px] shrink-0 rounded object-cover" />
               ) : (
                 <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
                   <Megaphone className="size-5 text-muted-foreground" />
@@ -349,13 +349,14 @@ function CampaignsAdminPage() {
                       {c.report_published ? "Report published" : "Not visible to public yet"}
                     </Badge>
                   ) : null}
-                  <p className="truncate font-semibold">{c.title}</p>
+                  <p className="line-clamp-2 font-semibold">{c.title}</p>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {longDate(c.start_date)} – {longDate(c.end_date)}
                   {c.location ? ` · ${c.location}` : ""}
                 </p>
               </div>
+              <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
               <Button size="sm" variant="outline" onClick={() => openEdit(c.id)}>
                 Edit event
               </Button>

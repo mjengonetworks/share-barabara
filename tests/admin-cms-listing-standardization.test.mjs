@@ -16,7 +16,7 @@ test("all primary admin listings use the deployed shared page and full-width sur
   for (const name of listingRoutes) {
     const source = await read(`src/routes/_authenticated/admin/${name}.tsx`);
     assert.match(source, /AdminPageHeader|<h1/);
-    assert.match(source, /title="[^"]+"|<h1[^>]*>/);
+    assert.match(source, /title="Manage [^"]+"|<h1[^>]*>Manage /);
     assert.match(source, /AdminListingSurface/);
     assert.match(source, /image_url|attachments|evidence/);
   }
@@ -26,13 +26,25 @@ test("admin listing controls use compact responsive filter grids and appropriate
   const [articles, alerts, reports, campaigns, infrastructure] = await Promise.all(
     listingRoutes.map((name) => read(`src/routes/_authenticated/admin/${name}.tsx`)),
   );
-  assert.match(articles, /Add (?:New|new) article/);
+  assert.match(articles, /Add New Article/);
   assert.match(alerts, /Add (?:New|new) alert/);
-  assert.match(reports, /Add (?:New|new) report/);
-  assert.match(campaigns, /(?:Add (?:New|new) campaign|New campaign)/);
+  assert.match(reports, /Add New Report/);
+  assert.match(campaigns, /Add New Campaign/);
   for (const source of [articles, alerts, reports, infrastructure]) {
     assert.match(source, /lg:grid-cols/);
     assert.match(source, /Search/);
+  }
+});
+
+test("admin listings use consistent compact thumbnails and place search after filters", async () => {
+  const sources = await Promise.all(
+    listingRoutes.map((name) => read(`src/routes/_authenticated/admin/${name}.tsx`)),
+  );
+  for (const source of sources.filter((_, index) => index !== 1)) {
+    assert.match(source, /h-12 w-\[70px\]/);
+  }
+  for (const source of sources.slice(0, 3).concat(sources.slice(4))) {
+    assert.match(source, /sm:col-span-2 lg:col-span-4/);
   }
 });
 
