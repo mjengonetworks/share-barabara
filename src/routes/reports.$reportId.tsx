@@ -24,6 +24,8 @@ import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { displayReportCount } from "@/lib/report-metrics";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { EditorialSummary } from "@/components/site/editorial-summary";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
@@ -247,13 +249,7 @@ function ReportDetail() {
                 alt={report.image_alt || report.title}
                 className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
               />
-              {report.image_caption || report.image_credit ? (
-                <figcaption className="mt-1.5 text-xs text-muted-foreground">
-                  {report.image_caption}
-                  {report.image_caption && report.image_credit ? " · " : ""}
-                  {report.image_credit ? <em>Credit: {report.image_credit}</em> : null}
-                </figcaption>
-              ) : null}
+              <EditorialMediaMeta caption={report.image_caption} credit={report.image_credit} />
             </figure>
           ) : null}
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
@@ -361,7 +357,7 @@ function ReportDetail() {
           ) : null}
 
           <div className="mt-6 space-y-4 text-foreground/90">
-            <AdRichText content={report.description} placement="report-body" />
+            <EditorialSummary><AdRichText content={report.description} placement="report-body" /></EditorialSummary>
           </div>
 
           <AttachmentGallery attachments={report.attachments as AttachmentRow[]} />

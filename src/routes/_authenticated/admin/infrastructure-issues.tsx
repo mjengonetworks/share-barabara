@@ -12,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -181,7 +182,9 @@ function InfrastructureIssuesAdminPage() {
         </p>
       ) : null}
 
-      <ul className="mt-6 space-y-3">
+      <AdminListingSurface>
+        <AdminListingHeader><span>Featured image &amp; title</span><span>Location / reporter</span><span>Status</span><span>Created</span><span className="text-right">Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {issues.map((i) => {
           const d: Draft = drafts[i.id] ?? {
             title: i.title,
@@ -432,6 +435,7 @@ function InfrastructureIssuesAdminPage() {
           );
         })}
       </ul>
+      </AdminListingSurface>
     </div>
   );
 }

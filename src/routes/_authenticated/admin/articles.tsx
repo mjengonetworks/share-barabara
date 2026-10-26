@@ -44,6 +44,7 @@ import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -228,7 +229,9 @@ function ArticlesQueuePage() {
         </p>
       ) : null}
 
-      <ul className="mt-6 space-y-3">
+      <AdminListingSurface>
+        <AdminListingHeader><span>Featured image &amp; title</span><span>Category / author</span><span>Status</span><span>Views / created</span><span className="text-right">Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {articles.map((a) => {
           const d: ArticleDraft = drafts[a.id] ?? {
             title: a.title,
@@ -549,6 +552,7 @@ function ArticlesQueuePage() {
           );
         })}
       </ul>
+      </AdminListingSurface>
     </div>
   );
 }

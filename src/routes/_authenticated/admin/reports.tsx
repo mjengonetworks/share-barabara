@@ -54,6 +54,7 @@ import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { ReportForm } from "@/components/site/report-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -289,7 +290,9 @@ function ReportsQueuePage() {
         </p>
       ) : null}
 
-      <ul className="mt-6 space-y-3">
+      <AdminListingSurface>
+        <AdminListingHeader><span>Featured image &amp; incident</span><span>Location / reporter</span><span>Severity / status</span><span>Views / created</span><span className="text-right">Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {reports.map((r) => {
           const d: ReportDraft = drafts[r.id] ?? {
             title: r.title,
@@ -661,6 +664,7 @@ function ReportsQueuePage() {
           );
         })}
       </ul>
+      </AdminListingSurface>
     </div>
   );
 }

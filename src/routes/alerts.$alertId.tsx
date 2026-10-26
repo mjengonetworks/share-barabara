@@ -23,6 +23,8 @@ import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachm
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { DiscoverySections } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { EditorialSummary } from "@/components/site/editorial-summary";
 import { AlertPreviewCard } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
@@ -224,13 +226,7 @@ function AlertDetail() {
                 alt={alert.image_alt || alert.title}
                 className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
               />
-              {alert.image_caption || alert.image_credit ? (
-                <figcaption className="mt-1.5 text-xs text-muted-foreground">
-                  {alert.image_caption}
-                  {alert.image_caption && alert.image_credit ? " · " : ""}
-                  {alert.image_credit ? <em>Credit: {alert.image_credit}</em> : null}
-                </figcaption>
-              ) : null}
+              <EditorialMediaMeta caption={alert.image_caption} credit={alert.image_credit} />
             </figure>
           ) : null}
 
@@ -244,9 +240,9 @@ function AlertDetail() {
             </div>
           ) : null}
 
-          <div className="mt-6 space-y-4 text-foreground/90">
+          <EditorialSummary className="mt-6">
             {renderRichText(alert.description)}
-          </div>
+          </EditorialSummary>
 
           <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />
 

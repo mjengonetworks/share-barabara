@@ -37,7 +37,7 @@ export function rankPreviewCategories(items: PreviewItem[]) {
       const rightRank = Math.min(
         ...right.map((item) => item.recordedViewRank ?? Number.MAX_SAFE_INTEGER),
       );
-      return leftRank - rightRank;
+      return leftRank - rightRank || normalize(left[0]?.categoryKey).localeCompare(normalize(right[0]?.categoryKey));
     })
     .map(([key, items]) => ({ key, label: items[0].categoryKey ?? key, items }));
 }

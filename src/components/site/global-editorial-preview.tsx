@@ -12,6 +12,7 @@ type Props = {
   excludeId?: string;
   category?: string | null;
   topic?: string | null;
+  destinations?: PreviewDestination[];
 };
 
 const destinationMeta: Record<PreviewDestination, { label: string; href: string }> = {
@@ -70,6 +71,20 @@ function mapCampaign(item: any): PreviewItem {
     category: "Campaign",
     destination: "campaigns",
   };
+}
+
+const allDestinations: PreviewDestination[] = ["news", "alerts", "reports", "campaigns", "infrastructure"];
+
+function categoryHref(destination: PreviewDestination, category?: string | null) {
+  if (!category) return destinationMeta[destination].href;
+  const query = destination === "news"
+    ? `?category=${encodeURIComponent(category)}`
+    : destination === "alerts"
+      ? `?hazard=${encodeURIComponent(category)}`
+      : destination === "reports"
+        ? `?incident=${encodeURIComponent(category)}`
+        : "";
+  return destinationMeta[destination].href + query;
 }
 function mapInfrastructure(item: any): PreviewItem {
   return {
@@ -173,9 +188,9 @@ function PreviewCard({
 }
 
 export function GlobalEditorialPreview({ destination, excludeId, category, topic }: Props) {
-  const meta = destinationMeta[destination];
+  const modules = allDestinations;
   const query = useQuery({
-    queryKey: ["global-editorial-preview", destination, excludeId, category, topic],
+    queryKey: ["global-editorial-preview", destination, excludeId, category, topic, modules],
     queryFn: async () => {
       const [
         news,
@@ -243,85 +258,51 @@ export function GlobalEditorialPreview({ destination, excludeId, category, topic
         campaigns: { latest: (campaigns.data ?? []).map(mapCampaign), ranked: [] },
         infrastructure: { latest: (infrastructure.data ?? []).map(mapInfrastructure), ranked: [] },
       };
-      const applyContext = (items: PreviewItem[]) =>
+      const applyContext = (module: PreviewDestination, items: PreviewItem[]) =>
         items
           .filter((item) => item.id !== excludeId)
-          .filter((item) => !category || item.category?.toLowerCase() === category.toLowerCase())
-          .filter((item) => !topic || item.category?.toLowerCase() === topic.toLowerCase());
-      return buildPreviewCards(
-        applyContext(pools[destination].latest),
-        applyContext(pools[destination].ranked),
+        .filter((item) => module !== destination || !category || item.category?.toLowerCase() === category.toLowerCase())
+        .filter((item) => module !== destination || !topic || item.category?.toLowerCase() === topic.toLowerCase());
+      return Object.fromEntries(modules.map((module) => [module, buildPreviewCards(
+        applyContext(module, pools[module].latest),
+        applyContext(module, pools[module].ranked),
         { latest: "Latest" },
-      );
+      )]));
     },
   });
-  const cards = query.data ?? [];
+  const cardsByDestination = (query.data ?? {}) as Record<PreviewDestination, ReturnType<typeof buildPreviewCards>>;
   return (
-    <section
-      className="mx-auto max-w-6xl px-4 py-8"
-      aria-label={"Global " + meta.label + " previews"}
-    >
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent-foreground">
-            Keep exploring
-          </p>
-          <h2 className="mt-1 text-xl font-extrabold text-brand-navy">More from {meta.label}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Verified editorial previews from across Share Barabara.
-          </p>
-        </div>
-        <a
-          href={meta.href}
-          className="inline-flex items-center gap-1 text-sm font-bold text-brand-blue underline underline-offset-2"
-        >
-          View all <ArrowRight className="size-4" aria-hidden="true" />
-        </a>
-      </div>
-      <div className="mt-5 grid gap-4 md:grid-cols-3">
-        {cards[0] ? (
-          <PreviewCard
-            title={cards[0].title}
-            description={cards[0].description}
-            items={cards[0].items}
-            viewHref={meta.href}
-          />
-        ) : null}
-        <div className="hidden md:block">
-          {cards[1] ? (
-            <PreviewCard
-              title={cards[1].title}
-              description={cards[1].description}
-              items={cards[1].items}
-              viewHref={meta.href}
-            />
-          ) : (
-            <PreviewCard
-              title="Highest-viewed eligible category"
-              description="Waiting for recorded public views."
-              items={[]}
-              viewHref={meta.href}
-            />
-          )}
-        </div>
-        <div className="hidden md:block">
-          {cards[2] ? (
-            <PreviewCard
-              title={cards[2].title}
-              description={cards[2].description}
-              items={cards[2].items}
-              viewHref={meta.href}
-            />
-          ) : (
-            <PreviewCard
-              title="Second-highest-viewed eligible category"
-              description="Waiting for recorded public views."
-              items={[]}
-              viewHref={meta.href}
-            />
-          )}
-        </div>
-      </div>
-    </section>
+    <div className="mx-auto max-w-6xl space-y-10 px-4 py-8" aria-label="Global editorial previews">
+      {modules.map((module) => {
+        const meta = destinationMeta[module];
+        const cards = cardsByDestination[module] ?? [];
+        return (
+          <section key={module} aria-label={`Global ${meta.label} previews`}>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent-foreground">Keep exploring</p>
+                <h2 className="mt-1 text-xl font-extrabold text-brand-navy">More from {meta.label}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Verified editorial previews from across Share Barabara.</p>
+              </div>
+              <a href={meta.href} className="inline-flex items-center gap-1 text-sm font-bold text-brand-blue underline underline-offset-2">
+                View all {meta.label} <ArrowRight className="size-4" aria-hidden="true" />
+              </a>
+            </div>
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              {cards.map((card) => (
+                <div key={card.key} className={card.ranked ? "hidden md:block" : ""}>
+                  <PreviewCard
+                    title={card.title}
+                    description={card.description}
+                    items={card.items}
+                    viewHref={card.ranked ? categoryHref(module, card.items[0]?.categoryKey) : meta.href}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
   );
 }

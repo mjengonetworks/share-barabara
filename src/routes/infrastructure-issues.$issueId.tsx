@@ -14,6 +14,8 @@ import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
 import { InfrastructureIssuePreviewCard } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { EditorialSummary } from "@/components/site/editorial-summary";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
   loader: async ({ params }) => {
@@ -172,13 +174,13 @@ function IssueDetail() {
           {issue.image_url ? (
             <figure className="mt-4">
               <img src={issue.image_url} alt={issue.title} className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain" />
-              {issue.image_caption || issue.image_credit ? <figcaption className="mt-2 text-xs text-muted-foreground">{issue.image_caption}{issue.image_caption && issue.image_credit ? " · " : ""}{issue.image_credit ? <em>Credit: {issue.image_credit}</em> : null}</figcaption> : null}
+              <EditorialMediaMeta caption={issue.image_caption} credit={issue.image_credit} />
             </figure>
           ) : null}
 
-          <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
+          <EditorialSummary className="mt-6">
             {issue.summary}
-          </p>
+          </EditorialSummary>
           <div className="mt-6 space-y-4 text-foreground/90">{renderRichText(issue.content)}</div>
 
           {issue.editor_note ? (

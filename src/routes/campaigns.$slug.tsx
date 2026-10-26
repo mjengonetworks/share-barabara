@@ -15,6 +15,8 @@ import {
 import { socialHead } from "@/lib/seo";
 import { CampaignPreviewCard } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { EditorialSummary } from "@/components/site/editorial-summary";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   loader: async ({ params }) => {
@@ -127,13 +129,13 @@ function CampaignDetail() {
           {heroImage ? (
             <figure className="mt-4">
               <img src={heroImage} alt={campaign.title} className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain" />
-              {campaign.image_caption || campaign.image_credit ? <figcaption className="mt-2 text-xs text-muted-foreground">{campaign.image_caption}{campaign.image_caption && campaign.image_credit ? " · " : ""}{campaign.image_credit ? <em>Credit: {campaign.image_credit}</em> : null}</figcaption> : null}
+              <EditorialMediaMeta caption={campaign.image_caption} credit={campaign.image_credit} />
             </figure>
           ) : null}
 
-          <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
+          <EditorialSummary className="mt-6">
             {campaign.description}
-          </p>
+          </EditorialSummary>
 
           <AttachmentGallery attachments={(campaign.attachments as AttachmentRow[] | null) ?? []} />
 

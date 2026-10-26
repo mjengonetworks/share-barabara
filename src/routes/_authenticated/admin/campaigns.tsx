@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
 import { longDate, slugify } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
@@ -261,7 +262,6 @@ function CampaignsAdminPage() {
                     provider={provider}
                     current={form}
                     contentId={editingId ?? undefined}
-                    current={form}
                     source={`Title: ${form.title}\nDescription: ${form.description}\nLocation: ${form.location}\nStart date: ${form.start_date}\nEnd date: ${form.end_date}`}
                     onDraft={(draft) => setForm((current) => ({
                       ...current,
@@ -321,7 +321,9 @@ function CampaignsAdminPage() {
 
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
-      <ul className="mt-6 space-y-3">
+      <AdminListingSurface>
+        <AdminListingHeader><span>Featured image &amp; title</span><span>Dates / location</span><span>Status</span><span>Created</span><span className="text-right">Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {campaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
@@ -443,6 +445,7 @@ function CampaignsAdminPage() {
           </p>
         ) : null}
       </ul>
+      </AdminListingSurface>
     </div>
   );
 }

@@ -20,6 +20,8 @@ import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { renderRichText, splitRichTextBlocks } from "@/lib/richtext";
 import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { EditorialSummary } from "@/components/site/editorial-summary";
 import heroRoad from "@/assets/hero-road.jpg";
 import { publicCategoryBadgeClass } from "@/components/site/public-ui";
 import { socialHead } from "@/lib/seo";
@@ -365,13 +367,7 @@ function NewsDetail() {
                 loading="lazy"
                 className="aspect-video w-full rounded-xl border border-border object-cover object-center"
               />
-              {article.image_caption || article.image_credit ? (
-                <figcaption className="mt-1.5 text-xs text-muted-foreground">
-                  {article.image_caption}
-                  {article.image_caption && article.image_credit ? " · " : ""}
-                  {article.image_credit ? <em>Credit: {article.image_credit}</em> : null}
-                </figcaption>
-              ) : null}
+              <EditorialMediaMeta caption={article.image_caption} credit={article.image_credit} />
             </figure>
           ) : (
             <figure className="mt-4">
@@ -411,9 +407,9 @@ function NewsDetail() {
             </div>
           ) : null}
           {article.summary?.trim() ? (
-            <p className="mt-5 rounded-lg border border-sky-200/80 bg-sky-50 px-4 py-3 text-lg text-primary">
+            <EditorialSummary className="mt-5">
               {article.summary}
-            </p>
+            </EditorialSummary>
           ) : null}
           {article.status === "published" ? (
             <div className="mt-5">

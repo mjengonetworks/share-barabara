@@ -1,5 +1,6 @@
 import { FileText } from "lucide-react";
 import { YouTubeEmbed, extractYouTubeId } from "@/lib/richtext";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 
 export type AttachmentRow = {
   url: string;
@@ -35,13 +36,7 @@ export function AttachmentGallery({ attachments }: { attachments: AttachmentRow[
               className="aspect-video w-full rounded-lg border border-border object-cover"
             />
           )}
-          {a.caption || a.credit ? (
-            <figcaption className="mt-1.5 text-xs text-muted-foreground">
-              {a.caption}
-              {a.caption && a.credit ? " · " : ""}
-              {a.credit ? <em>Credit: {a.credit}</em> : null}
-            </figcaption>
-          ) : null}
+          <EditorialMediaMeta caption={a.caption} credit={a.credit} />
         </figure>
       ))}
     </div>

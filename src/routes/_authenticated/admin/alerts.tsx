@@ -48,6 +48,7 @@ import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { AlertForm } from "@/components/site/alert-form";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
@@ -239,10 +240,11 @@ function AlertsAdminPage() {
 
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
+      <AdminListingSurface className="mt-0">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Image</TableHead>
               <TableHead>Alert</TableHead>
               <TableHead>County</TableHead>
               <TableHead>Severity</TableHead>
@@ -255,6 +257,9 @@ function AlertsAdminPage() {
           <TableBody>
             {alerts.map((a) => (
               <TableRow key={a.id}>
+                <TableCell>
+                  {a.image_url ? <img src={a.image_url} alt="" className="size-12 rounded object-cover" /> : <div className="size-12 rounded bg-muted" aria-label="No featured image" />}
+                </TableCell>
                 <TableCell className="max-w-xs">
                   <Link
                     to="/alerts/$alertId"
@@ -337,14 +342,14 @@ function AlertsAdminPage() {
             ))}
             {!isLoading && alerts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                   Nothing matches these filters.
                 </TableCell>
               </TableRow>
             ) : null}
           </TableBody>
         </Table>
-      </div>
+      </AdminListingSurface>
 
       <Dialog open={!!editingParties} onOpenChange={(v) => !v && setEditingParties(null)}>
         <DialogContent>
