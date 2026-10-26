@@ -599,3 +599,18 @@ blocked and unimplemented because the repository has no approved generic relatio
 incident duplicate-review suggestions are not a substitute. No authenticated browser/CUA session was available,
 so the owner must still visually verify all four corrected admin pages and the report detail at desktop/tablet/mobile
 widths, and real image requests/live Editorial AI/provider interactions remain unverified. Live SearXNG remains PENDING.
+
+Master Admin CMS Continuation — TESTING / NOT DEPLOYED. Independent Cloudflare inspection found the newer live
+Worker `623e7634-38c7-45ff-96df-58bd46f3b676` at 100% traffic, annotated `align mobile header controls`, corresponding
+to Git commit `24e689e777f4b7b2d392c028b861d09261ab64b0`. That deployed commit was merged before further work;
+the mobile header correction remains preserved. Static audit confirms Article forms do not render Accident Report
+crash-statistics fields, and Report creation/edit paths expose role-gated Generate, Groq Auto-Populate, Grok
+Auto-Populate and Update controls in the intended order where applicable. No authenticated browser or live-provider
+session was available, so actual field population and visual admin/mobile acceptance remain unverified.
+
+The repository has no generic persisted cross-content tag/relationship tables or target-draft conversion RPCs. A
+review-only, non-executing proposal is recorded at `supabase/inspection/cross-content-relationships-proposal.sql`.
+It defines canonical tags, polymorphic content assignments, relationship provenance, editor-only RLS and required
+server-owned draft/public RPC seams; it ends with `rollback` and was not added to `supabase/migrations` or executed.
+Cross-content generation, reusable tags and bidirectional relationships therefore remain incomplete pending owner
+approval of the schema/RLS/RPC design. No deployment was performed. Live SearXNG remains PENDING.
