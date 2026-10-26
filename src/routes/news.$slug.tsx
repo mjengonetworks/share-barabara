@@ -19,6 +19,7 @@ import { ArticleShareToolbar } from "@/components/site/article-share-toolbar";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { renderRichText, splitRichTextBlocks } from "@/lib/richtext";
 import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import heroRoad from "@/assets/hero-road.jpg";
 import { publicCategoryBadgeClass } from "@/components/site/public-ui";
 import { socialHead } from "@/lib/seo";
@@ -456,6 +457,7 @@ function NewsDetail() {
           contextualAlerts={contextualAlerts}
         />
       </div>
+      <GlobalEditorialPreview destination="news" excludeId={article.id} category={article.category} />
     </div>
   );
 }

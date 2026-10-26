@@ -17,6 +17,7 @@ import {
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { groupLatestByEntity } from "@/lib/category-entity";
 import {
@@ -406,6 +407,7 @@ function NewsIndex() {
             ) : null}
           </div>
         )}
+        <GlobalEditorialPreview destination="news" category={category} />
         <EditorialDiscoveryRail exclude="news" />
         <MjengoPreviews context="articles" />
       </div>

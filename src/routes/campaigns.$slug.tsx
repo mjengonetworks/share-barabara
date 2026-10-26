@@ -14,6 +14,7 @@ import {
 } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
 import { CampaignPreviewCard } from "@/components/site/discovery-sections";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   loader: async ({ params }) => {
@@ -160,6 +161,7 @@ function CampaignDetail() {
           {relatedCampaigns.length > 0 ? <section className="rounded-lg border border-border bg-card p-5 card-elevated"><h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Related campaigns</h2><div className="mt-3 grid gap-3">{relatedCampaigns.map((item) => <CampaignPreviewCard key={item.id} campaign={item} />)}</div><Link to="/campaigns" className="mt-4 inline-flex text-sm font-semibold text-brand-blue underline">View more campaigns</Link></section> : null}
         </EditorialSidebar>
       </div>
+      <GlobalEditorialPreview destination="campaigns" excludeId={campaign.id} />
     </>
   );
 }

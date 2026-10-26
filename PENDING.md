@@ -458,3 +458,16 @@ independent navigation, role-filtered management surfaces, admin-owned Article/A
 points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
 existing shell and permissions. Browser/device review and any follow-up management-surface refinements remain
 open; no database migration or hosted data change is part of this release.
+
+Global Editorial Preview System — IMPLEMENTED ON feat/global-editorial-preview / NOT DEPLOYED. The additive
+GlobalEditorialPreview component is mounted on the homepage, News, Alerts, Accident Reports, Campaigns,
+Infrastructure Issues, category/topic-filtered listing views, and the corresponding detail surfaces. Desktop
+shows Latest plus up to two eligible categories ranked from the existing recorded-view RPCs; each populated
+card uses one featured item and two compact items. Mobile keeps only Latest. Every module has canonical item
+links and a visible View All link. Existing category/entity browsing cards remain unchanged. Sparse data
+produces an explicit empty state rather than fabricated categories or engagement. Campaigns and Infrastructure
+Issues currently have no recorded-view tables/RPCs, so their category ranking cards remain unranked until an
+owner-approved backend capability exists; no schema or migration was added. Focused preview tests, full tests
+(372/372), security tests (14/14), build and whitespace checks pass. Browser desktop/mobile visual acceptance
+is pending because browser automation initialization failed before exposing a target surface. No deployment was
+performed.

@@ -13,6 +13,7 @@ import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
 import { InfrastructureIssuePreviewCard } from "@/components/site/discovery-sections";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
   loader: async ({ params }) => {
@@ -232,6 +233,7 @@ function IssueDetail() {
           </Link>
         </EditorialSidebar>
       </div>
+      <GlobalEditorialPreview destination="infrastructure" excludeId={issue.id} />
     </>
   );
 }
