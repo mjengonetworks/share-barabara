@@ -28,24 +28,32 @@ test("News keeps detail summaries but uses image-led latest updates and primary-
   assert.match(detail, /article\.summary\?\.trim\(\)/);
 });
 
-test("global preview keeps the three-card desktop and Latest-only mobile contract", () => {
+test("global discovery keeps the three-card desktop and complete-card mobile contract", () => {
   const preview = read("src/components/site/global-editorial-preview.tsx");
   assert.match(preview, /grid gap-4 md:grid-cols-3/);
-  assert.match(preview, /hidden md:block/);
   assert.match(preview, /slice\(1, 3\)/);
+  assert.match(preview, /slice\(0, 3\)/);
   assert.match(preview, /View more/);
-  assert.match(preview, /View all/);
+  assert.match(preview, /BannerAd/);
+  assert.match(preview, /More from Share Barabara/);
 });
 
 test("primary public surfaces keep their own content before global discovery", () => {
   for (const [file, own, discovery] of [
-    ["src/routes/news.index.tsx", "title=\"Browse by Category\"", "GlobalEditorialPreview"],
+    ["src/routes/news.index.tsx", 'title="Browse by Category"', "GlobalEditorialPreview"],
     ["src/routes/alerts.index.tsx", "Latest Alerts", "GlobalEditorialPreview"],
     ["src/routes/reports.index.tsx", "Latest Accident Reports", "GlobalEditorialPreview"],
     ["src/routes/campaigns.tsx", "Ongoing campaigns", "GlobalEditorialPreview"],
-    ["src/routes/infrastructure-issues.index.tsx", "Infrastructure issues", "GlobalEditorialPreview"],
+    [
+      "src/routes/infrastructure-issues.index.tsx",
+      "Infrastructure issues",
+      "GlobalEditorialPreview",
+    ],
   ]) {
     const source = read(file);
-    assert.ok(source.indexOf(own) < source.lastIndexOf(discovery), `${file} places discovery before primary content`);
+    assert.ok(
+      source.indexOf(own) < source.lastIndexOf(discovery),
+      `${file} places discovery before primary content`,
+    );
   }
 });

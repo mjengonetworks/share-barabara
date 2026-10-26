@@ -22,7 +22,6 @@ import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { displayReportCount } from "@/lib/report-metrics";
-import { DiscoverySections } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
@@ -361,7 +360,9 @@ function ReportDetail() {
           ) : null}
 
           <div className="mt-6 space-y-4 text-foreground/90">
-            <EditorialSummary><AdRichText content={report.description} placement="report-body" /></EditorialSummary>
+            <EditorialSummary>
+              <AdRichText content={report.description} placement="report-body" />
+            </EditorialSummary>
           </div>
 
           <AttachmentGallery attachments={report.attachments as AttachmentRow[]} />
@@ -443,12 +444,11 @@ function ReportDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
-      <DiscoverySections
-        focus="report"
-        currentId={report.id}
-        context={{ county: report.county, road: report.road, topic: report.incident_type }}
+      <GlobalEditorialPreview
+        destination="reports"
+        excludeId={report.id}
+        topic={report.incident_type}
       />
-      <GlobalEditorialPreview destination="reports" excludeId={report.id} topic={report.incident_type} />
     </>
   );
 }

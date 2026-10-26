@@ -74,21 +74,22 @@ test("all public editorial surfaces mount the shared bidirectional preview", asy
   for (const file of files) assert.match(await fs.readFile(file, "utf8"), /GlobalEditorialPreview/);
 });
 
-test("preview cards keep canonical destinations, card navigation and responsive hierarchy", async () => {
+test("shared discovery cards keep canonical destinations and the approved responsive hierarchy", async () => {
   const fs = await import("node:fs/promises");
   const source = await fs.readFile("src/components/site/global-editorial-preview.tsx", "utf8");
   for (const href of [
-    'href: "/news/"',
-    'href: "/alerts/"',
-    'href: "/reports/"',
-    'href: "/campaigns/"',
-    'href: "/infrastructure-issues/"',
+    "`/news/${item.slug}`",
+    "`/alerts/${item.id}`",
+    "`/reports/${item.id}`",
+    "`/campaigns/${item.slug}`",
+    "`/infrastructure-issues/${item.id}`",
   ]) {
     assert.ok(source.includes(href), "missing canonical preview destination " + href);
   }
   assert.match(source, /View more/);
-  assert.match(source, /View all/);
-  assert.match(source, /hidden md:block/);
+  assert.match(source, /BannerAd/);
+  assert.match(source, /More from Share Barabara/);
   assert.match(source, /grid gap-4 md:grid-cols-3/);
   assert.match(source, /slice\(1, 3\)/);
+  assert.match(source, /slice\(0, 3\)/);
 });
