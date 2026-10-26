@@ -72,7 +72,6 @@ function CampaignListItem({
           {dateLabel}
           {c.location ? ` · ${c.location}` : ""}
         </p>
-        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>
       </div>
     </Link>
   );

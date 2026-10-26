@@ -5,7 +5,6 @@ export type PreviewItem = {
   title: string;
   href: string;
   imageUrl?: string | null;
-  summary?: string | null;
   category?: string | null;
   destination: PreviewDestination;
   categoryKey?: string | null;
@@ -15,7 +14,6 @@ export type PreviewItem = {
 export type PreviewCard = {
   key: string;
   title: string;
-  description: string;
   items: PreviewItem[];
   ranked: boolean;
 };
@@ -59,7 +57,6 @@ export function buildPreviewCards(
     {
       key: "latest",
       title: labels.latest,
-      description: "The newest verified updates across this section.",
       items: unique(latest).slice(0, 3),
       ranked: false,
     },
@@ -68,7 +65,6 @@ export function buildPreviewCards(
     cards.push({
       key: "category-" + category.key,
       title: category.label,
-      description: "Category selected from recorded public views.",
       items: unique(category.items).slice(0, 3),
       ranked: true,
     });

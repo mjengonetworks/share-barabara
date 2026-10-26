@@ -43,7 +43,8 @@ test("news listing keeps the editorial lead, compact cards, sections and ad plac
   assert.match(news, /Relevant Alerts/);
   assert.match(news, /news-context-midpoint/);
   assert.match(news, /function LatestStrip/);
-  assert.match(news, /Latest update/);
+  assert.match(news, /Latest updates/);
+  assert.match(news, /size-14 shrink-0 rounded object-cover/);
   assert.match(news, /fullBleed/);
   assert.match(news, /Filter articles by category/);
   assert.match(news, /from\("accident_reports"\)/);

@@ -114,7 +114,6 @@ export function ArticlePreviewCard({ article }: { article: ArticlePreview }) {
         <h3 className="mt-1 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">
           {article.title}
         </h3>
-        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{article.summary}</p>
       </div>
     </Link>
   );
@@ -141,7 +140,6 @@ export function AlertPreviewCard({ alert }: { alert: AlertPreview }) {
         <MapPin className="size-4 shrink-0" aria-hidden="true" /> {alert.county}
         {alert.road ? ` · ${alert.road}` : ""}
       </p>
-      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{alert.description}</p>
     </Link>
   );
 }
@@ -198,7 +196,6 @@ export function InfrastructureIssuePreviewCard({ issue }: { issue: Infrastructur
         </div>
         <h3 className="mt-2 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">{issue.title}</h3>
         <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="size-4 shrink-0" aria-hidden="true" />{issue.road_name}{issue.county ? ` · ${issue.county}` : ""}</p>
-        {issue.summary ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{issue.summary}</p> : null}
       </div>
     </Link>
   );
@@ -215,7 +212,6 @@ export function CampaignPreviewCard({ campaign }: { campaign: CampaignPreview })
       <div className="p-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-accent-foreground">Campaign</p>
         <h3 className="mt-1 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">{campaign.title}</h3>
-        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{campaign.description}</p>
       </div>
     </Link>
   );

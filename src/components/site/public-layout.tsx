@@ -136,11 +136,6 @@ export function FeaturedLeadCard({ article }: { article: PublicArticleCard }) {
         <h3 className="mt-3 text-2xl font-extrabold leading-tight text-brand-navy group-hover:underline sm:text-3xl">
           {article.title}
         </h3>
-        {article.summary ? (
-          <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground sm:text-base">
-            {article.summary}
-          </p>
-        ) : null}
       </div>
     </Link>
   );
@@ -161,11 +156,6 @@ export function CompactArticleCard({ article }: { article: PublicArticleCard }) 
         <h3 className="mt-1.5 line-clamp-3 font-bold leading-snug text-brand-navy group-hover:underline sm:text-base">
           {article.title}
         </h3>
-        {article.summary ? (
-          <p className="mt-2 hidden line-clamp-2 text-sm text-muted-foreground sm:block">
-            {article.summary}
-          </p>
-        ) : null}
       </div>
     </Link>
   );
