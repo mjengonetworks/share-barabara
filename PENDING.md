@@ -551,3 +551,18 @@ security tests pass (14/14), production build passes, and `git diff --check` pas
 authenticated mobile/provider session was available, so Phone A/Phone B live reproduction and real Grok/Groq
 acceptance remain pending. No migration, public UI, advertisement, Task 70, unrelated AI/authentication,
 or SearXNG change was made.
+
+Cross-Device Admin Editorial AI Consistency — DEPLOYED / BROWSER AND LIVE-PROVIDER ACCEPTANCE PENDING.
+The latest production deployment before this release was Worker `22348c43-daf0-409c-b5c1-2b61f90e00e7`,
+associated with the production admin-listing commit `4b34ad9`; no newer deployed branch was merged. The
+reconciled source commit `3d6cfb8ca5a442d9d12713e517862b2344227995` includes that production tree and the
+cross-device Editorial AI/cache fix. It was deployed as Worker `b78fc802-e222-4951-a051-f98edc871f05`,
+which receives 100% traffic; rollback target is `22348c43-daf0-409c-b5c1-2b61f90e00e7`. Focused Editorial
+AI tests passed (7/7), full regression passed (395/395), security tests passed (14/14), production build
+passed, and `git diff --check` passed. Production smoke checks returned HTTP 200 for `/`, `/news`,
+`/reports`, `/alerts`, `/infrastructure-issues`, `/campaigns`, `/search` and `/admin/articles`. The live
+HTML exposes `Cache-Control: no-cache, must-revalidate`; the deployed Editorial AI bundle contains the
+non-sensitive UI diagnostic marker and no `Title: Summary: Body:` scaffold. Authenticated mobile browser
+reproduction and real Grok/Groq calls remain pending because no authorized browser/provider session was
+available. No migration, public UI, advertisement, Task 70, unrelated AI/authentication, or SearXNG change
+was made.
