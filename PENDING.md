@@ -471,6 +471,6 @@ owner-approved backend capability exists; no schema or migration was added. The 
 would add separate public insert / moderator-read view tables and SECURITY DEFINER trending RPCs for campaigns
 and infrastructure issues, each with a foreign key to its existing content table and public-status filtering.
 This requires owner approval and production schema review before implementation. Focused preview tests, full
-tests (372/372 before this documentation/test-only update), security tests (14/14), build and whitespace checks
-pass. Browser desktop/mobile visual acceptance is pending because browser automation initialization failed
+tests (373/373), security tests (14/14), build and whitespace checks pass. Browser desktop/mobile visual
+acceptance is pending because browser automation initialization failed
 before exposing a target surface. No deployment was performed.
