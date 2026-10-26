@@ -134,10 +134,12 @@ function PreviewCard({
   title,
   description,
   items,
+  viewHref,
 }: {
   title: string;
   description: string;
   items: PreviewItem[];
+  viewHref: string;
 }) {
   return (
     <article className="rounded-xl border border-border bg-card p-3 card-elevated">
@@ -154,6 +156,12 @@ function PreviewCard({
           {items.slice(1, 3).map((item) => (
             <ItemLink key={item.id} item={item} />
           ))}
+          <a
+            href={viewHref}
+            className="inline-flex items-center gap-1 pt-1 text-xs font-bold text-brand-blue underline underline-offset-2"
+          >
+            View more <ArrowRight className="size-3.5" aria-hidden="true" />
+          </a>
         </div>
       ) : (
         <p className="rounded-lg border border-dashed border-border p-4 text-xs text-muted-foreground">
@@ -276,6 +284,7 @@ export function GlobalEditorialPreview({ destination, excludeId, category, topic
             title={cards[0].title}
             description={cards[0].description}
             items={cards[0].items}
+            viewHref={meta.href}
           />
         ) : null}
         <div className="hidden md:block">
@@ -284,12 +293,14 @@ export function GlobalEditorialPreview({ destination, excludeId, category, topic
               title={cards[1].title}
               description={cards[1].description}
               items={cards[1].items}
+              viewHref={meta.href}
             />
           ) : (
             <PreviewCard
               title="Highest-viewed eligible category"
               description="Waiting for recorded public views."
               items={[]}
+              viewHref={meta.href}
             />
           )}
         </div>
@@ -299,12 +310,14 @@ export function GlobalEditorialPreview({ destination, excludeId, category, topic
               title={cards[2].title}
               description={cards[2].description}
               items={cards[2].items}
+              viewHref={meta.href}
             />
           ) : (
             <PreviewCard
               title="Second-highest-viewed eligible category"
               description="Waiting for recorded public views."
               items={[]}
+              viewHref={meta.href}
             />
           )}
         </div>
