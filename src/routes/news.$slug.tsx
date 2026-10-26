@@ -21,7 +21,7 @@ import { renderRichText, splitRichTextBlocks } from "@/lib/richtext";
 import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
-import { EditorialSummary } from "@/components/site/editorial-summary";
+import { EditorialSummary, ReadAlso } from "@/components/site/editorial-summary";
 import heroRoad from "@/assets/hero-road.jpg";
 import { publicCategoryBadgeClass } from "@/components/site/public-ui";
 import { socialHead } from "@/lib/seo";
@@ -480,12 +480,7 @@ function ArticleBody({
             </div>
           ) : null}
           {readAlsoAfter === index + 1 ? (
-            <p className="mx-auto max-w-2xl rounded border-l-4 border-caution bg-caution/10 px-4 py-2 text-center text-sm leading-6">
-              <span className="font-semibold">Read also: </span>
-              <Link to="/news/$slug" params={{ slug: related.slug }} className="underline">
-                {related.title}
-              </Link>
-            </p>
+            <ReadAlso related={related} />
           ) : null}
         </Fragment>
       ))}

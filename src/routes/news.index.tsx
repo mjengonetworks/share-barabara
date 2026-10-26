@@ -18,6 +18,10 @@ import {
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import {
+  publicCategoryNavigationClass,
+  publicCategoryNavigationSelectedClass,
+} from "@/components/site/public-ui";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { groupLatestByEntity } from "@/lib/category-entity";
 import {
@@ -155,11 +159,7 @@ function CategoryFilters({ categories, active }: { categories: string[]; active?
       <Link
         to="/news"
         aria-current={!active ? "page" : undefined}
-        className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 sm:py-2 sm:text-sm ${
-          !active
-            ? "border-accent bg-accent text-brand-navy"
-            : "border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
-        }`}
+        className={!active ? publicCategoryNavigationSelectedClass : publicCategoryNavigationClass}
       >
         All articles
       </Link>
@@ -169,11 +169,11 @@ function CategoryFilters({ categories, active }: { categories: string[]; active?
           to="/news"
           search={{ category }}
           aria-current={active === category ? "page" : undefined}
-          className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 sm:py-2 sm:text-sm ${
+          className={
             active === category
-              ? "border-accent bg-accent text-brand-navy"
-              : "border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:border-accent hover:bg-accent/20"
-          }`}
+              ? publicCategoryNavigationSelectedClass
+              : publicCategoryNavigationClass
+          }
         >
           {category}
         </Link>
