@@ -469,3 +469,15 @@ shell smoke tests returned HTTP 200, and deployed Campaign and Infrastructure Is
 shared Editorial AI controls. No live Grok/Groq provider call was performed because authorized production
 credentials/test access were unavailable; mocked/provider-contract coverage is separate. No database
 migration, Task 70, advertisement, unrelated authentication, or SearXNG activation was performed.
+
+Editorial AI Source Fidelity Repair — DEPLOYED. Commit 39b24ff was deployed from the production
+baseline documented above as Worker d734a020-67a1-4944-b385-0488beb8200e; rollback target is the
+pre-repair Worker c5dc04bd-61d4-49a5-a486-6da16774ce85. Root cause was valid Article JSON being
+truncated by the 1,200-token provider budget and the 5,000-character response cap before parsing,
+combined with a generation prompt that required a long article plus multiple fields. The repair uses
+a larger editorial JSON budget, a separate source-extraction contract, deterministic checks for
+dates, locations, numbers and unknown casualties, safe request IDs/errors, and explicit field-preview
+confirmation before application. Full tests passed (372/372), security tests passed (14/14), and
+the production build passed. Public and admin route shells returned HTTP 200. Authenticated live
+Grok/Groq generation remains pending because no authorized provider test session was available.
+No migration, advertisement, Task 70, unrelated AI/authentication, or SearXNG change was made.
