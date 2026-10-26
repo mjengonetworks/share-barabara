@@ -141,7 +141,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             mode="generate"
             provider="grok"
             current={form}
-            source={`Title: ${form["title"]}\nSummary: ${form["summary"]}\nBody: ${form["body"]}`}
+            source=""
             onDraft={(draft) => {
               setForm((current) => ({
                 ...current,
@@ -162,7 +162,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             mode="autopopulate"
             provider="groq"
             current={form}
-            source={`Title: ${form["title"]}\nSummary: ${form["summary"]}\nBody: ${form["body"]}`}
+            source=""
             onDraft={(draft) => {
               setForm((current) => ({
                 ...current,
@@ -183,7 +183,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             mode="autopopulate"
             provider="grok"
             current={form}
-            source={`Title: ${form["title"]}\nSummary: ${form["summary"]}\nBody: ${form["body"]}`}
+            source=""
             onDraft={(draft) => setForm((current) => ({
               ...current,
               ...Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== "" && value !== null)),

@@ -353,7 +353,7 @@ function ArticlesQueuePage() {
                         mode="generate"
                         provider="grok"
                         current={d}
-                        source={`Title: ${d["title"]}\nSummary: ${d["summary"]}\nBody: ${d["body"]}`}
+                        source=""
                         onDraft={(draft) =>
                           set({
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -370,7 +370,7 @@ function ArticlesQueuePage() {
                         mode="autopopulate"
                         provider="groq"
                         current={d}
-                        source={`Title: ${d["title"]}\nSummary: ${d["summary"]}\nBody: ${d["body"]}`}
+                        source=""
                         onDraft={(draft) =>
                           set({
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -387,7 +387,7 @@ function ArticlesQueuePage() {
                         mode="autopopulate"
                         provider="grok"
                         current={d}
-                        source={`Title: ${d["title"]}\nSummary: ${d["summary"]}\nBody: ${d["body"]}`}
+                        source=""
                         onDraft={(draft) =>
                           set({
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -401,7 +401,7 @@ function ArticlesQueuePage() {
                       />
                       <EditorialAIButton
                         contentType="article"
-                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        source=""
                         mode="update"
                         provider="grok"
                         contentId={a.id}
