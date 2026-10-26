@@ -33,9 +33,35 @@ test("global editorial detail styling restores the original summary and Read Als
   assert.match(summary, /repeating-linear-gradient/);
   assert.match(summary, /Read also/);
   assert.match(summary, /border-brand-navy/);
+  assert.match(summary, /bg-sky-50.*px-3.*py-2/s);
+  assert.match(summary, /<p className=.*Read also.*<\/p>[\s\S]*<Link/);
   const article = await fs.readFile("src/routes/news.$slug.tsx", "utf8");
   assert.match(article, /<ReadAlso related=\{related\} \/>/);
   assert.doesNotMatch(article, /Read also:.*related\.title/s);
+});
+
+test("public detail category badges share the compact yellow/navy treatment", async () => {
+  const ui = await fs.readFile("src/components/site/public-ui.tsx", "utf8");
+  assert.match(ui, /publicEditorialCategoryBadgeClass/);
+  assert.match(ui, /bg-accent/);
+  assert.match(ui, /border-brand-navy/);
+  assert.match(ui, /text-brand-navy/);
+  assert.match(ui, /px-2 py-0\.5/);
+
+  const detailRoutes = [
+    "src/routes/news.$slug.tsx",
+    "src/routes/alerts.$alertId.tsx",
+    "src/routes/reports.$reportId.tsx",
+    "src/routes/campaigns.$slug.tsx",
+    "src/routes/infrastructure-issues.$issueId.tsx",
+  ];
+  for (const file of detailRoutes) {
+    const source = await fs.readFile(file, "utf8");
+    assert.match(source, /PublicEditorialCategoryBadge|publicEditorialCategoryBadgeClass/, file);
+  }
+
+  const preview = await fs.readFile("src/components/site/global-editorial-preview.tsx", "utf8");
+  assert.doesNotMatch(preview, /publicEditorialCategoryBadge/);
 });
 
 test("public category navigation uses compact yellow/navy shared controls", async () => {

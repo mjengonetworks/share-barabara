@@ -30,6 +30,7 @@ import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
+import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   loader: async ({ params }) => {
@@ -178,9 +179,9 @@ function AlertDetail() {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <TriangleAlert className="size-4 text-caution" />
             <SeverityBadge value={alert.severity} />
-            <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            <PublicEditorialCategoryBadge>
               {hazardTypes.find((h) => h.value === alert.hazard_type)?.label ?? alert.hazard_type}
-            </span>
+            </PublicEditorialCategoryBadge>
             <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
           </div>
 

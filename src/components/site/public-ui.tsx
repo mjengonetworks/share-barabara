@@ -8,6 +8,14 @@ export const publicCategoryBadgeClass =
 export const publicCategoryBadgeSelectedClass =
   "inline-flex max-w-full items-center rounded-md border border-blue-100/40 bg-brand-navy px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+/** Compact yellow/navy category marker used above public detail titles. */
+export const publicEditorialCategoryBadgeClass =
+  "inline-flex max-w-full items-center rounded-md border border-brand-navy bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-brand-navy transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 sm:px-2.5 sm:py-1 sm:text-xs";
+
+export function PublicEditorialCategoryBadge({ children }: { children: ReactNode }) {
+  return <span className={publicEditorialCategoryBadgeClass}>{children}</span>;
+}
+
 /** Compact yellow/navy controls used only by public category/filter navigation. */
 export const publicCategoryNavigationClass =
   "inline-flex min-h-9 shrink-0 items-center rounded-full border border-brand-navy bg-accent px-2.5 py-1 text-xs font-bold text-brand-navy transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 sm:px-3 sm:py-1.5";

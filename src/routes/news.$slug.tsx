@@ -23,7 +23,7 @@ import { GlobalEditorialPreview } from "@/components/site/global-editorial-previ
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary, ReadAlso } from "@/components/site/editorial-summary";
 import heroRoad from "@/assets/hero-road.jpg";
-import { publicCategoryBadgeClass } from "@/components/site/public-ui";
+import { publicEditorialCategoryBadgeClass, publicCategoryBadgeClass } from "@/components/site/public-ui";
 import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/news/$slug")({
@@ -333,7 +333,7 @@ function NewsDetail() {
                 key={c}
                 to="/news"
                 search={{ category: c }}
-                className={publicCategoryBadgeClass}
+                className={publicEditorialCategoryBadgeClass}
               >
                 {c}
               </Link>
