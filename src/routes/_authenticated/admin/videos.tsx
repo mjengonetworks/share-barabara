@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Video as VideoIcon } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, Video as VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { useRoles } from "@/hooks/useRoles";
 import { useProfileNames } from "@/lib/profiles";
 import { UserLink } from "@/components/site/user-link";
 import { timeAgo } from "@/lib/format";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/admin/videos")({
   head: () => ({ meta: [{ title: "Videos: Share Barabara Admin" }] }),
@@ -27,6 +28,7 @@ function VideosAdminPage() {
   const { canPublishArticles: canModerate } = useRoles();
   const queryClient = useQueryClient();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ["admin-videos"],
@@ -68,13 +70,14 @@ function VideosAdminPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const filteredVideos = videos.filter((video) => `${video.title} ${video.description ?? ""} ${video.video_url}`.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
     <div className="max-w-4xl">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Moderation queue
       </p>
-      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Videos</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Media library</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         Submitted video links awaiting review. Featuring or rejecting needs editor rank or above.
       </p>
@@ -92,8 +95,9 @@ function VideosAdminPage() {
         </p>
       ) : null}
 
-      <ul className="mt-6 space-y-3">
-        {videos.map((v) => {
+      <div className="mt-5 flex items-center gap-2"><Search className="size-4 text-muted-foreground" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search media, title or source" aria-label="Search media" /></div>
+      <ul className="mt-4 space-y-3">
+        {filteredVideos.map((v) => {
           const expanded = expandedId === v.id;
           return (
             <li key={v.id} className="rounded-lg border border-border bg-card card-elevated">

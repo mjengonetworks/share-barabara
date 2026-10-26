@@ -108,7 +108,7 @@ const SECTIONS: NavSection[] = [
         minRank: ROLE_RANK.moderator,
       },
       { to: "/admin/feed", label: "Feed Posts", icon: MessageSquare, minRank: ROLE_RANK.moderator },
-      { to: "/admin/videos", label: "Videos", icon: Video, minRank: ROLE_RANK.moderator },
+      { to: "/admin/videos", label: "Media library", icon: Video, minRank: ROLE_RANK.moderator },
       { to: "/admin/requests", label: "Requests", icon: Inbox, minRank: ROLE_RANK.moderator },
     ],
   },

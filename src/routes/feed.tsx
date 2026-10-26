@@ -3,13 +3,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Flame,
+  Filter,
   Hash,
+  Image,
+  Link2,
   MessageSquare,
+  PhoneCall,
   Pencil,
+  Search,
   Send,
   ShieldAlert,
   Trash2,
   TrendingUp,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +26,7 @@ import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { useRoles } from "@/hooks/useRoles";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { CommentSection } from "@/components/site/comment-section";
@@ -39,6 +46,7 @@ import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { SocialFollowSection } from "@/components/site/social-follow-section";
 import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
+import { uploadMediaAsset } from "@/lib/storage";
 
 export const Route = createFileRoute("/feed")({
   head: () => ({
@@ -53,6 +61,12 @@ export const Route = createFileRoute("/feed")({
   }),
   validateSearch: (search: Record<string, unknown>) => ({
     sort: search.sort === "top" || search.sort === "hot" ? search.sort : "new",
+    view:
+      search.view === "following" || search.view === "trending" || search.view === "topics" || search.view === "discussions"
+        ? search.view
+        : "for_you",
+    q: typeof search.q === "string" ? search.q.slice(0, 80) : "",
+    type: typeof search.type === "string" ? search.type.slice(0, 32) : "",
   }),
   component: FeedPage,
 });
@@ -68,16 +82,21 @@ type Post = {
   published_at: string | null;
   score?: number;
   comment_count?: number;
+  media?: Array<{ media_type: "image" | "video"; public_url: string; filename: string }>;
 };
 type AutoItem = {
   id: string;
-  kind: "alert" | "report" | "article";
+  kind: "alert" | "report" | "article" | "campaign" | "infrastructure";
   title: string;
   body: string;
   created_at: string;
   location?: string | null;
   href: string;
 };
+
+type TimelineItem =
+  | { kind: "community"; id: string; created_at: string; post: Post }
+  | { kind: "editorial"; id: string; created_at: string; item: AutoItem };
 type MediaItem = {
   id: string;
   title: string;
@@ -90,13 +109,14 @@ function FeedPage() {
   const { user } = useAuth();
   const { rank } = useRoles();
   const queryClient = useQueryClient();
-  const { sort = "new" } = Route.useSearch();
+  const { sort = "new", view = "for_you", q = "", type = "" } = Route.useSearch();
   const [body, setBody] = useState("");
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
   const [editingPost, setEditingPost] = useState<string | null>(null);
   const [editBody, setEditBody] = useState("");
   const [reportTarget, setReportTarget] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const {
     data: posts = [],
@@ -125,7 +145,7 @@ function FeedPage() {
   const { data: automatic = [] } = useQuery<AutoItem[]>({
     queryKey: ["feed-automatic-content"],
     queryFn: async () => {
-      const [alerts, reports, articles] = await Promise.all([
+      const [alerts, reports, articles, campaigns, infrastructure] = await Promise.all([
         supabase
           .from("alerts")
           .select("id,title,description,county,road,created_at")
@@ -144,13 +164,24 @@ function FeedPage() {
           .eq("status", "published")
           .order("published_at", { ascending: false })
           .limit(8),
+        supabase
+          .from("campaigns")
+          .select("id,slug,title,description,start_date")
+          .order("start_date", { ascending: false })
+          .limit(8),
+        supabase
+          .from("infrastructure_issues")
+          .select("id,title,summary,road_name,created_at")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
+          .limit(8),
       ]);
       return [
         ...(alerts.data ?? []).map((item) => ({
           id: item.id,
           kind: "alert" as const,
           title: item.title,
-          body: item.description,
+          body: item.description ?? "",
           location: [item.county, item.road].filter(Boolean).join(" · "),
           created_at: item.created_at,
           href: `/alerts/${item.id}`,
@@ -159,7 +190,7 @@ function FeedPage() {
           id: item.id,
           kind: "report" as const,
           title: item.title,
-          body: item.description,
+          body: item.description ?? "",
           location: [item.county, item.road].filter(Boolean).join(" · "),
           created_at: item.occurred_at,
           href: `/reports/${item.id}`,
@@ -168,9 +199,27 @@ function FeedPage() {
           id: item.id,
           kind: "article" as const,
           title: item.title,
-          body: item.summary,
+          body: item.summary ?? "",
           created_at: item.published_at,
           href: `/news/${item.slug}`,
+        })),
+        ...(campaigns.data ?? []).map((item) => ({
+          id: item.id,
+          kind: "campaign" as const,
+          title: item.title,
+          body: item.description ?? "",
+          location: null,
+          created_at: item.start_date,
+          href: `/campaigns/${item.slug}`,
+        })),
+        ...(infrastructure.data ?? []).map((item) => ({
+          id: item.id,
+          kind: "infrastructure" as const,
+          title: item.title,
+          body: item.summary ?? "",
+          location: item.road_name,
+          created_at: item.created_at,
+          href: `/infrastructure-issues/${item.id}`,
         })),
       ]
         .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -208,10 +257,27 @@ function FeedPage() {
       return (data ?? []) as { entity_id: string }[];
     },
   });
+  const { data: mediaRows = [] } = useQuery<{ post_id: string; media_type: "image" | "video"; public_url: string; filename: string }[]>({
+    queryKey: ["feed-post-media", postIds],
+    enabled: postIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase.from("feed_post_media") as any).select("post_id,media_type,public_url,filename").in("post_id", postIds);
+      return (data ?? []) as { post_id: string; media_type: "image" | "video"; public_url: string; filename: string }[];
+    },
+  });
+  const { data: mediaAttachmentsEnabled = false } = useQuery({
+    queryKey: ["feed-post-media-capability"],
+    queryFn: async () => {
+      const { error } = await (supabase.from("feed_post_media") as any).select("id").limit(1);
+      return !error;
+    },
+    staleTime: 300_000,
+  });
   const enriched = posts.map((post) => ({
     ...post,
     score: scores[post.id]?.net ?? 0,
     comment_count: commentRows.filter((comment) => comment.entity_id === post.id).length,
+    media: mediaRows.filter((media) => media.post_id === post.id),
   }));
   const sortedPosts = feedSort(enriched, sort);
   const allNamesIds = sortedPosts.map((post) => post.author_id);
@@ -236,10 +302,15 @@ function FeedPage() {
       if (!user) throw new Error("Sign in to post");
       const clean = normalizeFeedBody(body);
       if (clean.length < 3) throw new Error("Write at least three characters");
-      await createFeedPost({ data: { body: clean } });
+      const media = mediaAttachmentsEnabled ? await Promise.all(attachments.map(async (file) => {
+        const uploaded = await uploadMediaAsset(file, user.id);
+        return { media_type: file.type.startsWith("video/") ? "video" as const : "image" as const, storage_path: uploaded.storagePath, public_url: uploaded.publicUrl, filename: file.name, mime_type: file.type || "application/octet-stream", bytes: file.size };
+      })) : [];
+      await createFeedPost({ data: { body: clean, media } });
     },
     onSuccess: () => {
       setBody("");
+      setAttachments([]);
       toast.success("Posted for community review");
       queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
     },
@@ -314,20 +385,44 @@ function FeedPage() {
 
   const blocked = useMemo(() => new Set(blockedRows.map((row) => row.blocked_id)), [blockedRows]);
   const visiblePosts = sortedPosts.filter((post) => !blocked.has(post.author_id));
+  const normalizedQuery = q.trim().toLowerCase();
+  const matches = (value: string | null | undefined) =>
+    !normalizedQuery || `${value ?? ""}`.toLowerCase().includes(normalizedQuery);
+  const filteredPosts = visiblePosts.filter(
+    (post) => (!type || type === "community") && matches(post.body),
+  );
+  const filteredEditorial = automatic.filter(
+    (item) => (!type || type === item.kind) && (matches(item.title) || matches(item.body)),
+  );
+  const timeline: TimelineItem[] = [
+    ...filteredPosts.map((post) => ({ kind: "community" as const, id: post.id, created_at: post.created_at, post })),
+    ...filteredEditorial.map((item) => ({ kind: "editorial" as const, id: `${item.kind}-${item.id}`, created_at: item.created_at, item })),
+  ].sort((a, b) => b.created_at.localeCompare(a.created_at));
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-4 py-8 sm:px-6">
-      <header className="mb-8">
+      <header className="mb-5 rounded-xl border border-border bg-gradient-to-br from-card via-card to-accent/10 p-4 sm:p-5">
         <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
           Media &amp; community
         </p>
-        <h1 className="mt-1 text-3xl font-extrabold">Media &amp; Feed</h1>
-        <p className="mt-2 max-w-2xl text-muted-foreground">
+        <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">Media &amp; Feed</h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
           Road users, contributors and the Share Barabara newsroom discussing safer roads, transport
           and the infrastructure around us.
         </p>
+        <form className="mt-4 flex max-w-2xl gap-2" method="get" action="/feed">
+          <Input name="q" defaultValue={q} placeholder="Search Media & Feed" aria-label="Search Media & Feed" />
+          <Button type="submit" size="icon" aria-label="Search Media & Feed"><Search className="size-4" /></Button>
+        </form>
       </header>
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <SocialFollowSection />
+      <div className="mt-4 rounded-lg border border-brand-blue/20 bg-brand-blue/5 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2"><Image className="size-4 text-brand-blue" /><div><p className="text-sm font-bold">Media Directory</p><p className="text-xs text-muted-foreground">Browse approved videos and media linked to Share Barabara content.</p></div></div>
+          <Button asChild size="sm" variant="outline"><Link to="/media">Explore media <Link2 className="ml-1 size-3.5" /></Link></Button>
+        </div>
+      </div>
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
         <main className="min-w-0">
           {user ? (
             <section className="rounded-lg border border-border bg-card p-5 card-elevated">
@@ -343,6 +438,11 @@ function FeedPage() {
                 onChange={(event) => setBody(event.target.value)}
                 placeholder="What are road users seeing, discussing or learning today? Use #topics to help people discover it."
               />
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                {mediaAttachmentsEnabled ? <label className="inline-flex cursor-pointer items-center gap-1 text-sm font-semibold text-brand-blue"><Image className="size-4" /> Attach photo/video<input type="file" accept="image/*,video/*" multiple className="sr-only" onChange={(event) => setAttachments(Array.from(event.target.files ?? []).slice(0, 4))} /></label> : <span className="text-xs text-muted-foreground">Media attachments are awaiting storage approval.</span>}
+                {attachments.length ? <span className="text-xs text-muted-foreground">{attachments.length} attachment{attachments.length === 1 ? "" : "s"} selected</span> : null}
+                {attachments.length ? <button type="button" className="text-xs font-semibold text-destructive" onClick={() => setAttachments([])}>Remove attachments</button> : null}
+              </div>
               <div className="mt-3 flex items-center justify-between gap-3">
                 <span className="text-xs text-muted-foreground">
                   Posts are reviewed for safety and community standards before publication.
@@ -366,20 +466,31 @@ function FeedPage() {
               </p>
             </section>
           )}
-          <div className="mt-7 flex flex-wrap items-center gap-2 border-b border-border pb-4">
-            <span className="mr-2 text-sm font-semibold">Sort:</span>
-            {(["new", "top", "hot"] as const).map((value) => (
-              <Link
-                key={value}
-                to="/feed"
-                search={{ sort: value }}
-                className={`rounded-full px-3 py-1.5 text-sm font-semibold ${sort === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
-              >
-                {value === "hot" ? <TrendingUp className="mr-1 inline size-4" /> : null}
-                {value[0].toUpperCase() + value.slice(1)}
+          <nav className="mt-6 flex flex-wrap gap-2 border-b border-border pb-4" aria-label="Media & Feed navigation">
+            {[['for_you', 'For You'], ['following', 'Following'], ['trending', 'Trending'], ['topics', 'Topics'], ['discussions', 'Discussions']].map(([value, label]) => (
+              <Link key={value} to="/feed" search={{ view: value as "for_you" | "following" | "trending" | "topics" | "discussions", sort, q, type }} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${view === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+                {value === "trending" ? <TrendingUp className="mr-1 inline size-4" /> : null}{label}
               </Link>
             ))}
+            <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground" title="Messages are not available yet"><MessageSquare className="size-3.5" /> Messages</span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground" title="Calls are not available yet"><PhoneCall className="size-3.5" /> Calls</span>
+          </nav>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"><Filter className="size-3.5" /> Sort</span>
+            {(["new", "top", "hot"] as const).map((value) => (
+              <Link key={value} to="/feed" search={{ view, sort: value, q, type }} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${sort === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+                {value === "hot" ? <TrendingUp className="mr-1 inline size-3.5" /> : null}{value[0].toUpperCase() + value.slice(1)}
+              </Link>
+            ))}
+            {([['', 'All'], ['article', 'Articles'], ['alert', 'Alerts'], ['report', 'Reports'], ['campaign', 'Campaigns'], ['infrastructure', 'Infrastructure'], ['community', 'Community']] as const).map(([value, label]) => (
+              <Link key={value || 'all'} to="/feed" search={{ view, sort, q, type: value }} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${type === value ? "bg-accent text-brand-navy" : "bg-muted text-muted-foreground hover:text-foreground"}`}>{label}</Link>
+            ))}
           </div>
+          {view !== "for_you" ? (
+            <div className="mt-4 rounded-md border border-caution/40 bg-caution/10 p-3 text-sm text-caution-foreground">
+              <strong>{view.replace("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase())}</strong> is not available as a separate backend-backed stream yet. For You remains the verified unified public Feed.
+            </div>
+          ) : null}
           {isLoading ? (
             <p className="mt-6 text-muted-foreground">Loading community posts…</p>
           ) : null}
@@ -394,12 +505,23 @@ function FeedPage() {
               </p>
             </div>
           ) : null}
-          <div className="mt-6 space-y-5">
-            {visiblePosts.map((post, index) => (
-              <Fragment key={post.id}>
-                {(index + 1) % 4 === 0 ? (
-                  <BannerAd placement={`feed-list-interval-${(index + 1) / 4}`} />
-                ) : null}
+          <div className="mt-6 space-y-5" aria-live="polite">
+            {timeline.map((entry, index) => entry.kind === "editorial" ? (
+              <Fragment key={entry.id}>
+                {(index + 1) % 4 === 0 ? <BannerAd placement={`feed-list-interval-${(index + 1) / 4}`} /> : null}
+                <a href={entry.item.href} className="block rounded-lg border border-border bg-card p-4 transition-colors hover:border-accent card-elevated">
+                  <div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">{entry.item.kind === "article" ? "News & Articles" : entry.item.kind === "alert" ? "Active alert" : entry.item.kind === "report" ? "Approved report" : entry.item.kind === "campaign" ? "Campaign" : "Infrastructure issue"}</span><span className="text-xs text-muted-foreground">{timeAgo(entry.item.created_at)}</span></div>
+                  <h2 className="mt-2 font-bold">{entry.item.title}</h2>
+                  {entry.item.location ? <p className="mt-1 text-xs text-muted-foreground">{entry.item.location}</p> : null}
+                  <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{entry.item.body}</p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-blue">Open canonical source <Link2 className="size-3.5" /></span>
+                </a>
+              </Fragment>
+            ) : (() => {
+              const post = entry.post;
+              return (
+              <Fragment key={entry.id}>
+                {(index + 1) % 4 === 0 ? <BannerAd placement={`feed-list-interval-${(index + 1) / 4}`} /> : null}
                 <article
                   key={post.id}
                   className="rounded-lg border border-border bg-card p-5 card-elevated"
@@ -489,6 +611,15 @@ function FeedPage() {
                       ))}
                     </div>
                   ) : null}
+                  {post.media?.length ? (
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {post.media.map((media) => media.media_type === "video" ? (
+                        <video key={media.public_url} controls preload="metadata" className="max-h-[420px] w-full rounded-md bg-muted object-contain" src={media.public_url} />
+                      ) : (
+                        <img key={media.public_url} src={media.public_url} alt={media.filename} loading="lazy" className="max-h-[420px] w-full rounded-md bg-muted object-contain" />
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-border pt-3">
                     <VoteButtons
                       net={post.score ?? 0}
@@ -500,8 +631,22 @@ function FeedPage() {
                       className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
                       onClick={() => setSelectedPost(selectedPost === post.id ? null : post.id)}
                     >
-                      <MessageSquare className="size-4" /> {post.comment_count ?? 0} discussion
-                      {post.comment_count === 1 ? "" : "s"}
+                      <MessageSquare className="size-4" /> Comments ({post.comment_count ?? 0})
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                      onClick={async () => {
+                        const url = `${window.location.origin}/feed#post-${post.id}`;
+                        try {
+                          await navigator.clipboard.writeText(url);
+                          toast.success("Feed link copied");
+                        } catch {
+                          toast.error("Unable to copy the Feed link");
+                        }
+                      }}
+                    >
+                      <Link2 className="size-4" /> Share
                     </button>
                     {user && post.author_id !== user.id ? (
                       <>
@@ -527,38 +672,9 @@ function FeedPage() {
                   ) : null}
                 </article>
               </Fragment>
-            ))}
+              );
+            })())}
           </div>
-          <section className="mt-10">
-            <div className="mb-4 flex items-center gap-2">
-              <Flame className="size-5 text-accent" />
-              <h2 className="text-xl font-bold">From Share Barabara</h2>
-            </div>
-            <div className="space-y-3">
-              {automatic.map((item) => (
-                <a
-                  key={`${item.kind}-${item.id}`}
-                  href={item.href}
-                  className="block rounded-lg border border-border bg-card p-4 transition-colors hover:border-accent"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">
-                      {item.kind === "article"
-                        ? "News & Articles"
-                        : item.kind === "alert"
-                          ? "Active alert"
-                          : "Approved report"}
-                    </span>
-                  </div>
-                  <h3 className="mt-2 font-bold">{item.title}</h3>
-                  {item.location ? (
-                    <p className="mt-1 text-xs text-muted-foreground">{item.location}</p>
-                  ) : null}
-                  <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{item.body}</p>
-                </a>
-              ))}
-            </div>
-          </section>
           <section className="mt-10" aria-labelledby="feed-media-heading">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>

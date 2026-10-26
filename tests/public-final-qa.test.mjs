@@ -19,7 +19,8 @@ test("public compatibility and privacy contracts remain intact", async () => {
     read("src/routes/feed.tsx"),
     read("src/components/site/public-layout.tsx"),
   ]);
-  assert.match(media, /redirect\(\{ to: "\/feed" \}\)/);
+  assert.match(media, /createFileRoute\("\/media"\)/);
+  assert.match(media, /Media Directory/);
   assert.match(navigation, /label: "Media & Feed"/);
   assert.doesNotMatch(navigation, /label: "Contributors"/);
   assert.match(root, /isAdminApp/);

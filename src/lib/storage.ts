@@ -6,6 +6,11 @@ const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 /** Uploads to the public "media" bucket under the current user's own folder
  *  (required by the storage RLS policies) and returns its public URL. */
 export async function uploadMedia(file: File, userId: string): Promise<string> {
+  const asset = await uploadMediaAsset(file, userId);
+  return asset.publicUrl;
+}
+
+export async function uploadMediaAsset(file: File, userId: string): Promise<{ publicUrl: string; storagePath: string }> {
   const isVideo = file.type.startsWith("video/");
   const max = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
   if (file.size > max) {
@@ -19,5 +24,5 @@ export async function uploadMedia(file: File, userId: string): Promise<string> {
   });
   if (error) throw error;
   const { data } = supabase.storage.from("media").getPublicUrl(path);
-  return data.publicUrl;
+  return { publicUrl: data.publicUrl, storagePath: path };
 }
