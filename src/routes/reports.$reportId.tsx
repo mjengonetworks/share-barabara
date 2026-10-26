@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Flame, MapPin, ShieldCheck } from "lucide-react";
+import { Flame, MapPin, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileNames, useProfileAvatars, useProfileBylines } from "@/lib/profiles";
 import { useRoleLabels, bylineLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
@@ -209,13 +209,6 @@ function ReportDetail() {
       />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
-          <Link
-            to="/reports"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground"
-          >
-            <ArrowLeft className="size-4" /> All reports
-          </Link>
-
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <PublicEditorialCategoryBadge>
               {report.incident_type || "Accident report"}
@@ -232,8 +225,15 @@ function ReportDetail() {
                 {report.status === "pending" ? "awaiting review" : report.status}
               </span>
             ) : null}
-            <span className="text-sm text-muted-foreground">{longDate(report.occurred_at)}</span>
           </div>
+          <p className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
+            <MapPin className="size-4 shrink-0" />
+            <Link to="/reports" search={{ county: report.county }} className="truncate underline">{report.county}</Link>
+            {report.road ? <>
+              <span aria-hidden="true">·</span>
+              {linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="truncate underline">{report.road}</Link> : <a href={`/reports?road=${encodeURIComponent(report.road)}`} className="truncate underline">{report.road}</a>}
+            </> : null}
+          </p>
           {report.status === "rejected" && report.rejection_reason ? (
             <p className="mt-3 rounded border-l-4 border-destructive bg-destructive/10 p-4 text-sm">
               <span className="font-semibold">Rejection reason: </span>
@@ -243,6 +243,7 @@ function ReportDetail() {
           <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {report.title}
           </h1>
+          <p className="mt-2 text-sm text-muted-foreground">Incident date: {longDate(report.occurred_at)}</p>
           <div className="mt-3">
             <ShareButtons title={report.title} />
           </div>
@@ -256,21 +257,6 @@ function ReportDetail() {
               <EditorialMediaMeta caption={report.image_caption} credit={report.image_credit} />
             </figure>
           ) : null}
-          <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-4" /> {report.county}
-            {report.road ? (
-              <>
-                {" · "}
-                {linkedRoad ? (
-                  <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">
-                    {report.road}
-                  </Link>
-                ) : (
-                  report.road
-                )}
-              </>
-            ) : null}
-          </p>
           <div className="mt-2 flex items-start gap-3">
             {!report.is_anonymous ? (
               <UserAvatar

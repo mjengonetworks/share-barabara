@@ -48,15 +48,17 @@ import {
 export const Route = createFileRoute("/reports/")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { county?: string; severity?: string; incident?: string } => {
+  ): { county?: string; road?: string; severity?: string; incident?: string } => {
     const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
     const severity =
       typeof search["severity"] === "string" ? (search["severity"] as string) : undefined;
+    const road = typeof search["road"] === "string" ? (search["road"] as string) : undefined;
     const incident =
       typeof search["incident"] === "string" ? (search["incident"] as string) : undefined;
     return {
       ...(county ? { county } : {}),
       ...(severity ? { severity } : {}),
+      ...(road ? { road } : {}),
       ...(incident ? { incident } : {}),
     };
   },
@@ -83,6 +85,7 @@ function ReportsPage() {
   const searchParams = Route.useSearch();
   const [county, setCounty] = useState(searchParams.county ?? "all");
   const [severity, setSeverity] = useState(searchParams.severity ?? "all");
+  const roadFilter = searchParams.road ?? "";
   const [incident, setIncident] = useState(searchParams.incident ?? "all");
   const [search, setSearch] = useState("");
   const { data: severities = [] } = useReportSeverities();
@@ -117,6 +120,7 @@ function ReportsPage() {
     return (
       (county === "all" || r.county === county) &&
       (severity === "all" || r.severity === severity) &&
+      (!roadFilter || (r.road ?? "") === roadFilter) &&
       (!incidentValues ||
         incidentValues.has((r as { incident_type?: string | null }).incident_type ?? "")) &&
       (!q ||

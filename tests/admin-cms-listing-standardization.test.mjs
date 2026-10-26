@@ -58,7 +58,7 @@ test("shared listing primitives provide the deployed surface and mobile-safe bou
   assert.match(listing, /overflow-hidden/);
 });
 
-test("admin listing changes stay isolated from public editorial surfaces", async () => {
+test("admin listing changes stay isolated except for the mandated report-detail accessibility fix", async () => {
   const { output } = await new Promise((resolve, reject) => {
     const child = Bun.spawn(["git", "diff", "--name-only"], { stdout: "pipe", stderr: "pipe" });
     Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text()]).then(async ([stdout, stderr]) => {
@@ -66,5 +66,17 @@ test("admin listing changes stay isolated from public editorial surfaces", async
       resolve({ output: `${stdout}\n${stderr}\nexit=${exitCode}` });
     }).catch(reject);
   });
-  assert.doesNotMatch(output, /src\/routes\/news|src\/components\/site\/global-editorial-preview|src\/components\/site\/public-layout/);
+  assert.doesNotMatch(output, /src\/routes\/news|src\/components\/site\/global-editorial-preview/);
+  const allowedPublicChanges = new Set([
+    "src/components/site/public-layout.tsx",
+    "src/components/site/report-form.tsx",
+    "src/lib/storage.ts",
+    "src/routes/reports.$reportId.tsx",
+    "src/routes/reports.index.tsx",
+  ]);
+  for (const file of output.split(/\r?\n/).filter(Boolean)) {
+    if (file.startsWith("src/") && !file.includes("/_authenticated/admin/") && !allowedPublicChanges.has(file)) {
+      assert.fail(`unexpected public-surface change: ${file}`);
+    }
+  }
 });

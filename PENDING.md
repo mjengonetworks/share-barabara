@@ -580,3 +580,20 @@ non-sensitive UI diagnostic marker and no `Title: Summary: Body:` scaffold. Auth
 reproduction and real Grok/Groq calls remain pending because no authorized browser/provider session was
 available. No migration, public UI, advertisement, Task 70, unrelated AI/authentication, or SearXNG change
 was made.
+
+Master Admin CMS and Accident Report Detail Repair — TESTING / DEPLOYMENT PENDING. Latest verified live
+production code was `a10cff6` (Worker `64deafd6-a834-49ce-b7a8-260feb7d2d00` at 100% traffic); it was merged
+before these changes. Articles, Accident Reports, Campaigns and Infrastructure Issues now render semantic compact
+admin tables matching the approved Alerts table architecture, with separate content-specific columns, selection,
+thumbnail, status and action cells. The Report creation form now exposes its role-gated Editorial AI controls before
+the ordinary fields; Campaign and Infrastructure edit controls were moved before their content fields. Legacy bare
+media object paths are resolved through the existing public `media` bucket without altering stored records. The
+Accident Report detail now uses location beside the type/severity badges, labels the incident date below the title,
+links county and road filters, removes the redundant All reports row, and uses a wrapping shared breadcrumb on mobile.
+Focused corrections passed (6/6), admin architecture/listing/workspace tests passed (12/12), full regression passed
+(406/406), security tests passed (14/14), production build passed, and `git diff --check` passed. No database
+migrations were added or executed. Cross-content generation, reusable tags and bidirectional relationships remain
+blocked and unimplemented because the repository has no approved generic relationship schema/API; the existing
+incident duplicate-review suggestions are not a substitute. No authenticated browser/CUA session was available,
+so the owner must still visually verify all four corrected admin pages and the report detail at desktop/tablet/mobile
+widths, and real image requests/live Editorial AI/provider interactions remain unverified. Live SearXNG remains PENDING.

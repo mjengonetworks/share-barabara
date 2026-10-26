@@ -21,3 +21,16 @@ export async function uploadMedia(file: File, userId: string): Promise<string> {
   const { data } = supabase.storage.from("media").getPublicUrl(path);
   return data.publicUrl;
 }
+
+/**
+ * Older records may contain a media-bucket object path instead of the full
+ * public URL returned by uploadMedia. Keep absolute and app-relative URLs
+ * untouched; only resolve bare storage paths through the existing public
+ * bucket configuration.
+ */
+export function mediaPublicUrl(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  if (/^(https?:|data:|blob:|\/)/i.test(trimmed)) return trimmed;
+  return supabase.storage.from("media").getPublicUrl(trimmed).data.publicUrl;
+}

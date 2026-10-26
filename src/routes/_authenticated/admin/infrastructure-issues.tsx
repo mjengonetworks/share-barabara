@@ -1,10 +1,8 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  ChevronDown,
-  ChevronUp,
   Construction,
   ExternalLink,
   MoreVertical,
@@ -12,7 +10,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { mediaPublicUrl } from "@/lib/storage";
+import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -182,8 +182,11 @@ function InfrastructureIssuesAdminPage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Issue / location</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
-      <ul className="divide-y divide-border/70">
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead className="w-10"><span className="sr-only">Select</span></TableHead><TableHead className="w-[86px]">Image</TableHead><TableHead>Issue</TableHead><TableHead>Location</TableHead><TableHead>Issue type</TableHead><TableHead>Status</TableHead><TableHead>Reported by</TableHead><TableHead>Posted</TableHead><TableHead className="text-right">Actions</TableHead>
+          </TableRow></TableHeader>
+          <TableBody>
         {issues.map((i) => {
           const d: Draft = drafts[i.id] ?? {
             title: i.title,
@@ -200,43 +203,17 @@ function InfrastructureIssuesAdminPage() {
           const expanded = expandedId === i.id;
 
           return (
-            <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
-                <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expanded ? null : i.id)}
-                  className="min-w-0 text-left"
-                >
-                  {i.image_url ? (
-                    <img
-                      src={i.image_url}
-                      alt=""
-                      className="h-12 w-[70px] shrink-0 rounded object-cover"
-                    />
-                  ) : (
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
-                      <Construction className="size-5 text-muted-foreground" />
-                    </div>
-                  )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : i.id)}
-                    className="min-w-0 text-left"
-                  >
-                  <div className="min-w-0">
-                    <p className="line-clamp-2 font-semibold">{i.title}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {i.road_name}
-                      {i.county ? ` · ${i.county}` : ""} · by{" "}
-                      <UserLink userId={i.user_id} name={names[i.user_id]} /> ·{" "}
-                      {dateTime(i.created_at)}
-                    </p>
-                  </div>
-                  </button>
-
-                <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
+            <Fragment key={i.id}>
+              <TableRow>
+                <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} /></TableCell>
+                <TableCell className="w-[86px]"><button type="button" aria-label={`Expand ${i.title}`} onClick={() => setExpandedId(expanded ? null : i.id)}>{mediaPublicUrl(i.image_url) ? <img src={mediaPublicUrl(i.image_url) ?? undefined} alt="" className="h-12 w-[70px] rounded object-cover" /> : <div className="flex h-12 w-[70px] items-center justify-center rounded bg-muted"><Construction className="size-5 text-muted-foreground" /></div>}</button></TableCell>
+                <TableCell className="max-w-xs"><button type="button" onClick={() => setExpandedId(expanded ? null : i.id)} className="min-w-0 text-left"><p className="line-clamp-2 font-semibold">{i.title}</p><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{i.summary || "No summary"}</p></button></TableCell>
+                <TableCell className="text-sm">{i.road_name}{i.county ? ` · ${i.county}` : ""}</TableCell>
+                <TableCell className="text-xs capitalize">{i.structure_type || "Unclassified"}</TableCell>
+                <TableCell><span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span></TableCell>
+                <TableCell className="text-sm"><UserLink userId={i.user_id} name={names[i.user_id]} /></TableCell>
+                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{dateTime(i.created_at)}</TableCell>
+                <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="size-8 shrink-0">
@@ -282,19 +259,39 @@ function InfrastructureIssuesAdminPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <button
-                  type="button"
-                  aria-label={expanded ? "Collapse" : "Expand"}
-                  onClick={() => setExpandedId(expanded ? null : i.id)}
-                  className="shrink-0 text-muted-foreground"
-                >
-                  {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                </button>
-              </div>
+                </TableCell>
+              </TableRow>
 
               {expanded ? (
-                <div className="border-t border-border p-5">
+                <TableRow><TableCell colSpan={9} className="border-t border-border p-5">
                   <div className="space-y-4">
+                    <div className="space-y-3">
+                      {(
+                        [
+                          { mode: "generate", provider: "grok" },
+                          { mode: "autopopulate", provider: "groq" },
+                          { mode: "autopopulate", provider: "grok" },
+                          { mode: "update", provider: "grok" },
+                        ] as const
+                      ).map(({ mode, provider }) => (
+                        <EditorialAIButton
+                          key={`${mode}-${provider}`}
+                          contentType="infrastructure"
+                          mode={mode}
+                          provider={provider}
+                          contentId={i.id}
+                          current={d}
+                          source=""
+                          onDraft={(draft) =>
+                            set(
+                              Object.fromEntries(
+                                Object.entries(draft).filter(([key]) => key in d),
+                              ) as Partial<Draft>,
+                            )
+                          }
+                        />
+                      ))}
+                    </div>
                     <div>
                       <Label htmlFor={`t-${i.id}`}>Issue title</Label>
                       <Input
@@ -379,20 +376,6 @@ function InfrastructureIssuesAdminPage() {
                         onChange={(v) => set({ content: v })}
                       />
                     </div>
-                    <div className="space-y-3">
-                      {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, { mode: "update", provider: "grok" }] as const).map(({ mode, provider }) => (
-                        <EditorialAIButton
-                          key={`${mode}-${provider}`}
-                          contentType="infrastructure"
-                          mode={mode}
-                          provider={provider}
-                          contentId={i.id}
-                          current={d}
-                          source=""
-                          onDraft={(draft) => set(Object.fromEntries(Object.entries(draft).filter(([key]) => key in d)) as Partial<Draft>)}
-                        />
-                      ))}
-                    </div>
                     <div>
                       <Label htmlFor={`n-${i.id}`}>Moderator's note (shown publicly)</Label>
                       <Input
@@ -436,12 +419,13 @@ function InfrastructureIssuesAdminPage() {
                       </Button>
                     ) : null}
                   </div>
-                </div>
+                </TableCell></TableRow>
               ) : null}
-            </li>
+            </Fragment>
           );
         })}
-      </ul>
+          </TableBody>
+        </Table>
       </AdminListingSurface>
     </div>
   );

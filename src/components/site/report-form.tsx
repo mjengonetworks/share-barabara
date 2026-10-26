@@ -128,6 +128,56 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const editorialAiControls = canReview ? (
+    <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Editorial AI
+      </p>
+      {(
+        [
+          { mode: "generate", provider: "grok" },
+          { mode: "autopopulate", provider: "groq" },
+          { mode: "autopopulate", provider: "grok" },
+        ] as const
+      ).map(({ mode, provider }) => (
+        <EditorialAIButton
+          key={`${mode}-${provider}`}
+          contentType="report"
+          mode={mode}
+          provider={provider}
+          current={form}
+          source=""
+          onDraft={(draft) =>
+            setForm((current) => ({
+              ...current,
+              ...(typeof draft.title === "string" && draft.title.trim()
+                ? { title: draft.title }
+                : {}),
+              ...(typeof draft.description === "string" && draft.description.trim()
+                ? { description: draft.description }
+                : {}),
+              ...(typeof draft.county === "string" && draft.county.trim()
+                ? { county: draft.county }
+                : {}),
+              ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
+              ...(typeof draft.severity === "string" && draft.severity.trim()
+                ? { severity: draft.severity }
+                : {}),
+              ...(typeof draft.occurred_at === "string" && draft.occurred_at.trim()
+                ? { occurred_at: draft.occurred_at.slice(0, 16) }
+                : {}),
+              ...(typeof draft.vehicles_involved === "number"
+                ? { vehicles_involved: draft.vehicles_involved }
+                : {}),
+              ...(typeof draft.casualties === "number" ? { casualties: draft.casualties } : {}),
+              ...(typeof draft.fatalities === "number" ? { fatalities: draft.fatalities } : {}),
+            }))
+          }
+        />
+      ))}
+    </div>
+  ) : null;
+
   return (
     <form
       className="space-y-4"
@@ -136,6 +186,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
         submit.mutate();
       }}
     >
+      {editorialAiControls}
       <div>
         <Label htmlFor="r-title">Title</Label>
         <Input
@@ -331,37 +382,6 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
               </div>
             </div>
           </div>
-          {canReview ? (
-            <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Reviewer tools
-              </p>
-          {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }] as const).map(({ mode, provider }) => (
-                <EditorialAIButton
-              key={`${mode}-${provider}`}
-                  contentType="report"
-                  mode={mode}
-              provider={provider}
-                  current={form}
-                  source=""
-                  onDraft={(draft) =>
-                    setForm((current) => ({
-                      ...current,
-                      ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
-                      ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
-                      ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
-                      ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
-                      ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
-                      ...(typeof draft.occurred_at === "string" && draft.occurred_at.trim() ? { occurred_at: draft.occurred_at.slice(0, 16) } : {}),
-                      ...(typeof draft.vehicles_involved === "number" ? { vehicles_involved: draft.vehicles_involved } : {}),
-                      ...(typeof draft.casualties === "number" ? { casualties: draft.casualties } : {}),
-                      ...(typeof draft.fatalities === "number" ? { fatalities: draft.fatalities } : {}),
-                    }))
-                  }
-                />
-              ))}
-            </div>
-          ) : null}
         </CollapsibleContent>
       </Collapsible>
       <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">

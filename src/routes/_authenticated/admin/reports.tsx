@@ -1,10 +1,8 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  ChevronDown,
-  ChevronUp,
   Eye,
   ExternalLink,
   MoreVertical,
@@ -14,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { mediaPublicUrl } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,9 +53,10 @@ import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { ReportForm } from "@/components/site/report-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -291,8 +291,22 @@ function ReportsQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Incident / location</span><span>Severity / status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
-      <ul className="divide-y divide-border/70">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10"><span className="sr-only">Select</span></TableHead>
+              <TableHead className="w-[86px]">Image</TableHead>
+              <TableHead>Incident / location</TableHead>
+              <TableHead>County</TableHead>
+              <TableHead>Severity</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Reported by</TableHead>
+              <TableHead>Views</TableHead>
+              <TableHead>Posted</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
         {reports.map((r) => {
           const d: ReportDraft = drafts[r.id] ?? {
             title: r.title,
@@ -320,55 +334,28 @@ function ReportsQueuePage() {
           const expanded = expandedId === r.id;
 
           return (
-            <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
-                <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expanded ? null : r.id)}
-                  className="min-w-0 text-left"
-                >
-                  {r.image_url ? (
-                    <img
-                      src={r.image_url}
-                      alt=""
-                      className="h-12 w-[70px] shrink-0 rounded bg-muted object-cover"
-                    />
-                  ) : (
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
-                      <ShieldAlert className="size-5 text-muted-foreground" />
-                    </div>
-                  )}
+            <Fragment key={r.id}>
+              <TableRow>
+                <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} /></TableCell>
+                <TableCell className="w-[86px]">
+                  <button type="button" aria-label={`Expand ${r.title}`} onClick={() => setExpandedId(expanded ? null : r.id)}>
+                    {mediaPublicUrl(r.image_url) ? <img src={mediaPublicUrl(r.image_url) ?? undefined} alt="" className="h-12 w-[70px] rounded bg-muted object-cover" /> : <div className="flex h-12 w-[70px] items-center justify-center rounded bg-muted"><ShieldAlert className="size-5 text-muted-foreground" /></div>}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : r.id)}
-                    className="min-w-0 text-left"
-                  >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <SeverityBadge value={r.severity} />
-                      <p className="line-clamp-2 font-semibold">{r.title}</p>
-                    </div>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                      <span>
-                        Filed by <UserLink userId={r.user_id} name={names[r.user_id]} />
-                      </span>
-                      <span className="inline-flex items-center gap-0.5">
-                        · <Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[r.id] ?? 0}
-                      </span>
-                      <span>· {dateTime(r.created_at)}</span>
-                    </p>
-                    <p className="mt-1 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
-                      <span>County: {r.county || "Not specified"}</span>
-                      <span>Injured: {r.casualties === null || r.casualties === undefined ? "Unknown" : r.casualties}</span>
-                      <span>Deaths: {r.fatalities === null || r.fatalities === undefined ? "Unknown" : r.fatalities}</span>
-                      {r.duplicate_of_report_id ? <span>Linked duplicate</span> : null}
-                    </p>
-                  </div>
+                </TableCell>
+                <TableCell className="max-w-xs">
+                  <button type="button" onClick={() => setExpandedId(expanded ? null : r.id)} className="min-w-0 text-left">
+                    <p className="line-clamp-2 font-semibold">{r.title}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{r.road || "Location not specified"}{r.duplicate_of_report_id ? " · Linked duplicate" : ""}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Injured: {r.casualties === null || r.casualties === undefined ? "Unknown" : r.casualties} · Deaths: {r.fatalities === null || r.fatalities === undefined ? "Unknown" : r.fatalities}</p>
                   </button>
-
-                <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
+                </TableCell>
+                <TableCell className="text-sm">{r.county || "Not specified"}</TableCell>
+                <TableCell><SeverityBadge value={r.severity} /></TableCell>
+                <TableCell><span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span></TableCell>
+                <TableCell className="text-sm"><UserLink userId={r.user_id} name={names[r.user_id]} /></TableCell>
+                <TableCell className="whitespace-nowrap text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span></TableCell>
+                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{dateTime(r.created_at)}</TableCell>
+                <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="size-8 shrink-0">
@@ -408,18 +395,12 @@ function ReportsQueuePage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <button
-                  type="button"
-                  aria-label={expanded ? "Collapse" : "Expand"}
-                  onClick={() => setExpandedId(expanded ? null : r.id)}
-                  className="shrink-0 text-muted-foreground"
-                >
-                  {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                </button>
-              </div>
+                </TableCell>
+              </TableRow>
 
               {expanded ? (
-                <div className="border-t border-border p-5">
+                <TableRow>
+                  <TableCell colSpan={10} className="border-t border-border p-5">
                   <div className="space-y-4">
                     {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }] as const).map(({ mode, provider }) => (
                       <EditorialAIButton
@@ -666,12 +647,14 @@ function ReportsQueuePage() {
                       </Button>
                     ) : null}
                   </div>
-                </div>
+                  </TableCell>
+                </TableRow>
               ) : null}
-            </li>
+            </Fragment>
           );
         })}
-      </ul>
+          </TableBody>
+        </Table>
       </AdminListingSurface>
     </div>
   );

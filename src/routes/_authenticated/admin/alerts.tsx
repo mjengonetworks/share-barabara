@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Eye, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { mediaPublicUrl } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -260,7 +261,7 @@ function AlertsAdminPage() {
               <TableRow key={a.id}>
                 <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" /></TableCell>
                 <TableCell>
-                  {a.image_url ? <img src={a.image_url} alt="" className="size-12 rounded object-cover" /> : <div className="size-12 rounded bg-muted" aria-label="No featured image" />}
+                  {mediaPublicUrl(a.image_url) ? <img src={mediaPublicUrl(a.image_url) ?? undefined} alt="" className="size-12 rounded object-cover" /> : <div className="size-12 rounded bg-muted" aria-label="No featured image" />}
                 </TableCell>
                 <TableCell className="max-w-xs">
                   <Link
