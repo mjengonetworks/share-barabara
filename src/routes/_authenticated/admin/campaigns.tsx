@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -71,6 +72,8 @@ function CampaignsAdminPage() {
   const [form, setForm] = useState<EventForm>(EMPTY_EVENT);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [reportOpenId, setReportOpenId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [reportForm, setReportForm] = useState<ReportForm>({
     report_content: "",
     report_image_url: "",
@@ -94,6 +97,16 @@ function CampaignsAdminPage() {
     queryClient.invalidateQueries({ queryKey: ["admin-campaigns"] });
     queryClient.invalidateQueries({ queryKey: ["campaigns"] });
   };
+
+  const visibleCampaigns = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return campaigns.filter((campaign) => {
+      const status = campaignStatus(campaign.start_date, campaign.end_date);
+      if (statusFilter !== "all" && status !== statusFilter) return false;
+      if (query && !campaign.title.toLowerCase().includes(query) && !(campaign.location ?? "").toLowerCase().includes(query)) return false;
+      return true;
+    });
+  }, [campaigns, search, statusFilter]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -314,12 +327,31 @@ function CampaignsAdminPage() {
         </Dialog>
       </div>
 
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <Label>Status</Label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="ongoing">Ongoing</SelectItem>
+              <SelectItem value="previous">Previous</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="min-w-48 flex-1 sm:col-span-2 lg:col-span-4">
+          <Label htmlFor="campaign-search">Search</Label>
+          <Input id="campaign-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title or location…" />
+        </div>
+      </div>
+
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface>
         <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Campaign / dates</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
       <ul className="divide-y divide-border/70">
-        {campaigns.map((c) => {
+        {visibleCampaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
             <li
@@ -436,7 +468,7 @@ function CampaignsAdminPage() {
             </li>
           );
         })}
-        {!isLoading && campaigns.length === 0 ? (
+        {!isLoading && visibleCampaigns.length === 0 ? (
           <p className="rounded border border-dashed border-border p-8 text-center text-muted-foreground">
             No campaigns yet.
           </p>

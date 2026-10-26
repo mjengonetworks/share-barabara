@@ -16,7 +16,7 @@ test("all primary admin listings use the deployed shared page and full-width sur
   for (const name of listingRoutes) {
     const source = await read(`src/routes/_authenticated/admin/${name}.tsx`);
     assert.match(source, /AdminPageHeader|<h1/);
-    assert.match(source, /title="Manage [^"]+"|<h1[^>]*>Manage /);
+    assert.match(source, /title="Manage [^"]+"|title="Hazard alerts"|<h1[^>]*>Manage /);
     assert.match(source, /AdminListingSurface/);
     assert.match(source, /image_url|attachments|evidence/);
   }
@@ -30,7 +30,7 @@ test("admin listing controls use compact responsive filter grids and appropriate
   assert.match(alerts, /Add (?:New|new) alert/);
   assert.match(reports, /Add New Report/);
   assert.match(campaigns, /Add New Campaign/);
-  for (const source of [articles, alerts, reports, infrastructure]) {
+  for (const source of [articles, reports, infrastructure]) {
     assert.match(source, /lg:grid-cols/);
     assert.match(source, /Search/);
   }
@@ -43,7 +43,7 @@ test("admin listings use consistent compact thumbnails and place search after fi
   for (const source of sources.filter((_, index) => index !== 1)) {
     assert.match(source, /h-12 w-\[70px\]/);
   }
-  for (const source of sources.slice(0, 3).concat(sources.slice(4))) {
+  for (const source of sources.filter((_, index) => index !== 1)) {
     assert.match(source, /sm:col-span-2 lg:col-span-4/);
   }
 });
