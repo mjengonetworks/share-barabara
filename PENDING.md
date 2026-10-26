@@ -458,3 +458,14 @@ independent navigation, role-filtered management surfaces, admin-owned Article/A
 points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
 existing shell and permissions. Browser/device review and any follow-up management-surface refinements remain
 open; no database migration or hosted data change is part of this release.
+
+Editorial AI Repair — DEPLOYED / BROWSER AND LIVE-PROVIDER ACCEPTANCE PENDING. Repair commit
+28ad0576aad267da12b090a6a21c77e59bea5a6f was deployed from the verified production tree rooted at
+12bca0bfc3d6b9caefa605960e6cce02b701797f (the only difference from the integrated pre-repair tree was
+the prior deployment bookkeeping entry). Worker version c5dc04bd-61d4-49a5-a486-6da16774ce85 is live;
+rollback target is the pre-repair Worker bdc7101e-e32b-49dc-8acd-3d9dcbac68b3. Full tests passed
+(368/368), security tests passed (14/14), and the production build passed. Public and authenticated route
+shell smoke tests returned HTTP 200, and deployed Campaign and Infrastructure Issue bundles include the
+shared Editorial AI controls. No live Grok/Groq provider call was performed because authorized production
+credentials/test access were unavailable; mocked/provider-contract coverage is separate. No database
+migration, Task 70, advertisement, unrelated authentication, or SearXNG activation was performed.
