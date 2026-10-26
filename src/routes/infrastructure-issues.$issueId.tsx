@@ -129,8 +129,8 @@ function IssueDetail() {
           { label: issue.title },
         ]}
       />
-      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
-        <article className="min-w-0 rounded-xl border border-border bg-card p-4 card-elevated sm:rounded-2xl sm:p-6">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-3 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-2 card-elevated sm:rounded-2xl sm:p-3">
           <Link
             to="/infrastructure-issues"
             className="inline-flex items-center gap-1 text-sm text-muted-foreground"
@@ -138,7 +138,7 @@ function IssueDetail() {
             <ArrowLeft className="size-4" /> All infrastructure issues
           </Link>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
             <PublicEditorialCategoryBadge>
               <Construction className="size-3.5" />
               {STRUCTURE_TYPES.find((s) => s.value === issue.structure_type)?.label ??
@@ -154,7 +154,7 @@ function IssueDetail() {
             <span className="ml-auto text-muted-foreground">{longDate(issue.created_at)}</span>
           </div>
 
-          <h1 className="mt-3 text-[1.7325rem] font-extrabold leading-tight">{issue.title}</h1>
+          <h1 className="mt-1.5 text-[1.7325rem] font-extrabold leading-tight">{issue.title}</h1>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {issue.road_name}
             {issue.county ? ` · ${issue.county}` : ""}

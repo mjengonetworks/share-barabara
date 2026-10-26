@@ -303,7 +303,7 @@ function NewsDetail() {
         aria-label="Breadcrumb"
         className="bg-gradient-to-r from-brand-blue via-primary to-brand-blue text-primary-foreground"
       >
-        <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-2 py-2 text-xs sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-2 py-1 text-xs sm:px-6 lg:px-8">
           <Link to="/" className="shrink-0 hover:underline">
             Home
           </Link>
@@ -325,8 +325,8 @@ function NewsDetail() {
           </span>
         </div>
       </nav>
-      <div className="mx-auto grid max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-7 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
-        <article className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-6 lg:p-6">
+      <div className="mx-auto grid max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3.5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
+        <article className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-1.5 shadow-sm sm:rounded-2xl sm:p-3 lg:p-3">
           <div className="flex flex-wrap gap-1.5">
             {(article.categories?.length ? article.categories : [article.category]).map((c) => (
               <Link
@@ -344,12 +344,12 @@ function NewsDetail() {
               Preview · {article.status.replace("_", " ")}, not visible to the public yet
             </p>
           ) : null}
-          <div className="mt-4 border-b border-border/70 pb-4">
+          <div className="mt-2 pb-2">
             <h1 className="max-w-4xl text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
               {article.title}
             </h1>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-1.5 text-sm text-muted-foreground">
             {longDateWithDay(article.published_at)} · {readingMinutes} min read
             {article.source ? ` · ${article.source}` : ""}
           </p>

@@ -167,8 +167,8 @@ function AlertDetail() {
           { label: alert.title },
         ]}
       />
-      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
-        <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
           <Link
             to="/alerts"
             className="inline-flex items-center gap-1 text-sm text-muted-foreground"
@@ -176,7 +176,7 @@ function AlertDetail() {
             <ArrowLeft className="size-4" /> All alerts
           </Link>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <TriangleAlert className="size-4 text-caution" />
             <SeverityBadge value={alert.severity} />
             <PublicEditorialCategoryBadge>
@@ -185,7 +185,7 @@ function AlertDetail() {
             <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
           </div>
 
-          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {alert.title}
           </h1>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">

@@ -75,6 +75,31 @@ test("public category navigation uses compact yellow/navy shared controls", asyn
   }
 });
 
+test("public header and detail pages use the compact spacing contract", async () => {
+  const header = await fs.readFile("src/components/site/site-header.tsx", "utf8");
+  assert.match(header, /items-center gap-1 px-1\.5/);
+  const layout = await fs.readFile("src/components/site/public-layout.tsx", "utf8");
+  assert.match(layout, /min-h-\[38px\][\s\S]*py-1 text-xs/);
+
+  const article = await fs.readFile("src/routes/news.$slug.tsx", "utf8");
+  assert.match(article, /<div className="mt-2 pb-2">/);
+  assert.match(article, /<p className="mt-1\.5 text-sm text-muted-foreground">/);
+  assert.doesNotMatch(article, /border-b border-border\/70 pb-4/);
+  assert.match(article, /px-2 py-1\.5/);
+
+  for (const file of [
+    "src/routes/alerts.$alertId.tsx",
+    "src/routes/reports.$reportId.tsx",
+    "src/routes/campaigns.$slug.tsx",
+    "src/routes/infrastructure-issues.$issueId.tsx",
+  ]) {
+    const source = await fs.readFile(file, "utf8");
+    assert.match(source, /py-1\.5|py-3/);
+    assert.match(source, /p-1\.5|p-2/);
+    assert.match(source, /mt-1\.5/);
+  }
+});
+
 test("admin content listings use the shared responsive listing surface", async () => {
   const files = ["articles", "alerts", "reports", "campaigns", "infrastructure-issues"];
   for (const name of files) {
