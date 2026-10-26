@@ -17,6 +17,7 @@ import { CampaignPreviewCard } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
+import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   loader: async ({ params }) => {
@@ -102,6 +103,7 @@ function CampaignDetail() {
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
         <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
           <Link to="/campaigns" className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="size-4" /> All campaigns</Link>
+          <div className="mt-3"><PublicEditorialCategoryBadge>Campaign</PublicEditorialCategoryBadge></div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={STATUS_VARIANT[status]} className="capitalize">
               {status}

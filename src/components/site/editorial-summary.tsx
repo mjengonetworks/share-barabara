@@ -27,7 +27,7 @@ export function ReadAlso({ related }: { related: { slug: string; title: string }
       <Link
         to="/news/$slug"
         params={{ slug: related.slug }}
-        className="mt-1 block text-base font-bold leading-6 text-brand-blue underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-lg"
+        className="mt-2 block rounded-md bg-sky-50 px-3 py-2 text-base font-bold leading-6 text-brand-blue underline-offset-2 hover:bg-sky-100 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 sm:py-3 sm:text-lg dark:bg-slate-800 dark:text-sky-100 dark:hover:bg-slate-700"
       >
         {related.title}
       </Link>
