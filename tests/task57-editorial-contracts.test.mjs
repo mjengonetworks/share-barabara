@@ -35,12 +35,13 @@ test("Task 57 keeps distinct Article, Report and Alert contracts and locked prov
   assert.match(prompts, /export const ALERT_EDITORIAL_PROMPT/);
 });
 
-test("Update Existing receives unsaved current form state and remains review-only", () => {
+// Update Existing now applies validated values directly to local state; persistence remains the normal Save path.
+test("Update Existing receives unsaved current form state without persisting", () => {
   assert.match(button, /current\?: Record<string, EditorialValue>/);
   assert.match(button, /\.\.\.\(mode === "update" && current \? \{ current \} : \{\}\)/);
-  assert.match(button, /Current vs Proposed/);
-  assert.match(button, /Apply proposed values to form/);
-  assert.match(button, /Save through the normal workflow/);
+  assert.match(button, /onDraft\(safeDraft\)/);
+  assert.doesNotMatch(button, /Current vs Proposed|Apply proposed values to form/);
+  assert.match(button, /Nothing is saved or published automatically/);
   assert.doesNotMatch(button, /supabase\.from|\.update\(/);
   // Shared Add forms may render role-gated controls, but only authorized
   // editorial users can invoke them; public submissions remain moderated.

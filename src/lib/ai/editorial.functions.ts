@@ -161,6 +161,8 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
     } else if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
       draft[field] = value.slice(0, 12) as string[];
     } else if (typeof value === "string" || typeof value === "number" || value === null) {
+      if (typeof value === "string" && ["title", "summary", "body", "description", "content"].includes(field) &&
+        value.trim().toLocaleLowerCase() === field) continue;
       draft[field] = typeof value === "string"
         ? field === "seo_keywords"
           ? value.replace(/\s*\n\s*/g, " ").replace(/\s*,\s*/g, ", ").trim()

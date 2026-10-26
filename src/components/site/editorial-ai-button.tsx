@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, FileText, Paperclip, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,18 @@ function contentLabel(contentType: EditorialContentType) {
 
 function nonDestructiveDraft(draft: Record<string, EditorialValue>) {
   return Object.fromEntries(
-    Object.entries(draft).filter(([, value]) => value !== "" && value !== null),
+    Object.entries(draft).filter(([field, value]) => {
+      if (value === "" || value === null) return false;
+      if (typeof value !== "string") return true;
+      const placeholders: Record<string, string[]> = {
+        title: ["title"],
+        summary: ["summary"],
+        body: ["body"],
+        description: ["description"],
+        content: ["content"],
+      };
+      return !placeholders[field]?.includes(value.trim().toLocaleLowerCase());
+    }),
   ) as Record<string, EditorialValue>;
 }
 
@@ -48,11 +59,14 @@ export function EditorialAIButton({
 }) {
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [pendingDraft, setPendingDraft] = useState<Record<string, EditorialValue> | null>(null);
-  const [proposal, setProposal] = useState<EditorialProposal | null>(null);
   const [sourceMaterial, setSourceMaterial] = useState(mode === "update" ? "" : source);
   const [sourceFiles, setSourceFiles] = useState<Array<{ name: string; text: string }>>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const currentRef = useRef(current);
+  const requestRef = useRef(0);
+  useEffect(() => {
+    currentRef.current = current;
+  }, [current]);
   const label = contentLabel(contentType);
   const title =
     mode === "update"
@@ -64,13 +78,15 @@ export function EditorialAIButton({
     mode === "update"
       ? "Combine the saved item with new material. Existing valid information is preserved by default."
       : mode === "generate"
-        ? "Create a reviewable draft from source material. Nothing is saved or published automatically."
-        : "Extract and organize supplied source material into the supported CMS fields for review.";
+        ? "Populate editable fields from source material. Nothing is saved or published automatically."
+        : "Extract and organize supplied source material into the supported CMS fields.";
   const selectedProvider = provider ?? (mode === "autopopulate" ? "groq" : "grok");
   const providerLabel = selectedProvider === "groq" ? "Groq" : "xAI Grok";
 
   async function generate() {
     if ((!sourceMaterial.trim() && sourceFiles.length === 0) || busy) return;
+    const requestNumber = ++requestRef.current;
+    const snapshot = currentRef.current ? { ...currentRef.current } : undefined;
     setBusy(true);
     try {
       const attachedText = sourceFiles.map((file) => `ATTACHED SOURCE: ${file.name}\n${file.text}`).join("\n\n");
@@ -83,20 +99,22 @@ export function EditorialAIButton({
       const result = await callGenerateEditorialDraft({
         data: { contentType, source: combinedSource, mode, provider: selectedProvider, ...(contentId ? { contentId } : {}), ...(mode === "update" && current ? { current } : {}) },
       });
-      if (mode === "update") {
-        if (!result.proposal) throw new Error("No proposal returned");
-        setProposal(result.proposal);
-        toast.success("Editorial AI prepared a proposal. Review Current vs Proposed before applying it.");
-      } else if (result.draft) {
-        // Never mutate the form immediately. Editors must review and explicitly
-        // confirm source-grounded changes before any non-empty field is replaced.
-        setPendingDraft(result.draft);
-        toast.success("Editorial AI prepared source-grounded values. Review them before applying.");
-      } else {
+      if (requestNumber !== requestRef.current) return;
+      const proposed = result.proposal?.proposed ?? result.draft;
+      if (!proposed) {
         throw new Error("No draft returned");
       }
+      const latest = currentRef.current;
+      const safeDraft = nonDestructiveDraft(Object.fromEntries(
+        Object.entries(proposed).filter(([field]) => {
+          if (!latest || !snapshot || !(field in latest) || !(field in snapshot)) return true;
+          return JSON.stringify(latest[field]) === JSON.stringify(snapshot[field]);
+        }),
+      ) as Record<string, EditorialValue>);
+      onDraft(safeDraft);
+      toast.success("Editorial AI values populated. Review and continue editing before saving.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Editorial AI could not prepare a proposal.");
+      toast.error(error instanceof Error ? error.message : "Editorial AI could not populate the form.");
     } finally {
       setBusy(false);
     }
@@ -188,7 +206,7 @@ export function EditorialAIButton({
         <Button type="button" onClick={() => void generate()} disabled={busy || (!sourceMaterial.trim() && sourceFiles.length === 0)}>
           <Sparkles className="mr-2 size-4" />
           {busy
-            ? "Preparing proposal…"
+            ? "Populating fields…"
             : mode === "update"
               ? `Update Existing ${label} with AI`
               : mode === "generate"
@@ -197,83 +215,6 @@ export function EditorialAIButton({
         </Button>
       </div> : null}
 
-      {proposal ? (
-        <div className="mt-4 space-y-3 rounded-md border border-dashed border-border bg-muted/30 p-4 text-sm">
-          <p className="font-semibold text-foreground">Current vs Proposed</p>
-          <div className="space-y-3">
-            {proposal.changedFields.map((field) => (
-              <div key={field} className="grid gap-2 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Current · {field}
-                  </p>
-                  <p className="break-words">{String(proposal.current[field] ?? "—")}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Proposed
-                  </p>
-                  <p className="break-words">{String(proposal.proposed[field] ?? "—")}</p>
-                </div>
-              </div>
-            ))}
-            {proposal.changedFields.length === 0 ? (
-              <p className="text-muted-foreground">No supported field changes were proposed.</p>
-            ) : null}
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              onDraft(proposal.proposed);
-              setProposal(null);
-              toast.success("Proposed values placed in the editable form. Save through the normal workflow.");
-            }}
-          >
-            Apply proposed values to form
-          </Button>
-        </div>
-      ) : null}
-      {pendingDraft ? (
-        <div className="mt-4 space-y-3 rounded-md border border-dashed border-border bg-muted/30 p-4 text-sm">
-          <p className="font-semibold text-foreground">Source-grounded field preview</p>
-          <p className="text-xs text-muted-foreground">
-            Existing form values remain unchanged until you confirm. Blank or unknown source values are preserved.
-          </p>
-          <div className="space-y-2">
-            {Object.entries(pendingDraft).map(([field, value]) => (
-              <div key={field} className="grid gap-2 rounded border border-border/70 p-2 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {current && field in current ? "Replace existing" : "Populate"} · {field}
-                  </p>
-                  <p className="break-words">{String(current?.[field] ?? "—")}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Proposed from source</p>
-                  <p className="break-words">{String(value ?? "Unknown / not confirmed")}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                onDraft(nonDestructiveDraft(pendingDraft));
-                setPendingDraft(null);
-                toast.success("Confirmed source-grounded values placed in the editable form.");
-              }}
-            >
-              Apply confirmed values
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => setPendingDraft(null)}>
-              Discard proposal
-            </Button>
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }

@@ -65,3 +65,26 @@ test("provider configuration preserves full editorial JSON and uses extraction t
   assert.match(prompts, /EDITORIAL_EXTRACTION_PROMPTS/);
   assert.match(prompts, /Copy names, dates, places, numbers/);
 });
+
+test("placeholder labels are discarded while real editorial values remain", () => {
+  const draft = parseEditorialDraftForTest("article", JSON.stringify({
+    title: "Title",
+    summary: "Summary",
+    body: "Body",
+    seo_title: "Verified headline",
+  }));
+  assert.equal(draft.title, undefined);
+  assert.equal(draft.summary, undefined);
+  assert.equal(draft.body, undefined);
+  assert.equal(draft.seo_title, "Verified headline");
+});
+
+test("editorial AI applies validated fields directly without auto-saving", async () => {
+  const button = await source("src/components/site/editorial-ai-button.tsx");
+  assert.match(button, /const proposed = result\.proposal\?\.proposed \?\? result\.draft/);
+  assert.match(button, /onDraft\(safeDraft\)/);
+  assert.match(button, /requestNumber !== requestRef\.current/);
+  assert.match(button, /JSON\.stringify\(latest\[field\]\) === JSON\.stringify\(snapshot\[field\]\)/);
+  assert.doesNotMatch(button, /pendingDraft|Apply confirmed values|Source-grounded field preview/);
+  assert.doesNotMatch(button, /onSave|onPublish|persist\(/);
+});

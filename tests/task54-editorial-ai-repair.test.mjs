@@ -51,8 +51,8 @@ test("the editorial contract still includes newsroom quality and anti-fabricatio
 test("article proposals retain structured editable fields", () => {
   assert.match(editorial, /\["title", "summary", "body", "category", "seo_title", "seo_description", "seo_keywords"\]/);
   assert.match(editorial, /return \{ draft: proposed \}/);
-  assert.match(button, /setPendingDraft\(result\.draft\)/);
-  assert.match(button, /Apply confirmed values/);
+  assert.match(button, /onDraft\(safeDraft\)/);
+  assert.doesNotMatch(button, /Apply confirmed values/);
 });
 
 test("invalid provider output fails closed without applying a proposal", () => {

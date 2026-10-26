@@ -126,14 +126,15 @@ test("all Article, Alert and Report editors render the editorial provider workfl
   assert.match(reports, /mode="update"/);
 });
 
-test("Editorial update panels apply proposals to forms without persisting them", async () => {
+// The approved UX applies validated proposals directly to local form state; Save remains the normal persistence path.
+test("Editorial update panels populate forms without persisting them", async () => {
   const panel = await source("src/components/site/editorial-ai-button.tsx");
   const articles = await source("src/routes/_authenticated/admin/articles.tsx");
   const alerts = await source("src/routes/_authenticated/admin/alerts.tsx");
   const reports = await source("src/routes/_authenticated/admin/reports.tsx");
-  assert.match(panel, /Current vs Proposed/);
-  assert.match(panel, /Apply proposed values to form/);
-  assert.match(panel, /Save through the normal workflow/);
+  assert.match(panel, /onDraft\(safeDraft\)/);
+  assert.doesNotMatch(panel, /Current vs Proposed|Apply proposed values to form/);
+  assert.match(panel, /Nothing is saved or published automatically/);
   assert.match(articles, /mode="update"/);
   assert.match(alerts, /contentType="alert"[\s\S]*mode="update"/);
   assert.match(reports, /contentType="report"[\s\S]*mode="update"/);

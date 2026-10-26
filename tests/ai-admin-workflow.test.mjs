@@ -42,10 +42,11 @@ test("report draft publishing remains blocked without the approved schema change
   assert.equal(read("src/components/site/report-form.tsx").includes('mutate("draft")'), false);
 });
 
+// Direct population replaced the old preview/apply step; blank/null model values remain non-destructive.
 test("editorial AI application is non-destructive for blank model fields", () => {
   const source = read("src/components/site/editorial-ai-button.tsx");
   assert.ok(source.includes("nonDestructiveDraft"));
-  assert.ok(source.includes('value !== "" && value !== null'));
+  assert.match(source, /value === "" \|\| value === null/);
 });
 
 test("existing Infrastructure Issues and Campaigns use the shared Editorial AI contract", () => {
