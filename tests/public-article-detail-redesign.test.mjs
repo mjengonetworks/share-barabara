@@ -97,6 +97,6 @@ test("article body places one related link mid-story and removes article update 
   const detail = await source("src/routes/news.$slug.tsx");
   assert.match(detail, /blocks\.length >= 4/);
   assert.match(detail, /Math\.floor\(blocks\.length \/ 2\)/);
-  assert.match(detail, /Read also:/);
+  assert.match(detail, /<ReadAlso related=\{related\} \/>/);
   assert.doesNotMatch(detail, /ContentRequestActions/);
 });

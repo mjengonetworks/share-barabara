@@ -42,8 +42,8 @@ import {
   type PublicIncidentCard,
 } from "@/components/site/public-layout";
 import {
-  publicCategoryBadgeClass,
-  publicCategoryBadgeSelectedClass,
+  publicCategoryNavigationClass,
+  publicCategoryNavigationSelectedClass,
 } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/alerts/")({
@@ -284,7 +284,7 @@ function AlertsPage() {
                 <button
                   onClick={() => setHazard("all")}
                   className={
-                    hazard === "all" ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
+                    hazard === "all" ? publicCategoryNavigationSelectedClass : publicCategoryNavigationClass
                   }
                 >
                   All hazards
@@ -295,8 +295,8 @@ function AlertsPage() {
                     onClick={() => setHazard(h.value)}
                     className={
                       hazard === h.value
-                        ? publicCategoryBadgeSelectedClass
-                        : publicCategoryBadgeClass
+                        ? publicCategoryNavigationSelectedClass
+                        : publicCategoryNavigationClass
                     }
                   >
                     {h.label}

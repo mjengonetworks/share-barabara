@@ -8,6 +8,13 @@ export const publicCategoryBadgeClass =
 export const publicCategoryBadgeSelectedClass =
   "inline-flex max-w-full items-center rounded-md border border-blue-100/40 bg-brand-navy px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white backdrop-blur transition-colors hover:border-accent hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+/** Compact yellow/navy controls used only by public category/filter navigation. */
+export const publicCategoryNavigationClass =
+  "inline-flex min-h-9 shrink-0 items-center rounded-full border border-brand-navy bg-accent px-2.5 py-1 text-xs font-bold text-brand-navy transition-colors hover:bg-accent/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 sm:px-3 sm:py-1.5";
+
+export const publicCategoryNavigationSelectedClass =
+  "inline-flex min-h-9 shrink-0 items-center rounded-full border border-brand-navy bg-brand-navy px-2.5 py-1 text-xs font-bold text-primary-foreground transition-colors hover:bg-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 sm:px-3 sm:py-1.5";
+
 export function PublicCategoryBadge({ category }: { category: string }) {
   return (
     <Link to="/news" search={{ category }} className={publicCategoryBadgeClass}>
