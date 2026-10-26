@@ -21,7 +21,6 @@ import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
-import { DiscoverySections } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
@@ -241,9 +240,7 @@ function AlertDetail() {
             </div>
           ) : null}
 
-          <EditorialSummary className="mt-6">
-            {renderRichText(alert.description)}
-          </EditorialSummary>
+          <EditorialSummary className="mt-6">{renderRichText(alert.description)}</EditorialSummary>
 
           <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />
 
@@ -309,11 +306,6 @@ function AlertDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
-      <DiscoverySections
-        focus="alert"
-        currentId={alert.id}
-        context={{ county: alert.county, road: alert.road, topic: alert.hazard_type }}
-      />
       <GlobalEditorialPreview destination="alerts" excludeId={alert.id} topic={alert.hazard_type} />
     </>
   );

@@ -23,7 +23,10 @@ import { GlobalEditorialPreview } from "@/components/site/global-editorial-previ
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary, ReadAlso } from "@/components/site/editorial-summary";
 import heroRoad from "@/assets/hero-road.jpg";
-import { publicEditorialCategoryBadgeClass, publicCategoryBadgeClass } from "@/components/site/public-ui";
+import {
+  publicEditorialCategoryBadgeClass,
+  publicCategoryBadgeClass,
+} from "@/components/site/public-ui";
 import { socialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/news/$slug")({
@@ -126,8 +129,19 @@ export const Route = createFileRoute("/news/$slug")({
       article?.seo_description ||
       article?.summary ||
       "Read the full road safety story and join the community discussion.";
-    const head = socialHead({ title, description, pathname: `/news/${article?.slug ?? ""}`, imageUrl: article?.image_url });
-    return { ...head, meta: [...head.meta, ...(article?.seo_keywords ? [{ name: "keywords", content: article.seo_keywords }] : [])] };
+    const head = socialHead({
+      title,
+      description,
+      pathname: `/news/${article?.slug ?? ""}`,
+      imageUrl: article?.image_url,
+    });
+    return {
+      ...head,
+      meta: [
+        ...head.meta,
+        ...(article?.seo_keywords ? [{ name: "keywords", content: article.seo_keywords }] : []),
+      ],
+    };
   },
   component: NewsDetail,
 });
@@ -345,7 +359,7 @@ function NewsDetail() {
             </p>
           ) : null}
           <div className="mt-2 pb-2">
-            <h1 className="max-w-4xl text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            <h1 className="max-w-4xl text-[22.4px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
               {article.title}
             </h1>
           </div>
@@ -407,9 +421,7 @@ function NewsDetail() {
             </div>
           ) : null}
           {article.summary?.trim() ? (
-            <EditorialSummary className="mt-5">
-              {article.summary}
-            </EditorialSummary>
+            <EditorialSummary className="mt-5">{article.summary}</EditorialSummary>
           ) : null}
           {article.status === "published" ? (
             <div className="mt-5">
@@ -453,7 +465,11 @@ function NewsDetail() {
           contextualAlerts={contextualAlerts}
         />
       </div>
-      <GlobalEditorialPreview destination="news" excludeId={article.id} category={article.category} />
+      <GlobalEditorialPreview
+        destination="news"
+        excludeId={article.id}
+        category={article.category}
+      />
     </div>
   );
 }
@@ -479,9 +495,7 @@ function ArticleBody({
               <BannerAd placement="article-body-mid" />
             </div>
           ) : null}
-          {readAlsoAfter === index + 1 ? (
-            <ReadAlso related={related} />
-          ) : null}
+          {readAlsoAfter === index + 1 ? <ReadAlso related={related} /> : null}
         </Fragment>
       ))}
     </div>

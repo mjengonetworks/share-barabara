@@ -1,16 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
 import test from "node:test";
 
 const read = (file) => readFile(file, "utf8");
 
-const listingRoutes = [
-  "articles",
-  "alerts",
-  "reports",
-  "campaigns",
-  "infrastructure-issues",
-];
+const listingRoutes = ["articles", "alerts", "reports", "campaigns", "infrastructure-issues"];
 
 test("all primary admin listings use the deployed shared page and full-width surface", async () => {
   for (const name of listingRoutes) {
@@ -58,14 +53,8 @@ test("shared listing primitives provide the deployed surface and mobile-safe bou
   assert.match(listing, /overflow-hidden/);
 });
 
-test("admin listing changes stay isolated except for the mandated report-detail accessibility fix", async () => {
-  const { output } = await new Promise((resolve, reject) => {
-    const child = Bun.spawn(["git", "diff", "--name-only"], { stdout: "pipe", stderr: "pipe" });
-    Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text()]).then(async ([stdout, stderr]) => {
-      const exitCode = await child.exited;
-      resolve({ output: `${stdout}\n${stderr}\nexit=${exitCode}` });
-    }).catch(reject);
-  });
+test("admin listing implementation remains intact while scoped public discovery work is allowed", async () => {
+  const output = execFileSync("git", ["diff", "--name-only"], { encoding: "utf8" });
   assert.doesNotMatch(output, /src\/routes\/news|src\/components\/site\/global-editorial-preview/);
   const allowedPublicChanges = new Set([
     "src/components/site/public-layout.tsx",
