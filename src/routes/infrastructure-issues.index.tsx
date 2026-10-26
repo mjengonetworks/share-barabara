@@ -210,9 +210,6 @@ function InfrastructureIssuesPage() {
                         <MapPin className="size-3.5" /> {issue.road_name}
                         {issue.county ? ` · ${issue.county}` : ""}
                       </p>
-                      <p className="mt-2 line-clamp-2 flex-1 text-sm text-muted-foreground">
-                        {issue.summary}
-                      </p>
                     </div>
                   </Link>
                 </Fragment>

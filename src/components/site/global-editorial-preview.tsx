@@ -29,7 +29,6 @@ function mapArticle(item: any, rank?: number): PreviewItem {
     title: item.title,
     href: "/news/" + item.slug,
     imageUrl: item.image_url,
-    summary: item.summary,
     category: item.category,
     categoryKey: item.category,
     destination: "news",
@@ -41,7 +40,6 @@ function mapAlert(item: any, rank?: number): PreviewItem {
     id: item.id,
     title: item.title,
     href: "/alerts/" + item.id,
-    summary: item.description,
     category: item.hazard_type,
     categoryKey: item.hazard_type,
     destination: "alerts",
@@ -54,7 +52,6 @@ function mapReport(item: any, rank?: number): PreviewItem {
     title: item.title,
     href: "/reports/" + item.id,
     imageUrl: item.image_url,
-    summary: item.description,
     category: item.incident_type,
     categoryKey: item.incident_type,
     destination: "reports",
@@ -67,7 +64,6 @@ function mapCampaign(item: any): PreviewItem {
     title: item.title,
     href: "/campaigns/" + item.slug,
     imageUrl: item.image_url,
-    summary: item.description,
     category: "Campaign",
     destination: "campaigns",
   };
@@ -92,7 +88,6 @@ function mapInfrastructure(item: any): PreviewItem {
     title: item.title,
     href: "/infrastructure-issues/" + item.id,
     imageUrl: item.image_url,
-    summary: item.summary ?? item.content,
     category: item.structure_type,
     destination: "infrastructure",
   };
@@ -135,11 +130,6 @@ function ItemLink({ item, featured }: { item: PreviewItem; featured?: boolean })
         >
           {item.title}
         </span>
-        {featured && item.summary ? (
-          <span className="mt-2 block line-clamp-2 text-xs leading-5 text-muted-foreground">
-            {item.summary}
-          </span>
-        ) : null}
       </span>
     </a>
   );
@@ -147,12 +137,10 @@ function ItemLink({ item, featured }: { item: PreviewItem; featured?: boolean })
 
 function PreviewCard({
   title,
-  description,
   items,
   viewHref,
 }: {
   title: string;
-  description: string;
   items: PreviewItem[];
   viewHref: string;
 }) {
@@ -162,7 +150,6 @@ function PreviewCard({
         <BarChart3 className="mt-0.5 size-4 shrink-0 text-brand-blue" aria-hidden="true" />
         <div className="min-w-0">
           <h3 className="truncate text-sm font-extrabold text-brand-navy">{title}</h3>
-          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{description}</p>
         </div>
       </div>
       {items.length ? (
@@ -293,7 +280,6 @@ export function GlobalEditorialPreview({ destination, excludeId, category, topic
                 <div key={card.key} className={card.ranked ? "hidden md:block" : ""}>
                   <PreviewCard
                     title={card.title}
-                    description={card.description}
                     items={card.items}
                     viewHref={card.ranked ? categoryHref(module, card.items[0]?.categoryKey) : meta.href}
                   />
