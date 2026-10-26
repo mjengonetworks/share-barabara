@@ -281,7 +281,7 @@ function AlertDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 More from {alert.county}
               </h2>
-              <AlertList alerts={related} />
+              <AlertList alerts={related.slice(0, 3)} />
               <Link
                 to="/alerts"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -295,7 +295,7 @@ function AlertDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Latest alerts
               </h2>
-              <AlertList alerts={latest} />
+              <AlertList alerts={latest.slice(0, 3)} />
               <Link
                 to="/alerts"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -306,7 +306,15 @@ function AlertDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
-      <GlobalEditorialPreview destination="alerts" excludeId={alert.id} topic={alert.hazard_type} />
+      <GlobalEditorialPreview
+        destination="alerts"
+        excludeId={alert.id}
+        topic={alert.hazard_type}
+        excludeKeys={[
+          ...related.slice(0, 3).map((item) => `alerts:${item.id}`),
+          ...latest.slice(0, 3).map((item) => `alerts:${item.id}`),
+        ]}
+      />
     </>
   );
 }

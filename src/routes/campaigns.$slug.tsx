@@ -9,9 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
-import {
-  PublicBreadcrumbStrip,
-} from "@/components/site/public-layout";
+import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
 import { CampaignPreviewCard } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
@@ -21,15 +19,20 @@ import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   loader: async ({ params }) => {
-    const { data } = await supabase.from("campaigns").select("*").eq("slug", params.slug).maybeSingle();
+    const { data } = await supabase
+      .from("campaigns")
+      .select("*")
+      .eq("slug", params.slug)
+      .maybeSingle();
     return data;
   },
-  head: ({ loaderData }) => socialHead({
-    title: loaderData?.title || "Share Barabara Campaign",
-    description: loaderData?.description || "Read about this Share Barabara campaign.",
-    pathname: `/campaigns/${loaderData?.slug ?? ""}`,
-    imageUrl: loaderData?.image_url || loaderData?.report_image_url,
-  }),
+  head: ({ loaderData }) =>
+    socialHead({
+      title: loaderData?.title || "Share Barabara Campaign",
+      description: loaderData?.description || "Read about this Share Barabara campaign.",
+      pathname: `/campaigns/${loaderData?.slug ?? ""}`,
+      imageUrl: loaderData?.image_url || loaderData?.report_image_url,
+    }),
   component: CampaignDetail,
 });
 
@@ -102,8 +105,15 @@ function CampaignDetail() {
       />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
-          <Link to="/campaigns" className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="size-4" /> All campaigns</Link>
-          <div className="mt-1.5"><PublicEditorialCategoryBadge>Campaign</PublicEditorialCategoryBadge></div>
+          <Link
+            to="/campaigns"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground"
+          >
+            <ArrowLeft className="size-4" /> All campaigns
+          </Link>
+          <div className="mt-1.5">
+            <PublicEditorialCategoryBadge>Campaign</PublicEditorialCategoryBadge>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={STATUS_VARIANT[status]} className="capitalize">
               {status}
@@ -130,14 +140,16 @@ function CampaignDetail() {
 
           {heroImage ? (
             <figure className="mt-4">
-              <img src={heroImage} alt={campaign.title} className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain" />
+              <img
+                src={heroImage}
+                alt={campaign.title}
+                className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
+              />
               <EditorialMediaMeta caption={campaign.image_caption} credit={campaign.image_credit} />
             </figure>
           ) : null}
 
-          <EditorialSummary className="mt-6">
-            {campaign.description}
-          </EditorialSummary>
+          <EditorialSummary className="mt-6">{campaign.description}</EditorialSummary>
 
           <AttachmentGallery attachments={(campaign.attachments as AttachmentRow[] | null) ?? []} />
 
@@ -162,10 +174,31 @@ function CampaignDetail() {
           ) : null}
         </article>
         <EditorialSidebar adPlacement="campaign-sidebar">
-          {relatedCampaigns.length > 0 ? <section className="rounded-lg border border-border bg-card p-5 card-elevated"><h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Related campaigns</h2><div className="mt-3 grid gap-3">{relatedCampaigns.map((item) => <CampaignPreviewCard key={item.id} campaign={item} />)}</div><Link to="/campaigns" className="mt-4 inline-flex text-sm font-semibold text-brand-blue underline">View more campaigns</Link></section> : null}
+          {relatedCampaigns.length > 0 ? (
+            <section className="rounded-lg border border-border bg-card p-5 card-elevated">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                Related campaigns
+              </h2>
+              <div className="mt-3 grid gap-3">
+                {relatedCampaigns.slice(0, 3).map((item) => (
+                  <CampaignPreviewCard key={item.id} campaign={item} />
+                ))}
+              </div>
+              <Link
+                to="/campaigns"
+                className="mt-4 inline-flex text-sm font-semibold text-brand-blue underline"
+              >
+                View more campaigns
+              </Link>
+            </section>
+          ) : null}
         </EditorialSidebar>
       </div>
-      <GlobalEditorialPreview destination="campaigns" excludeId={campaign.id} />
+      <GlobalEditorialPreview
+        destination="campaigns"
+        excludeId={campaign.id}
+        excludeKeys={relatedCampaigns.slice(0, 3).map((item) => `campaigns:${item.id}`)}
+      />
     </>
   );
 }

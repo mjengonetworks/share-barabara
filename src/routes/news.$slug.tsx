@@ -359,7 +359,7 @@ function NewsDetail() {
             </p>
           ) : null}
           <div className="mt-2 pb-2">
-            <h1 className="max-w-4xl text-[22.4px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            <h1 className="max-w-4xl text-[23.52px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
               {article.title}
             </h1>
           </div>
@@ -457,9 +457,9 @@ function NewsDetail() {
           <CommentSection entityType="news" entityId={article.id} />
         </article>
         <ArticleSidebar
-          related={related.slice(0, 4)}
-          latest={sidebarLatest.slice(0, 4)}
-          trending={sidebarTrending.slice(0, 5)}
+          related={related.slice(0, 3)}
+          latest={sidebarLatest.slice(0, 3)}
+          trending={sidebarTrending.slice(0, 3)}
           categories={loaderData.categories}
           contextualReports={contextualReports}
           contextualAlerts={contextualAlerts}
@@ -469,6 +469,13 @@ function NewsDetail() {
         destination="news"
         excludeId={article.id}
         category={article.category}
+        excludeKeys={[
+          ...related.slice(0, 3).map((item) => `news:${item.id}`),
+          ...sidebarLatest.slice(0, 3).map((item) => `news:${item.id}`),
+          ...sidebarTrending.slice(0, 3).map((item) => `news:${item.id}`),
+          ...contextualReports.slice(0, 2).map((item) => `reports:${String(item.id)}`),
+          ...contextualAlerts.slice(0, 2).map((item) => `alerts:${String(item.id)}`),
+        ]}
       />
     </div>
   );

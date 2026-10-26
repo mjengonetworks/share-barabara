@@ -20,19 +20,36 @@ import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
   loader: async ({ params }) => {
-    const { data } = await supabase.from("infrastructure_issues").select("*").eq("id", params.issueId).eq("status", "approved").maybeSingle();
+    const { data } = await supabase
+      .from("infrastructure_issues")
+      .select("*")
+      .eq("id", params.issueId)
+      .eq("status", "approved")
+      .maybeSingle();
     return data;
   },
-  head: ({ loaderData }) => socialHead({
-    title: loaderData?.title || "Infrastructure Issue",
-    description: loaderData?.summary || "Read the full infrastructure issue report and see related issues nearby.",
-    pathname: `/infrastructure-issues/${loaderData?.id ?? ""}`,
-    imageUrl: loaderData?.image_url,
-  }),
+  head: ({ loaderData }) =>
+    socialHead({
+      title: loaderData?.title || "Infrastructure Issue",
+      description:
+        loaderData?.summary ||
+        "Read the full infrastructure issue report and see related issues nearby.",
+      pathname: `/infrastructure-issues/${loaderData?.id ?? ""}`,
+      imageUrl: loaderData?.image_url,
+    }),
   component: IssueDetail,
 });
 
-type RelatedIssue = { id: string; title: string; road_name: string; county: string | null; summary: string | null; image_url: string | null; structure_type: string | null; status: string | null };
+type RelatedIssue = {
+  id: string;
+  title: string;
+  road_name: string;
+  county: string | null;
+  summary: string | null;
+  image_url: string | null;
+  structure_type: string | null;
+  status: string | null;
+};
 
 function IssueDetail() {
   const { issueId } = Route.useParams();
@@ -174,14 +191,16 @@ function IssueDetail() {
 
           {issue.image_url ? (
             <figure className="mt-4">
-              <img src={issue.image_url} alt={issue.title} className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain" />
+              <img
+                src={issue.image_url}
+                alt={issue.title}
+                className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
+              />
               <EditorialMediaMeta caption={issue.image_caption} credit={issue.image_credit} />
             </figure>
           ) : null}
 
-          <EditorialSummary className="mt-6">
-            {issue.summary}
-          </EditorialSummary>
+          <EditorialSummary className="mt-6">{issue.summary}</EditorialSummary>
           <div className="mt-6 space-y-4 text-foreground/90">{renderRichText(issue.content)}</div>
 
           {issue.editor_note ? (
@@ -202,7 +221,11 @@ function IssueDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 More in {issue.county}
               </h2>
-              <div className="mt-3 grid gap-3">{byCounty.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
+              <div className="mt-3 grid gap-3">
+                {byCounty.slice(0, 3).map((item) => (
+                  <InfrastructureIssuePreviewCard key={item.id} issue={item} />
+                ))}
+              </div>
             </div>
           ) : null}
           {byAuthority.length > 0 ? (
@@ -212,7 +235,11 @@ function IssueDetail() {
                 {ROAD_AUTHORITIES.find((a) => a.value === issue.authority)?.label ??
                   issue.authority}
               </h2>
-              <div className="mt-3 grid gap-3">{byAuthority.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
+              <div className="mt-3 grid gap-3">
+                {byAuthority.slice(0, 3).map((item) => (
+                  <InfrastructureIssuePreviewCard key={item.id} issue={item} />
+                ))}
+              </div>
             </div>
           ) : null}
           {byStructure.length > 0 ? (
@@ -225,7 +252,11 @@ function IssueDetail() {
                 ).toLowerCase()}{" "}
                 issues
               </h2>
-              <div className="mt-3 grid gap-3">{byStructure.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
+              <div className="mt-3 grid gap-3">
+                {byStructure.slice(0, 3).map((item) => (
+                  <InfrastructureIssuePreviewCard key={item.id} issue={item} />
+                ))}
+              </div>
             </div>
           ) : null}
           <Link
@@ -236,7 +267,15 @@ function IssueDetail() {
           </Link>
         </EditorialSidebar>
       </div>
-      <GlobalEditorialPreview destination="infrastructure" excludeId={issue.id} />
+      <GlobalEditorialPreview
+        destination="infrastructure"
+        excludeId={issue.id}
+        excludeKeys={[
+          ...byCounty.slice(0, 3).map((item) => `infrastructure:${item.id}`),
+          ...byAuthority.slice(0, 3).map((item) => `infrastructure:${item.id}`),
+          ...byStructure.slice(0, 3).map((item) => `infrastructure:${item.id}`),
+        ]}
+      />
     </>
   );
 }
