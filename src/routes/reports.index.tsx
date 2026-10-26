@@ -41,8 +41,8 @@ import {
   type PublicIncidentCard,
 } from "@/components/site/public-layout";
 import {
-  publicCategoryBadgeClass,
-  publicCategoryBadgeSelectedClass,
+  publicCategoryNavigationClass,
+  publicCategoryNavigationSelectedClass,
 } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/reports/")({
@@ -258,7 +258,7 @@ function ReportsPage() {
                 <button
                   onClick={() => setSeverity("all")}
                   className={
-                    severity === "all" ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
+                    severity === "all" ? publicCategoryNavigationSelectedClass : publicCategoryNavigationClass
                   }
                 >
                   All severities
@@ -269,8 +269,8 @@ function ReportsPage() {
                     onClick={() => setSeverity(s.value)}
                     className={
                       severity === s.value
-                        ? publicCategoryBadgeSelectedClass
-                        : publicCategoryBadgeClass
+                        ? publicCategoryNavigationSelectedClass
+                        : publicCategoryNavigationClass
                     }
                   >
                     {s.label}
