@@ -481,3 +481,18 @@ confirmation before application. Full tests passed (372/372), security tests pas
 the production build passed. Public and admin route shells returned HTTP 200. Authenticated live
 Grok/Groq generation remains pending because no authorized provider test session was available.
 No migration, advertisement, Task 70, unrelated AI/authentication, or SearXNG change was made.
+
+Editorial AI UX Cleanup and Direct Field Population — DEPLOYED / BROWSER AND LIVE-PROVIDER ACCEPTANCE
+PENDING. Code commit `7371afd1253348ad537ffcc61ff0c4618ab6c5f6` removes the obsolete preview/confirmation
+UI, applies validated Generate, Groq Auto-Populate, Grok Auto-Populate and Update Existing results directly
+to local editable form state, filters exact schema-label artifacts (`Title`, `Summary`, `Body`, and equivalent
+field labels), preserves unrelated fields, and ignores stale responses after newer edits or requests. Update
+Existing remains restricted to persisted authorized records server-side and no action saves or publishes
+automatically. Focused Editorial AI tests passed (24/24), full regression passed (374/374), security tests
+passed (14/14), and the production build passed. The release was deployed with the generated production
+Wrangler environment workaround to Worker `4684cefb-d62b-4948-aafc-14860ddb2d7e`; rollback target is
+`d734a020-67a1-4944-b385-0488beb8200e`. Production homepage, News, Alerts, Reports, Search and admin route
+shells returned HTTP 200. Authenticated editor interaction and live Grok/Groq calls remain pending because
+no authorized browser/provider test session was available; HTTP smoke checks do not establish visual or live
+provider acceptance. No migration, Task 70, advertisement, unrelated AI/authentication, or SearXNG change was
+made.
