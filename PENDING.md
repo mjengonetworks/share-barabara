@@ -568,3 +568,24 @@ non-sensitive UI diagnostic marker and no `Title: Summary: Body:` scaffold. Auth
 reproduction and real Grok/Groq calls remain pending because no authorized browser/provider session was
 available. No migration, public UI, advertisement, Task 70, unrelated AI/authentication, or SearXNG change
 was made.
+Final Article Detail, Recommended Content and Editorial Discovery Layout Correction — DEPLOYED / VISUAL ACCEPTANCE PENDING.
+The verified pre-deployment live baseline was Git `24e689e777f4b7b2d392c028b861d09261ab64b0` with Worker
+`623e7634-38c7-45ff-96df-58bd46f3b676`; candidate `053ce19cf4a4a3620c19f05cfc2090b35d1db7d2` contains that
+baseline. The shared discovery component now renders one coherent cross-content section with up to three source
+cards, three latest eligible items per card, global de-duplication, canonical links, large-first/compact-following
+items, mobile stacking and one existing banner slot after the complete three-card row. Detail routes no longer mount
+the legacy repeated four-item discovery loop. The Article detail H1 is 22.4px on mobile (from 28px) and remains 34px
+at the existing small-screen breakpoint and unchanged desktop clamp; other content-type headlines were not changed.
+The fourth-item cause was the legacy `DiscoveryGroup` `.slice(0, 4)` grid. The unwanted Read more control came from
+that legacy detail discovery renderer; it is no longer mounted by Alert/Report detail routes. Repeated More From sections
+were caused by `GlobalEditorialPreview` iterating every destination independently.
+
+The release was deployed as Worker `e69cd270-9006-4f0e-8b9f-50ffdfaceefe` at 100%; rollback Worker is
+`623e7634-38c7-45ff-96df-58bd46f3b676`. Focused public/discovery/admin regression tests passed (33/33), security tests
+passed (14/14), the full suite passed 384/387. The three remaining full-suite failures are pre-existing Node test-loader
+incompatibilities in Editorial AI provider/source tests (extensionless `src/lib/ai/safe` and `@/integrations` alias
+imports); no AI code was changed. Production build and `git diff --check` passed. Public HTTP smoke checks returned
+200 for `/`, `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues`. Browser visual verification
+remains pending because CUA initialization failed with `failed to write kernel assets: The system cannot find the path
+specified. (os error 3)`; HTTP responses do not establish rendered visual acceptance. No migration, admin redesign,
+Editorial AI, authentication, moderation, advertising, Task 70 or SearXNG change was made.
