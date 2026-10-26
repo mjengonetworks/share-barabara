@@ -92,13 +92,14 @@ test("Editorial AI is server-authorized and separated from contributor forms", a
   assert.match(article, /mode="generate"/);
   assert.match(article, /mode="autopopulate"/);
   assert.match(alert, /useRoles|canReview/);
-  assert.match(alert, /\[\"generate\", \"autopopulate\"\]/);
+  assert.match(alert, /mode === "autopopulate" \? "groq" : "grok"/);
   assert.match(report, /useRoles|canReview/);
-  assert.match(report, /\[\"generate\", \"autopopulate\"\]/);
+  assert.match(report, /provider: "groq"/);
+  assert.match(report, /provider: "grok"/);
   assert.doesNotMatch(article, /EditorialAIButton[\s\S]{0,80}canEditSeo/);
 });
 
-test("all Article, Alert and Report editors render the three editorial workflows", async () => {
+test("all Article, Alert and Report editors render the editorial provider workflows", async () => {
   const articleForm = await source("src/components/site/article-form.tsx");
   const alertForm = await source("src/components/site/alert-form.tsx");
   const reportForm = await source("src/components/site/report-form.tsx");
@@ -106,20 +107,23 @@ test("all Article, Alert and Report editors render the three editorial workflows
   const alerts = await source("src/routes/_authenticated/admin/alerts.tsx");
   const reports = await source("src/routes/_authenticated/admin/reports.tsx");
 
-  for (const form of [articleForm]) {
-    assert.match(form, /mode="generate"|\["generate", "autopopulate"\]/);
-    assert.match(form, /mode="autopopulate"|\["generate", "autopopulate"\]/);
-    assert.match(form, /mode="update"/);
-  }
+  assert.match(articleForm, /generate/);
+  assert.match(articleForm, /autopopulate/);
+  assert.doesNotMatch(articleForm, /mode="update"/);
   for (const protectedForm of [alertForm, reportForm]) {
     assert.match(protectedForm, /canReview/);
-    assert.match(protectedForm, /\[\("generate", "autopopulate"\)|\[\"generate\", \"autopopulate\"\]/);
+    assert.match(protectedForm, /provider: "groq"|provider=\{mode === "autopopulate" \? "groq" : "grok"\}/);
+    assert.match(protectedForm, /provider: "grok"|provider="grok"/);
   }
-  for (const editor of [articles, alerts, reports]) {
-    assert.match(editor, /mode="generate"|\["generate", "autopopulate"\]/);
-    assert.match(editor, /mode="autopopulate"|\["generate", "autopopulate"\]/);
-    assert.match(editor, /mode="update"/);
-  }
+  assert.match(articles, /generate/);
+  assert.match(articles, /autopopulate/);
+  assert.match(articles, /mode="update"/);
+  assert.match(alerts, /generate/);
+  assert.match(alerts, /autopopulate/);
+  assert.match(alerts, /mode="update"/);
+  assert.match(reports, /generate/);
+  assert.match(reports, /autopopulate/);
+  assert.match(reports, /mode="update"/);
 });
 
 test("Editorial update panels apply proposals to forms without persisting them", async () => {

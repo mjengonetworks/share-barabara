@@ -57,8 +57,9 @@ test("Editorial AI provider matrix is enforced by action", async () => {
     assert.equal(actions.autopopulate, "groq");
     assert.equal(actions.update, "grok");
   }
-  assert.match(editorial, /mode === "autopopulate" \? "groq" : "grok"/);
-  assert.match(panel, /mode === "autopopulate" \? "Groq" : "xAI Grok"/);
+  assert.match(editorial, /input\.provider \?\? \(mode === "autopopulate" \? "groq" : "grok"\)/);
+  assert.match(editorial, /mode !== "autopopulate" && provider !== "grok"/);
+  assert.match(panel, /selectedProvider === "groq" \? "Groq" : "xAI Grok"/);
   assert.match(await source("src/lib/ai/public.functions.ts"), /completeWithProvider\("groq"/);
 });
 

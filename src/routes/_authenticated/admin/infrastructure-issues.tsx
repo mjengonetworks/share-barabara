@@ -370,11 +370,12 @@ function InfrastructureIssuesAdminPage() {
                       />
                     </div>
                     <div className="space-y-3">
-                      {(["generate", "autopopulate", "update"] as const).map((mode) => (
+                      {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, { mode: "update", provider: "grok" }] as const).map(({ mode, provider }) => (
                         <EditorialAIButton
-                          key={mode}
+                          key={`${mode}-${provider}`}
                           contentType="infrastructure"
                           mode={mode}
+                          provider={provider}
                           contentId={i.id}
                           current={d}
                           source={`${d.title}\n${d.road_name}\n${d.county}\n${d.summary}\n${d.content}`}

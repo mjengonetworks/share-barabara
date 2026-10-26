@@ -62,7 +62,7 @@ test("Editorial routing keeps action-specific server-only providers", async () =
   const editorial = await readFile("src/lib/ai/editorial.functions.ts", "utf8");
   assert.match(providers, /serverEnv\("GROQ_API_KEY"\)/);
   assert.match(providers, /serverEnv\("XAI_API_KEY"\)/);
-  assert.match(editorial, /const provider = mode === "autopopulate" \? "groq" : "grok"/);
+  assert.match(editorial, /const provider: EditorialProvider = input\.provider \?\? \(mode === "autopopulate" \? "groq" : "grok"\)/);
   assert.match(editorial, /completeWithProvider\(provider/);
   assert.match(runtimeEnv, /__env__/);
   assert.doesNotMatch(providers, /VITE_XAI_API_KEY/);

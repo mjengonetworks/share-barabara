@@ -139,6 +139,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
           <EditorialAIButton
             contentType="article"
             mode="generate"
+            provider="grok"
             source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
             onDraft={(draft) => {
               setForm((current) => ({
@@ -158,6 +159,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
           <EditorialAIButton
             contentType="article"
             mode="autopopulate"
+            provider="groq"
             source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
             onDraft={(draft) => {
               setForm((current) => ({
@@ -176,9 +178,9 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
           />
           <EditorialAIButton
             contentType="article"
-            mode="update"
+            mode="autopopulate"
+            provider="grok"
             source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
-            current={form}
             onDraft={(draft) => setForm((current) => ({
               ...current,
               ...Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== "" && value !== null)),

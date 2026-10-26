@@ -387,14 +387,17 @@ executed and no production data was changed. Remaining work is pasting the inspe
 Supabase, exporting the JSON result, reviewing conflicts, confirming backup readiness and approving
 the migration sequence manually. The protected subscription migration remains excluded.
 
-Task 54 — Urgent Editorial AI Repair is TESTING / VERIFICATION. The Cloudflare request environment is
-now bound for normal requests, editorial instructions are delivered as a server system instruction,
-source material remains explicitly untrusted user evidence, and editorial provider calls request
-provider-enforced JSON output before server-side field validation. Groq remains locked to Auto-Populate,
-Grok/xAI remains locked to Generate and Update, and the public AI path remains Groq. Safe configuration,
-provider and malformed-response diagnostics are surfaced without secrets. Remaining verification is
-deployment/runtime binding confirmation and mocked/live provider checks; no migration or deployment was
-performed. Keep the Contributors Directory & Sitewide Discovery task pending.
+Task 54 — Urgent Editorial AI Repair is TESTING / VERIFICATION. The repair adds strict structured-output
+recovery for fenced and known wrapper responses, preserves schema/taxonomy validation, records only safe
+diagnostic metadata, restores explicit Grok Auto-Populate routing, and collapses every shared Editorial AI
+panel by default while preserving entered material. Generate remains Grok/xAI, Auto-Populate supports Groq
+and Grok, and Update Existing requires a persisted record ID both in the UI and server function; create
+forms do not expose Update Existing. All supported Article, Alert, Report, Campaign and Infrastructure
+Issue editors use the shared provider-aware controls. Local validation passed: 368/368 full tests,
+14/14 security tests and Bun production build. No migration was executed. Live Cloudflare provider
+credentials and authenticated editorial sessions were unavailable locally, so real Groq/Grok generated
+draft validation, authenticated production smoke testing and deployment remain pending; do not mark
+production-verified or claim provider acceptance.
 
 Task 56 — Share Barabara Public Website Repair is TESTING / VERIFICATION. Public navigation now presents
 News & Articles, Alerts, Reports, Statistics, Media & Feed and Campaigns while preserving /feed and the

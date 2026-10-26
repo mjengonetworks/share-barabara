@@ -10,8 +10,9 @@ test("admin Alert add and edit flows expose Generate and Auto-Populate", () => {
   const edit = read("src/routes/_authenticated/admin/alerts.tsx");
   assert.ok(form.includes("const { canReview } = useRoles()"));
   assert.ok(form.includes('contentType="alert"'));
-  assert.ok(form.includes('mode={mode}'));
-  assert.ok(form.includes('["generate", "autopopulate"]'));
+  assert.ok(form.includes("mode={mode}"));
+  assert.match(form, /provider=\{mode === "autopopulate" \? "groq" : "grok"\}/);
+  assert.match(form, /mode="autopopulate"[\s\S]*provider="grok"/);
   assert.ok(edit.includes('mode="update"'));
 });
 
@@ -22,7 +23,7 @@ test("admin Accident Report add and edit flows expose Generate and Auto-Populate
   // Editorial AI is mounted by the authenticated admin editor wrapper, not
   // the public contributor form.
   assert.ok(edit.includes('contentType="report"'));
-  assert.ok(edit.includes('["generate", "autopopulate"]'));
+  assert.match(edit, /mode: "autopopulate", provider: "groq"/);
   assert.ok(edit.includes('contentType="report"'));
   assert.ok(edit.includes('mode="update"'));
 });
@@ -44,7 +45,7 @@ test("report draft publishing remains blocked without the approved schema change
 test("editorial AI application is non-destructive for blank model fields", () => {
   const source = read("src/components/site/editorial-ai-button.tsx");
   assert.ok(source.includes("nonDestructiveDraft"));
-  assert.ok(source.includes("value !== \"\" && value !== null"));
+  assert.ok(source.includes('value !== "" && value !== null'));
 });
 
 test("existing Infrastructure Issues and Campaigns use the shared Editorial AI contract", () => {
@@ -53,5 +54,8 @@ test("existing Infrastructure Issues and Campaigns use the shared Editorial AI c
   assert.ok(source.includes('contentType === "infrastructure"'));
   assert.ok(source.includes('contentType === "campaign"'));
   assert.match(read("src/routes/_authenticated/admin/campaigns.tsx"), /contentType="campaign"/);
-  assert.match(read("src/routes/_authenticated/admin/infrastructure-issues.tsx"), /contentType="infrastructure"/);
+  assert.match(
+    read("src/routes/_authenticated/admin/infrastructure-issues.tsx"),
+    /contentType="infrastructure"/,
+  );
 });

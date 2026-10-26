@@ -22,6 +22,7 @@ import { EDITORIAL_PROMPTS } from "./editorial-prompts";
 
 export type EditorialContentType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 export type EditorialMode = "generate" | "autopopulate" | "update";
+export type EditorialProvider = "groq" | "grok";
 export type EditorialValue = string | number | null | string[];
 type EditorialDraft = Record<string, EditorialValue>;
 export type EditorialProposal = {
@@ -102,8 +103,56 @@ function schemaLayer(contentType: EditorialContentType) {
   return `AUTHORITATIVE JSON OUTPUT: Return exactly these fields and no others: ${fieldsFor(contentType).join(", ")}. The server allowlist is authoritative.`;
 }
 
+function parseStructuredObject(answer: string): Record<string, unknown> {
+  const trimmed = answer.trim();
+  const candidates = [trimmed];
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1]?.trim();
+  if (fenced) candidates.push(fenced);
+  const start = trimmed.indexOf("{");
+  if (start >= 0) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let index = start; index < trimmed.length; index += 1) {
+      const char = trimmed[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (char === "\\") escaped = true;
+        else if (char === '"') inString = false;
+        continue;
+      }
+      if (char === '"') inString = true;
+      else if (char === "{") depth += 1;
+      else if (char === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          candidates.push(trimmed.slice(start, index + 1));
+          break;
+        }
+      }
+    }
+  }
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as unknown;
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const object = parsed as Record<string, unknown>;
+        for (const wrapper of ["draft", "data", "result"]) {
+          if (object[wrapper] && typeof object[wrapper] === "object" && !Array.isArray(object[wrapper])) {
+            return object[wrapper] as Record<string, unknown>;
+          }
+        }
+        return object;
+      }
+    } catch {
+      // Continue through the known-safe wrapper candidates.
+    }
+  }
+  throw new Error("provider_json_unparseable");
+}
+
 function parseDraft(contentType: EditorialContentType, answer: string): EditorialDraft {
-  const parsed = JSON.parse(answer) as Record<string, unknown>;
+  const parsed = parseStructuredObject(answer);
   const draft: EditorialDraft = {};
   for (const field of fieldsFor(contentType)) {
     const value = parsed[field];
@@ -133,6 +182,11 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
   }
   if (Object.keys(draft).length === 0) throw new Error("Editorial AI returned no usable fields");
   return draft;
+}
+
+/** Pure parser seam used by regression tests for provider-format failures. */
+export function parseEditorialDraftForTest(contentType: EditorialContentType, answer: string) {
+  return parseDraft(contentType, answer);
 }
 
 type ControlledValues = { hazardTypes?: string[]; severities?: string[]; newsCategories?: string[] };
@@ -315,6 +369,7 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
       const input = (data ?? {}) as {
         contentType?: EditorialContentType;
         mode?: EditorialMode;
+        provider?: EditorialProvider;
         source?: string;
         contentId?: string;
         instruction?: string;
@@ -326,6 +381,8 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
         throw new Error("Invalid editorial content type");
       if (!["generate", "autopopulate", "update"].includes(mode))
         throw new Error("Invalid editorial AI mode");
+      if (input.provider && !["groq", "grok"].includes(input.provider))
+        throw new Error("Invalid editorial AI provider");
       const claims = context.claims;
       // Editorial generation is deliberately not exposed to public AI. Role checks
       // must remain on the server even when a CMS client is compromised.
@@ -336,10 +393,12 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
         .eq("user_id", context.userId);
       if (!(roles ?? []).some((role: { role: string }) => editorialRoles.has(role.role)))
         throw new Error("Editorial AI requires an approved contributor role");
+      if (mode === "update" && !input.contentId?.trim())
+        throw new Error("Update with AI requires a persisted record ID");
       let source = input.source?.trim() ?? "";
   let current: Record<string, EditorialValue> = {};
   if (mode === "update") {
-        const record = input.contentId ? await resolveEditorialRecord(context.supabase, contentType, input.contentId) : null;
+        const record = await resolveEditorialRecord(context.supabase, contentType, input.contentId!);
         current = suppliedCurrent(input.current, contentType);
         if (record && Object.keys(current).length === 0) current = currentFields(record, contentType);
         if (!Object.keys(current).length) throw new Error("Current form values are required for Update with AI");
@@ -350,10 +409,11 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
       source = await resolveSourceMaterial(source);
       await enforceAIRateLimit("editorial", context.userId);
       const { completeWithProvider } = await import("./providers.server");
-      // Provider assignment is action-specific: Auto-Populate uses Groq;
-      // Generate and Update use the existing xAI/Grok integration. Credentials
-      // remain inside the server-only provider abstraction.
-      const provider = mode === "autopopulate" ? "groq" : "grok";
+      // Auto-Populate may use either approved provider. Generate and Update
+      // Existing use the existing xAI/Grok integration only.
+      const provider: EditorialProvider = input.provider ?? (mode === "autopopulate" ? "groq" : "grok");
+      if (mode !== "autopopulate" && provider !== "grok")
+        throw new Error("Generate and Update Existing use xAI Grok");
       const allowedTaxonomy = await controlledValues(context.supabase, contentType);
       const result = await completeWithProvider(provider, {
         mode: "editorial",
@@ -390,8 +450,15 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
           };
         }
         return { draft: proposed };
-      } catch {
-        throw new Error("Editorial AI returned an invalid draft");
+      } catch (error) {
+        console.warn("[Share Barabara AI] editorial draft validation failed", {
+          contentType,
+          mode,
+          provider,
+          reason: error instanceof Error ? error.message : "unknown",
+          answerLength: result.answer.length,
+        });
+        throw new Error(`Editorial AI could not produce a usable ${contentType} draft. No fields were changed. Check the source material and retry.`);
       }
     },
   );

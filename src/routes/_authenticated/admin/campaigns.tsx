@@ -253,11 +253,12 @@ function CampaignsAdminPage() {
                 />
               </div>
               <div className="space-y-3">
-                {(["generate", "autopopulate", ...(editingId ? ["update" as const] : [])] as const).map((mode) => (
+                {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : [])] as const).map(({ mode, provider }) => (
                   <EditorialAIButton
-                    key={mode}
+                    key={`${mode}-${provider}`}
                     contentType="campaign"
                     mode={mode}
+                    provider={provider}
                     contentId={editingId ?? undefined}
                     current={form}
                     source={`${form.title}\n${form.description}\n${form.location}\n${form.start_date}\n${form.end_date}`}

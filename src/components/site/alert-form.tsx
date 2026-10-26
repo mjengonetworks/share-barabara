@@ -96,6 +96,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
               key={mode}
               contentType="alert"
               mode={mode}
+              provider={mode === "autopopulate" ? "groq" : "grok"}
               source={`${form.title}\n${form.description}\nCounty: ${form.county}\nRoad: ${form.road}`}
               onDraft={(draft) => setForm((current) => ({
                 ...current,
@@ -108,6 +109,21 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
               }))}
             />
           ))}
+          <EditorialAIButton
+            contentType="alert"
+            mode="autopopulate"
+            provider="grok"
+            source={`${form.title}\n${form.description}\nCounty: ${form.county}\nRoad: ${form.road}`}
+            onDraft={(draft) => setForm((current) => ({
+              ...current,
+              ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
+              ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
+              ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
+              ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
+              ...(typeof draft.hazard_type === "string" && draft.hazard_type.trim() ? { hazard_type: draft.hazard_type } : {}),
+              ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
+            }))}
+          />
         </div>
       ) : null}
       <div>

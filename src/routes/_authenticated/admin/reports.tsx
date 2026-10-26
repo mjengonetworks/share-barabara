@@ -410,11 +410,12 @@ function ReportsQueuePage() {
               {expanded ? (
                 <div className="border-t border-border p-5">
                   <div className="space-y-4">
-                    {(["generate", "autopopulate"] as const).map((mode) => (
+                    {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }] as const).map(({ mode, provider }) => (
                       <EditorialAIButton
-                        key={mode}
+                        key={`${mode}-${provider}`}
                         contentType="report"
                         mode={mode}
+                        provider={provider}
                         source={`${d["title"]}\n${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}`}
                         onDraft={(draft) =>
                           set({

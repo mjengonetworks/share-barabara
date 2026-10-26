@@ -336,11 +336,12 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Reviewer tools
               </p>
-              {(["generate", "autopopulate"] as const).map((mode) => (
+          {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }] as const).map(({ mode, provider }) => (
                 <EditorialAIButton
-                  key={mode}
+              key={`${mode}-${provider}`}
                   contentType="report"
                   mode={mode}
+              provider={provider}
                   source={`${form.title}\n${form.description}\nCounty: ${form.county}\nRoad: ${form.road}`}
                   onDraft={(draft) =>
                     setForm((current) => ({

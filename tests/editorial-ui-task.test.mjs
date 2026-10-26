@@ -18,7 +18,8 @@ test("compact report form uses progressive disclosure without changing submissio
   assert.match(form, /casualtyBreakdownError/);
   assert.match(form, /withUnspecifiedCasualties/);
   assert.match(form, /CollapsibleContent[\s\S]*EditorialAIButton/);
-  assert.match(form, /\["generate", "autopopulate"\]/);
+  assert.match(form, /provider: "groq"/);
+  assert.match(form, /provider: "grok"/);
 });
 
 test("detail routes share editorial shell, sidebar and discovery parity", async () => {

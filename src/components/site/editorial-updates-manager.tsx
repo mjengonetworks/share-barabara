@@ -135,8 +135,9 @@ export function EditorialUpdatesManager({
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <EditorialAIButton contentType={parentType} mode="generate" source={source} onDraft={applyProposal} />
-        <EditorialAIButton contentType={parentType} mode="autopopulate" source={source} onDraft={applyProposal} />
+        <EditorialAIButton contentType={parentType} mode="generate" provider="grok" source={source} onDraft={applyProposal} />
+        <EditorialAIButton contentType={parentType} mode="autopopulate" provider="groq" source={source} onDraft={applyProposal} />
+        <EditorialAIButton contentType={parentType} mode="autopopulate" provider="grok" source={source} onDraft={applyProposal} />
         {editingId ? <EditorialAIButton contentType={parentType} mode="update" contentId={editingId} source="" current={current} onDraft={applyProposal} /> : null}
       </div>
 

@@ -14,9 +14,10 @@ test("Cloudflare request bindings reach server-only runtime environment reads", 
   assert.match(server, /async fetch\([\s\S]*__env__\s*=\s*env[\s\S]*handleRssFeedRequest/);
 });
 
-test("locked provider routing remains Generate/Grok, Auto-Populate/Groq, Update/Grok", () => {
-  assert.match(editorial, /const provider = mode === "autopopulate" \? "groq" : "grok"/);
-  assert.match(button, /mode === "autopopulate" \? "Groq" : "xAI Grok"/);
+test("locked provider routing supports Groq and Grok Auto-Populate safely", () => {
+  assert.match(editorial, /const provider: EditorialProvider = input\.provider \?\? \(mode === "autopopulate" \? "groq" : "grok"\)/);
+  assert.match(editorial, /mode !== "autopopulate" && provider !== "grok"/);
+  assert.match(button, /selectedProvider === "groq" \? "Groq" : "xAI Grok"/);
   assert.match(publicAI, /completeWithProvider\("groq"/);
 });
 
@@ -54,7 +55,8 @@ test("article proposals retain structured editable fields", () => {
 });
 
 test("invalid provider output fails closed without applying a proposal", () => {
-  assert.match(editorial, /catch \{\s*throw new Error\("Editorial AI returned an invalid draft"\)/);
+  assert.match(editorial, /parseStructuredObject/);
+  assert.match(editorial, /No fields were changed/);
   assert.match(editorial, /The proposal was not applied/);
   assert.match(button, /No draft returned/);
 });

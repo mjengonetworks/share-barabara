@@ -362,6 +362,7 @@ function AlertsAdminPage() {
                   key={mode}
                   contentType="alert"
                   mode={mode}
+                  provider={mode === "autopopulate" ? "groq" : "grok"}
                   source={`${editingParties.title}\n${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}`}
                   onDraft={(draft) =>
                     setEditingParties((current) =>
@@ -380,6 +381,27 @@ function AlertsAdminPage() {
                   }
                 />
               ))}
+              <EditorialAIButton
+                contentType="alert"
+                mode="autopopulate"
+                provider="grok"
+                source={`${editingParties.title}\n${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}`}
+                onDraft={(draft) =>
+                  setEditingParties((current) =>
+                    current
+                      ? {
+                          ...current,
+                          ...(typeof draft.title === "string" ? { title: draft.title } : {}),
+                          ...(typeof draft.description === "string" ? { description: draft.description } : {}),
+                          ...(typeof draft.county === "string" ? { county: draft.county } : {}),
+                          ...(typeof draft.road === "string" ? { road: draft.road } : {}),
+                          ...(typeof draft.hazard_type === "string" ? { hazard_type: draft.hazard_type } : {}),
+                          ...(typeof draft.severity === "string" ? { severity: draft.severity } : {}),
+                        }
+                      : current,
+                  )
+                }
+              />
               <EditorialAIButton
                 contentType="alert"
                 mode="update"

@@ -28,25 +28,27 @@ test("admin route owns the workspace navigation and public pages retain the foot
 });
 
 test("editorial AI is wired to admin editors while public submission forms remain clean", async () => {
-  const [articles, alerts, reports, updates, publicAlert, publicReport, editorial] = await Promise.all([
-    read("src/routes/_authenticated/admin/articles.tsx"),
-    read("src/routes/_authenticated/admin/alerts.tsx"),
-    read("src/routes/_authenticated/admin/reports.tsx"),
-    read("src/components/site/editorial-updates-manager.tsx"),
-    read("src/components/site/alert-form.tsx"),
-    read("src/components/site/report-form.tsx"),
-    read("src/lib/ai/editorial.functions.ts"),
-  ]);
+  const [articles, alerts, reports, updates, publicAlert, publicReport, editorial] =
+    await Promise.all([
+      read("src/routes/_authenticated/admin/articles.tsx"),
+      read("src/routes/_authenticated/admin/alerts.tsx"),
+      read("src/routes/_authenticated/admin/reports.tsx"),
+      read("src/components/site/editorial-updates-manager.tsx"),
+      read("src/components/site/alert-form.tsx"),
+      read("src/components/site/report-form.tsx"),
+      read("src/lib/ai/editorial.functions.ts"),
+    ]);
   for (const source of [articles, alerts, reports, updates]) {
     assert.match(source, /EditorialAIButton/);
   }
   assert.match(publicAlert, /useRoles|canReview/);
-  assert.match(publicAlert, /\[\"generate\", \"autopopulate\"\]/);
+  assert.match(publicAlert, /provider=\{mode === "autopopulate" \? "groq" : "grok"\}/);
   assert.match(publicReport, /useRoles|canReview/);
-  assert.match(publicReport, /\[\"generate\", \"autopopulate\"\]/);
+  assert.match(publicReport, /provider: \"groq\"/);
+  assert.match(publicReport, /provider: \"grok\"/);
   assert.match(editorial, /editorialRoles = new Set\(\["moderator", "editor", "admin"\]\)/);
   assert.match(editorial, /Editorial AI requires an approved contributor role/);
-  assert.match(editorial, /mode === "autopopulate" \? "groq" : "grok"/);
+  assert.match(editorial, /input\.provider \?\? \(mode === "autopopulate" \? "groq" : "grok"\)/);
 });
 
 test("admin dashboard exposes data-backed review queues and authoring shortcuts", async () => {

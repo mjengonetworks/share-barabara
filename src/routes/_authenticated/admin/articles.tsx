@@ -351,6 +351,7 @@ function ArticlesQueuePage() {
                       <EditorialAIButton
                         contentType="article"
                         mode="generate"
+                        provider="grok"
                         source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
                         onDraft={(draft) =>
                           set({
@@ -366,6 +367,23 @@ function ArticlesQueuePage() {
                       <EditorialAIButton
                         contentType="article"
                         mode="autopopulate"
+                        provider="groq"
+                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        onDraft={(draft) =>
+                          set({
+                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
+                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
+                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
+                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
+                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
+                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
+                          })
+                        }
+                      />
+                      <EditorialAIButton
+                        contentType="article"
+                        mode="autopopulate"
+                        provider="grok"
                         source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
                         onDraft={(draft) =>
                           set({
@@ -382,6 +400,7 @@ function ArticlesQueuePage() {
                         contentType="article"
                         source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
                         mode="update"
+                        provider="grok"
                         contentId={a.id}
                         current={d}
                         onDraft={(draft) =>

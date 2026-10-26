@@ -6,6 +6,7 @@ import {
   generateEditorialDraft,
   type EditorialContentType,
   type EditorialMode,
+  type EditorialProvider,
   type EditorialProposal,
   type EditorialValue,
 } from "@/lib/ai/editorial.functions";
@@ -33,6 +34,7 @@ export function EditorialAIButton({
   source,
   onDraft,
   mode = "autopopulate",
+  provider,
   contentId,
   current,
 }: {
@@ -40,10 +42,12 @@ export function EditorialAIButton({
   source: string;
   onDraft: (draft: Record<string, EditorialValue>) => void;
   mode?: EditorialMode;
+  provider?: EditorialProvider;
   contentId?: string;
   current?: Record<string, EditorialValue>;
 }) {
   const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [proposal, setProposal] = useState<EditorialProposal | null>(null);
   const [sourceMaterial, setSourceMaterial] = useState(mode === "update" ? "" : source);
   const [sourceFiles, setSourceFiles] = useState<Array<{ name: string; text: string }>>([]);
@@ -61,7 +65,8 @@ export function EditorialAIButton({
       : mode === "generate"
         ? "Create a reviewable draft from source material. Nothing is saved or published automatically."
         : "Extract and organize supplied source material into the supported CMS fields for review.";
-  const providerLabel = mode === "autopopulate" ? "Groq" : "xAI Grok";
+  const selectedProvider = provider ?? (mode === "autopopulate" ? "groq" : "grok");
+  const providerLabel = selectedProvider === "groq" ? "Groq" : "xAI Grok";
 
   async function generate() {
     if ((!sourceMaterial.trim() && sourceFiles.length === 0) || busy) return;
@@ -75,7 +80,7 @@ export function EditorialAIButton({
         return;
       }
       const result = await callGenerateEditorialDraft({
-        data: { contentType, source: combinedSource, mode, ...(contentId ? { contentId } : {}), ...(mode === "update" && current ? { current } : {}) },
+        data: { contentType, source: combinedSource, mode, provider: selectedProvider, ...(contentId ? { contentId } : {}), ...(mode === "update" && current ? { current } : {}) },
       });
       if (mode === "update") {
         if (!result.proposal) throw new Error("No proposal returned");
@@ -130,7 +135,13 @@ export function EditorialAIButton({
       className="relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-accent"
       aria-label={title}
     >
-      <div className="flex items-start gap-3">
+      <button
+        type="button"
+        className="flex w-full items-start gap-3 text-left"
+        aria-expanded={expanded}
+        aria-controls={`editorial-panel-${contentType}-${mode}-${selectedProvider}`}
+        onClick={() => setExpanded((value) => !value)}
+      >
         <div className="rounded-md bg-primary/10 p-2 text-primary">
           <Sparkles className="size-5" />
         </div>
@@ -143,10 +154,10 @@ export function EditorialAIButton({
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
-        <ChevronDown className="mt-1 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-      </div>
+        <ChevronDown className={`mt-1 size-4 shrink-0 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
 
-      <div className="mt-4 space-y-3">
+      {expanded ? <div id={`editorial-panel-${contentType}-${mode}-${selectedProvider}`} className="mt-4 space-y-3">
         <label
           className="block text-sm font-semibold text-foreground"
           htmlFor={`editorial-source-${contentType}-${mode}`}
@@ -182,9 +193,9 @@ export function EditorialAIButton({
               ? `Update Existing ${label} with AI`
               : mode === "generate"
                 ? "Generate Draft from Sources"
-                : "Auto-Populate Form Fields"}
+              : `Auto-Populate with ${providerLabel}`}
         </Button>
-      </div>
+      </div> : null}
 
       {proposal ? (
         <div className="mt-4 space-y-3 rounded-md border border-dashed border-border bg-muted/30 p-4 text-sm">

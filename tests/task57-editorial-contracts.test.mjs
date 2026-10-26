@@ -28,7 +28,7 @@ test("Task 57 preserves the two original prompt documents as separate contracts"
 
 test("Task 57 keeps distinct Article, Report and Alert contracts and locked providers", () => {
   assert.match(editorial, /return EDITORIAL_PROMPTS\[contentType\]/);
-  assert.match(editorial, /mode === "autopopulate" \? "groq" : "grok"/);
+  assert.match(editorial, /input\.provider \?\? \(mode === "autopopulate" \? "groq" : "grok"\)/);
   assert.match(editorial, /image_alt/);
   assert.match(editorial, /seo_description/);
   assert.match(editorial, /Never convert unknown\/null into zero/);
@@ -44,9 +44,10 @@ test("Update Existing receives unsaved current form state and remains review-onl
   assert.doesNotMatch(button, /supabase\.from|\.update\(/);
   // Shared Add forms may render role-gated controls, but only authorized
   // editorial users can invoke them; public submissions remain moderated.
-  for (const source of [article, adminArticle, adminReport, adminAlert]) {
+  for (const source of [adminArticle, adminReport, adminAlert]) {
     assert.match(source, /mode="update"/);
   }
+  assert.doesNotMatch(article, /mode="update"/);
   assert.match(report, /canReview/);
   assert.match(alert, /canReview/);
   assert.match(adminArticle, /mode="update"[\s\S]*current=\{d\}/);
@@ -56,6 +57,7 @@ test("Update Existing receives unsaved current form state and remains review-onl
 
 test("Task 57 retains safe structured output and official-name rules", () => {
   assert.match(editorial, /JSON\.parse/);
+  assert.match(editorial, /No fields were changed/);
   assert.match(editorial, /Editorial AI returned no usable fields/);
   assert.match(prompts, /KeNHA/);
   assert.match(prompts, /OWNER_NEWS_ARTICLE_PROMPT/);

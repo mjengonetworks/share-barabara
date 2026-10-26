@@ -71,7 +71,7 @@ test("header and content chat use the direct composer without a second continuat
 
 test("editorial provider mapping remains action-specific", () => {
   const source = read("src/lib/ai/editorial.functions.ts");
-  assert.ok(source.includes('mode === "autopopulate" ? "groq" : "grok"'));
+  assert.ok(source.includes('input.provider ?? (mode === "autopopulate" ? "groq" : "grok")'));
   assert.ok(source.includes("generateEditorialDraft = createServerFn"));
   assert.ok(source.includes("requireSupabaseAuth"));
 });
