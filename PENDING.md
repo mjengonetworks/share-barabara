@@ -537,3 +537,17 @@ editorial AI controls and adds bounded retries only for transient provider failu
 `9282cddd-d668-4da1-8d28-6a76b8d90e7d` receives 100% traffic; rollback target is
 `4684cefb-d62b-4948-aafc-14860ddb2d7e`. No migration, advertisement, Task 70, unrelated authentication or
 SearXNG change was made.
+
+Cross-Device Admin Editorial AI Consistency — TESTING / DEPLOYMENT PENDING. Production inspection found
+the HTML shell had no explicit revalidation policy while fingerprinted JS assets were immutable and the
+push-only service worker did not cache application responses. The shared Editorial AI control now removes
+only the exact legacy `Title: Summary: Body:` scaffold from its initial source value, preserves all other
+editor-supplied material, exposes a non-sensitive UI version data attribute, and classifies authentication,
+source-retrieval, transient-provider and invalid-response failures without logging source text or secrets.
+HTML responses now use `Cache-Control: no-cache, must-revalidate` and expose an optional non-secret
+`x-share-barabara-app-version` diagnostic header; static assets remain fingerprinted/immutable. Focused
+Editorial AI tests pass (7/7), full regression passes (394/394 with a 30-second artifact-test timeout),
+security tests pass (14/14), production build passes, and `git diff --check` passes. No browser/CUA or
+authenticated mobile/provider session was available, so Phone A/Phone B live reproduction and real Grok/Groq
+acceptance remain pending. No migration, public UI, advertisement, Task 70, unrelated AI/authentication,
+or SearXNG change was made.
