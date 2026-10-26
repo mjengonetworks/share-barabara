@@ -25,6 +25,7 @@ import { descendantsOf } from "@/lib/incident-taxonomy";
 import { isAdInterval } from "@/lib/ad-placement";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
@@ -344,6 +345,7 @@ function AlertsPage() {
         </div>
       </div>
 
+      <GlobalEditorialPreview destination="alerts" topic={hazard !== "all" ? hazard : null} />
       <EditorialDiscoveryRail exclude="alerts" />
       <TopContributingProfiles />
       <MjengoPreviews context="alerts" />

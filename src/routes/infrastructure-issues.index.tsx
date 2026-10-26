@@ -25,6 +25,7 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { EditorialBand, SectionHeader } from "@/components/site/public-layout";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 
 export const Route = createFileRoute("/infrastructure-issues/")({
   validateSearch: (
@@ -219,6 +220,7 @@ function InfrastructureIssuesPage() {
             </div>
           </EditorialBand>
         ) : null}
+        <GlobalEditorialPreview destination="infrastructure" />
         <EditorialDiscoveryRail exclude="infrastructure" />
       </div>
     </div>

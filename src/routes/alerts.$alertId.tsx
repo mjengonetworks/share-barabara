@@ -22,6 +22,7 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { DiscoverySections } from "@/components/site/discovery-sections";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { AlertPreviewCard } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
@@ -316,6 +317,7 @@ function AlertDetail() {
         currentId={alert.id}
         context={{ county: alert.county, road: alert.road, topic: alert.hazard_type }}
       />
+      <GlobalEditorialPreview destination="alerts" excludeId={alert.id} topic={alert.hazard_type} />
     </>
   );
 }

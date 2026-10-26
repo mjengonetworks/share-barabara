@@ -32,6 +32,7 @@ import {
   TaxonomyDiscovery,
 } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -506,6 +507,7 @@ function Index() {
               <TaxonomyDiscovery kind="reports" />
             </div>
           </div>
+          <GlobalEditorialPreview destination="news" />
           <MjengoPreviews context="home" />
           <SisterPlatformPreviews />
         </div>

@@ -23,6 +23,7 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { displayReportCount } from "@/lib/report-metrics";
 import { DiscoverySections } from "@/components/site/discovery-sections";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
@@ -447,6 +448,7 @@ function ReportDetail() {
         currentId={report.id}
         context={{ county: report.county, road: report.road, topic: report.incident_type }}
       />
+      <GlobalEditorialPreview destination="reports" excludeId={report.id} topic={report.incident_type} />
     </>
   );
 }
