@@ -369,7 +369,7 @@ function AlertsAdminPage() {
                   mode={mode}
                   provider={mode === "autopopulate" ? "groq" : "grok"}
                   current={editingParties}
-                  source={`Title: ${editingParties.title}\nDescription: ${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}\nHazard type: ${editingParties.hazard_type}\nSeverity: ${editingParties.severity}`}
+                  source=""
                   onDraft={(draft) =>
                     setEditingParties((current) =>
                       current
@@ -392,7 +392,7 @@ function AlertsAdminPage() {
                 mode="autopopulate"
                 provider="grok"
                 current={editingParties}
-                source={`Title: ${editingParties.title}\nDescription: ${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}\nHazard type: ${editingParties.hazard_type}\nSeverity: ${editingParties.severity}`}
+                source=""
                 onDraft={(draft) =>
                   setEditingParties((current) =>
                     current

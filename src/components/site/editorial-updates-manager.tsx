@@ -121,7 +121,6 @@ export function EditorialUpdatesManager({
     if (typeof draft.body === "string") setBody(draft.body);
   }
 
-  const source = `${parentTitle}\n${parentBody}`;
   const current = { title, description: body, body, parent_type: parentType };
 
   return (
@@ -135,9 +134,9 @@ export function EditorialUpdatesManager({
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <EditorialAIButton contentType={parentType} mode="generate" provider="grok" source={source} current={current} onDraft={applyProposal} />
-        <EditorialAIButton contentType={parentType} mode="autopopulate" provider="groq" source={source} current={current} onDraft={applyProposal} />
-        <EditorialAIButton contentType={parentType} mode="autopopulate" provider="grok" source={source} current={current} onDraft={applyProposal} />
+        <EditorialAIButton contentType={parentType} mode="generate" provider="grok" source="" current={current} onDraft={applyProposal} />
+        <EditorialAIButton contentType={parentType} mode="autopopulate" provider="groq" source="" current={current} onDraft={applyProposal} />
+        <EditorialAIButton contentType={parentType} mode="autopopulate" provider="grok" source="" current={current} onDraft={applyProposal} />
         {editingId ? <EditorialAIButton contentType={parentType} mode="update" contentId={editingId} source="" current={current} onDraft={applyProposal} /> : null}
       </div>
 

@@ -497,3 +497,25 @@ This requires owner approval and production schema review before implementation.
 tests (373/373), security tests (14/14), build and whitespace checks pass. Browser desktop/mobile visual
 acceptance is pending because browser automation initialization failed
 before exposing a target surface. No deployment was performed.
+
+Editorial AI UX Cleanup and Direct Field Population — DEPLOYED / BROWSER AND LIVE-PROVIDER ACCEPTANCE
+PENDING. Code commit `7371afd1253348ad537ffcc61ff0c4618ab6c5f6` removes the obsolete preview/confirmation
+UI, applies validated Generate, Groq Auto-Populate, Grok Auto-Populate and Update Existing results directly
+to local editable form state, filters exact schema-label artifacts (`Title`, `Summary`, `Body`, and equivalent
+field labels), preserves unrelated fields, and ignores stale responses after newer edits or requests. Update
+Existing remains restricted to persisted authorized records server-side and no action saves or publishes
+automatically. Focused Editorial AI tests passed (24/24), full regression passed (374/374), security tests
+passed (14/14), and the production build passed. The release was deployed with the generated production
+Wrangler environment workaround to Worker `4684cefb-d62b-4948-aafc-14860ddb2d7e`; rollback target is
+`d734a020-67a1-4944-b385-0488beb8200e`. Production homepage, News, Alerts, Reports, Search and admin route
+shells returned HTTP 200. Authenticated editor interaction and live Grok/Groq calls remain pending because
+no authorized browser/provider test session was available; HTTP smoke checks do not establish visual or live
+provider acceptance. No migration, Task 70, advertisement, unrelated AI/authentication, or SearXNG change was
+made.
+
+Editorial AI Source Textarea and Transient Provider Repair — DEPLOYED / LIVE AUTHENTICATED ACCEPTANCE
+PENDING. Commit `012843a8e41b566ee78c1ff46e88b003b0ee9e0a` removes draft-derived source values from all
+editorial AI controls and adds bounded retries only for transient provider failures. Worker
+`9282cddd-d668-4da1-8d28-6a76b8d90e7d` receives 100% traffic; rollback target is
+`4684cefb-d62b-4948-aafc-14860ddb2d7e`. No migration, advertisement, Task 70, unrelated authentication or
+SearXNG change was made.
