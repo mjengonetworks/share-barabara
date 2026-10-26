@@ -124,16 +124,16 @@ function InfrastructureIssuesAdminPage() {
   });
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full max-w-none">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
         Moderation queue
       </p>
-      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Infrastructure issues</h1>
+      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Manage Infrastructure Issues</h1>
       <p className="mt-2 text-muted-foreground">
         Roads, bridges, drainage and signage problems reported by the community.
       </p>
 
-      <div className="mt-6 flex flex-wrap items-end gap-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[auto_auto_minmax(16rem,1fr)] lg:items-end">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -201,7 +201,7 @@ function InfrastructureIssuesAdminPage() {
           const expanded = expandedId === i.id;
 
           return (
-            <li key={i.id} className="rounded-lg border border-border bg-card card-elevated">
+            <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
               <div className="flex items-center gap-3 p-4">
                 <button
                   type="button"
@@ -211,7 +211,7 @@ function InfrastructureIssuesAdminPage() {
                   {i.image_url ? (
                     <img
                       src={i.image_url}
-                      alt=""
+                      alt={i.title}
                       className="size-14 shrink-0 rounded object-cover"
                     />
                   ) : (

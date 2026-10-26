@@ -207,15 +207,15 @@ function ReportsQueuePage() {
   });
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full max-w-none">
       <AdminPageHeader
         eyebrow="Content & moderation"
-        title="Accident reports"
+        title="Manage Accident Reports"
         description="Edit submissions for accuracy and clarity, then approve them."
         websiteHref="/reports"
         actions={
           <Dialog>
-            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new report</Button></DialogTrigger>
+            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add New Report</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
               <DialogHeader><DialogTitle>New accident report</DialogTitle></DialogHeader>
               <ReportForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
@@ -225,7 +225,7 @@ function ReportsQueuePage() {
       />
       <IncidentDiscoveryPanel />
 
-      <div className="mt-6 flex flex-wrap items-end gap-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[auto_auto_auto_minmax(16rem,1fr)] lg:items-end">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -320,7 +320,7 @@ function ReportsQueuePage() {
           const expanded = expandedId === r.id;
 
           return (
-            <li key={r.id} className="rounded-lg border border-border bg-card card-elevated">
+            <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
               <div className="flex items-center gap-3 p-4">
                 <button
                   type="button"
@@ -330,7 +330,7 @@ function ReportsQueuePage() {
                   {r.image_url ? (
                     <img
                       src={r.image_url}
-                      alt=""
+                      alt={r.title}
                       className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
                     />
                   ) : (

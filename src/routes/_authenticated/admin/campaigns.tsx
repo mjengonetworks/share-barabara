@@ -193,12 +193,12 @@ function CampaignsAdminPage() {
   });
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full max-w-none">
       <AdminPageHeader
         eyebrow="Site content"
-        title="Campaigns"
+        title="Manage Campaigns"
         websiteHref="/campaigns"
-        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> New campaign</Button>}
+        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> Add New Campaign</Button>}
         description={
           <>
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
@@ -329,10 +329,10 @@ function CampaignsAdminPage() {
           return (
             <li
               key={c.id}
-              className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
+              className="flex flex-wrap items-center gap-4 border-b border-border/70 p-4 odd:bg-background even:bg-muted/[0.18] last:border-b-0"
             >
               {c.image_url ? (
-                <img src={c.image_url} alt="" className="size-12 shrink-0 rounded object-cover" />
+                <img src={c.image_url} alt={c.title} className="size-12 shrink-0 rounded object-cover" />
               ) : (
                 <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
                   <Megaphone className="size-5 text-muted-foreground" />

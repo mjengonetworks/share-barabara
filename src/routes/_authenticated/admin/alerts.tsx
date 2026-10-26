@@ -164,12 +164,12 @@ function AlertsAdminPage() {
     <div>
       <AdminPageHeader
         eyebrow="Content & moderation"
-        title="Hazard alerts"
+        title="Manage Alerts"
         description="Adjust severity or remove alerts that are spam, duplicate or resolved."
         websiteHref="/alerts"
         actions={
           <Dialog>
-            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new alert</Button></DialogTrigger>
+            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add New Alert</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
               <DialogHeader><DialogTitle>New hazard alert</DialogTitle></DialogHeader>
               <AlertForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] })} />
@@ -178,7 +178,7 @@ function AlertsAdminPage() {
         }
       />
 
-      <div className="mt-6 flex flex-wrap items-end gap-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[auto_auto_auto_minmax(16rem,1fr)] lg:items-end">
         <div>
           <Label>County</Label>
           <Select value={county} onValueChange={setCounty}>
@@ -256,7 +256,7 @@ function AlertsAdminPage() {
           </TableHeader>
           <TableBody>
             {alerts.map((a) => (
-              <TableRow key={a.id}>
+              <TableRow key={a.id} className="odd:bg-background even:bg-muted/[0.18]">
                 <TableCell>
                   {a.image_url ? <img src={a.image_url} alt="" className="size-12 rounded object-cover" /> : <div className="size-12 rounded bg-muted" aria-label="No featured image" />}
                 </TableCell>
