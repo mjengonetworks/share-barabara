@@ -477,7 +477,7 @@ export function PublicBreadcrumbStrip({ items }: { items: PublicBreadcrumbItem[]
       aria-label="Breadcrumb"
       className="w-full bg-gradient-to-r from-brand-navy via-brand-blue to-primary text-primary-foreground"
     >
-      <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-4 py-2 text-xs sm:px-6">
+      <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-4 py-1 text-xs sm:px-6">
         {items.map((item, index) => (
           <span key={`${item.label}-${index}`} className="flex min-w-0 items-center gap-1">
             {index ? <span className="shrink-0 text-primary-foreground/60">›</span> : null}

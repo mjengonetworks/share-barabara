@@ -17,6 +17,7 @@ import { CampaignPreviewCard } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
+import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/campaigns/$slug")({
   loader: async ({ params }) => {
@@ -99,9 +100,10 @@ function CampaignDetail() {
           { label: campaign.title },
         ]}
       />
-      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
-        <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
           <Link to="/campaigns" className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="size-4" /> All campaigns</Link>
+          <div className="mt-1.5"><PublicEditorialCategoryBadge>Campaign</PublicEditorialCategoryBadge></div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={STATUS_VARIANT[status]} className="capitalize">
               {status}
@@ -118,7 +120,7 @@ function CampaignDetail() {
             ) : null}
           </div>
 
-          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {campaign.title}
           </h1>
 

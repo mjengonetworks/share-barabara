@@ -15,8 +15,8 @@ test("public article detail uses one responsive article/sidebar shell", async ()
     detail,
     /max-w-\[1500px\][\s\S]*lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/,
   );
-  assert.match(detail, /gap-4 px-2 py-3/);
-  assert.match(detail, /rounded-xl border border-border bg-card p-3/);
+  assert.match(detail, /gap-4 px-2 py-1\.5/);
+  assert.match(detail, /rounded-xl border border-border bg-card p-1\.5/);
   assert.match(detail, /<div className="flex flex-wrap gap-1\.5">/);
   assert.match(detail, /longDateWithDay\(article\.published_at\)/);
   assert.match(detail, /ArticleSidebar/);
@@ -97,6 +97,6 @@ test("article body places one related link mid-story and removes article update 
   const detail = await source("src/routes/news.$slug.tsx");
   assert.match(detail, /blocks\.length >= 4/);
   assert.match(detail, /Math\.floor\(blocks\.length \/ 2\)/);
-  assert.match(detail, /Read also:/);
+  assert.match(detail, /<ReadAlso related=\{related\} \/>/);
   assert.doesNotMatch(detail, /ContentRequestActions/);
 });

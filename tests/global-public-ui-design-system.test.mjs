@@ -6,6 +6,7 @@ const read = (path) => fs.readFileSync(path, "utf8");
 const toolbar = read("src/components/site/article-share-toolbar.tsx");
 const compatibilityShare = read("src/components/site/share-buttons.tsx");
 const newsletter = read("src/components/site/public-ui.tsx");
+const newsIndex = read("src/routes/news.index.tsx");
 const newsletterForm = read("src/components/site/newsletter-form.tsx");
 const ecosystem = read("src/components/site/discovery-sections.tsx");
 const styles = read("src/styles.css");
@@ -67,13 +68,13 @@ test("public responsive foundations prevent accumulated mobile width overflow", 
   assert.match(styles, /public-content-container/);
 });
 
-test("category badges share the navy glass treatment without changing route semantics", () => {
+test("category navigation uses the compact yellow/navy treatment without changing route semantics", () => {
   assert.match(newsletter, /publicCategoryBadgeClass/);
   assert.match(newsletter, /bg-brand-blue/);
   assert.match(newsletter, /publicCategoryBadgeSelectedClass/);
   assert.match(styles, /--color-brand-navy: var\(--brand-navy\)/);
   assert.match(styles, /--brand-navy:/);
-  assert.match(article, /publicCategoryBadgeClass/);
-  assert.match(alertsIndex, /publicCategoryBadgeSelectedClass/);
-  assert.match(reportsIndex, /publicCategoryBadgeSelectedClass/);
+  assert.match(newsIndex, /publicCategoryNavigationClass/);
+  assert.match(alertsIndex, /publicCategoryNavigationSelectedClass/);
+  assert.match(reportsIndex, /publicCategoryNavigationSelectedClass/);
 });
