@@ -455,6 +455,22 @@ removal are deployed to production. Continuing owner visual refinement remains o
 COMPLETED or begin later batches without approval. No database migration or hosted data change is part of this
 release.
 
+Global Admin CMS Listing Standardisation — DEPLOYED / BROWSER VISUAL ACCEPTANCE PENDING. The admin-only
+standardisation is committed on `e1ed2d1` and the final reconciled tree is `51a0647`, which also cherry-picks
+the approved concurrent public correction `2d088a8` after Cloudflare showed another instance had deployed it
+while this work was in progress. Shared admin listing surfaces now use full-width responsive containers,
+consistent management headers, compact responsive filter grids, zebra rows, restrained thumbnails and
+accessible image metadata across Articles, Alerts, Accident Reports, Campaigns and Infrastructure Issues.
+Existing route permissions, filters, actions, moderation, recycle-bin behavior and content-specific fields
+were preserved. Focused admin/public checks passed (11/11), full regression passed (393/393), security tests
+passed (14/14), `git diff --check` passed, and the production build passed. Worker `b4f1d5b2-1204-4254-8178-
+ea0cfbe27833` receives 100% traffic; immediate rollback target is the concurrent public baseline Worker
+`36ebab6b-40c8-4fd2-8cd2-32b7ecc5e287` (the earlier pre-admin baseline was `fc84339d-7b82-4e7c-b858-
+8269d9155464`). Public and admin route HTTP smoke tests returned 200. Authenticated browser screenshots,
+mobile/tablet visual review, and authenticated admin workflow acceptance remain pending because browser/CUA
+access and an authorized admin session were unavailable. No migrations, advertisements, Task 70, Editorial AI,
+authentication, or SearXNG changes were made by the admin workstream.
+
 Admin Workspace Separation — TESTING. The authenticated management area now has dedicated admin chrome,
 independent navigation, role-filtered management surfaces, admin-owned Article/Alert/Report authoring entry
 points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
