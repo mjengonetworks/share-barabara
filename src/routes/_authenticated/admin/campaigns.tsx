@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
 import { longDate, slugify } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
   head: () => ({ meta: [{ title: "Campaigns: Share Barabara Admin" }] }),
@@ -250,6 +251,22 @@ function CampaignsAdminPage() {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
+              </div>
+              <div className="space-y-3">
+                {(["generate", "autopopulate", ...(editingId ? ["update" as const] : [])] as const).map((mode) => (
+                  <EditorialAIButton
+                    key={mode}
+                    contentType="campaign"
+                    mode={mode}
+                    contentId={editingId ?? undefined}
+                    current={form}
+                    source={`${form.title}\n${form.description}\n${form.location}\n${form.start_date}\n${form.end_date}`}
+                    onDraft={(draft) => setForm((current) => ({
+                      ...current,
+                      ...Object.fromEntries(Object.entries(draft).filter(([key]) => key in current)),
+                    }) as EventForm)}
+                  />
+                ))}
               </div>
               <div>
                 <Label>Main banner (optional)</Label>
