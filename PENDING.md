@@ -529,7 +529,21 @@ Wrangler environment workaround to Worker `4684cefb-d62b-4948-aafc-14860ddb2d7e`
 shells returned HTTP 200. Authenticated editor interaction and live Grok/Groq calls remain pending because
 no authorized browser/provider test session was available; HTTP smoke checks do not establish visual or live
 provider acceptance. No migration, Task 70, advertisement, unrelated AI/authentication, or SearXNG change was
-made.
+ made.
+
+Admin CMS Alerts-Parity Extension — DEPLOYED / OWNER VISUAL ACCEPTANCE PENDING. The live baseline was
+verified before release: Git `origin/main` at `c85792b615cff6bc62a325c2b0c151ee87db87fb` was already an
+ancestor of the admin branch, and the prior production Worker was `90dd595c-9dde-4a85-946a-a3134193c1bb`.
+The four remaining admin listings now use the shared compact Alerts-style surface: Articles, Accident Reports,
+Campaigns and Infrastructure Issues have aligned selection/image/title/status/action rows, 70x48-ish thumbnails,
+responsive desktop/mobile grids, and compact filter/search controls. Campaigns now filters its existing records by
+status and title/location search. Alerts was not redesigned. Code commit `04dc8eb` was deployed as Worker
+`369a8591-03e0-44aa-ab77-b5f114217587`, receiving 100% traffic; rollback target is `90dd595c-9dde-4a85-946a-a3134193c1bb`.
+Focused admin tests passed (12/12), full regression passed (396/396), security tests passed (14/14), production
+build passed, and `git diff --check` passed. Public and admin route shells returned HTTP 200 except `/search`,
+which correctly returned its existing 307 route redirect. No authenticated browser/CUA session was available,
+so visual confirmation of all five admin pages remains an owner acceptance item. No public editorial, AI, migration,
+advertisement, Task 70, authentication or SearXNG change was made.
 
 Editorial AI Source Textarea and Transient Provider Repair — DEPLOYED / LIVE AUTHENTICATED ACCEPTANCE
 PENDING. Commit `012843a8e41b566ee78c1ff46e88b003b0ee9e0a` removes draft-derived source values from all
