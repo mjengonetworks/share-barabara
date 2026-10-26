@@ -78,6 +78,8 @@ test("public category navigation uses compact yellow/navy shared controls", asyn
 test("public header and detail pages use the compact spacing contract", async () => {
   const header = await fs.readFile("src/components/site/site-header.tsx", "utf8");
   assert.match(header, /items-center gap-1 px-1\.5/);
+  assert.match(header, /justify-start rounded-md pl-0\.5[\s\S]*sm:justify-center sm:pl-0/);
+  assert.match(header, /className="-ml-3 flex items-center sm:ml-0"/);
   const layout = await fs.readFile("src/components/site/public-layout.tsx", "utf8");
   assert.match(layout, /min-h-\[38px\][\s\S]*py-1 text-xs/);
 
