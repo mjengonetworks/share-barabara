@@ -1,6 +1,16 @@
 -- REVIEW ONLY: Media & Feed transfer.
 -- Do not execute in production without owner approval and a storage/RLS review.
 -- This extends the existing Feed post model; it does not replace it.
+--
+-- Compatibility: the existing public media bucket already scopes writes to
+-- the authenticated user's first path segment. The table repeats that
+-- ownership boundary in RLS and in the storage_path check below.
+--
+-- Rollback safety: do not DROP this table as a rollback. First disable the
+-- attachment capability in the UI, preserve/export rows and referenced
+-- storage paths, then remove only after confirming no published Feed post
+-- depends on them. The feed_posts row and its audit/recycle-bin history must
+-- remain authoritative.
 
 CREATE TABLE IF NOT EXISTS public.feed_post_media (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -11,10 +21,15 @@ CREATE TABLE IF NOT EXISTS public.feed_post_media (
   public_url TEXT NOT NULL,
   filename TEXT NOT NULL,
   mime_type TEXT NOT NULL,
-  bytes BIGINT NOT NULL CHECK (bytes > 0),
-  caption TEXT,
-  credit TEXT,
+  bytes BIGINT NOT NULL CHECK (bytes BETWEEN 1 AND 52428800),
+  caption TEXT CHECK (caption IS NULL OR char_length(caption) <= 1000),
+  credit TEXT CHECK (credit IS NULL OR char_length(credit) <= 500),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT feed_post_media_storage_path_owner_check CHECK (storage_path ~ ('^' || owner_id::text || '/[^/]+$')),
+  CONSTRAINT feed_post_media_mime_check CHECK (
+    (media_type = 'image' AND mime_type LIKE 'image/%') OR
+    (media_type = 'video' AND mime_type LIKE 'video/%')
+  ),
   UNIQUE (post_id, storage_path)
 );
 
@@ -26,12 +41,16 @@ GRANT INSERT, UPDATE, DELETE ON public.feed_post_media TO authenticated;
 GRANT ALL ON public.feed_post_media TO service_role;
 ALTER TABLE public.feed_post_media ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "feed_post_media_public_read" ON public.feed_post_media;
 CREATE POLICY "feed_post_media_public_read" ON public.feed_post_media FOR SELECT
   USING (EXISTS (SELECT 1 FROM public.feed_posts p WHERE p.id = post_id AND (p.status = 'published' OR p.author_id = auth.uid() OR public.has_min_role(auth.uid(), 'moderator'))));
+DROP POLICY IF EXISTS "feed_post_media_owner_insert" ON public.feed_post_media;
 CREATE POLICY "feed_post_media_owner_insert" ON public.feed_post_media FOR INSERT TO authenticated
   WITH CHECK (owner_id = auth.uid() AND EXISTS (SELECT 1 FROM public.feed_posts p WHERE p.id = post_id AND p.author_id = auth.uid() AND p.status = 'pending'));
+DROP POLICY IF EXISTS "feed_post_media_owner_update" ON public.feed_post_media;
 CREATE POLICY "feed_post_media_owner_update" ON public.feed_post_media FOR UPDATE TO authenticated
-  USING (owner_id = auth.uid() OR public.has_min_role(auth.uid(), 'moderator'))
-  WITH CHECK (owner_id = auth.uid() OR public.has_min_role(auth.uid(), 'moderator'));
+  USING ((owner_id = auth.uid() AND EXISTS (SELECT 1 FROM public.feed_posts p WHERE p.id = post_id AND p.author_id = auth.uid() AND p.status = 'pending')) OR public.has_min_role(auth.uid(), 'moderator'))
+  WITH CHECK ((owner_id = auth.uid() AND EXISTS (SELECT 1 FROM public.feed_posts p WHERE p.id = post_id AND p.author_id = auth.uid() AND p.status = 'pending')) OR public.has_min_role(auth.uid(), 'moderator'));
+DROP POLICY IF EXISTS "feed_post_media_owner_delete" ON public.feed_post_media;
 CREATE POLICY "feed_post_media_owner_delete" ON public.feed_post_media FOR DELETE TO authenticated
-  USING (owner_id = auth.uid() OR public.has_min_role(auth.uid(), 'moderator'));
+  USING ((owner_id = auth.uid() AND EXISTS (SELECT 1 FROM public.feed_posts p WHERE p.id = post_id AND p.author_id = auth.uid() AND p.status = 'pending')) OR public.has_min_role(auth.uid(), 'moderator'));

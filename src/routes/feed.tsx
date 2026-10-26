@@ -92,6 +92,7 @@ type AutoItem = {
   created_at: string;
   location?: string | null;
   href: string;
+  rank?: number;
 };
 
 type TimelineItem =
@@ -227,6 +228,24 @@ function FeedPage() {
     },
     staleTime: 60_000,
   });
+  const { data: trendingEditorial = [] } = useQuery<AutoItem[]>({
+    queryKey: ["feed-trending-editorial"],
+    enabled: view === "trending",
+    queryFn: async () => {
+      const [articles, alerts, reports] = await Promise.all([
+        (supabase.rpc("trending_news", { hours_back: 168, result_limit: 8 }) as any),
+        (supabase.rpc("trending_alerts", { hours_back: 168, result_limit: 8 }) as any),
+        (supabase.rpc("trending_reports", { hours_back: 168, result_limit: 8 }) as any),
+      ]);
+      if (articles.error || alerts.error || reports.error) return [];
+      return [
+        ...(articles.data ?? []).map((item: any, index: number) => ({ id: item.id, kind: "article" as const, title: item.title, body: item.summary ?? "", created_at: item.published_at, href: `/news/${item.slug}`, rank: index })),
+        ...(alerts.data ?? []).map((item: any, index: number) => ({ id: item.id, kind: "alert" as const, title: item.title, body: item.description ?? "", created_at: item.created_at, href: `/alerts/${item.id}`, rank: index })),
+        ...(reports.data ?? []).map((item: any, index: number) => ({ id: item.id, kind: "report" as const, title: item.title, body: item.description ?? "", created_at: item.occurred_at, href: `/reports/${item.id}`, rank: index })),
+      ];
+    },
+    staleTime: 60_000,
+  });
   const { data: media = [] } = useQuery<MediaItem[]>({
     queryKey: ["feed-featured-media"],
     queryFn: async () => {
@@ -279,7 +298,7 @@ function FeedPage() {
     comment_count: commentRows.filter((comment) => comment.entity_id === post.id).length,
     media: mediaRows.filter((media) => media.post_id === post.id),
   }));
-  const sortedPosts = feedSort(enriched, sort);
+  const sortedPosts = feedSort(enriched, view === "trending" ? "hot" : sort);
   const allNamesIds = sortedPosts.map((post) => post.author_id);
   const { data: names = {} } = useProfileNames(allNamesIds);
   const { data: usernames = {} } = useProfileUsernames(allNamesIds);
@@ -388,16 +407,22 @@ function FeedPage() {
   const normalizedQuery = q.trim().toLowerCase();
   const matches = (value: string | null | undefined) =>
     !normalizedQuery || `${value ?? ""}`.toLowerCase().includes(normalizedQuery);
+  const topicMatches = (post: Post) => !normalizedQuery || post.hashtags.some((tag) => tag.toLowerCase().includes(normalizedQuery.replace(/^#/, "")));
   const filteredPosts = visiblePosts.filter(
-    (post) => (!type || type === "community") && matches(post.body),
+    (post) => (!type || type === "community") && (view === "discussions" ? (post.comment_count ?? 0) > 0 : view === "topics" ? topicMatches(post) : matches(post.body)),
   );
-  const filteredEditorial = automatic.filter(
+  const editorialSource = view === "trending" ? trendingEditorial : automatic;
+  const filteredEditorial = editorialSource.filter(
     (item) => (!type || type === item.kind) && (matches(item.title) || matches(item.body)),
   );
   const timeline: TimelineItem[] = [
     ...filteredPosts.map((post) => ({ kind: "community" as const, id: post.id, created_at: post.created_at, post })),
     ...filteredEditorial.map((item) => ({ kind: "editorial" as const, id: `${item.kind}-${item.id}`, created_at: item.created_at, item })),
-  ].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  ];
+  const timelineScore = (entry: TimelineItem) => entry.kind === "editorial"
+    ? 100 - (entry.item.rank ?? 999)
+    : (entry.post.score ?? 0) + (entry.post.comment_count ?? 0) * 2;
+  timeline.sort((a, b) => view === "trending" ? timelineScore(b) - timelineScore(a) : b.created_at.localeCompare(a.created_at));
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-4 py-8 sm:px-6">
@@ -486,9 +511,9 @@ function FeedPage() {
               <Link key={value || 'all'} to="/feed" search={{ view, sort, q, type: value }} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${type === value ? "bg-accent text-brand-navy" : "bg-muted text-muted-foreground hover:text-foreground"}`}>{label}</Link>
             ))}
           </div>
-          {view !== "for_you" ? (
+          {view === "following" ? (
             <div className="mt-4 rounded-md border border-caution/40 bg-caution/10 p-3 text-sm text-caution-foreground">
-              <strong>{view.replace("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase())}</strong> is not available as a separate backend-backed stream yet. For You remains the verified unified public Feed.
+              <strong>Following</strong> needs a follow relationship model that is not present in Share Barabara yet. For You remains the verified unified public Feed.
             </div>
           ) : null}
           {isLoading ? (

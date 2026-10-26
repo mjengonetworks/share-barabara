@@ -19,6 +19,10 @@ test("Media & Feed exposes the compact reference structure and real navigation",
   assert.match(feed, /Attach photo\/video/);
   assert.match(feed, /Comments \(/);
   assert.match(feed, /Share/);
+  assert.match(feed, /trending_news/);
+  assert.match(feed, /view === "discussions"/);
+  assert.match(feed, /view === "topics"/);
+  assert.match(feed, /Following.*follow relationship model/s);
   assert.doesNotMatch(feed, /Messages.*to="\/messages"/s);
   assert.doesNotMatch(feed, /Calls.*to="\/calls"/s);
 });
@@ -41,6 +45,9 @@ test("Feed media upload schema is review-only and ownership protected", () => {
   assert.match(migration, /feed_post_media/);
   assert.match(migration, /owner_id = auth\.uid\(\)/);
   assert.match(migration, /p\.status = 'published'/);
+  assert.match(migration, /storage_path_owner_check/);
+  assert.match(migration, /bytes BETWEEN 1 AND 52428800/);
+  assert.match(migration, /Rollback safety/);
   assert.match(migration, /moderator/);
   assert.match(read("src/lib/feed.functions.ts"), /feed_post_media/);
   assert.match(read("src/lib/storage.ts"), /uploadMediaAsset/);

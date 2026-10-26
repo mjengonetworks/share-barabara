@@ -71,7 +71,11 @@ export const createFeedPost = createServerFn({ method: "POST" })
       const { error: mediaError } = await (context.supabase.from("feed_post_media") as any).insert(
         data.media.map((media) => ({ ...media, post_id: post.id, owner_id: context.userId })),
       );
-      if (mediaError) throw mediaError;
+      if (mediaError) {
+        await context.supabase.storage.from("media").remove(data.media.map((media) => media.storage_path));
+        await (context.supabase.from("feed_posts") as any).delete().eq("id", post.id).eq("author_id", context.userId).eq("status", "pending");
+        throw mediaError;
+      }
     }
     return { id: post.id, status, moderationStatus };
   });
