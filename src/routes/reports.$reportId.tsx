@@ -33,6 +33,7 @@ import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { ReportPreviewCard } from "@/components/site/discovery-sections";
 import { socialHead } from "@/lib/seo";
+import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -216,6 +217,9 @@ function ReportDetail() {
           </Link>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
+            <PublicEditorialCategoryBadge>
+              {report.incident_type || "Accident report"}
+            </PublicEditorialCategoryBadge>
             <SeverityBadge value={report.severity} />
             {report.status !== "approved" ? (
               <span

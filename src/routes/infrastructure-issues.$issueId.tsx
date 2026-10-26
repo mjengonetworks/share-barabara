@@ -16,6 +16,7 @@ import { InfrastructureIssuePreviewCard } from "@/components/site/discovery-sect
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
+import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
   loader: async ({ params }) => {
@@ -138,11 +139,11 @@ function IssueDetail() {
           </Link>
 
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-            <span className="flex items-center gap-1 rounded bg-accent/20 px-2 py-0.5 font-semibold uppercase tracking-wide text-accent-foreground">
+            <PublicEditorialCategoryBadge>
               <Construction className="size-3.5" />
               {STRUCTURE_TYPES.find((s) => s.value === issue.structure_type)?.label ??
                 issue.structure_type}
-            </span>
+            </PublicEditorialCategoryBadge>
             {issue.authority ? (
               <span className="rounded bg-muted px-2 py-0.5 text-muted-foreground">
                 {ROAD_AUTHORITIES.find((a) => a.value === issue.authority)?.label ??
