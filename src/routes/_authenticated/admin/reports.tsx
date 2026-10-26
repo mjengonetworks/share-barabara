@@ -207,7 +207,7 @@ function ReportsQueuePage() {
   });
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Content & moderation"
         title="Accident reports"
@@ -225,7 +225,7 @@ function ReportsQueuePage() {
       />
       <IncidentDiscoveryPanel />
 
-      <div className="mt-6 flex flex-wrap items-end gap-3">
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -320,12 +320,13 @@ function ReportsQueuePage() {
           const expanded = expandedId === r.id;
 
           return (
-            <li key={r.id} className="rounded-lg border border-border bg-card card-elevated">
-              <div className="flex items-center gap-3 p-4">
+            <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4">
+                <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <button
                   type="button"
                   onClick={() => setExpandedId(expanded ? null : r.id)}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  className="flex min-w-0 items-center gap-3 text-left"
                 >
                   {r.image_url ? (
                     <img

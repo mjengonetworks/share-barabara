@@ -8,7 +8,7 @@ export function AdminListingSurface({
   className?: string;
 }) {
   return (
-    <section className={`mt-6 overflow-hidden rounded-lg border border-border bg-card shadow-sm ${className}`.trim()}>
+    <section className={`mt-6 w-full overflow-hidden rounded-lg border border-border bg-card shadow-sm ${className}`.trim()}>
       {children}
     </section>
   );
@@ -16,7 +16,8 @@ export function AdminListingSurface({
 
 export function AdminListingHeader({ children }: { children: ReactNode }) {
   return (
-    <div className="hidden grid-cols-[minmax(18rem,2fr)_minmax(8rem,1fr)_minmax(7rem,auto)_minmax(8rem,auto)_auto] items-center gap-3 border-b border-border bg-muted/45 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground lg:grid">
+    <div className="hidden grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_minmax(7rem,auto)_auto] items-center gap-3 border-b border-border bg-muted/45 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground lg:grid">
+      <span aria-hidden="true" />
       {children}
     </div>
   );
