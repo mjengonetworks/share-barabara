@@ -207,15 +207,15 @@ function ReportsQueuePage() {
   });
 
   return (
-    <div className="w-full max-w-none">
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Content & moderation"
-        title="Manage Accident Reports"
+        title="Accident reports"
         description="Edit submissions for accuracy and clarity, then approve them."
         websiteHref="/reports"
         actions={
           <Dialog>
-            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add New Report</Button></DialogTrigger>
+            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new report</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
               <DialogHeader><DialogTitle>New accident report</DialogTitle></DialogHeader>
               <ReportForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
@@ -225,7 +225,7 @@ function ReportsQueuePage() {
       />
       <IncidentDiscoveryPanel />
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[auto_auto_auto_minmax(16rem,1fr)] lg:items-end">
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -321,16 +321,17 @@ function ReportsQueuePage() {
 
           return (
             <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="flex items-center gap-3 p-4">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4">
+                <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <button
                   type="button"
                   onClick={() => setExpandedId(expanded ? null : r.id)}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  className="flex min-w-0 items-center gap-3 text-left"
                 >
                   {r.image_url ? (
                     <img
                       src={r.image_url}
-                      alt={r.title}
+                      alt=""
                       className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
                     />
                   ) : (

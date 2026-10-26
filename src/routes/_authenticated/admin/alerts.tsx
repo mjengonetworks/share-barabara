@@ -161,15 +161,15 @@ function AlertsAdminPage() {
   });
 
   return (
-    <div>
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Content & moderation"
-        title="Manage Alerts"
+        title="Hazard alerts"
         description="Adjust severity or remove alerts that are spam, duplicate or resolved."
         websiteHref="/alerts"
         actions={
           <Dialog>
-            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add New Alert</Button></DialogTrigger>
+            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new alert</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
               <DialogHeader><DialogTitle>New hazard alert</DialogTitle></DialogHeader>
               <AlertForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] })} />
@@ -178,7 +178,7 @@ function AlertsAdminPage() {
         }
       />
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[auto_auto_auto_minmax(16rem,1fr)] lg:items-end">
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Label>County</Label>
           <Select value={county} onValueChange={setCounty}>
@@ -244,6 +244,7 @@ function AlertsAdminPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10"><span className="sr-only">Select</span></TableHead>
               <TableHead>Image</TableHead>
               <TableHead>Alert</TableHead>
               <TableHead>County</TableHead>
@@ -256,7 +257,8 @@ function AlertsAdminPage() {
           </TableHeader>
           <TableBody>
             {alerts.map((a) => (
-              <TableRow key={a.id} className="odd:bg-background even:bg-muted/[0.18]">
+              <TableRow key={a.id}>
+                <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" /></TableCell>
                 <TableCell>
                   {a.image_url ? <img src={a.image_url} alt="" className="size-12 rounded object-cover" /> : <div className="size-12 rounded bg-muted" aria-label="No featured image" />}
                 </TableCell>
@@ -342,7 +344,7 @@ function AlertsAdminPage() {
             ))}
             {!isLoading && alerts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
                   Nothing matches these filters.
                 </TableCell>
               </TableRow>

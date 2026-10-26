@@ -193,12 +193,12 @@ function CampaignsAdminPage() {
   });
 
   return (
-    <div className="w-full max-w-none">
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Site content"
-        title="Manage Campaigns"
+        title="Campaigns"
         websiteHref="/campaigns"
-        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> Add New Campaign</Button>}
+        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> New campaign</Button>}
         description={
           <>
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
@@ -209,7 +209,7 @@ function CampaignsAdminPage() {
         }
       />
 
-      <div className="mt-6">
+      <div className="mt-4">
         <Dialog
           open={open}
           onOpenChange={(v) => {
@@ -217,11 +217,6 @@ function CampaignsAdminPage() {
             if (!v) setEditingId(null);
           }}
         >
-          <DialogTrigger asChild>
-            <Button onClick={openCreate}>
-              <Plus className="mr-1.5 size-4" /> New campaign
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
             <DialogHeader>
               <DialogTitle>{editingId ? "Edit campaign" : "New campaign"}</DialogTitle>
@@ -329,16 +324,17 @@ function CampaignsAdminPage() {
           return (
             <li
               key={c.id}
-              className="flex flex-wrap items-center gap-4 border-b border-border/70 p-4 odd:bg-background even:bg-muted/[0.18] last:border-b-0"
+              className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border/70 px-3 py-4 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4"
             >
+              <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
               {c.image_url ? (
-                <img src={c.image_url} alt={c.title} className="size-12 shrink-0 rounded object-cover" />
+                <img src={c.image_url} alt="" className="size-12 shrink-0 rounded object-cover" />
               ) : (
                 <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
                   <Megaphone className="size-5 text-muted-foreground" />
                 </div>
               )}
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={STATUS_VARIANT[status]} className="capitalize">
                     {status}

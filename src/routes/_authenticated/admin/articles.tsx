@@ -163,16 +163,16 @@ function ArticlesQueuePage() {
   });
 
   return (
-    <div className="w-full max-w-none">
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Content & moderation"
-        title="Manage Articles"
+        title="Articles"
         description="Review submissions from contributors. Publishing or rejecting needs moderator rank or above."
         websiteHref="/news"
-        actions={<Button asChild size="sm"><Link to="/admin/my-articles"><Plus className="mr-1.5 size-4" /> Add New Article</Link></Button>}
+        actions={<Button asChild size="sm"><Link to="/admin/my-articles"><Plus className="mr-1.5 size-4" /> Add new article</Link></Button>}
       />
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[auto_auto_minmax(16rem,1fr)] lg:items-end">
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[minmax(11rem,1fr)_minmax(11rem,1fr)_minmax(16rem,2fr)]">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -206,7 +206,7 @@ function ArticlesQueuePage() {
         </div>
         <div className="min-w-48 flex-1">
           <Label htmlFor="article-search">Search</Label>
-          <Input
+            <Input
             id="article-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -251,16 +251,17 @@ function ArticlesQueuePage() {
 
           return (
             <li key={a.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="flex items-center gap-3 p-4">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_minmax(0,1fr)_auto_auto]">
+                <input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <button
                   type="button"
                   onClick={() => setExpandedId(expanded ? null : a.id)}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  className="flex min-w-0 items-center gap-3 text-left"
                 >
                   {a.image_url ? (
                     <img
                       src={a.image_url}
-                      alt={a.title}
+                      alt=""
                       className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
                     />
                   ) : (
