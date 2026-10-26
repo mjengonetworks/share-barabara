@@ -342,7 +342,8 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
                   contentType="report"
                   mode={mode}
               provider={provider}
-                  source={`${form.title}\n${form.description}\nCounty: ${form.county}\nRoad: ${form.road}`}
+                  current={form}
+                  source={`Title: ${form.title}\nDescription: ${form.description}\nCounty: ${form.county}\nRoad: ${form.road}\nIncident date: ${form.occurred_at}\nVehicles involved: ${form.vehicles_involved ?? "Unknown"}\nInjured: ${form.casualties ?? "Unknown"}\nFatalities: ${form.fatalities ?? "Unknown"}`}
                   onDraft={(draft) =>
                     setForm((current) => ({
                       ...current,

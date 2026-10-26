@@ -48,6 +48,7 @@ export function EditorialAIButton({
 }) {
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<Record<string, EditorialValue> | null>(null);
   const [proposal, setProposal] = useState<EditorialProposal | null>(null);
   const [sourceMaterial, setSourceMaterial] = useState(mode === "update" ? "" : source);
   const [sourceFiles, setSourceFiles] = useState<Array<{ name: string; text: string }>>([]);
@@ -87,11 +88,10 @@ export function EditorialAIButton({
         setProposal(result.proposal);
         toast.success("Editorial AI prepared a proposal. Review Current vs Proposed before applying it.");
       } else if (result.draft) {
-        // Generate and Auto-Populate must not erase manually entered values
-        // when the model leaves a supported field blank or unknown. Update
-        // Existing remains proposal-based and preserves explicit nulls.
-        onDraft(nonDestructiveDraft(result.draft));
-        toast.success("Editorial AI values placed in the form. Review them before saving or publishing.");
+        // Never mutate the form immediately. Editors must review and explicitly
+        // confirm source-grounded changes before any non-empty field is replaced.
+        setPendingDraft(result.draft);
+        toast.success("Editorial AI prepared source-grounded values. Review them before applying.");
       } else {
         throw new Error("No draft returned");
       }
@@ -232,6 +232,46 @@ export function EditorialAIButton({
           >
             Apply proposed values to form
           </Button>
+        </div>
+      ) : null}
+      {pendingDraft ? (
+        <div className="mt-4 space-y-3 rounded-md border border-dashed border-border bg-muted/30 p-4 text-sm">
+          <p className="font-semibold text-foreground">Source-grounded field preview</p>
+          <p className="text-xs text-muted-foreground">
+            Existing form values remain unchanged until you confirm. Blank or unknown source values are preserved.
+          </p>
+          <div className="space-y-2">
+            {Object.entries(pendingDraft).map(([field, value]) => (
+              <div key={field} className="grid gap-2 rounded border border-border/70 p-2 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {current && field in current ? "Replace existing" : "Populate"} · {field}
+                  </p>
+                  <p className="break-words">{String(current?.[field] ?? "—")}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Proposed from source</p>
+                  <p className="break-words">{String(value ?? "Unknown / not confirmed")}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                onDraft(nonDestructiveDraft(pendingDraft));
+                setPendingDraft(null);
+                toast.success("Confirmed source-grounded values placed in the editable form.");
+              }}
+            >
+              Apply confirmed values
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setPendingDraft(null)}>
+              Discard proposal
+            </Button>
+          </div>
         </div>
       ) : null}
     </section>

@@ -33,6 +33,7 @@ export async function completeWithProvider(
     evidence: Evidence[];
     history?: Array<{ role: "user" | "assistant"; content: string }>;
     mode: "public" | "editorial";
+    task?: "draft" | "extract";
     systemInstruction?: string;
   },
 ) {
@@ -47,8 +48,8 @@ export async function completeWithProvider(
       headers: { "content-type": "application/json", authorization: `Bearer ${config.key}` },
       body: JSON.stringify({
         model: config.model,
-        temperature: 0.2,
-        max_tokens: 1200,
+        temperature: input.task === "extract" ? 0 : 0.2,
+        max_tokens: input.task === "extract" ? 1400 : 2600,
         messages: [
           {
             role: "system",
@@ -67,10 +68,7 @@ export async function completeWithProvider(
         provider,
         status: response.status,
       });
-      return {
-        ok: false as const,
-        error: normalizeAIError(new Error(`provider status ${response.status}`)),
-      };
+      return { ok: false as const, error: "provider_unavailable" as const };
     }
     const payload = (await response.json()) as {
       choices?: Array<{ message?: { content?: unknown } }>;
@@ -82,7 +80,10 @@ export async function completeWithProvider(
     }
     return {
       ok: true as const,
-      answer: answer.slice(0, MAX_OUTPUT_CHARS),
+      // Editorial Article drafts can legitimately contain a 450-600 word body
+      // plus SEO/media fields. The public-answer cap truncated valid JSON and
+      // caused the client to report an invalid draft.
+      answer: answer.slice(0, input.mode === "editorial" ? 16000 : MAX_OUTPUT_CHARS),
       citations: [] as TrustedCitation[],
       citationIds: [...answer.matchAll(/\[(source_[a-z0-9_-]+)\]/gi)].map((match) => match[1]).filter((id): id is string => !!id),
     };
@@ -91,7 +92,12 @@ export async function completeWithProvider(
       provider,
       error: error instanceof Error ? error.name : "unknown",
     });
-    return { ok: false as const, error: normalizeAIError(error) };
+    return {
+      ok: false as const,
+      error: error instanceof Error && error.name === "AbortError"
+        ? "provider_timeout" as const
+        : normalizeAIError(error),
+    };
   } finally {
     clearTimeout(timeout);
   }

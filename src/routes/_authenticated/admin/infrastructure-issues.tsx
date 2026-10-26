@@ -378,7 +378,7 @@ function InfrastructureIssuesAdminPage() {
                           provider={provider}
                           contentId={i.id}
                           current={d}
-                          source={`${d.title}\n${d.road_name}\n${d.county}\n${d.summary}\n${d.content}`}
+                          source={`Title: ${d.title}\nRoad name: ${d.road_name}\nCounty: ${d.county}\nAuthority: ${d.authority}\nStructure type: ${d.structure_type}\nSummary: ${d.summary}\nContent: ${d.content}`}
                           onDraft={(draft) => set(Object.fromEntries(Object.entries(draft).filter(([key]) => key in d)) as Partial<Draft>)}
                         />
                       ))}

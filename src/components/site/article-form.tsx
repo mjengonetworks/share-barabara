@@ -140,7 +140,8 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             contentType="article"
             mode="generate"
             provider="grok"
-            source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
+            current={form}
+            source={`Title: ${form["title"]}\nSummary: ${form["summary"]}\nBody: ${form["body"]}`}
             onDraft={(draft) => {
               setForm((current) => ({
                 ...current,
@@ -160,7 +161,8 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             contentType="article"
             mode="autopopulate"
             provider="groq"
-            source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
+            current={form}
+            source={`Title: ${form["title"]}\nSummary: ${form["summary"]}\nBody: ${form["body"]}`}
             onDraft={(draft) => {
               setForm((current) => ({
                 ...current,
@@ -180,7 +182,8 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             contentType="article"
             mode="autopopulate"
             provider="grok"
-            source={`${form["title"]}\n${form["summary"]}\n${form["body"]}`}
+            current={form}
+            source={`Title: ${form["title"]}\nSummary: ${form["summary"]}\nBody: ${form["body"]}`}
             onDraft={(draft) => setForm((current) => ({
               ...current,
               ...Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== "" && value !== null)),

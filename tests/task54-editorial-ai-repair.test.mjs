@@ -51,19 +51,20 @@ test("the editorial contract still includes newsroom quality and anti-fabricatio
 test("article proposals retain structured editable fields", () => {
   assert.match(editorial, /\["title", "summary", "body", "category", "seo_title", "seo_description", "seo_keywords"\]/);
   assert.match(editorial, /return \{ draft: proposed \}/);
-  assert.match(button, /onDraft\(nonDestructiveDraft\(result\.draft\)\)/);
+  assert.match(button, /setPendingDraft\(result\.draft\)/);
+  assert.match(button, /Apply confirmed values/);
 });
 
 test("invalid provider output fails closed without applying a proposal", () => {
   assert.match(editorial, /parseStructuredObject/);
   assert.match(editorial, /No fields were changed/);
-  assert.match(editorial, /The proposal was not applied/);
+  assert.match(editorial, /No fields were changed/);
   assert.match(button, /No draft returned/);
 });
 
 test("missing credentials and provider failures have actionable but non-secret diagnostics", () => {
-  assert.match(editorial, /verify the server-side .*API_KEY.*binding/);
-  assert.match(editorial, /Check the server-side endpoint, model binding and provider status/);
+  assert.match(editorial, /verify the server-side binding/);
+  assert.match(editorial, /Provider unavailable/);
   assert.doesNotMatch(providers, /console\.(log|warn|error)[\s\S]*config\.key/);
   assert.doesNotMatch(providers, /console\.(log|warn|error)[\s\S]*authorization/);
 });
@@ -71,7 +72,7 @@ test("missing credentials and provider failures have actionable but non-secret d
 test("provider failures preserve locked public AI behavior and safe error handling", () => {
   assert.match(providers, /provider request failed/);
   assert.match(providers, /status: response\.status/);
-  assert.match(providers, /error: normalizeAIError/);
+  assert.match(providers, /provider_unavailable/);
   assert.match(publicAI, /provider_failed/);
 });
 

@@ -259,9 +259,10 @@ function CampaignsAdminPage() {
                     contentType="campaign"
                     mode={mode}
                     provider={provider}
+                    current={form}
                     contentId={editingId ?? undefined}
                     current={form}
-                    source={`${form.title}\n${form.description}\n${form.location}\n${form.start_date}\n${form.end_date}`}
+                    source={`Title: ${form.title}\nDescription: ${form.description}\nLocation: ${form.location}\nStart date: ${form.start_date}\nEnd date: ${form.end_date}`}
                     onDraft={(draft) => setForm((current) => ({
                       ...current,
                       ...Object.fromEntries(Object.entries(draft).filter(([key]) => key in current)),

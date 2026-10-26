@@ -352,7 +352,8 @@ function ArticlesQueuePage() {
                         contentType="article"
                         mode="generate"
                         provider="grok"
-                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        current={d}
+                        source={`Title: ${d["title"]}\nSummary: ${d["summary"]}\nBody: ${d["body"]}`}
                         onDraft={(draft) =>
                           set({
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -368,7 +369,8 @@ function ArticlesQueuePage() {
                         contentType="article"
                         mode="autopopulate"
                         provider="groq"
-                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        current={d}
+                        source={`Title: ${d["title"]}\nSummary: ${d["summary"]}\nBody: ${d["body"]}`}
                         onDraft={(draft) =>
                           set({
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -384,7 +386,8 @@ function ArticlesQueuePage() {
                         contentType="article"
                         mode="autopopulate"
                         provider="grok"
-                        source={`${d["title"]}\n${d["summary"]}\n${d["body"]}`}
+                        current={d}
+                        source={`Title: ${d["title"]}\nSummary: ${d["summary"]}\nBody: ${d["body"]}`}
                         onDraft={(draft) =>
                           set({
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),

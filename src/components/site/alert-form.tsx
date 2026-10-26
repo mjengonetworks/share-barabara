@@ -97,7 +97,8 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
               contentType="alert"
               mode={mode}
               provider={mode === "autopopulate" ? "groq" : "grok"}
-              source={`${form.title}\n${form.description}\nCounty: ${form.county}\nRoad: ${form.road}`}
+              current={form}
+              source={`Title: ${form.title}\nDescription: ${form.description}\nCounty: ${form.county}\nRoad: ${form.road}\nHazard type: ${form.hazard_type}\nSeverity: ${form.severity}`}
               onDraft={(draft) => setForm((current) => ({
                 ...current,
                 ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
@@ -113,7 +114,8 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
             contentType="alert"
             mode="autopopulate"
             provider="grok"
-            source={`${form.title}\n${form.description}\nCounty: ${form.county}\nRoad: ${form.road}`}
+            current={form}
+            source={`Title: ${form.title}\nDescription: ${form.description}\nCounty: ${form.county}\nRoad: ${form.road}\nHazard type: ${form.hazard_type}\nSeverity: ${form.severity}`}
             onDraft={(draft) => setForm((current) => ({
               ...current,
               ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),

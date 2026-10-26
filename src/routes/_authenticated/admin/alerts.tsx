@@ -363,7 +363,8 @@ function AlertsAdminPage() {
                   contentType="alert"
                   mode={mode}
                   provider={mode === "autopopulate" ? "groq" : "grok"}
-                  source={`${editingParties.title}\n${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}`}
+                  current={editingParties}
+                  source={`Title: ${editingParties.title}\nDescription: ${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}\nHazard type: ${editingParties.hazard_type}\nSeverity: ${editingParties.severity}`}
                   onDraft={(draft) =>
                     setEditingParties((current) =>
                       current
@@ -385,7 +386,8 @@ function AlertsAdminPage() {
                 contentType="alert"
                 mode="autopopulate"
                 provider="grok"
-                source={`${editingParties.title}\n${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}`}
+                current={editingParties}
+                source={`Title: ${editingParties.title}\nDescription: ${editingParties.description}\nCounty: ${editingParties.county}\nRoad: ${editingParties.road}\nHazard type: ${editingParties.hazard_type}\nSeverity: ${editingParties.severity}`}
                 onDraft={(draft) =>
                   setEditingParties((current) =>
                     current

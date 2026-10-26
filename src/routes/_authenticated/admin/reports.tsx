@@ -416,7 +416,8 @@ function ReportsQueuePage() {
                         contentType="report"
                         mode={mode}
                         provider={provider}
-                        source={`${d["title"]}\n${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}`}
+                        current={d}
+                        source={`Title: ${d["title"]}\nDescription: ${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}\nIncident date: ${d["occurred_at"]}\nVehicles involved: ${d["vehicles_involved"] ?? "Unknown"}\nInjured: ${d["casualties"] ?? "Unknown"}\nFatalities: ${d["fatalities"] ?? "Unknown"}`}
                         onDraft={(draft) =>
                           set({
                             ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
@@ -439,7 +440,7 @@ function ReportsQueuePage() {
                     ))}
                     <EditorialAIButton
                       contentType="report"
-                      source={`${d["title"]}\n${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}`}
+                      source={`Title: ${d["title"]}\nDescription: ${d["description"]}\nCounty: ${d["county"]}\nRoad: ${d["road"]}\nIncident date: ${d["occurred_at"]}\nVehicles involved: ${d["vehicles_involved"] ?? "Unknown"}\nInjured: ${d["casualties"] ?? "Unknown"}\nFatalities: ${d["fatalities"] ?? "Unknown"}`}
                       mode="update"
                       contentId={r.id}
                       current={d}
