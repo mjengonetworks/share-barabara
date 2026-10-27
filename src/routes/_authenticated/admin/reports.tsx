@@ -383,8 +383,8 @@ function ReportsQueuePage() {
                         <ExternalLink className="mr-2 size-4" /> View on website
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setExpandedId(r.id)}>
-                      <Pencil className="mr-2 size-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/reports/$reportId/edit" params={{ reportId: r.id }}><Pencil className="mr-2 size-4" /> Edit</Link>
                     </DropdownMenuItem>
                     {r.status !== "approved" ? (
                       <DropdownMenuItem

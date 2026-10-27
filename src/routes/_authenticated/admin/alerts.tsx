@@ -329,25 +329,7 @@ function AlertsAdminPage() {
                           <ExternalLink className="mr-2 size-4" /> View on website
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          setEditingParties({
-                            id: a.id,
-                            title: a.title,
-                            description: a.description,
-                            county: a.county,
-                            road: a.road ?? "",
-                            latitude: a.latitude,
-                            longitude: a.longitude,
-                            hazard_type: a.hazard_type,
-                            severity: a.severity,
-                            parties: a.parties_involved ?? [],
-                            casualties: (a.casualty_breakdown as CasualtyBreakdown | null) ?? {},
-                          })
-                        }
-                      >
-                        Edit alert
-                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/admin/alerts/$alertId/edit" params={{ alertId: a.id }}><Pencil className="mr-2 size-4" /> Edit alert</Link></DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         onClick={() => remove.mutate(a.id)}

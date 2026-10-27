@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AlertTriangle, Megaphone, Plus } from "lucide-react";
@@ -389,9 +389,7 @@ function CampaignsAdminPage() {
                 </p>
               </div>
               <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
-              <Button size="sm" variant="outline" onClick={() => openEdit(c.id)}>
-                Edit event
-              </Button>
+              <Button size="sm" variant="outline" asChild><Link to="/admin/campaigns/$campaignId/edit" params={{ campaignId: c.id }}>Edit campaign</Link></Button>
               <Dialog
                 open={reportOpenId === c.id}
                 onOpenChange={(v) => setReportOpenId(v ? c.id : null)}

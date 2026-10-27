@@ -323,8 +323,8 @@ function ArticlesQueuePage() {
                         {a.status === "published" ? "View on website" : "Preview"}
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setExpandedId(a.id)}>
-                      <Pencil className="mr-2 size-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/articles/$articleId/edit" params={{ articleId: a.id }}><Pencil className="mr-2 size-4" /> Edit</Link>
                     </DropdownMenuItem>
                     {canPublishArticles && a.status !== "published" ? (
                       <DropdownMenuItem

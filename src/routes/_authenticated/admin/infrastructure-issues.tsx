@@ -266,8 +266,8 @@ function InfrastructureIssuesAdminPage() {
                         </Link>
                       </DropdownMenuItem>
                     ) : null}
-                    <DropdownMenuItem onClick={() => setExpandedId(i.id)}>
-                      <Pencil className="mr-2 size-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/infrastructure-issues/$issueId/edit" params={{ issueId: i.id }}><Pencil className="mr-2 size-4" /> Edit</Link>
                     </DropdownMenuItem>
                     {i.status !== "approved" ? (
                       <DropdownMenuItem
