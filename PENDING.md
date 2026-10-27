@@ -614,6 +614,20 @@ editor stores generated target drafts in the new related-draft table; target-for
 is the remaining integration item before claiming full end-to-end CMS conversion acceptance. Live SearXNG remains
 PENDING and urgent Grok schema repair remains separate.
 
+Cross-Content Production Release Preparation — IN PROGRESS / NOT DEPLOYED. The shared editor now reloads saved
+related drafts, searches/selects related records across all five content types, shows/removes assigned tags, and
+finalizes reviewed drafts against saved target records through the new `editorial_finalize_related_draft` RPC. The
+offline database harness covers that finalization path as well as RLS and visibility cases. Focused cross-content
+checks pass 7/7, full regression passes 417/417, security passes 14/14, and the production build passes. The exact
+production acceptance and rollback procedure is recorded in `docs/cross-content-production-acceptance.md`.
+
+Read-only access to the configured existing Supabase project was attempted using its publishable key; the public REST
+surface did not expose catalog or migration-history information, and repeated table probes were inconclusive. No
+database writes or production SQL were executed. Cloudflare deployment inspection was unavailable from the current
+environment, so Worker `4b252d2c-9173-462e-bbb4-ef01d21e6c20` remains reported but not independently verified here.
+Owner-authorised catalog inspection, the single migration, authenticated acceptance writes, and deployment remain
+required. Live SearXNG remains PENDING.
+
 Cross-Content Offline Database Verification — PREPARED / DATABASE EXECUTION BLOCKED.
 Created `tests/cross-content-database.sql`, a rollback-safe psql harness that assumes the baseline migrations and
 `20261027120000_cross_content_editorial_relationships.sql` are already applied to an isolated non-production
