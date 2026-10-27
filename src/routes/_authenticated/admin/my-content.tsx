@@ -11,11 +11,13 @@ export const Route = createFileRoute("/_authenticated/admin/my-content")({
 });
 
 const SOURCES = [
-  { table: "news", owner: "author_id", label: "Articles", edit: (id: string) => `/admin/articles/${id}/edit` },
-  { table: "accident_reports", owner: "user_id", label: "Accident reports", edit: (id: string) => `/admin/reports/${id}/edit` },
-  { table: "alerts", owner: "user_id", label: "Hazard alerts", edit: (id: string) => `/admin/alerts/${id}/edit` },
-  { table: "campaigns", owner: "user_id", label: "Campaigns", edit: (id: string) => `/admin/campaigns/${id}/edit` },
-  { table: "infrastructure_issues", owner: "user_id", label: "Infrastructure issues", edit: (id: string) => `/admin/infrastructure-issues/${id}/edit` },
+  { table: "news", owner: "author_id", label: "Articles", select: "id,title,status,created_at,image_url", edit: (id: string) => `/admin/articles/${id}/edit` },
+  { table: "accident_reports", owner: "user_id", label: "Accident reports", select: "id,title,status,created_at,image_url", edit: (id: string) => `/admin/reports/${id}/edit` },
+  { table: "alerts", owner: "user_id", label: "Hazard alerts", select: "id,title,status,created_at,image_url", edit: (id: string) => `/admin/alerts/${id}/edit` },
+  { table: "campaigns", owner: "user_id", label: "Campaigns", select: "id,title,status,created_at,image_url", edit: (id: string) => `/admin/campaigns/${id}/edit` },
+  { table: "infrastructure_issues", owner: "user_id", label: "Infrastructure issues", select: "id,title,status,created_at,image_url", edit: (id: string) => `/admin/infrastructure-issues/${id}/edit` },
+  { table: "feed_posts", owner: "author_id", label: "Feed posts", select: "id,body,status,created_at", edit: () => "/admin/feed" },
+  { table: "videos", owner: "user_id", label: "Media / videos", select: "id,title,status,created_at", edit: () => "/admin/videos" },
 ] as const;
 
 function MyContentPage() {
@@ -26,11 +28,11 @@ function MyContentPage() {
     queryFn: async () => {
       const batches = await Promise.all(SOURCES.map(async (source) => {
         const { data } = await (supabase.from(source.table) as any)
-          .select("id,title,status,created_at,image_url")
+          .select(source.select)
           .eq(source.owner, user!.id)
           .order("created_at", { ascending: false })
           .limit(25);
-        return (data ?? []).map((row: any) => ({ ...row, label: source.label, edit: source.edit(row.id) }));
+        return (data ?? []).map((row: any) => ({ ...row, title: row.title ?? row.body?.slice(0, 100) ?? "Untitled", label: source.label, edit: source.edit(row.id) }));
       }));
       return batches.flat().sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
     },

@@ -36,6 +36,8 @@ test("admin workspace exposes role-aware header, search, logout and owned conten
   const content = await read("src/routes/_authenticated/admin/my-content.tsx");
   assert.match(content, /author_id/);
   assert.match(content, /user_id/);
+  assert.match(content, /feed_posts/);
+  assert.match(content, /videos/);
 });
 
 test("editorial listing rows expose separated management-table columns", async () => {
