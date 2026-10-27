@@ -190,6 +190,26 @@ export function CrossContentEditor({
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const finalizeDraft = useMutation({
+    mutationFn: async () => {
+      if (!draftId || !targetId.trim()) throw new Error("Enter the saved target record ID.");
+      const { data, error } = await (supabase.rpc as any)("editorial_finalize_related_draft", {
+        _draft_id: draftId,
+        _target_type: targetType,
+        _target_id: targetId.trim(),
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      setTargetId("");
+      void queryClient.invalidateQueries({ queryKey: ["editorial-relationships", sourceType, sourceId] });
+      void queryClient.invalidateQueries({ queryKey: ["editorial-related-drafts", sourceType, sourceId] });
+      toast.success("Reviewed draft linked to the saved target record.");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const addTag = useMutation({
     mutationFn: async () => {
       if (!newTag.trim() || !user) throw new Error("Enter a tag name.");
@@ -270,7 +290,7 @@ export function CrossContentEditor({
         <div><Label>Generate target</Label><Select value={targetType} onValueChange={(value) => setTargetType(value as EditorialContentType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{targets[sourceType].map((value) => <SelectItem key={value} value={value}>{label(value)}</SelectItem>)}</SelectContent></Select></div>
         <Button type="button" className="self-end" disabled={generate.isPending} onClick={() => generate.mutate()}><Sparkles className="mr-2 size-4" />{generate.isPending ? "Generating…" : "Generate related draft"}</Button>
       </div>
-      {draft ? <div className="space-y-2"><Label htmlFor={`related-draft-${sourceId}`}>Editable generated draft JSON</Label><textarea id={`related-draft-${sourceId}`} value={draftJson} onChange={(event) => { try { setDraft(JSON.parse(event.target.value) as Record<string, unknown>); } catch { /* Keep the editor text stable until valid JSON is restored. */ } }} rows={8} className="w-full rounded-md border border-input bg-background p-3 font-mono text-xs" /><Button type="button" variant="outline" disabled={saveDraft.isPending} onClick={() => saveDraft.mutate()}><Save className="mr-2 size-4" />{saveDraft.isPending ? "Saving…" : draftId ? "Save draft edits" : "Save related draft"}</Button></div> : null}
+      {draft ? <div className="space-y-2"><Label htmlFor={`related-draft-${sourceId}`}>Editable generated draft JSON</Label><textarea id={`related-draft-${sourceId}`} value={draftJson} onChange={(event) => { try { setDraft(JSON.parse(event.target.value) as Record<string, unknown>); } catch { /* Keep the editor text stable until valid JSON is restored. */ } }} rows={8} className="w-full rounded-md border border-input bg-background p-3 font-mono text-xs" /><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={saveDraft.isPending} onClick={() => saveDraft.mutate()}><Save className="mr-2 size-4" />{saveDraft.isPending ? "Saving…" : draftId ? "Save draft edits" : "Save related draft"}</Button>{draftId ? <><Input value={targetId} onChange={(event) => setTargetId(event.target.value)} placeholder="Saved target record UUID" aria-label="Saved target record UUID" /><Button type="button" variant="outline" disabled={finalizeDraft.isPending} onClick={() => finalizeDraft.mutate()}>{finalizeDraft.isPending ? "Linking…" : "Link saved target"}</Button></> : null}</div></div> : null}
       {savedDrafts.data?.length ? <div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Saved related drafts</p><div className="grid gap-2 sm:grid-cols-2">{savedDrafts.data.map((saved) => <button key={saved.id} type="button" className={`rounded border p-2 text-left text-xs transition-colors hover:bg-muted/50 ${draftId === saved.id ? "border-accent bg-accent/10" : "border-border bg-background"}`} onClick={() => loadSavedDraft(saved)}><span className="font-semibold">{label(saved.target_type)}</span><span className="ml-2 text-muted-foreground">{saved.status}</span><span className="mt-1 block line-clamp-2">{String(saved.generated_draft?.["title"] ?? "Untitled draft")}</span></button>)}</div></div> : null}
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><div><Label>Assign existing tag</Label><Input value={tagQuery} onChange={(event) => setTagQuery(event.target.value)} placeholder="Search tags…" /></div><div className="self-end flex flex-wrap gap-2">{tags.data?.slice(0, 4).map((tag) => <Button key={tag.id} type="button" size="sm" variant="outline" onClick={() => assignTag.mutate(tag.id)}><Tag className="mr-1 size-3" />{tag.label}</Button>)}</div></div>
       <div className="flex gap-2"><Input value={newTag} onChange={(event) => setNewTag(event.target.value)} placeholder="Create and assign a new tag" /><Button type="button" variant="outline" disabled={addTag.isPending} onClick={() => addTag.mutate()}><Plus className="mr-1 size-4" />Tag</Button></div>

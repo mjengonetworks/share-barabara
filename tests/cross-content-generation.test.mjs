@@ -16,7 +16,7 @@ test("cross-content migration is additive and covers the approved content model"
 });
 
 test("cross-content RPCs enforce permissions, validation, and public filtering", () => {
-  for (const fn of ["editorial_register_related_draft", "editorial_link_content", "editorial_unlink_content", "editorial_update_related_draft", "editorial_assign_tag", "editorial_remove_tag", "editorial_public_related_content"]) {
+  for (const fn of ["editorial_register_related_draft", "editorial_link_content", "editorial_unlink_content", "editorial_update_related_draft", "editorial_finalize_related_draft", "editorial_assign_tag", "editorial_remove_tag", "editorial_public_related_content"]) {
     assert.match(migration, new RegExp(`FUNCTION public\\.${fn}`));
   }
   assert.match(migration, /editorial_can_edit_content/);
@@ -41,6 +41,8 @@ test("admin integration exposes one shared cross-content editor", () => {
   assert.match(panel, /editorial-related-drafts/);
   assert.match(panel, /Search related content/);
   assert.match(panel, /saved.generated_draft/);
+  assert.match(panel, /editorial_finalize_related_draft/);
+  assert.match(panel, /Link saved target/);
 });
 
 test("public detail pages consume the shared related-content renderer", () => {

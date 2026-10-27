@@ -261,6 +261,24 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'draft update permission denied'; END IF;
   RETURN r;
 END $$;
+CREATE OR REPLACE FUNCTION public.editorial_finalize_related_draft(_draft_id UUID,_target_type TEXT,_target_id UUID)
+RETURNS public.editorial_related_drafts LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE d public.editorial_related_drafts;
+BEGIN
+  SELECT * INTO d FROM public.editorial_related_drafts WHERE id=_draft_id AND status='open';
+  IF NOT FOUND OR NOT public.has_min_role(auth.uid(),'editor') OR NOT public.editorial_can_edit_content(d.source_type,d.source_id) THEN
+    RAISE EXCEPTION 'draft finalization permission denied';
+  END IF;
+  IF d.target_type<>_target_type OR NOT public.editorial_content_exists(_target_type,_target_id)
+     OR NOT (public.editorial_content_is_public(_target_type,_target_id) OR public.editorial_can_edit_content(_target_type,_target_id)) THEN
+    RAISE EXCEPTION 'target record is unavailable for this draft';
+  END IF;
+  UPDATE public.editorial_related_drafts SET status='saved',target_id=_target_id,updated_at=now() WHERE id=d.id RETURNING * INTO d;
+  INSERT INTO public.editorial_content_relationships(source_type,source_id,target_type,target_id,relationship_type,created_by,generation_request_id,provider,prompt_version,source_snapshot_hash)
+    VALUES(d.source_type,d.source_id,d.target_type,d.target_id,'derived_from',auth.uid(),d.generation_request_id,d.provider,d.prompt_version,d.source_snapshot_hash)
+    ON CONFLICT DO NOTHING;
+  RETURN d;
+END $$;
 CREATE OR REPLACE FUNCTION public.editorial_remove_tag(_type TEXT,_id UUID,_tag UUID)
 RETURNS VOID LANGUAGE sql SECURITY DEFINER SET search_path=public,pg_temp AS $$
   DELETE FROM public.editorial_content_tags WHERE content_type=_type AND content_id=_id AND tag_id=_tag AND public.has_min_role(auth.uid(),'editor') AND public.editorial_can_edit_content(_type,_id);
@@ -279,6 +297,6 @@ RETURNS SETOF public.editorial_tags LANGUAGE sql STABLE SECURITY DEFINER SET sea
 $$;
 
 REVOKE ALL ON FUNCTION public.editorial_content_table(TEXT),public.editorial_content_exists(TEXT,UUID),public.editorial_content_is_public(TEXT,UUID),public.editorial_can_edit_content(TEXT,UUID) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_search_tags(TEXT,INTEGER) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_search_tags(TEXT,INTEGER) TO authenticated;
+REVOKE ALL ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_finalize_related_draft(UUID,TEXT,UUID),public.editorial_search_tags(TEXT,INTEGER) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_finalize_related_draft(UUID,TEXT,UUID),public.editorial_search_tags(TEXT,INTEGER) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.editorial_public_related_content(TEXT,UUID,INTEGER) TO anon,authenticated;

@@ -244,6 +244,20 @@ BEGIN
   END IF;
 END $$;
 
+-- Finalization attaches the reviewed draft to an existing target and records
+-- the derived_from relationship without publishing or changing the source.
+SELECT public.editorial_finalize_related_draft(
+  (SELECT id FROM public.editorial_related_drafts WHERE source_snapshot_hash='source-hash-1' AND status='open'),
+  'article',(SELECT article_id FROM _cross_content_ids));
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.editorial_related_drafts
+    WHERE source_snapshot_hash='source-hash-1' AND status='saved'
+      AND target_id=(SELECT article_id FROM _cross_content_ids)) THEN
+    RAISE EXCEPTION 'reviewed draft was not finalized';
+  END IF;
+END $$;
+
 -- Linking to a public target is allowed; exact duplicates are ignored.
 SELECT public.editorial_link_content(
   'report',(SELECT published_report_id FROM _cross_content_ids),'article',
