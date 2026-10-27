@@ -82,22 +82,33 @@ export const createFeedPost = createServerFn({ method: "POST" })
       if (result.ok) moderation = parseModeration(result.answer);
     } catch { /* Missing provider or a provider failure leaves the post for humans. */ }
 
-    const status = "pending";
-    const moderationStatus = moderation.action === "reject" ? "rejected" : moderation.action === "review" ? "needs_review" : "pending";
+    // Direct client inserts remain constrained by the pending-only RLS policy.
+    // This authenticated server workflow is the only path that can promote an
+    // automated allow decision to publication, and it uses the server-only
+    // service-role client after validating the caller and all media ownership.
+    const status = moderation.action === "allow" ? "published" : "pending";
+    const moderationStatus = moderation.action === "allow"
+      ? "approved"
+      : moderation.action === "reject"
+        ? "rejected"
+        : "needs_review";
+    const publishedAt = status === "published" ? new Date().toISOString() : null;
     let postId: string | null = null;
     try {
-      const { data: post, error } = await (context.supabase.from("feed_posts") as any).insert({
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: post, error } = await (supabaseAdmin.from("feed_posts") as any).insert({
         author_id: context.userId,
         body,
         hashtags: extractFeedHashtags(body),
         status,
         moderation_status: moderationStatus,
         moderation_reason: moderation.reason,
+        published_at: publishedAt,
       }).select("id").single();
       if (error) throw error;
       postId = post.id;
       if (data?.media?.length) {
-        const { error: mediaError } = await (context.supabase.from("feed_post_media") as any).insert(
+        const { error: mediaError } = await (supabaseAdmin.from("feed_post_media") as any).insert(
           data.media.map((media) => ({ ...media, post_id: post.id, owner_id: context.userId })),
         );
         if (mediaError) throw mediaError;
@@ -106,11 +117,11 @@ export const createFeedPost = createServerFn({ method: "POST" })
     } catch (error) {
       if (mediaPaths.length) await context.supabase.storage.from("feed-media").remove(mediaPaths);
       if (postId) {
-        await (context.supabase.from("feed_posts") as any)
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await (supabaseAdmin.from("feed_posts") as any)
           .delete()
           .eq("id", postId)
-          .eq("author_id", context.userId)
-          .eq("status", "pending");
+          .eq("author_id", context.userId);
       }
       throw error;
     }

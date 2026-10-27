@@ -15,7 +15,8 @@ test("Media & Feed exposes the compact reference structure and real navigation",
   assert.match(feed, /Discussions/);
   assert.match(feed, /timeline\.map/);
   assert.match(feed, /Open canonical source/);
-  assert.match(feed, /Posts are reviewed/);
+  assert.match(feed, /pass automated safety checks publish immediately/);
+  assert.doesNotMatch(feed, /Posts are reviewed for safety and community standards before publication/);
   assert.match(feed, /Attach photo\/video/);
   assert.match(feed, /Comments \(/);
   assert.match(feed, /Share/);

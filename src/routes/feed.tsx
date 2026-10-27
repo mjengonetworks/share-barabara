@@ -345,10 +345,10 @@ function FeedPage() {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       setBody("");
       setAttachments([]);
-      toast.success("Posted for community review");
+      toast.success(result.status === "published" ? "Posted to the community Feed" : "Held for a safety review");
       queryClient.invalidateQueries({ queryKey: ["feed-posts"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -465,7 +465,19 @@ function FeedPage() {
           <Button asChild size="sm" variant="outline"><Link to="/media">Explore media <Link2 className="ml-1 size-3.5" /></Link></Button>
         </div>
       </div>
-      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+      <div className="mt-5 grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)_280px] lg:items-start">
+        <aside className="rounded-lg border border-border bg-card p-3 lg:sticky lg:top-24" aria-label="Feed navigation">
+          <p className="px-2 pb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Media &amp; Feed</p>
+          <nav className="flex flex-wrap gap-2 lg:flex-col" aria-label="Media & Feed sections">
+            {[['for_you', 'For You'], ['following', 'Following'], ['trending', 'Trending'], ['topics', 'Topics'], ['discussions', 'Discussions']].map(([value, label]) => (
+              <Link key={value} to="/feed" search={{ view: value as "for_you" | "following" | "trending" | "topics" | "discussions", sort, q, type }} className={`rounded-md px-3 py-2 text-sm font-semibold ${view === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
+                {value === "trending" ? <TrendingUp className="mr-1 inline size-4" /> : null}{label}
+              </Link>
+            ))}
+            <span className="inline-flex items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-sm text-muted-foreground" title="Messages are not available yet" aria-disabled="true"><MessageSquare className="size-3.5" /> Messages</span>
+            <span className="inline-flex items-center gap-2 rounded-md border border-dashed border-border px-3 py-2 text-sm text-muted-foreground" title="Calls are not available yet" aria-disabled="true"><PhoneCall className="size-3.5" /> Calls</span>
+          </nav>
+        </aside>
         <main className="min-w-0">
           {user ? (
             <section className="rounded-lg border border-border bg-card p-5 card-elevated">
@@ -488,7 +500,7 @@ function FeedPage() {
               </div>
               <div className="mt-3 flex items-center justify-between gap-3">
                 <span className="text-xs text-muted-foreground">
-                  Posts are reviewed for safety and community standards before publication.
+                  Posts that pass automated safety checks publish immediately. Posts flagged for safety review are held for moderator action.
                 </span>
                 <Button
                   disabled={submit.isPending || body.trim().length < 3}
@@ -509,15 +521,6 @@ function FeedPage() {
               </p>
             </section>
           )}
-          <nav className="mt-6 flex flex-wrap gap-2 border-b border-border pb-4" aria-label="Media & Feed navigation">
-            {[['for_you', 'For You'], ['following', 'Following'], ['trending', 'Trending'], ['topics', 'Topics'], ['discussions', 'Discussions']].map(([value, label]) => (
-              <Link key={value} to="/feed" search={{ view: value as "for_you" | "following" | "trending" | "topics" | "discussions", sort, q, type }} className={`rounded-full px-3 py-1.5 text-sm font-semibold ${view === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
-                {value === "trending" ? <TrendingUp className="mr-1 inline size-4" /> : null}{label}
-              </Link>
-            ))}
-            <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground" title="Messages are not available yet"><MessageSquare className="size-3.5" /> Messages</span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground" title="Calls are not available yet"><PhoneCall className="size-3.5" /> Calls</span>
-          </nav>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"><Filter className="size-3.5" /> Sort</span>
             {(["new", "top", "hot"] as const).map((value) => (
@@ -583,7 +586,11 @@ function FeedPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">
-                        {post.status === "published" ? "Community post" : "Awaiting review"}
+                        {post.status === "published"
+                          ? "Community post"
+                          : post.moderation_status === "rejected"
+                            ? "Held for safety review"
+                            : "Awaiting moderator review"}
                       </span>
                       {user?.id === post.author_id && post.status === "pending" ? (
                         <>
