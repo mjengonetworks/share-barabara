@@ -19,6 +19,10 @@ const callGenerateEditorialDraft = generateEditorialDraft as unknown as (args: {
   proposal?: EditorialProposal;
 }>;
 
+// Non-sensitive DOM diagnostic for support tickets involving stale mobile
+// bundles. The backend remains authoritative for authentication and roles.
+const EDITORIAL_AI_UI_VERSION = "2026-10-26-cross-device-1";
+
 function contentLabel(contentType: EditorialContentType) {
   return contentType[0].toUpperCase() + contentType.slice(1);
 }
@@ -40,6 +44,36 @@ function nonDestructiveDraft(draft: Record<string, EditorialValue>) {
   ) as Record<string, EditorialValue>;
 }
 
+function initialSourceMaterial(source: string, mode: EditorialMode) {
+  if (mode === "update") return "";
+  // Only remove the exact legacy scaffold. Any other non-empty text is
+  // preserved because it may be genuine editor-provided source material.
+  const normalized = source.trim().replace(/[ \t]+/g, " ");
+  if (/^title:\s*summary:\s*body:?$/i.test(normalized)) return "";
+  return source;
+}
+
+function classifyEditorialError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  const normalized = message.toLocaleLowerCase();
+  if (/401|unauthori[sz]ed|not authenticated|session expired|sign in|permission denied/.test(normalized)) {
+    return {
+      category: "authentication",
+      message: "Your editorial session has expired or no longer has permission. Sign in again and retry.",
+    };
+  }
+  if (/timeout|timed out|rate limit|429|temporarily unavailable|provider unavailable/.test(normalized)) {
+    return { category: "transient-provider", message };
+  }
+  if (/source retrieval|could not retrieve|fetch the source/.test(normalized)) {
+    return { category: "source-retrieval", message };
+  }
+  if (/invalid|schema|usable draft|structured/.test(normalized)) {
+    return { category: "invalid-provider-response", message };
+  }
+  return { category: "unknown", message };
+}
+
 export function EditorialAIButton({
   contentType,
   source,
@@ -59,7 +93,7 @@ export function EditorialAIButton({
 }) {
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [sourceMaterial, setSourceMaterial] = useState(mode === "update" ? "" : source);
+  const [sourceMaterial, setSourceMaterial] = useState(() => initialSourceMaterial(source, mode));
   const [sourceFiles, setSourceFiles] = useState<Array<{ name: string; text: string }>>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const currentRef = useRef(current);
@@ -114,7 +148,12 @@ export function EditorialAIButton({
       onDraft(safeDraft);
       toast.success("Editorial AI values populated. Review and continue editing before saving.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Editorial AI could not populate the form.");
+      const classified = classifyEditorialError(error);
+      console.warn("[Share Barabara Editorial AI] request failed", {
+        category: classified.category,
+        uiVersion: EDITORIAL_AI_UI_VERSION,
+      });
+      toast.error(classified.message || "Editorial AI could not populate the form. Retry or contact an administrator.");
     } finally {
       setBusy(false);
     }
@@ -152,6 +191,7 @@ export function EditorialAIButton({
     <section
       className="relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-accent"
       aria-label={title}
+      data-editorial-ai-ui-version={EDITORIAL_AI_UI_VERSION}
     >
       <button
         type="button"

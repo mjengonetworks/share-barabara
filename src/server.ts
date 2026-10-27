@@ -24,6 +24,24 @@ function withStagingProtection(response: Response): Response {
   });
 }
 
+/**
+ * The HTML shell must be revalidated after a Worker release. Static JS/CSS
+ * assets remain fingerprinted and immutable, but an old cached document can
+ * otherwise point a device at a stale application graph after deployment.
+ */
+function withDocumentCachePolicy(response: Response): Response {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("text/html")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("cache-control", "no-cache, must-revalidate");
+  headers.set("x-share-barabara-app-version", serverEnv("APP_VERSION") ?? "unknown");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -98,7 +116,9 @@ export default {
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return withStagingProtection(await normalizeCatastrophicSsrResponse(response));
+      return withStagingProtection(
+        withDocumentCachePolicy(await normalizeCatastrophicSsrResponse(response)),
+      );
     } catch (error) {
       console.error(error);
       return withStagingProtection(

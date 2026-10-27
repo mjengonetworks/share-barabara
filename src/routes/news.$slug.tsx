@@ -23,8 +23,12 @@ import { GlobalEditorialPreview } from "@/components/site/global-editorial-previ
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary, ReadAlso } from "@/components/site/editorial-summary";
 import heroRoad from "@/assets/hero-road.jpg";
-import { publicEditorialCategoryBadgeClass, publicCategoryBadgeClass } from "@/components/site/public-ui";
+import {
+  publicEditorialCategoryBadgeClass,
+  publicCategoryBadgeClass,
+} from "@/components/site/public-ui";
 import { socialHead } from "@/lib/seo";
+import { selectRankedUnique } from "@/lib/trending";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -54,7 +58,7 @@ export const Route = createFileRoute("/news/$slug")({
         .neq("id", article.id)
         .order("published_at", { ascending: false })
         .limit(8),
-      supabase.rpc("trending_news", { hours_back: 48, result_limit: 6 }),
+      supabase.rpc("trending_news", { hours_back: 48, result_limit: 30 }),
       supabase.from("news").select("category, categories").eq("status", "published").limit(100),
     ]);
     if (relatedResult.error) throw relatedResult.error;
@@ -66,14 +70,8 @@ export const Route = createFileRoute("/news/$slug")({
       : (latestResult.data ?? []).slice(0, 4);
     const relatedIds = new Set(related.map((item) => item.id));
     const latest = (latestResult.data ?? []).filter((item) => !relatedIds.has(item.id)).slice(0, 4);
-    const trending = (trendingResult.data ?? [])
-      .filter(
-        (item) =>
-          item.id !== article.id &&
-          !relatedIds.has(item.id) &&
-          !latest.some((latestItem) => latestItem.id === item.id),
-      )
-      .slice(0, 5);
+    const trendingExcluded = new Set([article.id, ...relatedIds, ...latest.map((item) => item.id)]);
+    const trending = selectRankedUnique(trendingResult.data ?? [], trendingExcluded, 3);
     const categories = Array.from(
       new Set(
         (categoriesResult.data ?? [])
@@ -126,8 +124,19 @@ export const Route = createFileRoute("/news/$slug")({
       article?.seo_description ||
       article?.summary ||
       "Read the full road safety story and join the community discussion.";
-    const head = socialHead({ title, description, pathname: `/news/${article?.slug ?? ""}`, imageUrl: article?.image_url });
-    return { ...head, meta: [...head.meta, ...(article?.seo_keywords ? [{ name: "keywords", content: article.seo_keywords }] : [])] };
+    const head = socialHead({
+      title,
+      description,
+      pathname: `/news/${article?.slug ?? ""}`,
+      imageUrl: article?.image_url,
+    });
+    return {
+      ...head,
+      meta: [
+        ...head.meta,
+        ...(article?.seo_keywords ? [{ name: "keywords", content: article.seo_keywords }] : []),
+      ],
+    };
   },
   component: NewsDetail,
 });
@@ -219,10 +228,15 @@ function NewsDetail() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
         hours_back: 48,
-        result_limit: 6,
+        result_limit: 30,
       });
       if (error) throw error;
-      return (data ?? []).filter((n) => n.id !== article!.id).slice(0, 5);
+      const excluded = new Set([
+        article!.id,
+        ...related.map((item) => item.id),
+        ...latest.map((item) => item.id),
+      ]);
+      return selectRankedUnique(data ?? [], excluded, 3);
     },
   });
 
@@ -267,9 +281,7 @@ function NewsDetail() {
   const relatedIds = new Set(related.map((item) => item.id));
   const sidebarLatest = latest.filter((item) => !relatedIds.has(item.id));
   const latestIds = new Set(sidebarLatest.map((item) => item.id));
-  const sidebarTrending = trending.filter(
-    (item) => item.id !== article?.id && !relatedIds.has(item.id) && !latestIds.has(item.id),
-  );
+  const sidebarTrending = trending;
 
   if (isLoading) {
     return <p className="mx-auto max-w-3xl px-4 py-20 text-muted-foreground">Loading story…</p>;
@@ -303,7 +315,7 @@ function NewsDetail() {
         aria-label="Breadcrumb"
         className="bg-gradient-to-r from-brand-blue via-primary to-brand-blue text-primary-foreground"
       >
-        <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-2 py-2 text-xs sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-2 py-1 text-xs sm:px-6 lg:px-8">
           <Link to="/" className="shrink-0 hover:underline">
             Home
           </Link>
@@ -325,8 +337,8 @@ function NewsDetail() {
           </span>
         </div>
       </nav>
-      <div className="mx-auto grid max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-7 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
-        <article className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-3 shadow-sm sm:rounded-2xl sm:p-6 lg:p-6">
+      <div className="mx-auto grid max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3.5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:px-8">
+        <article className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-1.5 shadow-sm sm:rounded-2xl sm:p-3 lg:p-3">
           <div className="flex flex-wrap gap-1.5">
             {(article.categories?.length ? article.categories : [article.category]).map((c) => (
               <Link
@@ -344,12 +356,12 @@ function NewsDetail() {
               Preview · {article.status.replace("_", " ")}, not visible to the public yet
             </p>
           ) : null}
-          <div className="mt-4 border-b border-border/70 pb-4">
-            <h1 className="max-w-4xl text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+          <div className="mt-2 pb-2">
+            <h1 className="max-w-4xl text-[23.52px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
               {article.title}
             </h1>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-1.5 text-sm text-muted-foreground">
             {longDateWithDay(article.published_at)} · {readingMinutes} min read
             {article.source ? ` · ${article.source}` : ""}
           </p>
@@ -407,9 +419,7 @@ function NewsDetail() {
             </div>
           ) : null}
           {article.summary?.trim() ? (
-            <EditorialSummary className="mt-5">
-              {article.summary}
-            </EditorialSummary>
+            <EditorialSummary className="mt-5">{article.summary}</EditorialSummary>
           ) : null}
           {article.status === "published" ? (
             <div className="mt-5">
@@ -445,15 +455,26 @@ function NewsDetail() {
           <CommentSection entityType="news" entityId={article.id} />
         </article>
         <ArticleSidebar
-          related={related.slice(0, 4)}
-          latest={sidebarLatest.slice(0, 4)}
-          trending={sidebarTrending.slice(0, 5)}
+          related={related.slice(0, 3)}
+          latest={sidebarLatest.slice(0, 3)}
+          trending={sidebarTrending.slice(0, 3)}
           categories={loaderData.categories}
           contextualReports={contextualReports}
           contextualAlerts={contextualAlerts}
         />
       </div>
-      <GlobalEditorialPreview destination="news" excludeId={article.id} category={article.category} />
+      <GlobalEditorialPreview
+        destination="news"
+        excludeId={article.id}
+        category={article.category}
+        excludeKeys={[
+          ...related.slice(0, 3).map((item) => `news:${item.id}`),
+          ...sidebarLatest.slice(0, 3).map((item) => `news:${item.id}`),
+          ...sidebarTrending.slice(0, 3).map((item) => `news:${item.id}`),
+          ...contextualReports.slice(0, 2).map((item) => `reports:${String(item.id)}`),
+          ...contextualAlerts.slice(0, 2).map((item) => `alerts:${String(item.id)}`),
+        ]}
+      />
     </div>
   );
 }
@@ -479,9 +500,7 @@ function ArticleBody({
               <BannerAd placement="article-body-mid" />
             </div>
           ) : null}
-          {readAlsoAfter === index + 1 ? (
-            <ReadAlso related={related} />
-          ) : null}
+          {readAlsoAfter === index + 1 ? <ReadAlso related={related} /> : null}
         </Fragment>
       ))}
     </div>
