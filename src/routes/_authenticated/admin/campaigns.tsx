@@ -349,14 +349,14 @@ function CampaignsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Campaign / dates</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
+        <AdminListingHeader><span>Image</span><span>Title</span><span>Location</span><span>Status</span><span>Dates</span><span>Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {visibleCampaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
             <li
               key={c.id}
-              className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border/70 px-3 py-4 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]"
+              className="grid grid-cols-[auto_64px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border/70 px-3 py-3 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4 xl:grid-cols-[auto_64px_minmax(14rem,2fr)_minmax(9rem,1fr)_minmax(7rem,1fr)_minmax(12rem,auto)_auto]"
             >
               <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
               {c.image_url ? (
@@ -383,12 +383,11 @@ function CampaignsAdminPage() {
                   ) : null}
                   <p className="line-clamp-2 font-semibold">{c.title}</p>
                 </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {longDate(c.start_date)} – {longDate(c.end_date)}
-                  {c.location ? ` · ${c.location}` : ""}
-                </p>
               </div>
+              <span className="hidden truncate text-sm xl:block">{c.location || "—"}</span>
               <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
+              <span className="hidden whitespace-nowrap text-xs text-muted-foreground xl:block">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
+              <div className="flex flex-wrap items-center gap-1">
               <Button size="sm" variant="outline" asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></Button>
               <Dialog
                 open={reportOpenId === c.id}
@@ -463,6 +462,7 @@ function CampaignsAdminPage() {
               >
                 Delete
               </Button>
+              </div>
             </li>
           );
         })}

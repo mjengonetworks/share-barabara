@@ -13,6 +13,14 @@ const SOURCES = [
   { table: "alerts", type: "Alert", href: (id: string) => `/admin/alerts/${id}/edit` },
   { table: "campaigns", type: "Campaign", href: (id: string) => `/admin/campaigns/${id}/edit` },
   { table: "infrastructure_issues", type: "Infrastructure issue", href: (id: string) => `/admin/infrastructure-issues/${id}/edit` },
+  { table: "feed_posts", type: "Feed post", href: (id: string) => `/admin/feed?search=${encodeURIComponent(id)}` },
+  { table: "profiles", type: "User", href: (id: string) => `/admin/users?search=${encodeURIComponent(id)}` },
+] as const;
+
+const SETTINGS = [
+  ["Articles", "/admin/articles"], ["Accident reports", "/admin/reports"], ["Hazard alerts", "/admin/alerts"],
+  ["Campaigns", "/admin/campaigns"], ["Infrastructure issues", "/admin/infrastructure-issues"], ["Feed posts", "/admin/feed"],
+  ["Media library", "/admin/videos"], ["Users & roles", "/admin/users"], ["Taxonomy", "/admin/categories"],
 ] as const;
 
 export function AdminGlobalSearch() {
@@ -32,7 +40,8 @@ export function AdminGlobalSearch() {
           id: row.id, title: row.title, type: source.type, href: source.href(row.id),
         }));
       }));
-      return batches.flat().slice(0, 12);
+      const settingResults = SETTINGS.filter(([label]) => label.toLowerCase().includes(query.toLowerCase())).map(([title, href]) => ({ id: href, title, type: "Admin page", href }));
+      return [...settingResults, ...batches.flat()].slice(0, 12);
     },
   });
 

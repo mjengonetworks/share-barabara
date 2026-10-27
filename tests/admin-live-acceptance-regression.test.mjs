@@ -37,3 +37,24 @@ test("admin workspace exposes role-aware header, search, logout and owned conten
   assert.match(content, /author_id/);
   assert.match(content, /user_id/);
 });
+
+test("editorial listing rows expose separated management-table columns", async () => {
+  const expectations = [
+    ["articles.tsx", ["Title", "Category", "Status", "Author", "Views", "Created"]],
+    ["alerts.tsx", ["Image", "Alert", "County", "Severity", "Status", "Reported by", "Views", "Posted"]],
+    ["reports.tsx", ["Title", "Location", "Severity", "Status", "Author", "Created"]],
+    ["campaigns.tsx", ["Title", "Location", "Status", "Dates", "Actions"]],
+    ["infrastructure-issues.tsx", ["Title", "Issue type", "Location", "Status", "Author", "Created"]],
+  ];
+  for (const [file, labels] of expectations) {
+    const source = await read(`src/routes/_authenticated/admin/${file}`);
+    for (const label of labels) assert.match(source, new RegExp(label), `${file}: ${label}`);
+  }
+  const surface = await read("src/components/admin/admin-listing-surface.tsx");
+  assert.match(surface, /xl:grid/);
+});
+
+test("global admin search includes authorised editorial sources and admin destinations", async () => {
+  const source = await read("src/components/admin/admin-global-search.tsx");
+  for (const value of ["news", "accident_reports", "alerts", "campaigns", "infrastructure_issues", "feed_posts", "profiles", "Taxonomy"]) assert.match(source, new RegExp(value), value);
+});

@@ -291,7 +291,7 @@ function ReportsQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Incident / location</span><span>Severity / status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
+        <AdminListingHeader><span>Image</span><span>Title</span><span>Location</span><span>Severity</span><span>Status</span><span>Author</span><span>Created</span><span>Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {reports.map((r) => {
           const d = (drafts[r.id] ?? {
@@ -323,7 +323,7 @@ function ReportsQueuePage() {
 
           return (
             <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
+              <div className="grid grid-cols-[auto_64px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 xl:grid-cols-[auto_64px_minmax(14rem,2fr)_minmax(9rem,1fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_minmax(9rem,1fr)_minmax(8rem,auto)_auto]">
                 <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {r.image_url ? (
@@ -340,29 +340,16 @@ function ReportsQueuePage() {
                   </div>
                   <div className="min-w-0 text-left">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <SeverityBadge value={r.severity} />
-                      <p className="line-clamp-2 font-semibold">{r.title}</p>
-                    </div>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                      <span>
-                        Filed by <UserLink userId={r.user_id} name={names[r.user_id]} />
-                      </span>
-                      <span className="inline-flex items-center gap-0.5">
-                        · <Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[r.id] ?? 0}
-                      </span>
-                      <span>· {dateTime(r.created_at)}</span>
-                    </p>
-                    <p className="mt-1 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
-                      <span>County: {r.county || "Not specified"}</span>
-                      <span>Injured: {r.casualties === null || r.casualties === undefined ? "Unknown" : r.casualties}</span>
-                      <span>Deaths: {r.fatalities === null || r.fatalities === undefined ? "Unknown" : r.fatalities}</span>
-                      {r.duplicate_of_report_id ? <span>Linked duplicate</span> : null}
-                    </p>
+                    <p className="line-clamp-2 font-semibold">{r.title}</p>
                   </div>
                   </div>
 
+                <span className="hidden truncate text-sm xl:block">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
+                <span className="hidden xl:block"><SeverityBadge value={r.severity} /></span>
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
+                <span className="hidden min-w-0 truncate text-sm xl:block">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
+                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(r.created_at)}</span>
+                <div className="flex items-center gap-1">
                 <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -402,8 +389,7 @@ function ReportsQueuePage() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                <span className="shrink-0 text-xs text-muted-foreground" aria-hidden="true">·</span>
+                </div>
               </div>
 
               {expanded ? (

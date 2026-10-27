@@ -20,7 +20,7 @@ export function AdminListingSurface({
 
 export function AdminListingHeader({ children }: { children: ReactNode }) {
   return (
-    <div role="row" className="hidden grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_minmax(7rem,auto)_auto] items-center gap-3 border-b border-border bg-muted/45 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground lg:grid">
+    <div role="row" className="hidden grid-cols-[auto_64px_minmax(14rem,2fr)_minmax(9rem,1fr)_minmax(7rem,1fr)_minmax(9rem,1fr)_minmax(5rem,auto)_minmax(8rem,auto)_auto] items-center gap-3 border-b border-border bg-muted/45 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground xl:grid">
       <span aria-hidden="true" />
       {children}
     </div>
