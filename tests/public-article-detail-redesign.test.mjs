@@ -41,7 +41,8 @@ test("public article detail uses one responsive article/sidebar shell", async ()
   }
   assert.match(sidebar, /Explore Share Barabara/);
   assert.match(detail, /sidebarLatest = latest\.filter/);
-  assert.match(detail, /sidebarTrending = trending\.filter/);
+  assert.match(detail, /sidebarTrending = trending/);
+  assert.match(sidebar, /search=\{\{ sort: "trending" \}\}/);
   assert.match(detail, /!relatedIds\.has\(item\.id\)/);
 });
 

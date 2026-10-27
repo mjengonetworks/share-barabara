@@ -17,13 +17,17 @@ import {
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
-import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import {
+  EditorialTripleCard,
+  GlobalEditorialPreview,
+} from "@/components/site/global-editorial-preview";
 import {
   publicCategoryNavigationClass,
   publicCategoryNavigationSelectedClass,
 } from "@/components/site/public-ui";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { groupLatestByEntity } from "@/lib/category-entity";
+import type { PreviewItem } from "@/lib/global-editorial-preview";
 import {
   Dialog,
   DialogContent,
@@ -33,9 +37,10 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/news/")({
-  validateSearch: (search: Record<string, unknown>): { category?: string } => {
+  validateSearch: (search: Record<string, unknown>): { category?: string; sort?: "trending" } => {
     const category = typeof search.category === "string" ? search.category : undefined;
-    return category ? { category } : {};
+    const sort = search.sort === "trending" ? "trending" : undefined;
+    return { ...(category ? { category } : {}), ...(sort ? { sort } : {}) };
   },
   head: () => ({
     meta: [
@@ -128,23 +133,30 @@ function LatestStrip({ articles }: { articles: ArticleCard[] }) {
         </Link>
       </div>
       <div id="latest-news-updates" className="mt-3 grid gap-3 sm:grid-cols-3">
-          {articles.slice(0, 3).map((article) => (
-            <Link
-              key={article.id}
-              to="/news/$slug"
-              params={{ slug: article.slug }}
-              className="group flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-3 card-elevated hover:border-accent"
-            >
-              {article.image_url ? (
-                <img src={article.image_url} alt="" loading="lazy" className="size-14 shrink-0 rounded object-cover" />
-              ) : (
-                <span className="flex size-14 shrink-0 items-center justify-center rounded bg-primary/5 text-[10px] text-muted-foreground">News</span>
-              )}
-              <span className="min-w-0 text-sm font-semibold leading-snug group-hover:text-brand-blue group-hover:underline">
-                {article.title}
+        {articles.slice(0, 3).map((article) => (
+          <Link
+            key={article.id}
+            to="/news/$slug"
+            params={{ slug: article.slug }}
+            className="group flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-3 card-elevated hover:border-accent"
+          >
+            {article.image_url ? (
+              <img
+                src={article.image_url}
+                alt=""
+                loading="lazy"
+                className="size-14 shrink-0 rounded object-cover"
+              />
+            ) : (
+              <span className="flex size-14 shrink-0 items-center justify-center rounded bg-primary/5 text-[10px] text-muted-foreground">
+                News
               </span>
-            </Link>
-          ))}
+            )}
+            <span className="min-w-0 text-sm font-semibold leading-snug group-hover:text-brand-blue group-hover:underline">
+              {article.title}
+            </span>
+          </Link>
+        ))}
       </div>
     </section>
   );
@@ -272,7 +284,7 @@ function CategoryEntityGrid({ articles }: { articles: ArticleCard[] }) {
 function NewsIndex() {
   const { user } = useAuth();
   const canWrite = useCanWriteArticles();
-  const { category } = Route.useSearch();
+  const { category, sort } = Route.useSearch();
   const loaderData = Route.useLoaderData();
   const { data: filtered = [], isLoading: filteredLoading } = usePublishedQuery({
     name: "category",
@@ -348,7 +360,18 @@ function NewsIndex() {
             <WriteButton signedIn={!!user} canWrite={canWrite} />
           </div>
         ) : null}
-        {category ? (
+        {sort === "trending" ? (
+          <EditorialBand tone="plain">
+            <SectionHeader
+              eyebrow="Ranked by recorded views"
+              title="Trending News"
+              description="The most-read eligible articles, ordered by the established trending ranking."
+              to="/news"
+              actionLabel="All articles"
+            />
+            <TrendingCollection articles={loaderData.trending} />
+          </EditorialBand>
+        ) : category ? (
           <EditorialBand className="mt-8" tone="plain">
             <SectionHeader
               eyebrow="Newsroom category"
@@ -376,7 +399,9 @@ function NewsIndex() {
                 description="Explore published reporting by the topics that shape safer journeys."
               />
               <div className="mt-6">
-                {allLoading ? <p className="text-muted-foreground">Loading published categories…</p> : null}
+                {allLoading ? (
+                  <p className="text-muted-foreground">Loading published categories…</p>
+                ) : null}
                 {!allLoading ? <CategoryEntityGrid articles={all} /> : null}
               </div>
             </EditorialBand>
@@ -417,8 +442,14 @@ function NewsIndex() {
             ) : null}
           </div>
         )}
-        {!category ? <LatestStrip articles={latest} /> : null}
-        <GlobalEditorialPreview destination="news" category={category} />
+        {!category && sort !== "trending" ? <LatestStrip articles={latest} /> : null}
+        <GlobalEditorialPreview
+          destination="news"
+          category={category}
+          excludeKeys={
+            sort === "trending" ? loaderData.trending.map((item) => `news:${item.id}`) : []
+          }
+        />
         <EditorialDiscoveryRail exclude="news" />
         <MjengoPreviews context="articles" />
       </div>
@@ -433,6 +464,36 @@ function EmptyState({ label }: { label: string }) {
     </p>
   );
 }
+
+function TrendingCollection({ articles }: { articles: ArticleCard[] }) {
+  const cards = Array.from({ length: Math.ceil(articles.length / 3) }, (_, index) => {
+    const items = articles.slice(index * 3, index * 3 + 3).map<PreviewItem>((article) => ({
+      id: article.id,
+      title: article.title,
+      href: `/news/${article.slug}`,
+      imageUrl: article.image_url,
+      category: article.category,
+      destination: "news",
+    }));
+    return { title: `Trending${items[0]?.category ? ` · ${items[0].category}` : ""}`, items };
+  });
+  if (!cards.length) return <EmptyState label="No eligible trending articles are available yet." />;
+  return (
+    <div className="mt-6 space-y-4">
+      {Array.from({ length: Math.ceil(cards.length / 3) }, (_, row) => (
+        <div key={`trending-row-${row}`} className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            {cards.slice(row * 3, row * 3 + 3).map((card) => (
+              <EditorialTripleCard key={`${card.title}-${row}`} {...card} />
+            ))}
+          </div>
+          <BannerAd placement={`news-trending-row-${row + 1}`} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function WriteButton({ signedIn, canWrite }: { signedIn: boolean; canWrite: boolean }) {
   if (!signedIn)
     return (

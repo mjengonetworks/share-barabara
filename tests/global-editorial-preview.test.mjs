@@ -131,3 +131,24 @@ test("discovery supports every genuine public source and page-level composite ex
     );
   }
 });
+
+test("ranked trending backfills after exclusions without changing rank order", async () => {
+  const { selectRankedUnique } = await import("../src/lib/trending.ts");
+  const ranked = [{ id: "a" }, { id: "b" }, { id: "b" }, { id: "c" }, { id: "d" }];
+  assert.deepEqual(selectRankedUnique(ranked, new Set(["a"]), 3), [
+    { id: "b" },
+    { id: "c" },
+    { id: "d" },
+  ]);
+  assert.deepEqual(selectRankedUnique(ranked, new Set(["a", "b", "c", "d"]), 3), []);
+});
+
+test("trending navigation targets the dedicated filtered News collection", async () => {
+  const fs = await import("node:fs/promises");
+  const sidebar = await fs.readFile("src/components/site/article-detail-sidebar.tsx", "utf8");
+  const news = await fs.readFile("src/routes/news.index.tsx", "utf8");
+  assert.match(sidebar, /search=\{\{ sort: "trending" \}\}/);
+  assert.match(news, /search\.sort === "trending"/);
+  assert.match(news, /title="Trending News"/);
+  assert.match(news, /grid gap-4 md:grid-cols-3/);
+});
