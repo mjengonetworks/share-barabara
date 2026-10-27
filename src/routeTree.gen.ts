@@ -38,6 +38,7 @@ import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as CampaignsSlugRouteImport } from './routes/campaigns.$slug'
 import { Route as InfrastructureIssuesIndexRouteImport } from './routes/infrastructure-issues.index'
 import { Route as InfrastructureIssuesIssueIdRouteImport } from './routes/infrastructure-issues.$issueId'
+import { Route as MediaMediaIdRouteImport } from './routes/media.$mediaId'
 import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as PagesIndexRouteImport } from './routes/pages.index'
@@ -220,6 +221,11 @@ const InfrastructureIssuesIssueIdRoute =
     path: '/infrastructure-issues/$issueId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const MediaMediaIdRoute = MediaMediaIdRouteImport.update({
+  id: '/$mediaId',
+  path: '/$mediaId',
+  getParentRoute: () => MediaRoute,
+} as any)
 const NewsIndexRoute = NewsIndexRouteImport.update({
   id: '/news/',
   path: '/news/',
@@ -424,7 +430,7 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/contributors': typeof ContributorsRoute
   '/feed': typeof FeedRoute
-  '/media': typeof MediaRoute
+  '/media': typeof MediaRouteWithChildren
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -444,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset': typeof AuthResetRoute
   '/campaigns/$slug': typeof CampaignsSlugRoute
   '/infrastructure-issues/$issueId': typeof InfrastructureIssuesIssueIdRoute
+  '/media/$mediaId': typeof MediaMediaIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/reports/$reportId': typeof ReportsReportIdRoute
@@ -489,7 +496,7 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/contributors': typeof ContributorsRoute
   '/feed': typeof FeedRoute
-  '/media': typeof MediaRoute
+  '/media': typeof MediaRouteWithChildren
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -508,6 +515,7 @@ export interface FileRoutesByTo {
   '/auth/reset': typeof AuthResetRoute
   '/campaigns/$slug': typeof CampaignsSlugRoute
   '/infrastructure-issues/$issueId': typeof InfrastructureIssuesIssueIdRoute
+  '/media/$mediaId': typeof MediaMediaIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/reports/$reportId': typeof ReportsReportIdRoute
@@ -555,7 +563,7 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/contributors': typeof ContributorsRoute
   '/feed': typeof FeedRoute
-  '/media': typeof MediaRoute
+  '/media': typeof MediaRouteWithChildren
   '/merch': typeof MerchRoute
   '/notifications': typeof NotificationsRoute
   '/partner-with-us': typeof PartnerWithUsRoute
@@ -575,6 +583,7 @@ export interface FileRoutesById {
   '/auth/reset': typeof AuthResetRoute
   '/campaigns/$slug': typeof CampaignsSlugRoute
   '/infrastructure-issues/$issueId': typeof InfrastructureIssuesIssueIdRoute
+  '/media/$mediaId': typeof MediaMediaIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/pages/$slug': typeof PagesSlugRoute
   '/reports/$reportId': typeof ReportsReportIdRoute
@@ -642,6 +651,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/campaigns/$slug'
     | '/infrastructure-issues/$issueId'
+    | '/media/$mediaId'
     | '/news/$slug'
     | '/pages/$slug'
     | '/reports/$reportId'
@@ -706,6 +716,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/campaigns/$slug'
     | '/infrastructure-issues/$issueId'
+    | '/media/$mediaId'
     | '/news/$slug'
     | '/pages/$slug'
     | '/reports/$reportId'
@@ -772,6 +783,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/campaigns/$slug'
     | '/infrastructure-issues/$issueId'
+    | '/media/$mediaId'
     | '/news/$slug'
     | '/pages/$slug'
     | '/reports/$reportId'
@@ -819,7 +831,7 @@ export interface RootRouteChildren {
   CampaignsRoute: typeof CampaignsRouteWithChildren
   ContributorsRoute: typeof ContributorsRoute
   FeedRoute: typeof FeedRoute
-  MediaRoute: typeof MediaRoute
+  MediaRoute: typeof MediaRouteWithChildren
   MerchRoute: typeof MerchRoute
   NotificationsRoute: typeof NotificationsRoute
   PartnerWithUsRoute: typeof PartnerWithUsRoute
@@ -1052,6 +1064,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/infrastructure-issues/$issueId'
       preLoaderRoute: typeof InfrastructureIssuesIssueIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/media/$mediaId': {
+      id: '/media/$mediaId'
+      path: '/$mediaId'
+      fullPath: '/media/$mediaId'
+      preLoaderRoute: typeof MediaMediaIdRouteImport
+      parentRoute: typeof MediaRoute
     }
     '/news/': {
       id: '/news/'
@@ -1399,6 +1418,16 @@ const CampaignsRouteWithChildren = CampaignsRoute._addFileChildren(
   CampaignsRouteChildren,
 )
 
+interface MediaRouteChildren {
+  MediaMediaIdRoute: typeof MediaMediaIdRoute
+}
+
+const MediaRouteChildren: MediaRouteChildren = {
+  MediaMediaIdRoute: MediaMediaIdRoute,
+}
+
+const MediaRouteWithChildren = MediaRoute._addFileChildren(MediaRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1406,7 +1435,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampaignsRoute: CampaignsRouteWithChildren,
   ContributorsRoute: ContributorsRoute,
   FeedRoute: FeedRoute,
-  MediaRoute: MediaRoute,
+  MediaRoute: MediaRouteWithChildren,
   MerchRoute: MerchRoute,
   NotificationsRoute: NotificationsRoute,
   PartnerWithUsRoute: PartnerWithUsRoute,

@@ -12,4 +12,13 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  nitro: {
+    // Nitro's Cloudflare preset emits POSIX `npx`; Windows resolves the
+    // executable through the `.cmd` shim instead.
+    commands: {
+      preview: process.platform === "win32"
+        ? "cmd.exe /d /s /c npx.cmd wrangler --cwd ./ dev"
+        : "npx wrangler --cwd ./ dev",
+    },
+  },
 });

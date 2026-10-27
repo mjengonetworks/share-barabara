@@ -57,7 +57,8 @@ test("AI moderation fails closed into human review", () => {
   assert.match(moderation, /completeWithProvider\("groq"/);
   assert.match(moderation, /invalid action/);
   assert.match(moderation, /omitted a valid reason/);
-  assert.match(moderation, /status = "pending"/);
+  assert.match(moderation, /let moderation = \{ action: "review"/);
+  assert.match(moderation, /moderation\.action === "allow" \? "published" : "pending"/);
   assert.match(moderation, /Never publish or rewrite the post/);
 });
 
