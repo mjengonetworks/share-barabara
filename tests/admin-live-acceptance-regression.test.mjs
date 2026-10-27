@@ -60,3 +60,27 @@ test("global admin search includes authorised editorial sources and admin destin
   const source = await read("src/components/admin/admin-global-search.tsx");
   for (const value of ["news", "accident_reports", "alerts", "campaigns", "infrastructure_issues", "feed_posts", "profiles", "Taxonomy"]) assert.match(source, new RegExp(value), value);
 });
+
+test("Alerts listing has all rendered action imports and controls", async () => {
+  const source = await read("src/routes/_authenticated/admin/alerts.tsx");
+  assert.match(source, /import \{[^}]*Pencil[^}]*\} from "lucide-react"/);
+  assert.match(source, /aria-label="More actions"/);
+  assert.match(source, /\/admin\/alerts\/\$\{a\.id\}\/edit/);
+});
+
+test("custom listing layouts keep direct Edit and Options controls visible", async () => {
+  for (const file of ["articles.tsx", "reports.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
+    const source = await read(`src/routes/_authenticated/admin/${file}`);
+    assert.match(source, /aria-label="More actions"/, file);
+    assert.match(source, /\/admin\/[^`]+\/\$\{[^}]+\}\/edit/, file);
+    assert.match(source, /xl:grid-cols-\[auto_56px/, file);
+  }
+});
+
+test("My Content remains an ownership-aware admin route", async () => {
+  const route = await read("src/routes/_authenticated/admin/my-content.tsx");
+  assert.match(route, /createFileRoute\("\/_authenticated\/admin\/my-content"\)/);
+  assert.match(route, /AdminPageHeader/);
+  assert.match(route, /\.eq\(source\.owner, user!\.id\)/);
+  assert.doesNotMatch(route, /\/profile/);
+});
