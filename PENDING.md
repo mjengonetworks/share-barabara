@@ -582,57 +582,34 @@ non-sensitive UI diagnostic marker and no `Title: Summary: Body:` scaffold. Auth
 reproduction and real Grok/Groq calls remain pending because no authorized browser/provider session was
 available. No migration, public UI, advertisement, Task 70, unrelated AI/authentication, or SearXNG change
 was made.
+# Global Editorial Discovery Final Corrections — DEPLOYED / VISUAL ACCEPTANCE PENDING
 
-Master Admin CMS and Accident Report Detail Repair — TESTING / DEPLOYMENT PENDING. Latest verified live
-production code was `a10cff6` (Worker `64deafd6-a834-49ce-b7a8-260feb7d2d00` at 100% traffic); it was merged
-before these changes. Articles, Accident Reports, Campaigns and Infrastructure Issues now render semantic compact
-admin tables matching the approved Alerts table architecture, with separate content-specific columns, selection,
-thumbnail, status and action cells. The Report creation form now exposes its role-gated Editorial AI controls before
-the ordinary fields; Campaign and Infrastructure edit controls were moved before their content fields. Legacy bare
-media object paths are resolved through the existing public `media` bucket without altering stored records. The
-Accident Report detail now uses location beside the type/severity badges, labels the incident date below the title,
-links county and road filters, removes the redundant All reports row, and uses a wrapping shared breadcrumb on mobile.
-Focused corrections passed (6/6), admin architecture/listing/workspace tests passed (12/12), full regression passed
-(406/406), security tests passed (14/14), production build passed, and `git diff --check` passed. No database
-migrations were added or executed. Cross-content generation, reusable tags and bidirectional relationships remain
-blocked and unimplemented because the repository has no approved generic relationship schema/API; the existing
-incident duplicate-review suggestions are not a substitute. No authenticated browser/CUA session was available,
-so the owner must still visually verify all four corrected admin pages and the report detail at desktop/tablet/mobile
-widths, and real image requests/live Editorial AI/provider interactions remain unverified. Live SearXNG remains PENDING.
+The independently verified pre-deployment production baseline was Git `053ce19cf4a4a3620c19f05cfc2090b35d1db7d2` with active Worker `e69cd270-9006-4f0e-8b9f-50ffdfaceefe`. Candidate commit `9170e13` included that baseline and was deployed as Worker `dfa7cb6f-195e-4c60-b4ca-f883443f147c` at 100%; rollback target is `e69cd270-9006-4f0e-8b9f-50ffdfaceefe`.
 
-Master Admin CMS Continuation — TESTING / NOT DEPLOYED. Independent Cloudflare inspection found the newer live
-Worker `623e7634-38c7-45ff-96df-58bd46f3b676` at 100% traffic, annotated `align mobile header controls`, corresponding
-to Git commit `24e689e777f4b7b2d392c028b861d09261ab64b0`. That deployed commit was merged before further work;
-the mobile header correction remains preserved. Static audit confirms Article forms do not render Accident Report
-crash-statistics fields, and Report creation/edit paths expose role-gated Generate, Groq Auto-Populate, Grok
-Auto-Populate and Update controls in the intended order where applicable. No authenticated browser or live-provider
-session was available, so actual field population and visual admin/mobile acceptance remain unverified.
+The global discovery renderer no longer emits the generic Keep Exploring / More from Share Barabara heading or its top spacer. It now considers News, Alerts, Accident Reports, Campaigns, Infrastructure Issues, published Statistics datasets when available, and featured Media when available. Source cards are chunked into three-column desktop rows and stacked three-card mobile groups, with one existing BannerAd after each complete group of three outer cards. Every card selects up to three genuine latest records, uses a large first item and two compact items, and never renders a fourth item. Statistics and Media fail closed when their optional tables are unavailable.
 
-The repository has no generic persisted cross-content tag/relationship tables or target-draft conversion RPCs. A
-review-only, non-executing proposal is recorded at `supabase/inspection/cross-content-relationships-proposal.sql`.
-It defines canonical tags, polymorphic content assignments, relationship provenance, editor-only RLS and required
-server-owned draft/public RPC seams; it ends with `rollback` and was not added to `supabase/migrations` or executed.
-Cross-content generation, reusable tags and bidirectional relationships therefore remain incomplete pending owner
-approval of the schema/RLS/RPC design. No deployment was performed. Live SearXNG remains PENDING.
+Page-level composite exclusion keys now remove the current record, earlier related/sidebar recommendations, and duplicate records across source cards, with candidate backfill from later eligible records. Detail-side recommendation lists were capped at three visible records. The mobile Article detail H1 is now `23.52px`; tablet and desktop Article sizing and all non-Article headline sizes remain unchanged. No database migration or unrelated AI/admin/authentication/moderation/advertisement/Task 70/SearXNG change was made.
 
-Cross-Content Editorial Functionality Continuation — SCHEMA APPROVAL REQUIRED / NOT DEPLOYED. Independent live
-inspection found Worker `e69cd270-9006-4f0e-8b9f-50ffdfaceefe` at 100% traffic, corresponding to runtime Git
-commit `053ce19cf4a4a3620c19f05cfc2090b35d1db7d2`. That deployed commit was merged and pushed as integration
-commit `75988af`; no unrelated worktree was merged and no production deployment occurred. Existing Article and
-Accident Report AI controls and content-type boundaries remain preserved. The review-only schema package at
-`supabase/inspection/cross-content-relationships-proposal.sql` remains unexecuted and unapproved; it specifies
-tag vocabulary, polymorphic assignments, relationship provenance, editor-only RLS, indexes, constraints and
-server-owned draft/public RPC seams. Because the current production schema has no generic tag/relationship tables
-or conversion RPCs, persistent tagging, bidirectional relationships, duplicate prevention and provenance-backed
-cross-content saves cannot be safely completed in application code alone. No existing content or relationship was
-changed. Verification on the integrated tree: focused master/admin/AI tests passed 19/19; full regression had
-409 passes and one pre-existing 5-second `ai-server-function-artifact` timeout; security passed 14/14; production
-build passed; `git diff --check` passed. Authenticated browser and live provider verification remain unavailable.
-No migrations were executed, no deployment was performed, and Live SearXNG remains PENDING.
+Focused tests passed `21/21`; full suite passed `385/388`, with the three unchanged Editorial AI provider/source tests still failing under the repository's direct Node runner because of extensionless/`@/integrations` module resolution. Security tests passed `14/14`; production build and `git diff --check` passed. Public smoke routes `/`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/statistics` and `/feed` returned HTTP 200. Browser visual verification remains pending because CUA initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`; HTTP smoke checks do not establish rendered visual acceptance. Live provider testing was not performed.
 
-Cross-content schema approval hold — PENDING. The following are explicitly not implemented and remain blocked
-until owner review and approval of the proposed SQL: cross-content generation persistence; reusable tags;
-bidirectional content relationships; duplicate prevention; generation provenance and audit; and public
-related-content discovery. The proposal remains review-only at `supabase/inspection/cross-content-relationships-proposal.sql`.
-No SQL was executed, no production migration was created, and no deployment occurred. The urgent Grok schema
-repair remains a separate task.
+Cross-Content Editorial Functionality — IMPLEMENTED LOCALLY / MIGRATION AND DEPLOYMENT PENDING.
+Production was independently checked before integration: Worker `dfa7cb6f-195e-4c60-b4ca-f883443f147c` is receiving
+100% traffic. The latest corresponding remote production line available in this repository is
+`6b2b6bef87d3c361894fd9948c2978138f4b0914`; it has been merged with the cross-content implementation without
+discarding the deployed discovery corrections. Cloudflare deployment metadata does not itself expose a Git SHA, so
+the Worker-to-SHA association remains based on verified deployment chronology and remote branch history.
+
+Implemented locally: additive migration `supabase/migrations/20261027120000_cross_content_editorial_relationships.sql`
+(not executed), shared `CrossContentEditor` integration on all five admin content forms, public `RelatedContent`
+integration on Article/Report/Alert/Campaign/Infrastructure detail routes, target conversion allow-listing, persisted
+related-draft provenance, searchable reusable tags, bidirectional relationship RPCs, duplicate checks, audit events,
+and public visibility filtering. The review proposal remains at `supabase/inspection/cross-content-relationships-proposal.sql`
+and has not been executed.
+
+The migration requires owner approval before any database change. No production tables, policies or RPCs have been
+created, no migration was executed, and no deployment occurred. Local Supabase CLI/Docker was unavailable, so real
+database/RLS execution could not be performed. The application tests cover the migration contract and integrations;
+authenticated browser verification, live provider calls and real-RLS validation remain pending. The current generic
+editor stores generated target drafts in the new related-draft table; target-form hydration after migration approval
+is the remaining integration item before claiming full end-to-end CMS conversion acceptance. Live SearXNG remains
+PENDING and urgent Grok schema repair remains separate.

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Newspaper } from "lucide-react";
+import { Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BannerAd } from "@/components/site/banner-ad";
 import type { PreviewDestination, PreviewItem } from "@/lib/global-editorial-preview";
@@ -7,6 +7,7 @@ import type { PreviewDestination, PreviewItem } from "@/lib/global-editorial-pre
 type Props = {
   destination: PreviewDestination;
   excludeId?: string;
+  excludeKeys?: string[];
   category?: string | null;
   topic?: string | null;
   destinations?: PreviewDestination[];
@@ -17,6 +18,8 @@ const meta: Record<PreviewDestination, { label: string; href: string }> = {
   reports: { label: "Accident Reports", href: "/reports" },
   campaigns: { label: "Campaigns", href: "/campaigns" },
   infrastructure: { label: "Infrastructure Issues", href: "/infrastructure-issues" },
+  statistics: { label: "Statistics", href: "/statistics" },
+  media: { label: "Media & Feed", href: "/feed" },
 };
 const allDestinations: PreviewDestination[] = [
   "news",
@@ -24,6 +27,8 @@ const allDestinations: PreviewDestination[] = [
   "reports",
   "campaigns",
   "infrastructure",
+  "statistics",
+  "media",
 ];
 const mapArticle = (item: any): PreviewItem => ({
   id: item.id,
@@ -66,6 +71,20 @@ const mapInfrastructure = (item: any): PreviewItem => ({
   imageUrl: item.image_url,
   category: item.structure_type,
   destination: "infrastructure",
+});
+const mapStatistics = (item: any): PreviewItem => ({
+  id: item.id,
+  title: item.title,
+  href: "/statistics",
+  category: "Statistics",
+  destination: "statistics",
+});
+const mapMedia = (item: any): PreviewItem => ({
+  id: item.id,
+  title: item.title,
+  href: "/videos",
+  category: "Media",
+  destination: "media",
 });
 
 function ItemLink({ item, featured }: { item: PreviewItem; featured?: boolean }) {
@@ -113,15 +132,7 @@ function ItemLink({ item, featured }: { item: PreviewItem; featured?: boolean })
   );
 }
 
-function PreviewCard({
-  title,
-  items,
-  viewHref,
-}: {
-  title: string;
-  items: PreviewItem[];
-  viewHref: string;
-}) {
+export function EditorialTripleCard({ title, items }: { title: string; items: PreviewItem[] }) {
   return (
     <article className="rounded-xl border border-border bg-card p-3 card-elevated">
       <h3 className="mb-3 truncate text-sm font-extrabold text-brand-navy">{title}</h3>
@@ -131,12 +142,6 @@ function PreviewCard({
           {items.slice(1, 3).map((item) => (
             <ItemLink key={item.id} item={item} />
           ))}
-          <a
-            href={viewHref}
-            className="inline-flex items-center gap-1 pt-1 text-xs font-bold text-brand-blue underline underline-offset-2"
-          >
-            View more <ArrowRight className="size-3.5" aria-hidden="true" />
-          </a>
         </div>
       ) : null}
     </article>
@@ -146,49 +151,59 @@ function PreviewCard({
 export function GlobalEditorialPreview({
   destination,
   excludeId,
+  excludeKeys = [],
   category,
   topic,
   destinations,
 }: Props) {
-  const modules = (
-    destinations?.length
-      ? destinations
-      : [destination, ...allDestinations.filter((item) => item !== destination)]
-  ).slice(0, 3);
+  const modules = destinations?.length
+    ? destinations
+    : [destination, ...allDestinations.filter((item) => item !== destination)];
   const query = useQuery({
-    queryKey: ["global-editorial-preview", destination, excludeId, modules],
+    queryKey: ["global-editorial-preview", destination, excludeId, excludeKeys, modules],
     queryFn: async () => {
-      const [news, alerts, reports, campaigns, infrastructure] = await Promise.all([
-        supabase
-          .from("news")
-          .select("id, slug, title, category, image_url, published_at")
-          .eq("status", "published")
-          .order("published_at", { ascending: false })
-          .limit(18),
-        supabase
-          .from("alerts")
-          .select("id, title, hazard_type, created_at")
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(18),
-        supabase
-          .from("accident_reports")
-          .select("id, title, incident_type, occurred_at, image_url")
-          .eq("status", "approved")
-          .order("occurred_at", { ascending: false })
-          .limit(18),
-        supabase
-          .from("campaigns")
-          .select("id, slug, title, image_url, start_date")
-          .order("start_date", { ascending: false })
-          .limit(18),
-        supabase
-          .from("infrastructure_issues")
-          .select("id, title, structure_type, image_url, created_at")
-          .eq("status", "approved")
-          .order("created_at", { ascending: false })
-          .limit(18),
-      ]);
+      const [news, alerts, reports, campaigns, infrastructure, statistics, media] =
+        await Promise.all([
+          supabase
+            .from("news")
+            .select("id, slug, title, category, image_url, published_at")
+            .eq("status", "published")
+            .order("published_at", { ascending: false })
+            .limit(18),
+          supabase
+            .from("alerts")
+            .select("id, title, hazard_type, created_at")
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+            .limit(18),
+          supabase
+            .from("accident_reports")
+            .select("id, title, incident_type, occurred_at, image_url")
+            .eq("status", "approved")
+            .order("occurred_at", { ascending: false })
+            .limit(18),
+          supabase
+            .from("campaigns")
+            .select("id, slug, title, image_url, start_date")
+            .order("start_date", { ascending: false })
+            .limit(18),
+          supabase
+            .from("infrastructure_issues")
+            .select("id, title, structure_type, image_url, created_at")
+            .eq("status", "approved")
+            .order("created_at", { ascending: false })
+            .limit(18),
+          (supabase.from("statistics_datasets") as any)
+            .select("id,title,last_verified_at")
+            .eq("publication_status", "published")
+            .order("last_verified_at", { ascending: false })
+            .limit(18),
+          (supabase.from("videos") as any)
+            .select("id,title,created_at")
+            .eq("status", "featured")
+            .order("created_at", { ascending: false })
+            .limit(18),
+        ]);
       for (const result of [news, alerts, reports, campaigns, infrastructure])
         if (result.error) throw result.error;
       const pools: Record<PreviewDestination, PreviewItem[]> = {
@@ -197,11 +212,15 @@ export function GlobalEditorialPreview({
         reports: (reports.data ?? []).map(mapReport),
         campaigns: (campaigns.data ?? []).map(mapCampaign),
         infrastructure: (infrastructure.data ?? []).map(mapInfrastructure),
+        statistics: statistics.error ? [] : (statistics.data ?? []).map(mapStatistics),
+        media: media.error ? [] : (media.data ?? []).map(mapMedia),
       };
       const used = new Set<string>();
       return modules.map((module) => {
         const items = pools[module]
-          .filter((item) => item.id !== excludeId && !used.has(`${item.destination}:${item.id}`))
+          .filter((item) => item.id !== excludeId)
+          .filter((item) => !excludeKeys.includes(`${item.destination}:${item.id}`))
+          .filter((item) => !used.has(`${item.destination}:${item.id}`))
           .filter(
             (item) =>
               module !== destination ||
@@ -221,31 +240,25 @@ export function GlobalEditorialPreview({
     },
   });
   const cards = (query.data ?? []).filter((card) => card.items.length > 0);
-  if (cards.every((card) => card.items.length === 0)) return null;
+  if (cards.length === 0) return null;
   return (
     <section
-      className="mx-auto max-w-6xl space-y-5 px-4 py-8"
-      aria-label="More from Share Barabara"
+      className="mx-auto max-w-6xl space-y-4 px-4 pb-8"
+      aria-label="Cross-content editorial previews"
     >
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-accent-foreground">
-            Keep exploring
-          </p>
-          <h2 className="mt-1 text-xl font-extrabold text-brand-navy">More from Share Barabara</h2>
-        </div>
-      </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        {cards.map(({ module, items }) => (
-          <PreviewCard
-            key={module}
-            title={meta[module].label}
-            items={items}
-            viewHref={meta[module].href}
-          />
-        ))}
-      </div>
-      <BannerAd placement="global-editorial-discovery-row-1" />
+      {Array.from({ length: Math.ceil(cards.length / 3) }, (_, row) => {
+        const rowCards = cards.slice(row * 3, row * 3 + 3);
+        return (
+          <div key={`discovery-row-${row}`} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              {rowCards.map(({ module, items }) => (
+                <EditorialTripleCard key={module} title={meta[module].label} items={items} />
+              ))}
+            </div>
+            <BannerAd placement={`global-editorial-discovery-row-${row + 1}`} />
+          </div>
+        );
+      })}
     </section>
   );
 }

@@ -392,7 +392,7 @@ function ReportDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 More from {report.county}
               </h2>
-              <ReportList reports={related} />
+              <ReportList reports={related.slice(0, 3)} />
               <Link
                 to="/reports"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -406,7 +406,7 @@ function ReportDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Latest reports
               </h2>
-              <ReportList reports={latest} />
+              <ReportList reports={latest.slice(0, 3)} />
               <Link
                 to="/reports"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -420,7 +420,7 @@ function ReportDetail() {
               <h2 className="flex items-center gap-1 text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 <Flame className="size-4 text-destructive" /> Trending
               </h2>
-              <ReportList reports={trending} />
+              <ReportList reports={trending.slice(0, 3)} />
               <Link
                 to="/reports"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -435,6 +435,11 @@ function ReportDetail() {
         destination="reports"
         excludeId={report.id}
         topic={report.incident_type}
+        excludeKeys={[
+          ...related.slice(0, 3).map((item) => `reports:${item.id}`),
+          ...latest.slice(0, 3).map((item) => `reports:${item.id}`),
+          ...trending.slice(0, 3).map((item) => `reports:${item.id}`),
+        ]}
       />
       <RelatedContent contentType="report" contentId={report.id} />
     </>

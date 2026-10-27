@@ -181,7 +181,8 @@ CREATE POLICY tags_editor_insert ON public.editorial_tags FOR INSERT TO authenti
 CREATE POLICY tags_editor_update ON public.editorial_tags FOR UPDATE TO authenticated USING (public.has_min_role(auth.uid(),'editor')) WITH CHECK (public.has_min_role(auth.uid(),'editor'));
 CREATE POLICY tags_admin_delete ON public.editorial_tags FOR DELETE TO authenticated USING (public.has_role(auth.uid(),'admin'));
 CREATE POLICY content_tags_editor_read ON public.editorial_content_tags FOR SELECT TO authenticated USING (public.has_min_role(auth.uid(),'editor'));
-CREATE POLICY content_tags_editor_write ON public.editorial_content_tags FOR ALL TO authenticated USING (public.has_min_role(auth.uid(),'editor')) WITH CHECK (public.has_min_role(auth.uid(),'editor') AND created_by=auth.uid());
+-- Tag assignment mutations are RPC-only. The RPC checks edit permission for the
+-- referenced content before inserting or deleting an assignment.
 CREATE POLICY relationships_editor_read ON public.editorial_content_relationships FOR SELECT TO authenticated USING (public.has_min_role(auth.uid(),'editor'));
 -- Relationship mutations are RPC-only so endpoint permissions are checked atomically.
 CREATE POLICY drafts_editor_read ON public.editorial_related_drafts FOR SELECT TO authenticated USING (public.has_min_role(auth.uid(),'editor') AND (created_by=auth.uid() OR public.has_role(auth.uid(),'admin')));
