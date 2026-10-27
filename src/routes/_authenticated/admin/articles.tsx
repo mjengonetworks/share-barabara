@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -66,6 +66,8 @@ type ArticleDraft = {
 type Status = "draft" | "pending_review" | "published" | "rejected";
 
 function ArticlesQueuePage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/articles\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const { canPublishArticles } = useRoles();
   const queryClient = useQueryClient();

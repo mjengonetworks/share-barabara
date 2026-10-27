@@ -84,3 +84,23 @@ test("My Content remains an ownership-aware admin route", async () => {
   assert.match(route, /\.eq\(source\.owner, user!\.id\)/);
   assert.doesNotMatch(route, /\/profile/);
 });
+
+test("all editorial listing parents delegate edit URLs to the child editor", async () => {
+  const routes = [
+    ["articles.tsx", "articles"],
+    ["alerts.tsx", "alerts"],
+    ["reports.tsx", "reports"],
+    ["campaigns.tsx", "campaigns"],
+    ["infrastructure-issues.tsx", "infrastructure-issues"],
+  ];
+  for (const [file, segment] of routes) {
+    const source = await read(`src/routes/_authenticated/admin/${file}`);
+    assert.match(source, /Outlet/ , file);
+    assert.match(source, new RegExp(`admin\\/${segment}\\/`), file);
+    assert.match(source, /return <Outlet \/>/, file);
+    assert.match(source, /useRouterState/, file);
+  }
+  const editor = await read("src/components/admin/editorial-record-editor.tsx");
+  assert.match(editor, /recordQuery\.error/);
+  assert.match(editor, /Unable to load this/);
+});

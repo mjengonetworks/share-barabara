@@ -126,8 +126,8 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
     onError: (error: Error) => toast.error(error.message),
   });
 
-  if (recordQuery.isLoading || !form) return <p className="p-8 text-muted-foreground">Loading {config.label.toLowerCase()}…</p>;
   if (recordQuery.error) return <p className="rounded-lg border border-destructive/30 p-6 text-destructive">Unable to load this {config.label.toLowerCase()}.</p>;
+  if (recordQuery.isLoading || !form) return <p className="p-8 text-muted-foreground">Loading {config.label.toLowerCase()}…</p>;
 
   const aiActions = [
     { mode: "generate" as const, provider: "grok" as const },
