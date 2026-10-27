@@ -2,9 +2,9 @@
 -- Do not execute in production without owner approval and a storage/RLS review.
 -- This extends the existing Feed post model; it does not replace it.
 --
--- Compatibility: the existing public media bucket already scopes writes to
--- the authenticated user's first path segment. The table repeats that
--- ownership boundary in RLS and in the storage_path check below.
+-- Compatibility: the existing public `media` bucket is intentionally not used
+-- here. Feed attachments live in a dedicated private bucket and are exposed
+-- only through server-created, time-limited signed URLs.
 --
 -- Rollback safety: do not DROP this table as a rollback. First disable the
 -- attachment capability in the UI, preserve/export rows and referenced
@@ -12,13 +12,36 @@
 -- depends on them. The feed_posts row and its audit/recycle-bin history must
 -- remain authoritative.
 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('feed-media', 'feed-media', false)
+ON CONFLICT (id) DO UPDATE SET public = false;
+
+DROP POLICY IF EXISTS "feed_media_owner_insert" ON storage.objects;
+CREATE POLICY "feed_media_owner_insert" ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'feed-media'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+    AND COALESCE((metadata->>'size')::bigint, 0) BETWEEN 1 AND 52428800
+    AND (metadata->>'mimetype' LIKE 'image/%' OR metadata->>'mimetype' LIKE 'video/%')
+  );
+DROP POLICY IF EXISTS "feed_media_owner_update" ON storage.objects;
+CREATE POLICY "feed_media_owner_update" ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'feed-media' AND (storage.foldername(name))[1] = auth.uid()::text)
+  WITH CHECK (bucket_id = 'feed-media' AND (storage.foldername(name))[1] = auth.uid()::text);
+DROP POLICY IF EXISTS "feed_media_owner_delete" ON storage.objects;
+CREATE POLICY "feed_media_owner_delete" ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'feed-media' AND (storage.foldername(name))[1] = auth.uid()::text);
+-- There is deliberately no client SELECT policy. The server-side signed-URL
+-- function authorizes the linked Feed post before using service-role storage
+-- access to issue a 15-minute URL. The service-role key never reaches a client.
+
 CREATE TABLE IF NOT EXISTS public.feed_post_media (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES public.feed_posts(id) ON DELETE CASCADE,
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   media_type TEXT NOT NULL CHECK (media_type IN ('image', 'video')),
+  bucket_id TEXT NOT NULL DEFAULT 'feed-media' CHECK (bucket_id = 'feed-media'),
   storage_path TEXT NOT NULL,
-  public_url TEXT NOT NULL,
   filename TEXT NOT NULL,
   mime_type TEXT NOT NULL,
   bytes BIGINT NOT NULL CHECK (bytes BETWEEN 1 AND 52428800),
@@ -32,6 +55,26 @@ CREATE TABLE IF NOT EXISTS public.feed_post_media (
   ),
   UNIQUE (post_id, storage_path)
 );
+
+-- Keep this review migration safe to rerun after an earlier review-only draft.
+-- Refuse an incompatible already-created table rather than dropping a legacy
+-- public URL column or silently changing existing attachment data.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'feed_post_media' AND column_name = 'public_url'
+  ) THEN
+    RAISE EXCEPTION 'feed_post_media has legacy public_url; review/export it before private-storage migration';
+  END IF;
+END $$;
+
+ALTER TABLE public.feed_post_media
+  ADD COLUMN IF NOT EXISTS bucket_id TEXT NOT NULL DEFAULT 'feed-media';
+ALTER TABLE public.feed_post_media
+  DROP CONSTRAINT IF EXISTS feed_post_media_bucket_id_check;
+ALTER TABLE public.feed_post_media
+  ADD CONSTRAINT feed_post_media_bucket_id_check CHECK (bucket_id = 'feed-media');
 
 CREATE INDEX IF NOT EXISTS feed_post_media_post_idx ON public.feed_post_media (post_id, created_at);
 CREATE INDEX IF NOT EXISTS feed_post_media_owner_idx ON public.feed_post_media (owner_id, created_at DESC);

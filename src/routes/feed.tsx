@@ -40,13 +40,14 @@ import {
   trendCounts,
 } from "@/lib/feed.mjs";
 import { createFeedPost } from "@/lib/feed.functions";
+import { getFeedMediaSignedUrls } from "@/lib/feed-media.functions";
 import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { SocialFollowSection } from "@/components/site/social-follow-section";
 import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
-import { uploadMediaAsset } from "@/lib/storage";
+import { uploadFeedMediaAsset } from "@/lib/storage";
 
 export const Route = createFileRoute("/feed")({
   head: () => ({
@@ -82,7 +83,7 @@ type Post = {
   published_at: string | null;
   score?: number;
   comment_count?: number;
-  media?: Array<{ media_type: "image" | "video"; public_url: string; filename: string }>;
+  media?: Array<{ id: string; media_type: "image" | "video"; storage_path: string; filename: string }>;
 };
 type AutoItem = {
   id: string;
@@ -276,13 +277,20 @@ function FeedPage() {
       return (data ?? []) as { entity_id: string }[];
     },
   });
-  const { data: mediaRows = [] } = useQuery<{ post_id: string; media_type: "image" | "video"; public_url: string; filename: string }[]>({
+  const { data: mediaRows = [] } = useQuery<{ id: string; post_id: string; media_type: "image" | "video"; storage_path: string; filename: string }[]>({
     queryKey: ["feed-post-media", postIds],
     enabled: postIds.length > 0,
     queryFn: async () => {
-      const { data } = await (supabase.from("feed_post_media") as any).select("post_id,media_type,public_url,filename").in("post_id", postIds);
-      return (data ?? []) as { post_id: string; media_type: "image" | "video"; public_url: string; filename: string }[];
+      const { data } = await (supabase.from("feed_post_media") as any).select("id,post_id,media_type,storage_path,filename").in("post_id", postIds);
+      return (data ?? []) as { id: string; post_id: string; media_type: "image" | "video"; storage_path: string; filename: string }[];
     },
+  });
+  const mediaIds = mediaRows.map((media) => media.id);
+  const { data: signedMedia = {} } = useQuery<Record<string, { signed_url: string }>>({
+    queryKey: ["feed-post-media-signed", mediaIds],
+    enabled: mediaIds.length > 0,
+    queryFn: async () => (await getFeedMediaSignedUrls({ data: { mediaIds } })) as Record<string, { signed_url: string }>,
+    staleTime: 10 * 60 * 1000,
   });
   const { data: mediaAttachmentsEnabled = false } = useQuery({
     queryKey: ["feed-post-media-capability"],
@@ -321,11 +329,21 @@ function FeedPage() {
       if (!user) throw new Error("Sign in to post");
       const clean = normalizeFeedBody(body);
       if (clean.length < 3) throw new Error("Write at least three characters");
-      const media = mediaAttachmentsEnabled ? await Promise.all(attachments.map(async (file) => {
-        const uploaded = await uploadMediaAsset(file, user.id);
-        return { media_type: file.type.startsWith("video/") ? "video" as const : "image" as const, storage_path: uploaded.storagePath, public_url: uploaded.publicUrl, filename: file.name, mime_type: file.type || "application/octet-stream", bytes: file.size };
-      })) : [];
-      await createFeedPost({ data: { body: clean, media } });
+      const media: Array<{ media_type: "image" | "video"; storage_path: string; filename: string; mime_type: string; bytes: number }> = [];
+      const uploadedPaths: string[] = [];
+      try {
+        if (mediaAttachmentsEnabled) {
+          for (const file of attachments) {
+            const uploaded = await uploadFeedMediaAsset(file, user.id);
+            uploadedPaths.push(uploaded.storagePath);
+            media.push({ media_type: file.type.startsWith("video/") ? "video" : "image", storage_path: uploaded.storagePath, filename: file.name, mime_type: file.type, bytes: file.size });
+          }
+        }
+        await createFeedPost({ data: { body: clean, media } });
+      } catch (error) {
+        if (uploadedPaths.length) await supabase.storage.from("feed-media").remove(uploadedPaths);
+        throw error;
+      }
     },
     onSuccess: () => {
       setBody("");
@@ -638,11 +656,15 @@ function FeedPage() {
                   ) : null}
                   {post.media?.length ? (
                     <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                      {post.media.map((media) => media.media_type === "video" ? (
-                        <video key={media.public_url} controls preload="metadata" className="max-h-[420px] w-full rounded-md bg-muted object-contain" src={media.public_url} />
-                      ) : (
-                        <img key={media.public_url} src={media.public_url} alt={media.filename} loading="lazy" className="max-h-[420px] w-full rounded-md bg-muted object-contain" />
-                      ))}
+                      {post.media.map((media) => {
+                        const signedUrl = signedMedia[media.id]?.signed_url;
+                        if (!signedUrl) return null;
+                        return media.media_type === "video" ? (
+                          <video key={signedUrl} controls preload="metadata" className="max-h-[420px] w-full rounded-md bg-muted object-contain" src={signedUrl} />
+                        ) : (
+                          <img key={signedUrl} src={signedUrl} alt={media.filename} loading="lazy" className="max-h-[420px] w-full rounded-md bg-muted object-contain" />
+                        );
+                      })}
                     </div>
                   ) : null}
                   <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-border pt-3">

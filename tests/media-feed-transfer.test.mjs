@@ -49,8 +49,23 @@ test("Feed media upload schema is review-only and ownership protected", () => {
   assert.match(migration, /bytes BETWEEN 1 AND 52428800/);
   assert.match(migration, /Rollback safety/);
   assert.match(migration, /moderator/);
+  assert.match(migration, /feed-media.*false/);
+  assert.match(migration, /feed_media_owner_insert/);
+  assert.match(migration, /metadata->>'size'/);
+  assert.match(migration, /metadata->>'mimetype'/);
+  assert.match(migration, /There is deliberately no client SELECT policy/);
+  assert.doesNotMatch(migration, /public_url TEXT/);
   assert.match(read("src/lib/feed.functions.ts"), /feed_post_media/);
-  assert.match(read("src/lib/storage.ts"), /uploadMediaAsset/);
+  assert.match(read("src/lib/feed.functions.ts"), /from\("feed-media"\)/);
+  assert.match(read("src/lib/feed.functions.ts"), /schema\("storage"\)/);
+  assert.match(read("src/lib/feed.functions.ts"), /owner_id/);
+  assert.match(read("src/lib/feed.functions.ts"), /remove\(mediaPaths\)/);
+  assert.match(read("src/lib/storage.ts"), /uploadFeedMediaAsset/);
+  assert.match(read("src/lib/feed-media.functions.ts"), /createSignedUrl/);
+  assert.match(read("src/lib/feed-media.functions.ts"), /SIGNED_URL_SECONDS/);
+  assert.doesNotMatch(read("src/lib/feed-media.functions.ts"), /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(read("src/routes/feed.tsx"), /getFeedMediaSignedUrls/);
+  assert.doesNotMatch(read("src/routes/feed.tsx"), /public_url/);
 });
 
 test("Media admin remains inside the existing authenticated CMS", () => {
@@ -79,4 +94,16 @@ test("Cloudflare preview uses the Windows npx shim without changing deployment b
   assert.match(config, /cmd\.exe \/d \/s \/c npx\.cmd/);
   assert.match(config, /preview:/);
   assert.match(config, /wrangler --cwd \.\/ dev/);
+});
+
+test("private Feed media never falls back to public object URLs", () => {
+  const storage = read("src/lib/storage.ts");
+  const mediaFn = read("src/lib/feed-media.functions.ts");
+  const feed = read("src/routes/feed.tsx");
+  assert.match(storage, /from\("feed-media"\)\.upload/);
+  assert.doesNotMatch(storage, /feed-media[\s\S]*getPublicUrl/);
+  assert.match(mediaFn, /from\("feed-media"\)[\s\S]*createSignedUrl/);
+  assert.match(mediaFn, /SIGNED_URL_SECONDS = 15 \* 60/);
+  assert.match(mediaFn, /post\.status === "published" \|\| post\.author_id === userId \|\| moderator/);
+  assert.match(feed, /signedMedia\[media\.id\]\?\.signed_url/);
 });
