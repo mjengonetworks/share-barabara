@@ -190,6 +190,7 @@ export function ArticleSidebar({
           <ArticleSidebarList articles={trending} />
           <Link
             to="/news"
+            search={{ sort: "trending" }}
             className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
           >
             Read more

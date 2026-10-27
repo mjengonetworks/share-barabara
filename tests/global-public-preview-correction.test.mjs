@@ -24,7 +24,12 @@ test("News keeps detail summaries but uses image-led latest updates and primary-
   assert.match(news, /Latest updates/);
   assert.match(news, /article\.image_url/);
   assert.match(news, /CategoryEntityGrid/);
-  assert.match(news, /!category \? <LatestStrip articles=\{latest\} \/> : null/);
+  assert.match(
+    news,
+    /!category && sort !== "trending" \? <LatestStrip articles=\{latest\} \/> : null/,
+  );
+  assert.match(news, /sort === "trending"/);
+  assert.match(news, /TrendingCollection/);
   assert.match(detail, /article\.summary\?\.trim\(\)/);
 });
 

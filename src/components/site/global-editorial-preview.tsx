@@ -132,7 +132,7 @@ function ItemLink({ item, featured }: { item: PreviewItem; featured?: boolean })
   );
 }
 
-function PreviewCard({ title, items }: { title: string; items: PreviewItem[] }) {
+export function EditorialTripleCard({ title, items }: { title: string; items: PreviewItem[] }) {
   return (
     <article className="rounded-xl border border-border bg-card p-3 card-elevated">
       <h3 className="mb-3 truncate text-sm font-extrabold text-brand-navy">{title}</h3>
@@ -252,7 +252,7 @@ export function GlobalEditorialPreview({
           <div key={`discovery-row-${row}`} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               {rowCards.map(({ module, items }) => (
-                <PreviewCard key={module} title={meta[module].label} items={items} />
+                <EditorialTripleCard key={module} title={meta[module].label} items={items} />
               ))}
             </div>
             <BannerAd placement={`global-editorial-discovery-row-${row + 1}`} />

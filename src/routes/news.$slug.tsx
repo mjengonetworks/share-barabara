@@ -28,6 +28,7 @@ import {
   publicCategoryBadgeClass,
 } from "@/components/site/public-ui";
 import { socialHead } from "@/lib/seo";
+import { selectRankedUnique } from "@/lib/trending";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -57,7 +58,7 @@ export const Route = createFileRoute("/news/$slug")({
         .neq("id", article.id)
         .order("published_at", { ascending: false })
         .limit(8),
-      supabase.rpc("trending_news", { hours_back: 48, result_limit: 6 }),
+      supabase.rpc("trending_news", { hours_back: 48, result_limit: 30 }),
       supabase.from("news").select("category, categories").eq("status", "published").limit(100),
     ]);
     if (relatedResult.error) throw relatedResult.error;
@@ -69,14 +70,8 @@ export const Route = createFileRoute("/news/$slug")({
       : (latestResult.data ?? []).slice(0, 4);
     const relatedIds = new Set(related.map((item) => item.id));
     const latest = (latestResult.data ?? []).filter((item) => !relatedIds.has(item.id)).slice(0, 4);
-    const trending = (trendingResult.data ?? [])
-      .filter(
-        (item) =>
-          item.id !== article.id &&
-          !relatedIds.has(item.id) &&
-          !latest.some((latestItem) => latestItem.id === item.id),
-      )
-      .slice(0, 5);
+    const trendingExcluded = new Set([article.id, ...relatedIds, ...latest.map((item) => item.id)]);
+    const trending = selectRankedUnique(trendingResult.data ?? [], trendingExcluded, 3);
     const categories = Array.from(
       new Set(
         (categoriesResult.data ?? [])
@@ -233,10 +228,15 @@ function NewsDetail() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc("trending_news", {
         hours_back: 48,
-        result_limit: 6,
+        result_limit: 30,
       });
       if (error) throw error;
-      return (data ?? []).filter((n) => n.id !== article!.id).slice(0, 5);
+      const excluded = new Set([
+        article!.id,
+        ...related.map((item) => item.id),
+        ...latest.map((item) => item.id),
+      ]);
+      return selectRankedUnique(data ?? [], excluded, 3);
     },
   });
 
@@ -281,9 +281,7 @@ function NewsDetail() {
   const relatedIds = new Set(related.map((item) => item.id));
   const sidebarLatest = latest.filter((item) => !relatedIds.has(item.id));
   const latestIds = new Set(sidebarLatest.map((item) => item.id));
-  const sidebarTrending = trending.filter(
-    (item) => item.id !== article?.id && !relatedIds.has(item.id) && !latestIds.has(item.id),
-  );
+  const sidebarTrending = trending;
 
   if (isLoading) {
     return <p className="mx-auto max-w-3xl px-4 py-20 text-muted-foreground">Loading story…</p>;
