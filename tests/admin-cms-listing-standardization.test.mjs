@@ -60,6 +60,9 @@ test("admin listing implementation remains intact while scoped public discovery 
     "src/components/site/public-layout.tsx",
     "src/components/site/report-form.tsx",
     "src/lib/storage.ts",
+    // Shared location, but admin-only functionality; it is not mounted on
+    // public editorial routes.
+    "src/components/site/cross-content-editor.tsx",
     "src/routes/reports.$reportId.tsx",
     "src/routes/reports.index.tsx",
   ]);

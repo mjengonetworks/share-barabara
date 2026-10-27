@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link2, Plus, Save, Sparkles, Tag, Trash2 } from "lucide-react";
+import { Link2, Plus, Save, Sparkles, Tag, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,6 +79,18 @@ export function CrossContentEditor({
     },
   });
 
+  const assignedTags = useQuery({
+    queryKey: ["editorial-content-tags", sourceType, sourceId],
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("editorial_content_tags") as any)
+        .select("tag_id, editorial_tags(id,label,slug)")
+        .eq("content_type", sourceType)
+        .eq("content_id", sourceId);
+      if (error) throw error;
+      return (data ?? []) as Array<{ tag_id: string; editorial_tags?: { id: string; label: string; slug: string } | null }>;
+    },
+  });
+
   const generate = useMutation({
     mutationFn: async () => {
       const response = await callGenerate({
@@ -134,12 +146,22 @@ export function CrossContentEditor({
     mutationFn: async () => {
       if (!newTag.trim() || !user) throw new Error("Enter a tag name.");
       const slug = newTag.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      const { data, error } = await (supabase.from("editorial_tags") as any).upsert({ slug, label: newTag.trim(), created_by: user.id }, { onConflict: "slug" }).select("id").single();
-      if (error) throw error;
+      if (!slug) throw new Error("Enter a tag name using letters or numbers.");
+      const existing = await (supabase.from("editorial_tags") as any).select("id").eq("slug", slug).maybeSingle();
+      if (existing.error) throw existing.error;
+      let data = existing.data as { id: string } | null;
+      if (!data) {
+        const created = await (supabase.from("editorial_tags") as any)
+          .insert({ slug, label: newTag.trim(), created_by: user.id })
+          .select("id")
+          .single();
+        if (created.error) throw created.error;
+        data = created.data as { id: string };
+      }
       const assigned = await (supabase.rpc as any)("editorial_assign_tag", { _type: sourceType, _id: sourceId, _tag: data.id });
       if (assigned.error) throw assigned.error;
     },
-    onSuccess: () => { setNewTag(""); void queryClient.invalidateQueries({ queryKey: ["editorial-tags"] }); toast.success("Tag assigned"); },
+    onSuccess: () => { setNewTag(""); void queryClient.invalidateQueries({ queryKey: ["editorial-tags"] }); void queryClient.invalidateQueries({ queryKey: ["editorial-content-tags", sourceType, sourceId] }); toast.success("Tag assigned"); },
     onError: (error: Error) => toast.error(error.message),
   });
 
@@ -148,7 +170,16 @@ export function CrossContentEditor({
       const { error } = await (supabase.rpc as any)("editorial_assign_tag", { _type: sourceType, _id: sourceId, _tag: tagId });
       if (error) throw error;
     },
-    onSuccess: () => toast.success("Tag assigned"),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["editorial-content-tags", sourceType, sourceId] }); toast.success("Tag assigned"); },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const removeTag = useMutation({
+    mutationFn: async (tagId: string) => {
+      const { error } = await (supabase.rpc as any)("editorial_remove_tag", { _type: sourceType, _id: sourceId, _tag: tagId });
+      if (error) throw error;
+    },
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["editorial-content-tags", sourceType, sourceId] }); toast.success("Tag removed"); },
     onError: (error: Error) => toast.error(error.message),
   });
 
@@ -189,6 +220,7 @@ export function CrossContentEditor({
       {draft ? <div className="space-y-2"><Label htmlFor={`related-draft-${sourceId}`}>Editable generated draft JSON</Label><textarea id={`related-draft-${sourceId}`} value={draftJson} onChange={(event) => { try { setDraft(JSON.parse(event.target.value) as Record<string, unknown>); } catch { /* Keep the editor text stable until valid JSON is restored. */ } }} rows={8} className="w-full rounded-md border border-input bg-background p-3 font-mono text-xs" /><Button type="button" variant="outline" disabled={saveDraft.isPending} onClick={() => saveDraft.mutate()}><Save className="mr-2 size-4" />{saveDraft.isPending ? "Saving…" : draftId ? "Save draft edits" : "Save related draft"}</Button></div> : null}
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><div><Label>Assign existing tag</Label><Input value={tagQuery} onChange={(event) => setTagQuery(event.target.value)} placeholder="Search tags…" /></div><div className="self-end flex flex-wrap gap-2">{tags.data?.slice(0, 4).map((tag) => <Button key={tag.id} type="button" size="sm" variant="outline" onClick={() => assignTag.mutate(tag.id)}><Tag className="mr-1 size-3" />{tag.label}</Button>)}</div></div>
       <div className="flex gap-2"><Input value={newTag} onChange={(event) => setNewTag(event.target.value)} placeholder="Create and assign a new tag" /><Button type="button" variant="outline" disabled={addTag.isPending} onClick={() => addTag.mutate()}><Plus className="mr-1 size-4" />Tag</Button></div>
+      {assignedTags.data?.length ? <div className="flex flex-wrap gap-2" aria-label="Assigned tags">{assignedTags.data.map((assignment) => assignment.editorial_tags ? <span key={assignment.tag_id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-xs"><Tag className="size-3 text-muted-foreground" />{assignment.editorial_tags.label}<button type="button" className="rounded-full p-0.5 hover:bg-muted" aria-label={`Remove tag ${assignment.editorial_tags.label}`} onClick={() => removeTag.mutate(assignment.tag_id)}><X className="size-3" /></button></span> : null)}</div> : null}
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"><div><Label>Link target type</Label><Select value={linkTargetType} onValueChange={(value) => setLinkTargetType(value as EditorialContentType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{types.filter((value) => value !== sourceType).map((value) => <SelectItem key={value} value={value}>{label(value)}</SelectItem>)}</SelectContent></Select></div><div><Label>Target record ID</Label><Input value={linkTargetId} onChange={(event) => setLinkTargetId(event.target.value)} placeholder="UUID" /></div><Button type="button" variant="outline" className="self-end" disabled={link.isPending} onClick={() => link.mutate()}>Link</Button></div>
       {relationships.data?.length ? <div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Existing relationships</p>{relationships.data.map((relationship) => <div key={String(relationship.id)} className="flex items-center gap-2 rounded border border-border bg-background p-2 text-xs"><span className="min-w-0 flex-1 truncate">{String(relationship.source_type)} → {String(relationship.target_type)} · {String(relationship.target_id === sourceId ? relationship.source_id : relationship.target_id)}</span><Button type="button" variant="ghost" size="icon" aria-label="Unlink content" onClick={() => unlink.mutate(String(relationship.id))}><Trash2 className="size-3.5 text-destructive" /></Button></div>)}</div> : null}
     </section>
