@@ -31,6 +31,13 @@ BEGIN
   IF to_regprocedure('public.has_min_role(uuid, public.app_role)') IS NULL THEN
     RAISE EXCEPTION 'feed_post_media migration requires public.has_min_role(uuid, public.app_role)';
   END IF;
+  IF NOT has_function_privilege(
+    'authenticated',
+    'public.has_min_role(uuid, public.app_role)'::regprocedure,
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'authenticated must have EXECUTE on public.has_min_role(uuid, public.app_role)';
+  END IF;
   IF to_regprocedure('storage.foldername(text)') IS NULL THEN
     RAISE EXCEPTION 'feed_post_media migration requires storage.foldername(text)';
   END IF;
