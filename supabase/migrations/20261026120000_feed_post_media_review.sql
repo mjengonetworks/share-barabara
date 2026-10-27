@@ -12,6 +12,30 @@
 -- depends on them. The feed_posts row and its audit/recycle-bin history must
 -- remain authoritative.
 
+-- Fail closed before making any storage or schema change when this review
+-- migration is pointed at a database whose Feed contract is different.
+DO $$
+BEGIN
+  IF to_regclass('public.feed_posts') IS NULL THEN
+    RAISE EXCEPTION 'feed_post_media migration requires public.feed_posts';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'feed_posts' AND column_name = 'author_id'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'feed_posts' AND column_name = 'status'
+  ) THEN
+    RAISE EXCEPTION 'feed_post_media migration requires feed_posts.author_id and feed_posts.status';
+  END IF;
+  IF to_regprocedure('public.has_min_role(uuid, public.app_role)') IS NULL THEN
+    RAISE EXCEPTION 'feed_post_media migration requires public.has_min_role(uuid, public.app_role)';
+  END IF;
+  IF to_regprocedure('storage.foldername(text)') IS NULL THEN
+    RAISE EXCEPTION 'feed_post_media migration requires storage.foldername(text)';
+  END IF;
+END $$;
+
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('feed-media', 'feed-media', false)
 ON CONFLICT (id) DO UPDATE SET public = false;
@@ -66,6 +90,21 @@ BEGIN
     WHERE table_schema = 'public' AND table_name = 'feed_post_media' AND column_name = 'public_url'
   ) THEN
     RAISE EXCEPTION 'feed_post_media has legacy public_url; review/export it before private-storage migration';
+  END IF;
+  IF to_regclass('public.feed_post_media') IS NOT NULL AND EXISTS (
+    SELECT 1
+    FROM (VALUES
+      ('id'), ('post_id'), ('owner_id'), ('media_type'), ('bucket_id'),
+      ('storage_path'), ('filename'), ('mime_type'), ('bytes')
+    ) AS required(column_name)
+    WHERE NOT EXISTS (
+      SELECT 1 FROM information_schema.columns c
+      WHERE c.table_schema = 'public'
+        AND c.table_name = 'feed_post_media'
+        AND c.column_name = required.column_name
+    )
+  ) THEN
+    RAISE EXCEPTION 'feed_post_media exists with an incompatible column set; review/export it before private-storage migration';
   END IF;
 END $$;
 
