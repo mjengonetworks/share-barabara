@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 const migration = readFileSync("supabase/migrations/20261027120000_cross_content_editorial_relationships.sql", "utf8");
 const panel = readFileSync("src/components/site/cross-content-editor.tsx", "utf8");
+const preflight = readFileSync("supabase/inspection/cross-content-production-preflight.sql", "utf8");
 
 test("cross-content migration is additive and covers the approved content model", () => {
   for (const table of ["editorial_conversion_targets", "editorial_tags", "editorial_content_tags", "editorial_content_relationships", "editorial_related_drafts", "editorial_generation_events"]) {
@@ -13,6 +14,17 @@ test("cross-content migration is additive and covers the approved content model"
   assert.match(migration, /generation_request_id/);
   assert.match(migration, /UNIQUE\(source_type,source_id,target_type,target_id,relationship_type\)/);
   assert.match(migration, /ON CONFLICT \(created_by,source_type,source_id,target_type,source_snapshot_hash\)/);
+});
+
+test("production preflight is read-only and covers schema, RLS, dependencies, and history", () => {
+  assert.match(preflight, /information_schema\.columns/);
+  assert.match(preflight, /pg_policies/);
+  assert.match(preflight, /pg_proc/);
+  assert.match(preflight, /supabase_migrations\.schema_migrations/);
+  assert.match(preflight, /migration_dependencies/);
+  assert.match(preflight, /production_migration_required/);
+  assert.match(preflight, /ROLLBACK;/);
+  assert.doesNotMatch(preflight, /supabase db push|CREATE TABLE public\./);
 });
 
 test("cross-content RPCs enforce permissions, validation, and public filtering", () => {
