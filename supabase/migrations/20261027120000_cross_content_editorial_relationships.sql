@@ -231,8 +231,9 @@ CREATE OR REPLACE FUNCTION public.editorial_link_content(
 RETURNS public.editorial_content_relationships LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 DECLARE r public.editorial_content_relationships;
 BEGIN
-  IF NOT public.has_min_role(auth.uid(),'editor') OR NOT public.editorial_can_edit_content(_source_type,_source_id) OR NOT public.editorial_can_edit_content(_target_type,_target_id) THEN RAISE EXCEPTION 'source and target edit permission required'; END IF;
+  IF NOT public.has_min_role(auth.uid(),'editor') OR NOT public.editorial_can_edit_content(_source_type,_source_id) THEN RAISE EXCEPTION 'source edit permission required'; END IF;
   IF NOT public.editorial_content_exists(_source_type,_source_id) OR NOT public.editorial_content_exists(_target_type,_target_id) THEN RAISE EXCEPTION 'relationship endpoint does not exist' USING ERRCODE='23503'; END IF;
+  IF NOT (public.editorial_content_is_public(_target_type,_target_id) OR public.editorial_can_edit_content(_target_type,_target_id)) THEN RAISE EXCEPTION 'target visibility or edit permission required'; END IF;
   INSERT INTO public.editorial_content_relationships(source_type,source_id,target_type,target_id,relationship_type,created_by,generation_request_id,provider,prompt_version,source_snapshot_hash)
     VALUES(_source_type,_source_id,_target_type,_target_id,_relationship_type,auth.uid(),_generation_request_id,_provider,_prompt_version,_source_snapshot_hash)
     ON CONFLICT DO NOTHING RETURNING * INTO r;
@@ -262,7 +263,7 @@ BEGIN
 END $$;
 CREATE OR REPLACE FUNCTION public.editorial_remove_tag(_type TEXT,_id UUID,_tag UUID)
 RETURNS VOID LANGUAGE sql SECURITY DEFINER SET search_path=public,pg_temp AS $$
-  DELETE FROM public.editorial_content_tags WHERE content_type=_type AND content_id=_id AND tag_id=_tag AND public.editorial_can_edit_content(_type,_id);
+  DELETE FROM public.editorial_content_tags WHERE content_type=_type AND content_id=_id AND tag_id=_tag AND public.has_min_role(auth.uid(),'editor') AND public.editorial_can_edit_content(_type,_id);
 $$;
 CREATE OR REPLACE FUNCTION public.editorial_public_related_content(_type TEXT,_id UUID,_limit INTEGER DEFAULT 12)
 RETURNS TABLE(related_type TEXT,related_id UUID,relationship_type TEXT,linked_at TIMESTAMPTZ)

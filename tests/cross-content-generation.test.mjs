@@ -21,6 +21,8 @@ test("cross-content RPCs enforce permissions, validation, and public filtering",
   }
   assert.match(migration, /editorial_can_edit_content/);
   assert.match(migration, /editorial_content_is_public/);
+  assert.match(migration, /target visibility or edit permission required/);
+  assert.match(migration, /has_min_role\(auth\.uid\(\),'editor'\).*editorial_can_edit_content/);
   assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.editorial_public_related_content/);
 });
 
