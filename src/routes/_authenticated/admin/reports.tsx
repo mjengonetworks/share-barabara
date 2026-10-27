@@ -90,7 +90,7 @@ function ReportsQueuePage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: severities = [] } = useReportSeverities();
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [countyFilter, setCountyFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -218,7 +218,7 @@ function ReportsQueuePage() {
             <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add New Report</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
               <DialogHeader><DialogTitle>New accident report</DialogTitle></DialogHeader>
-              <ReportForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
+              <ReportForm editorial onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
             </DialogContent>
           </Dialog>
         }

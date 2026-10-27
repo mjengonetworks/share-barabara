@@ -36,9 +36,10 @@ import { submitAccidentReport } from "@/lib/report.functions";
 import { useRoles } from "@/hooks/useRoles";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
-export function ReportForm({ onDone }: { onDone?: () => void }) {
+export function ReportForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
   const { canReview } = useRoles();
+  const editorialAccess = editorial || canReview;
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
   const { data: severities = [] } = useReportSeverities();
@@ -331,7 +332,7 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
               </div>
             </div>
           </div>
-          {canReview ? (
+          {editorialAccess ? (
             <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Reviewer tools

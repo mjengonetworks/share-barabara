@@ -70,7 +70,7 @@ function ArticlesQueuePage() {
   const { canPublishArticles } = useRoles();
   const queryClient = useQueryClient();
   const { data: categories = [] } = useNewsCategories();
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending_review");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, ArticleDraft>>({});

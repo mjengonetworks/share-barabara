@@ -62,7 +62,7 @@ type Status = "pending" | "approved" | "rejected";
 function InfrastructureIssuesAdminPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [countyFilter, setCountyFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});

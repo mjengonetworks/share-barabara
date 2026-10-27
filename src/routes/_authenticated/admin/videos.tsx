@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ChevronDown, ChevronUp, Video as VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useRoles } from "@/hooks/useRoles";
@@ -27,6 +28,7 @@ function VideosAdminPage() {
   const { canPublishArticles: canModerate } = useRoles();
   const queryClient = useQueryClient();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ["admin-videos"],
@@ -44,6 +46,7 @@ function VideosAdminPage() {
   const { data: names = {} } = useProfileNames(
     videos.map((v) => v.user_id).filter((id): id is string => !!id),
   );
+  const visibleVideos = videos.filter((video) => statusFilter === "all" || video.status === statusFilter);
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -85,15 +88,28 @@ function VideosAdminPage() {
         </p>
       ) : null}
 
+      <div className="mt-4 max-w-xs">
+        <label className="text-sm font-medium">Status</label>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="pending_review">Pending review</SelectItem>
+            <SelectItem value="featured">Featured</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
-      {!isLoading && videos.length === 0 ? (
+      {!isLoading && visibleVideos.length === 0 ? (
         <p className="mt-8 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
           No video submissions yet.
         </p>
       ) : null}
 
       <ul className="mt-6 space-y-3">
-        {videos.map((v) => {
+        {visibleVideos.map((v) => {
           const expanded = expandedId === v.id;
           return (
             <li key={v.id} className="rounded-lg border border-border bg-card card-elevated">
