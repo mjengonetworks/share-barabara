@@ -3,6 +3,10 @@ import type { Evidence, TrustedCitation } from "./types";
 import { serverEnv } from "@/lib/runtime-env.server";
 
 type Provider = "groq" | "grok";
+type EditorialResponseSchema = {
+  name: string;
+  schema: Record<string, unknown>;
+};
 const MAX_PROVIDER_RETRIES = 2;
 const BASE_RETRY_DELAY_MS = 350;
 
@@ -25,6 +29,38 @@ function transientStatus(status: number) {
 }
 
 const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+/**
+ * Keep the provider contract deliberately small and portable. Groq strict
+ * structured outputs require every property to be required, while xAI accepts
+ * the same nullable-property pattern. The application still performs the
+ * semantic/taxonomy checks after parsing.
+ */
+export function editorialResponseSchemaForContentType(contentType: string): EditorialResponseSchema {
+  const fields = contentType === "article"
+    ? ["title", "summary", "body", "category", "seo_title", "seo_description", "seo_keywords", "image_alt", "image_caption", "image_credit"]
+    : contentType === "alert"
+      ? ["title", "description", "county", "road", "hazard_type", "severity", "parties_involved"]
+      : contentType === "report"
+        ? ["title", "description", "county", "road", "incident_type", "severity", "occurred_at", "vehicles_involved", "casualties", "fatalities", "parties_involved", "seo_title", "seo_description", "seo_keywords", "image_alt", "image_caption", "image_credit"]
+        : contentType === "campaign"
+          ? ["title", "location", "description", "start_date", "end_date"]
+          : ["title", "road_name", "county", "authority", "structure_type", "summary", "content", "editor_note"];
+  const properties: Record<string, unknown> = {};
+  for (const field of fields) {
+    const numeric = ["vehicles_involved", "casualties", "fatalities"].includes(field);
+    const list = field === "parties_involved";
+    properties[field] = numeric
+      ? { type: ["integer", "null"] }
+      : list
+        ? { type: ["array", "null"], items: { type: "string" } }
+        : { type: ["string", "null"] };
+  }
+  return {
+    name: `share_barabara_${contentType}_editorial`,
+    schema: { type: "object", properties, required: fields, additionalProperties: false },
+  };
+}
 
 function providerConfig(provider: Provider) {
   return provider === "groq"
@@ -57,6 +93,7 @@ export async function completeWithProvider(
     mode: "public" | "editorial";
     task?: "draft" | "extract";
     systemInstruction?: string;
+    responseSchema?: EditorialResponseSchema;
   },
 ) {
   const config = providerConfig(provider);
@@ -75,7 +112,16 @@ export async function completeWithProvider(
     ],
     // Editorial callers parse the response as JSON. Enforce that contract
     // at the provider boundary instead of relying on prompt compliance.
-    ...(input.mode === "editorial" ? { response_format: { type: "json_object" } } : {}),
+    ...(input.mode === "editorial"
+      ? input.responseSchema
+        ? {
+            response_format: {
+              type: "json_schema",
+              json_schema: { ...input.responseSchema, strict: true },
+            },
+          }
+        : { response_format: { type: "json_object" } }
+      : {}),
   });
   for (let attempt = 0; attempt <= MAX_PROVIDER_RETRIES; attempt += 1) {
     const controller = new AbortController();

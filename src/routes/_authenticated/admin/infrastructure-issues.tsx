@@ -9,6 +9,7 @@ import {
   ExternalLink,
   MoreVertical,
   Pencil,
+  Plus,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,8 @@ import { UserLink } from "@/components/site/user-link";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { InfrastructureIssueForm } from "@/components/site/infrastructure-issue-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
   head: () => ({ meta: [{ title: "Infrastructure Issues: Share Barabara Admin" }] }),
@@ -63,6 +66,7 @@ function InfrastructureIssuesAdminPage() {
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: allIssues = [], isLoading } = useQuery({
     queryKey: ["admin-infrastructure-issues"],
@@ -131,6 +135,15 @@ function InfrastructureIssuesAdminPage() {
       <p className="mt-2 text-muted-foreground">
         Roads, bridges, drainage and signage problems reported by the community.
       </p>
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogTrigger asChild>
+          <Button className="mt-4"><Plus className="mr-1.5 size-4" /> Add infrastructure issue</Button>
+        </DialogTrigger>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>New infrastructure issue</DialogTitle></DialogHeader>
+          <InfrastructureIssueForm editorial onDone={() => setCreateOpen(false)} />
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <div>
@@ -285,6 +298,20 @@ function InfrastructureIssuesAdminPage() {
               {expanded ? (
                 <div className="border-t border-border p-5">
                   <div className="space-y-4">
+                    <div className="space-y-3">
+                      {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, { mode: "update", provider: "grok" }] as const).map(({ mode, provider }) => (
+                        <EditorialAIButton
+                          key={`${mode}-${provider}`}
+                          contentType="infrastructure"
+                          mode={mode}
+                          provider={provider}
+                          contentId={i.id}
+                          current={d}
+                          source=""
+                          onDraft={(draft) => set(Object.fromEntries(Object.entries(draft).filter(([key]) => key in d)) as Partial<Draft>)}
+                        />
+                      ))}
+                    </div>
                     <div>
                       <Label htmlFor={`t-${i.id}`}>Issue title</Label>
                       <Input
@@ -368,20 +395,6 @@ function InfrastructureIssuesAdminPage() {
                         value={d.content}
                         onChange={(v) => set({ content: v })}
                       />
-                    </div>
-                    <div className="space-y-3">
-                      {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, { mode: "update", provider: "grok" }] as const).map(({ mode, provider }) => (
-                        <EditorialAIButton
-                          key={`${mode}-${provider}`}
-                          contentType="infrastructure"
-                          mode={mode}
-                          provider={provider}
-                          contentId={i.id}
-                          current={d}
-                          source=""
-                          onDraft={(draft) => set(Object.fromEntries(Object.entries(draft).filter(([key]) => key in d)) as Partial<Draft>)}
-                        />
-                      ))}
                     </div>
                     <div>
                       <Label htmlFor={`n-${i.id}`}>Moderator's note (shown publicly)</Label>

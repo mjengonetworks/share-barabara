@@ -126,6 +126,29 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
     onError: (e: Error) => toast.error(e.message),
   });
 
+  function applyEditorialDraft(draft: Record<string, unknown>) {
+    setForm((current) => {
+      const next = { ...current };
+      const values = {
+        title: draft["title"],
+        summary: draft["summary"],
+        body: draft["body"],
+        image_alt: draft["image_alt"],
+        image_caption: draft["image_caption"],
+        image_credit: draft["image_credit"],
+        seo_title: draft["seo_title"],
+        seo_description: draft["seo_description"],
+        seo_keywords: draft["seo_keywords"],
+      };
+      for (const [field, value] of Object.entries(values)) {
+        if (typeof value === "string" && value.trim()) next[field as keyof typeof next] = value;
+      }
+      return next;
+    });
+    const category = draft["category"];
+    if (typeof category === "string" && category.trim()) setSelectedCategories([category]);
+  }
+
   return (
     <form
       className="space-y-4"
@@ -142,20 +165,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             provider="grok"
             current={form}
             source=""
-            onDraft={(draft) => {
-              setForm((current) => ({
-                ...current,
-                ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-              }));
-              if (typeof draft["category"] === "string" && draft["category"].trim()) {
-                setSelectedCategories([draft["category"]]);
-              }
-            }}
+            onDraft={applyEditorialDraft}
           />
           <EditorialAIButton
             contentType="article"
@@ -163,20 +173,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             provider="groq"
             current={form}
             source=""
-            onDraft={(draft) => {
-              setForm((current) => ({
-                ...current,
-                ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-              }));
-              if (typeof draft["category"] === "string" && draft["category"].trim()) {
-                setSelectedCategories([draft["category"]]);
-              }
-            }}
+            onDraft={applyEditorialDraft}
           />
           <EditorialAIButton
             contentType="article"
@@ -184,10 +181,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
             provider="grok"
             current={form}
             source=""
-            onDraft={(draft) => setForm((current) => ({
-              ...current,
-              ...Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== "" && value !== null)),
-            }))}
+            onDraft={applyEditorialDraft}
           />
         </div>
       ) : null}
