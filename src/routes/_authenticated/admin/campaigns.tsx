@@ -389,7 +389,7 @@ function CampaignsAdminPage() {
                 </p>
               </div>
               <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
-              <Button size="sm" variant="outline" asChild><Link to="/admin/campaigns/$campaignId/edit" params={{ campaignId: c.id }}>Edit campaign</Link></Button>
+              <Button size="sm" variant="outline" asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></Button>
               <Dialog
                 open={reportOpenId === c.id}
                 onOpenChange={(v) => setReportOpenId(v ? c.id : null)}

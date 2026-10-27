@@ -325,11 +325,7 @@ function ReportsQueuePage() {
             <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
               <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
                 <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expanded ? null : r.id)}
-                  className="min-w-0 text-left"
-                >
+                <div className="min-w-0 text-left">
                   {r.image_url ? (
                     <img
                       src={r.image_url}
@@ -341,12 +337,8 @@ function ReportsQueuePage() {
                       <ShieldAlert className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : r.id)}
-                    className="min-w-0 text-left"
-                  >
+                  </div>
+                  <div className="min-w-0 text-left">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <SeverityBadge value={r.severity} />
@@ -368,12 +360,13 @@ function ReportsQueuePage() {
                       {r.duplicate_of_report_id ? <span>Linked duplicate</span> : null}
                     </p>
                   </div>
-                  </button>
+                  </div>
 
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
+                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -384,7 +377,7 @@ function ReportsQueuePage() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/admin/reports/$reportId/edit" params={{ reportId: r.id }}><Pencil className="mr-2 size-4" /> Edit</Link>
+                      <a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-2 size-4" /> Edit</a>
                     </DropdownMenuItem>
                     {r.status !== "approved" ? (
                       <DropdownMenuItem
@@ -410,14 +403,7 @@ function ReportsQueuePage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <button
-                  type="button"
-                  aria-label={expanded ? "Collapse" : "Expand"}
-                  onClick={() => setExpandedId(expanded ? null : r.id)}
-                  className="shrink-0 text-muted-foreground"
-                >
-                  {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                </button>
+                <span className="shrink-0 text-xs text-muted-foreground" aria-hidden="true">·</span>
               </div>
 
               {expanded ? (

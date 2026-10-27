@@ -63,6 +63,7 @@ import { Route as AuthenticatedAdminInfrastructureIssuesRouteImport } from './ro
 import { Route as AuthenticatedAdminMerchItemsRouteImport } from './routes/_authenticated/admin/merch-items'
 import { Route as AuthenticatedAdminMerchOrdersRouteImport } from './routes/_authenticated/admin/merch-orders'
 import { Route as AuthenticatedAdminMyArticlesRouteImport } from './routes/_authenticated/admin/my-articles'
+import { Route as AuthenticatedAdminMyContentRouteImport } from './routes/_authenticated/admin/my-content'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
 import { Route as AuthenticatedAdminNotificationHealthRouteImport } from './routes/_authenticated/admin/notification-health'
 import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin/pages'
@@ -365,6 +366,12 @@ const AuthenticatedAdminMyArticlesRoute =
     path: '/my-articles',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminMyContentRoute =
+  AuthenticatedAdminMyContentRouteImport.update({
+    id: '/my-content',
+    path: '/my-content',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminNewsletterRoute =
   AuthenticatedAdminNewsletterRouteImport.update({
     id: '/newsletter',
@@ -512,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
+  '/admin/my-content': typeof AuthenticatedAdminMyContentRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
   '/admin/pages': typeof AuthenticatedAdminPagesRoute
@@ -582,6 +590,7 @@ export interface FileRoutesByTo {
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
+  '/admin/my-content': typeof AuthenticatedAdminMyContentRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
   '/admin/pages': typeof AuthenticatedAdminPagesRoute
@@ -655,6 +664,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/_authenticated/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
   '/_authenticated/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
+  '/_authenticated/admin/my-content': typeof AuthenticatedAdminMyContentRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/_authenticated/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
   '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRoute
@@ -728,6 +738,7 @@ export interface FileRouteTypes {
     | '/admin/merch-items'
     | '/admin/merch-orders'
     | '/admin/my-articles'
+    | '/admin/my-content'
     | '/admin/newsletter'
     | '/admin/notification-health'
     | '/admin/pages'
@@ -798,6 +809,7 @@ export interface FileRouteTypes {
     | '/admin/merch-items'
     | '/admin/merch-orders'
     | '/admin/my-articles'
+    | '/admin/my-content'
     | '/admin/newsletter'
     | '/admin/notification-health'
     | '/admin/pages'
@@ -870,6 +882,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/merch-items'
     | '/_authenticated/admin/merch-orders'
     | '/_authenticated/admin/my-articles'
+    | '/_authenticated/admin/my-content'
     | '/_authenticated/admin/newsletter'
     | '/_authenticated/admin/notification-health'
     | '/_authenticated/admin/pages'
@@ -1305,6 +1318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMyArticlesRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/my-content': {
+      id: '/_authenticated/admin/my-content'
+      path: '/my-content'
+      fullPath: '/admin/my-content'
+      preLoaderRoute: typeof AuthenticatedAdminMyContentRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/newsletter': {
       id: '/_authenticated/admin/newsletter'
       path: '/newsletter'
@@ -1511,6 +1531,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminMerchItemsRoute: typeof AuthenticatedAdminMerchItemsRoute
   AuthenticatedAdminMerchOrdersRoute: typeof AuthenticatedAdminMerchOrdersRoute
   AuthenticatedAdminMyArticlesRoute: typeof AuthenticatedAdminMyArticlesRoute
+  AuthenticatedAdminMyContentRoute: typeof AuthenticatedAdminMyContentRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
   AuthenticatedAdminNotificationHealthRoute: typeof AuthenticatedAdminNotificationHealthRoute
   AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRoute
@@ -1547,6 +1568,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminMerchItemsRoute: AuthenticatedAdminMerchItemsRoute,
     AuthenticatedAdminMerchOrdersRoute: AuthenticatedAdminMerchOrdersRoute,
     AuthenticatedAdminMyArticlesRoute: AuthenticatedAdminMyArticlesRoute,
+    AuthenticatedAdminMyContentRoute: AuthenticatedAdminMyContentRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
     AuthenticatedAdminNotificationHealthRoute:
       AuthenticatedAdminNotificationHealthRoute,

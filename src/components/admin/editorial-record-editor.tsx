@@ -100,23 +100,29 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         payload = {
           title: form.title, description: form.description, county: form.county, road: form.road,
           hazard_type: form.hazard_type, severity: form.severity,
+          image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
+          image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
         };
       } else if (type === "infrastructure") {
         payload = {
           title: form.title, road_name: form.road_name, road_scope: form.road_scope,
           county: form.county, authority: form.authority, structure_type: form.structure_type,
           summary: form.summary, content: form.body, image_url: form.image_url.trim() || null,
+          image_alt: form.image_alt.trim() || null, image_caption: form.image_caption.trim() || null,
+          image_credit: form.image_credit.trim() || null,
         };
       } else {
         payload = {
           title: form.title, description: form.body, location: form.location,
           start_date: form.start_date, end_date: form.end_date, image_url: form.image_url.trim() || null,
+          image_alt: form.image_alt.trim() || null, image_caption: form.image_caption.trim() || null,
+          image_credit: form.image_credit.trim() || null,
         };
       }
       const { error } = await (supabase.from(config.table) as any).update(payload).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => toast.success(`${config.label} saved`),
+    onSuccess: () => toast.success(`${config.label} saved. Existing media and fields were preserved.`),
     onError: (error: Error) => toast.error(error.message),
   });
 
@@ -148,7 +154,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         {type === "infrastructure" ? <><div><Label>Road name</Label><Input value={form.road_name} onChange={(e) => set("road_name", e.target.value)} /></div><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road scope</Label><Select value={form.road_scope} onValueChange={(value) => set("road_scope", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="county">County road</SelectItem><SelectItem value="national">National road</SelectItem></SelectContent></Select></div></> : null}
         {type === "campaign" ? <><div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div><div><Label>Start date</Label><Input type="datetime-local" value={form.start_date?.slice(0, 16)} onChange={(e) => set("start_date", e.target.value)} /></div><div><Label>End date</Label><Input type="datetime-local" value={form.end_date?.slice(0, 16)} onChange={(e) => set("end_date", e.target.value)} /></div></> : null}
       </section>
-      <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
+      <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
       <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><Button type="button" onClick={() => save.mutate()} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : "Save changes"}</Button></section>
     </div>
   </div>;

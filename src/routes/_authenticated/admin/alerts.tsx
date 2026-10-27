@@ -317,10 +317,11 @@ function AlertsAdminPage() {
                   {dateTime(a.created_at)}
                 </TableCell>
                 <TableCell className="text-right">
+                  <Button asChild variant="outline" size="sm"><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="size-8">
-                        <MoreVertical className="size-4" />
+                    <Button variant="ghost" size="icon" className="size-8" aria-label="More actions">
+                      <MoreVertical className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -329,7 +330,7 @@ function AlertsAdminPage() {
                           <ExternalLink className="mr-2 size-4" /> View on website
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild><Link to="/admin/alerts/$alertId/edit" params={{ alertId: a.id }}><Pencil className="mr-2 size-4" /> Edit alert</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-2 size-4" /> Edit alert</a></DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         onClick={() => remove.mutate(a.id)}

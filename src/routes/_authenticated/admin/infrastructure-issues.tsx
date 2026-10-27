@@ -214,11 +214,7 @@ function InfrastructureIssuesAdminPage() {
             <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
               <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
                 <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expanded ? null : i.id)}
-                  className="min-w-0 text-left"
-                >
+                <div className="min-w-0 text-left">
                   {i.image_url ? (
                     <img
                       src={i.image_url}
@@ -230,12 +226,8 @@ function InfrastructureIssuesAdminPage() {
                       <Construction className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : i.id)}
-                    className="min-w-0 text-left"
-                  >
+                  </div>
+                  <div className="min-w-0 text-left">
                   <div className="min-w-0">
                     <p className="line-clamp-2 font-semibold">{i.title}</p>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -245,12 +237,13 @@ function InfrastructureIssuesAdminPage() {
                       {dateTime(i.created_at)}
                     </p>
                   </div>
-                  </button>
+                  </div>
 
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
+                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/infrastructure-issues/${i.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -267,7 +260,7 @@ function InfrastructureIssuesAdminPage() {
                       </DropdownMenuItem>
                     ) : null}
                     <DropdownMenuItem asChild>
-                      <Link to="/admin/infrastructure-issues/$issueId/edit" params={{ issueId: i.id }}><Pencil className="mr-2 size-4" /> Edit</Link>
+                      <a href={`/admin/infrastructure-issues/${i.id}/edit`}><Pencil className="mr-2 size-4" /> Edit</a>
                     </DropdownMenuItem>
                     {i.status !== "approved" ? (
                       <DropdownMenuItem
@@ -293,14 +286,7 @@ function InfrastructureIssuesAdminPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <button
-                  type="button"
-                  aria-label={expanded ? "Collapse" : "Expand"}
-                  onClick={() => setExpandedId(expanded ? null : i.id)}
-                  className="shrink-0 text-muted-foreground"
-                >
-                  {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                </button>
+                <span className="shrink-0 text-xs text-muted-foreground" aria-hidden="true">·</span>
               </div>
 
               {expanded ? (

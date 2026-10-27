@@ -37,11 +37,11 @@ export function ImageUploadField({
   return (
     <div>
       {value ? (
-        <div className="relative inline-block">
+        <div className="relative inline-block rounded-md bg-muted/40 p-1">
           <img
             src={value}
             alt=""
-            className="aspect-video w-full max-w-xs rounded-md object-cover"
+            className="max-h-64 w-auto max-w-full rounded-md object-contain"
           />
           <button
             type="button"
@@ -51,6 +51,16 @@ export function ImageUploadField({
           >
             <X className="size-3.5" />
           </button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+            className="absolute bottom-2 left-2 shadow"
+          >
+            {uploading ? "Uploading…" : "Replace image"}
+          </Button>
         </div>
       ) : (
         <Button
