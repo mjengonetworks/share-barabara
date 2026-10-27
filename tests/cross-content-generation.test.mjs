@@ -38,6 +38,9 @@ test("admin integration exposes one shared cross-content editor", () => {
   assert.match(panel, /editorial-content-tags/);
   assert.match(panel, /editorial_remove_tag/);
   assert.match(panel, /Remove tag/);
+  assert.match(panel, /editorial-related-drafts/);
+  assert.match(panel, /Search related content/);
+  assert.match(panel, /saved.generated_draft/);
 });
 
 test("public detail pages consume the shared related-content renderer", () => {

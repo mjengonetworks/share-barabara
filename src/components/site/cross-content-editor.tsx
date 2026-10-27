@@ -21,7 +21,11 @@ const targets: Record<EditorialContentType, EditorialContentType[]> = {
 };
 
 function label(value: EditorialContentType) {
-  return value === "report" ? "Accident Report" : value[0].toUpperCase() + value.slice(1);
+  return value === "report" ? "Accident Report" : value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function firstTarget(sourceType: EditorialContentType): EditorialContentType {
+  return targets[sourceType][0] ?? "article";
 }
 
 function sourceText(record: Record<string, unknown>) {
@@ -48,21 +52,22 @@ export function CrossContentEditor({
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [targetType, setTargetType] = useState<EditorialContentType>(targets[sourceType][0]);
+  const [targetType, setTargetType] = useState<EditorialContentType>(() => firstTarget(sourceType));
   const [draft, setDraft] = useState<Record<string, unknown> | null>(null);
   const [draftId, setDraftId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState("");
   const [tagQuery, setTagQuery] = useState("");
   const [newTag, setNewTag] = useState("");
-  const [linkTargetType, setLinkTargetType] = useState<EditorialContentType>(targets[sourceType][0]);
+  const [linkTargetType, setLinkTargetType] = useState<EditorialContentType>(() => firstTarget(sourceType));
   const [linkTargetId, setLinkTargetId] = useState("");
+  const [linkSearch, setLinkSearch] = useState("");
 
   const relationships = useQuery({
     queryKey: ["editorial-relationships", sourceType, sourceId],
     queryFn: async () => {
       const [outgoing, incoming] = await Promise.all([
-        (supabase.from("editorial_content_relationships") as any).select("*").eq("source_type", sourceType).eq("source_id", sourceId),
-        (supabase.from("editorial_content_relationships") as any).select("*").eq("target_type", sourceType).eq("target_id", sourceId),
+        (supabase as any).from("editorial_content_relationships").select("*").eq("source_type", sourceType).eq("source_id", sourceId),
+        (supabase as any).from("editorial_content_relationships").select("*").eq("target_type", sourceType).eq("target_id", sourceId),
       ]);
       if (outgoing.error) throw outgoing.error;
       if (incoming.error) throw incoming.error;
@@ -82,12 +87,55 @@ export function CrossContentEditor({
   const assignedTags = useQuery({
     queryKey: ["editorial-content-tags", sourceType, sourceId],
     queryFn: async () => {
-      const { data, error } = await (supabase.from("editorial_content_tags") as any)
+      const { data, error } = await (supabase as any).from("editorial_content_tags")
         .select("tag_id, editorial_tags(id,label,slug)")
         .eq("content_type", sourceType)
         .eq("content_id", sourceId);
       if (error) throw error;
       return (data ?? []) as Array<{ tag_id: string; editorial_tags?: { id: string; label: string; slug: string } | null }>;
+    },
+  });
+
+  const savedDrafts = useQuery({
+    queryKey: ["editorial-related-drafts", sourceType, sourceId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("editorial_related_drafts")
+        .select("id,target_type,status,generated_draft,updated_at")
+        .eq("source_type", sourceType)
+        .eq("source_id", sourceId)
+        .order("updated_at", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; target_type: EditorialContentType; status: string; generated_draft: Record<string, unknown>; updated_at: string }>;
+    },
+  });
+
+  const relatedSearch = useQuery({
+    queryKey: ["editorial-related-search", linkSearch],
+    enabled: linkSearch.trim().length >= 2,
+    queryFn: async () => {
+      const tables: Array<[EditorialContentType, string]> = [
+        ["article", "news"],
+        ["report", "accident_reports"],
+        ["alert", "alerts"],
+        ["campaign", "campaigns"],
+        ["infrastructure", "infrastructure_issues"],
+      ];
+      const needle = `%${linkSearch.trim().replace(/[%_]/g, "\\$&")}%`;
+      const results = await Promise.all(tables.filter(([type]) => type !== sourceType).map(async ([type, table]) => {
+        const { data, error } = await (supabase as any).from(table)
+          .select("id,title,slug")
+          .ilike("title", needle)
+          .limit(5);
+        if (error) throw error;
+        return (data ?? []).map((row: { id: string; title?: string; slug?: string }) => ({
+          type,
+          id: row.id,
+          title: row.title ?? "Untitled",
+          slug: row.slug,
+        }));
+      }));
+      return results.flat().slice(0, 12);
     },
   });
 
@@ -147,11 +195,11 @@ export function CrossContentEditor({
       if (!newTag.trim() || !user) throw new Error("Enter a tag name.");
       const slug = newTag.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       if (!slug) throw new Error("Enter a tag name using letters or numbers.");
-      const existing = await (supabase.from("editorial_tags") as any).select("id").eq("slug", slug).maybeSingle();
+      const existing = await (supabase as any).from("editorial_tags").select("id").eq("slug", slug).maybeSingle();
       if (existing.error) throw existing.error;
       let data = existing.data as { id: string } | null;
       if (!data) {
-        const created = await (supabase.from("editorial_tags") as any)
+        const created = await (supabase as any).from("editorial_tags")
           .insert({ slug, label: newTag.trim(), created_by: user.id })
           .select("id")
           .single();
@@ -206,6 +254,11 @@ export function CrossContentEditor({
   });
 
   const draftJson = useMemo(() => draft ? JSON.stringify(draft, null, 2) : "", [draft]);
+  const loadSavedDraft = (saved: { id: string; target_type: EditorialContentType; generated_draft: Record<string, unknown> }) => {
+    setTargetType(saved.target_type);
+    setDraftId(saved.id);
+    setDraft(saved.generated_draft);
+  };
 
   return (
     <section className="space-y-4 rounded-lg border border-accent/30 bg-accent/5 p-4" aria-label="Cross-content editorial tools">
@@ -218,11 +271,12 @@ export function CrossContentEditor({
         <Button type="button" className="self-end" disabled={generate.isPending} onClick={() => generate.mutate()}><Sparkles className="mr-2 size-4" />{generate.isPending ? "Generating…" : "Generate related draft"}</Button>
       </div>
       {draft ? <div className="space-y-2"><Label htmlFor={`related-draft-${sourceId}`}>Editable generated draft JSON</Label><textarea id={`related-draft-${sourceId}`} value={draftJson} onChange={(event) => { try { setDraft(JSON.parse(event.target.value) as Record<string, unknown>); } catch { /* Keep the editor text stable until valid JSON is restored. */ } }} rows={8} className="w-full rounded-md border border-input bg-background p-3 font-mono text-xs" /><Button type="button" variant="outline" disabled={saveDraft.isPending} onClick={() => saveDraft.mutate()}><Save className="mr-2 size-4" />{saveDraft.isPending ? "Saving…" : draftId ? "Save draft edits" : "Save related draft"}</Button></div> : null}
+      {savedDrafts.data?.length ? <div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Saved related drafts</p><div className="grid gap-2 sm:grid-cols-2">{savedDrafts.data.map((saved) => <button key={saved.id} type="button" className={`rounded border p-2 text-left text-xs transition-colors hover:bg-muted/50 ${draftId === saved.id ? "border-accent bg-accent/10" : "border-border bg-background"}`} onClick={() => loadSavedDraft(saved)}><span className="font-semibold">{label(saved.target_type)}</span><span className="ml-2 text-muted-foreground">{saved.status}</span><span className="mt-1 block line-clamp-2">{String(saved.generated_draft?.["title"] ?? "Untitled draft")}</span></button>)}</div></div> : null}
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><div><Label>Assign existing tag</Label><Input value={tagQuery} onChange={(event) => setTagQuery(event.target.value)} placeholder="Search tags…" /></div><div className="self-end flex flex-wrap gap-2">{tags.data?.slice(0, 4).map((tag) => <Button key={tag.id} type="button" size="sm" variant="outline" onClick={() => assignTag.mutate(tag.id)}><Tag className="mr-1 size-3" />{tag.label}</Button>)}</div></div>
       <div className="flex gap-2"><Input value={newTag} onChange={(event) => setNewTag(event.target.value)} placeholder="Create and assign a new tag" /><Button type="button" variant="outline" disabled={addTag.isPending} onClick={() => addTag.mutate()}><Plus className="mr-1 size-4" />Tag</Button></div>
       {assignedTags.data?.length ? <div className="flex flex-wrap gap-2" aria-label="Assigned tags">{assignedTags.data.map((assignment) => assignment.editorial_tags ? <span key={assignment.tag_id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-xs"><Tag className="size-3 text-muted-foreground" />{assignment.editorial_tags.label}<button type="button" className="rounded-full p-0.5 hover:bg-muted" aria-label={`Remove tag ${assignment.editorial_tags.label}`} onClick={() => removeTag.mutate(assignment.tag_id)}><X className="size-3" /></button></span> : null)}</div> : null}
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"><div><Label>Link target type</Label><Select value={linkTargetType} onValueChange={(value) => setLinkTargetType(value as EditorialContentType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{types.filter((value) => value !== sourceType).map((value) => <SelectItem key={value} value={value}>{label(value)}</SelectItem>)}</SelectContent></Select></div><div><Label>Target record ID</Label><Input value={linkTargetId} onChange={(event) => setLinkTargetId(event.target.value)} placeholder="UUID" /></div><Button type="button" variant="outline" className="self-end" disabled={link.isPending} onClick={() => link.mutate()}>Link</Button></div>
-      {relationships.data?.length ? <div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Existing relationships</p>{relationships.data.map((relationship) => <div key={String(relationship.id)} className="flex items-center gap-2 rounded border border-border bg-background p-2 text-xs"><span className="min-w-0 flex-1 truncate">{String(relationship.source_type)} → {String(relationship.target_type)} · {String(relationship.target_id === sourceId ? relationship.source_id : relationship.target_id)}</span><Button type="button" variant="ghost" size="icon" aria-label="Unlink content" onClick={() => unlink.mutate(String(relationship.id))}><Trash2 className="size-3.5 text-destructive" /></Button></div>)}</div> : null}
+      <div className="space-y-3"><div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"><div><Label>Link target type</Label><Select value={linkTargetType} onValueChange={(value) => setLinkTargetType(value as EditorialContentType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{types.filter((value) => value !== sourceType).map((value) => <SelectItem key={value} value={value}>{label(value)}</SelectItem>)}</SelectContent></Select></div><div><Label>Search related content</Label><Input value={linkSearch} onChange={(event) => setLinkSearch(event.target.value)} placeholder="Search by title…" /></div><Button type="button" variant="outline" className="self-end" disabled={link.isPending} onClick={() => link.mutate()}>Link</Button></div>{relatedSearch.data?.length ? <div className="grid gap-2 sm:grid-cols-2">{relatedSearch.data.map((result) => <button key={`${result.type}-${result.id}`} type="button" className="rounded border border-border bg-background p-2 text-left text-xs hover:bg-muted/50" onClick={() => { setLinkTargetType(result.type); setLinkTargetId(result.id); setLinkSearch(result.title); }}><span className="font-semibold">{result.title}</span><span className="ml-2 text-muted-foreground">{label(result.type)}</span></button>)}</div> : null}<div><Label htmlFor={`related-id-${sourceId}`}>Selected target ID</Label><Input id={`related-id-${sourceId}`} value={linkTargetId} onChange={(event) => setLinkTargetId(event.target.value)} placeholder="Choose a search result or enter a UUID" /></div></div>
+      {relationships.data?.length ? <div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Existing relationships</p>{relationships.data.map((relationship) => <div key={String(relationship["id"])} className="flex items-center gap-2 rounded border border-border bg-background p-2 text-xs"><span className="min-w-0 flex-1 truncate">{String(relationship["source_type"])} → {String(relationship["target_type"])} · {String(relationship["target_id"] === sourceId ? relationship["source_id"] : relationship["target_id"])}</span><Button type="button" variant="ghost" size="icon" aria-label="Unlink content" onClick={() => unlink.mutate(String(relationship["id"]))}><Trash2 className="size-3.5 text-destructive" /></Button></div>)}</div> : null}
     </section>
   );
 }
