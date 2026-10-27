@@ -53,6 +53,8 @@ test("Feed media upload schema is review-only and ownership protected", () => {
   assert.match(migration, /feed_media_owner_insert/);
   assert.match(migration, /metadata->>'size'/);
   assert.match(migration, /metadata->>'mimetype'/);
+  assert.doesNotMatch(migration, /DROP POLICY.*"media_/);
+  assert.doesNotMatch(migration, /bucket_id = 'media'/);
   assert.match(migration, /There is deliberately no client SELECT policy/);
   assert.doesNotMatch(migration, /public_url TEXT/);
   assert.match(read("src/lib/feed.functions.ts"), /feed_post_media/);
@@ -106,4 +108,14 @@ test("private Feed media never falls back to public object URLs", () => {
   assert.match(mediaFn, /SIGNED_URL_SECONDS = 15 \* 60/);
   assert.match(mediaFn, /post\.status === "published" \|\| post\.author_id === userId \|\| moderator/);
   assert.match(feed, /signedMedia\[media\.id\]\?\.signed_url/);
+});
+
+test("staging acceptance harness requires isolated credentials", () => {
+  const script = read("scripts/verify-feed-media-staging.mjs");
+  assert.match(script, /FEED_MEDIA_STAGING_URL/);
+  assert.match(script, /FEED_MEDIA_STAGING_SERVICE_ROLE_KEY/);
+  assert.match(script, /must be an explicitly isolated hosted staging project/);
+  assert.match(script, /feed-media/);
+  assert.match(script, /expired signed URLs cannot be reused/);
+  assert.match(script, /existing public media bucket remains publicly readable/);
 });
