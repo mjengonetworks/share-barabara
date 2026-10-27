@@ -26,6 +26,12 @@ test("flagged and rejected posts remain held for moderator workflow", () => {
 test("direct client inserts remain pending-only under RLS", () => {
   assert.match(schema, /WITH CHECK \(author_id = auth\.uid\(\) AND status = 'pending' AND moderation_status = 'pending'\)/);
   assert.match(server, /Direct client inserts remain constrained by the pending-only RLS policy/);
+  assert.doesNotMatch(server, /data\.(status|moderation_status|moderation|action)/);
+});
+
+test("held or rejected posts are not public", () => {
+  assert.match(schema, /USING \(status = 'published' OR author_id = auth\.uid\(\) OR public\.has_min_role/);
+  assert.match(server, /status = moderation\.action === "allow" \? "published" : "pending"/);
 });
 
 test("Feed uses one responsive three-column desktop surface without fake navigation", () => {
