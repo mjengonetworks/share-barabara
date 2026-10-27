@@ -22,6 +22,7 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { RelatedContent } from "@/components/site/related-content";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
 import { AlertPreviewCard } from "@/components/site/discovery-sections";
@@ -307,6 +308,7 @@ function AlertDetail() {
         </EditorialSidebar>
       </div>
       <GlobalEditorialPreview destination="alerts" excludeId={alert.id} topic={alert.hazard_type} />
+      <RelatedContent contentType="alert" contentId={alert.id} />
     </>
   );
 }

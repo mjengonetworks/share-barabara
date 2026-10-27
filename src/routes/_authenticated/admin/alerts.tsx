@@ -46,6 +46,7 @@ import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
 import { useViewCounts } from "@/hooks/useViewCounts";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
@@ -365,6 +366,7 @@ function AlertsAdminPage() {
           </p>
           {editingParties ? (
             <>
+              <CrossContentEditor sourceType="alert" sourceId={editingParties.id} sourceRecord={editingParties as unknown as Record<string, unknown>} />
               {(["generate", "autopopulate"] as const).map((mode) => (
                 <EditorialAIButton
                   key={mode}

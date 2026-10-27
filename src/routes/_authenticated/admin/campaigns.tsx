@@ -30,6 +30,7 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { CrossContentEditor } from "@/components/site/cross-content-editor";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
   head: () => ({ meta: [{ title: "Campaigns: Share Barabara Admin" }] }),
@@ -237,6 +238,7 @@ function CampaignsAdminPage() {
               <DialogTitle>{editingId ? "Edit campaign" : "New campaign"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              {editingId ? <CrossContentEditor sourceType="campaign" sourceId={editingId} sourceRecord={form as unknown as Record<string, unknown>} /> : null}
               <div className="space-y-3">
                 {(
                   [

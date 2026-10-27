@@ -38,6 +38,7 @@ import { UserLink } from "@/components/site/user-link";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
@@ -292,6 +293,7 @@ function InfrastructureIssuesAdminPage() {
                         />
                       ))}
                     </div>
+                    <CrossContentEditor sourceType="infrastructure" sourceId={i.id} sourceRecord={i as unknown as Record<string, unknown>} />
                     <div>
                       <Label htmlFor={`t-${i.id}`}>Issue title</Label>
                       <Input

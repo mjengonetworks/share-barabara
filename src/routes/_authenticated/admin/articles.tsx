@@ -42,6 +42,7 @@ import { dateTime } from "@/lib/format";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -386,6 +387,7 @@ function ArticlesQueuePage() {
                           })
                         }
                       />
+                      <CrossContentEditor sourceType="article" sourceId={a.id} sourceRecord={a as unknown as Record<string, unknown>} />
                       <div>
                         <Label htmlFor={`at-${a.id}`}>Headline</Label>
                         <Input

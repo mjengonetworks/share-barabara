@@ -47,6 +47,7 @@ import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs";
 import { LocationButton } from "@/components/site/location-button";
@@ -571,6 +572,7 @@ function ReportsQueuePage() {
                       parentTitle={d.title}
                       parentBody={d.description}
                     />
+                    <CrossContentEditor sourceType="report" sourceId={r.id} sourceRecord={r as unknown as Record<string, unknown>} />
                     <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Featured image details</p>
                       <div><Label htmlFor={`rimg-alt-${r.id}`}>Alt text</Label><Input id={`rimg-alt-${r.id}`} value={d.image_alt} onChange={(e) => set({ image_alt: e.target.value })} placeholder="Describes the image for screen readers and search engines" /></div>

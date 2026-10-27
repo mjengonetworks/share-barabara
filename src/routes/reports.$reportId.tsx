@@ -23,6 +23,7 @@ import { ContentRequestActions } from "@/components/site/content-request-actions
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { displayReportCount } from "@/lib/report-metrics";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { RelatedContent } from "@/components/site/related-content";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
@@ -435,6 +436,7 @@ function ReportDetail() {
         excludeId={report.id}
         topic={report.incident_type}
       />
+      <RelatedContent contentType="report" contentId={report.id} />
     </>
   );
 }

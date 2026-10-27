@@ -1,0 +1,196 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link2, Plus, Save, Sparkles, Tag, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { generateEditorialDraft, type EditorialContentType, type EditorialValue } from "@/lib/ai/editorial.functions";
+
+const callGenerate = generateEditorialDraft as unknown as (args: { data: unknown }) => Promise<{ draft?: Record<string, EditorialValue> }>;
+const types: EditorialContentType[] = ["article", "report", "alert", "campaign", "infrastructure"];
+const targets: Record<EditorialContentType, EditorialContentType[]> = {
+  article: ["report", "alert", "campaign", "infrastructure"],
+  report: ["article", "alert", "campaign", "infrastructure"],
+  alert: ["article", "report", "infrastructure"],
+  campaign: ["article"],
+  infrastructure: ["article", "alert"],
+};
+
+function label(value: EditorialContentType) {
+  return value === "report" ? "Accident Report" : value[0].toUpperCase() + value.slice(1);
+}
+
+function sourceText(record: Record<string, unknown>) {
+  return Object.entries(record)
+    .filter(([key, value]) => !["id", "created_at", "updated_at"].includes(key) && value !== null && value !== undefined && value !== "")
+    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
+    .join("\n");
+}
+
+async function sha256(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export function CrossContentEditor({
+  sourceType,
+  sourceId,
+  sourceRecord,
+}: {
+  sourceType: EditorialContentType;
+  sourceId: string;
+  sourceRecord: Record<string, unknown>;
+}) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [targetType, setTargetType] = useState<EditorialContentType>(targets[sourceType][0]);
+  const [draft, setDraft] = useState<Record<string, unknown> | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [targetId, setTargetId] = useState("");
+  const [tagQuery, setTagQuery] = useState("");
+  const [newTag, setNewTag] = useState("");
+  const [linkTargetType, setLinkTargetType] = useState<EditorialContentType>(targets[sourceType][0]);
+  const [linkTargetId, setLinkTargetId] = useState("");
+
+  const relationships = useQuery({
+    queryKey: ["editorial-relationships", sourceType, sourceId],
+    queryFn: async () => {
+      const [outgoing, incoming] = await Promise.all([
+        (supabase.from("editorial_content_relationships") as any).select("*").eq("source_type", sourceType).eq("source_id", sourceId),
+        (supabase.from("editorial_content_relationships") as any).select("*").eq("target_type", sourceType).eq("target_id", sourceId),
+      ]);
+      if (outgoing.error) throw outgoing.error;
+      if (incoming.error) throw incoming.error;
+      return [...(outgoing.data ?? []), ...(incoming.data ?? [])] as Array<Record<string, unknown>>;
+    },
+  });
+
+  const tags = useQuery({
+    queryKey: ["editorial-tags", tagQuery],
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)("editorial_search_tags", { _query: tagQuery, _limit: 20 });
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; label: string; slug: string }>;
+    },
+  });
+
+  const generate = useMutation({
+    mutationFn: async () => {
+      const response = await callGenerate({
+        data: { contentType: targetType, mode: "generate", provider: "grok", source: sourceText(sourceRecord) },
+      });
+      if (!response.draft) throw new Error("No usable related-content draft was returned");
+      return response.draft;
+    },
+    onSuccess: (value) => {
+      setDraft(value);
+      setDraftId(null);
+      toast.success(`${label(targetType)} draft generated. Review it before saving.`);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const saveDraft = useMutation({
+    mutationFn: async () => {
+      if (!draft || !user) throw new Error("Generate a draft while signed in.");
+      const snapshot = JSON.stringify(sourceRecord);
+      const hash = await sha256(snapshot);
+      if (draftId) {
+        const { data, error } = await (supabase.rpc as any)("editorial_update_related_draft", {
+          _draft_id: draftId,
+          _generated_draft: draft,
+        });
+        if (error) throw error;
+        return data;
+      }
+      const { data, error } = await (supabase.rpc as any)("editorial_register_related_draft", {
+        _source_type: sourceType,
+        _source_id: sourceId,
+        _target_type: targetType,
+        _request_id: crypto.randomUUID(),
+        _provider: "grok",
+        _prompt_version: "cross-content-v1",
+        _source_snapshot: sourceRecord,
+        _source_snapshot_hash: hash,
+        _generated_draft: draft,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (value) => {
+      setDraftId((value as { id?: string } | null)?.id ?? draftId);
+      toast.success("Related draft saved. It remains unpublished.");
+      void queryClient.invalidateQueries({ queryKey: ["editorial-relationships", sourceType, sourceId] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const addTag = useMutation({
+    mutationFn: async () => {
+      if (!newTag.trim() || !user) throw new Error("Enter a tag name.");
+      const slug = newTag.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const { data, error } = await (supabase.from("editorial_tags") as any).upsert({ slug, label: newTag.trim(), created_by: user.id }, { onConflict: "slug" }).select("id").single();
+      if (error) throw error;
+      const assigned = await (supabase.rpc as any)("editorial_assign_tag", { _type: sourceType, _id: sourceId, _tag: data.id });
+      if (assigned.error) throw assigned.error;
+    },
+    onSuccess: () => { setNewTag(""); void queryClient.invalidateQueries({ queryKey: ["editorial-tags"] }); toast.success("Tag assigned"); },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const assignTag = useMutation({
+    mutationFn: async (tagId: string) => {
+      const { error } = await (supabase.rpc as any)("editorial_assign_tag", { _type: sourceType, _id: sourceId, _tag: tagId });
+      if (error) throw error;
+    },
+    onSuccess: () => toast.success("Tag assigned"),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const link = useMutation({
+    mutationFn: async () => {
+      if (!linkTargetId.trim()) throw new Error("Enter the target record ID.");
+      const { error } = await (supabase.rpc as any)("editorial_link_content", {
+        _source_type: sourceType, _source_id: sourceId, _target_type: linkTargetType,
+        _target_id: linkTargetId.trim(), _relationship_type: "related",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => { setLinkTargetId(""); void queryClient.invalidateQueries({ queryKey: ["editorial-relationships", sourceType, sourceId] }); toast.success("Content linked"); },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const unlink = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase.rpc as any)("editorial_unlink_content", { _relationship_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["editorial-relationships", sourceType, sourceId] }); toast.success("Content unlinked"); },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const draftJson = useMemo(() => draft ? JSON.stringify(draft, null, 2) : "", [draft]);
+
+  return (
+    <section className="space-y-4 rounded-lg border border-accent/30 bg-accent/5 p-4" aria-label="Cross-content editorial tools">
+      <div>
+        <h3 className="flex items-center gap-2 font-bold"><Link2 className="size-4 text-accent" /> Related content</h3>
+        <p className="mt-1 text-xs text-muted-foreground">Generate an unpublished, source-linked draft or connect an existing record. Source content is never changed.</p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <div><Label>Generate target</Label><Select value={targetType} onValueChange={(value) => setTargetType(value as EditorialContentType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{targets[sourceType].map((value) => <SelectItem key={value} value={value}>{label(value)}</SelectItem>)}</SelectContent></Select></div>
+        <Button type="button" className="self-end" disabled={generate.isPending} onClick={() => generate.mutate()}><Sparkles className="mr-2 size-4" />{generate.isPending ? "Generating…" : "Generate related draft"}</Button>
+      </div>
+      {draft ? <div className="space-y-2"><Label htmlFor={`related-draft-${sourceId}`}>Editable generated draft JSON</Label><textarea id={`related-draft-${sourceId}`} value={draftJson} onChange={(event) => { try { setDraft(JSON.parse(event.target.value) as Record<string, unknown>); } catch { /* Keep the editor text stable until valid JSON is restored. */ } }} rows={8} className="w-full rounded-md border border-input bg-background p-3 font-mono text-xs" /><Button type="button" variant="outline" disabled={saveDraft.isPending} onClick={() => saveDraft.mutate()}><Save className="mr-2 size-4" />{saveDraft.isPending ? "Saving…" : draftId ? "Save draft edits" : "Save related draft"}</Button></div> : null}
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]"><div><Label>Assign existing tag</Label><Input value={tagQuery} onChange={(event) => setTagQuery(event.target.value)} placeholder="Search tags…" /></div><div className="self-end flex flex-wrap gap-2">{tags.data?.slice(0, 4).map((tag) => <Button key={tag.id} type="button" size="sm" variant="outline" onClick={() => assignTag.mutate(tag.id)}><Tag className="mr-1 size-3" />{tag.label}</Button>)}</div></div>
+      <div className="flex gap-2"><Input value={newTag} onChange={(event) => setNewTag(event.target.value)} placeholder="Create and assign a new tag" /><Button type="button" variant="outline" disabled={addTag.isPending} onClick={() => addTag.mutate()}><Plus className="mr-1 size-4" />Tag</Button></div>
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"><div><Label>Link target type</Label><Select value={linkTargetType} onValueChange={(value) => setLinkTargetType(value as EditorialContentType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{types.filter((value) => value !== sourceType).map((value) => <SelectItem key={value} value={value}>{label(value)}</SelectItem>)}</SelectContent></Select></div><div><Label>Target record ID</Label><Input value={linkTargetId} onChange={(event) => setLinkTargetId(event.target.value)} placeholder="UUID" /></div><Button type="button" variant="outline" className="self-end" disabled={link.isPending} onClick={() => link.mutate()}>Link</Button></div>
+      {relationships.data?.length ? <div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Existing relationships</p>{relationships.data.map((relationship) => <div key={String(relationship.id)} className="flex items-center gap-2 rounded border border-border bg-background p-2 text-xs"><span className="min-w-0 flex-1 truncate">{String(relationship.source_type)} → {String(relationship.target_type)} · {String(relationship.target_id === sourceId ? relationship.source_id : relationship.target_id)}</span><Button type="button" variant="ghost" size="icon" aria-label="Unlink content" onClick={() => unlink.mutate(String(relationship.id))}><Trash2 className="size-3.5 text-destructive" /></Button></div>)}</div> : null}
+    </section>
+  );
+}

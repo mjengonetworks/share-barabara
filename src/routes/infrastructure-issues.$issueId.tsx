@@ -14,6 +14,7 @@ import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
 import { InfrastructureIssuePreviewCard } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { RelatedContent } from "@/components/site/related-content";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
 import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
@@ -237,6 +238,7 @@ function IssueDetail() {
         </EditorialSidebar>
       </div>
       <GlobalEditorialPreview destination="infrastructure" excludeId={issue.id} />
+      <RelatedContent contentType="infrastructure" contentId={issue.id} />
     </>
   );
 }

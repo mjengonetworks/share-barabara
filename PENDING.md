@@ -629,3 +629,10 @@ changed. Verification on the integrated tree: focused master/admin/AI tests pass
 409 passes and one pre-existing 5-second `ai-server-function-artifact` timeout; security passed 14/14; production
 build passed; `git diff --check` passed. Authenticated browser and live provider verification remain unavailable.
 No migrations were executed, no deployment was performed, and Live SearXNG remains PENDING.
+
+Cross-content schema approval hold — PENDING. The following are explicitly not implemented and remain blocked
+until owner review and approval of the proposed SQL: cross-content generation persistence; reusable tags;
+bidirectional content relationships; duplicate prevention; generation provenance and audit; and public
+related-content discovery. The proposal remains review-only at `supabase/inspection/cross-content-relationships-proposal.sql`.
+No SQL was executed, no production migration was created, and no deployment occurred. The urgent Grok schema
+repair remains a separate task.

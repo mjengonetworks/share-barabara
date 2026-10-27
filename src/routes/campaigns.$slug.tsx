@@ -15,6 +15,7 @@ import {
 import { socialHead } from "@/lib/seo";
 import { CampaignPreviewCard } from "@/components/site/discovery-sections";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { RelatedContent } from "@/components/site/related-content";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
 import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
@@ -166,6 +167,7 @@ function CampaignDetail() {
         </EditorialSidebar>
       </div>
       <GlobalEditorialPreview destination="campaigns" excludeId={campaign.id} />
+      <RelatedContent contentType="campaign" contentId={campaign.id} />
     </>
   );
 }

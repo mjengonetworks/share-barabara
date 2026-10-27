@@ -20,6 +20,7 @@ import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { renderRichText, splitRichTextBlocks } from "@/lib/richtext";
 import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { RelatedContent } from "@/components/site/related-content";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary, ReadAlso } from "@/components/site/editorial-summary";
 import heroRoad from "@/assets/hero-road.jpg";
@@ -470,6 +471,7 @@ function NewsDetail() {
         excludeId={article.id}
         category={article.category}
       />
+      <RelatedContent contentType="article" contentId={article.id} />
     </div>
   );
 }

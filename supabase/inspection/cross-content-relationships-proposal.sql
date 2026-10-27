@@ -1,79 +1,385 @@
--- REVIEW ONLY — DO NOT EXECUTE WITHOUT OWNER APPROVAL.
--- Cross-content tags/relationships proposal for the Admin CMS master task.
--- This file is intentionally outside supabase/migrations so normal deploys
--- cannot apply it accidentally.
+-- SHARE BARABARA — CROSS-CONTENT SCHEMA REVIEW PACKAGE
+-- REVIEW ONLY — DO NOT EXECUTE WITHOUT EXPLICIT OWNER APPROVAL.
+-- This file is intentionally outside supabase/migrations and ends in
+-- ROLLBACK. It must not be deployed or used to change production.
+--
+-- Audited public records and visibility predicates:
+-- article          = public.news, status='published'
+-- report           = public.accident_reports, status='approved'
+-- alert            = public.alerts, status='active'
+-- infrastructure   = public.infrastructure_issues, status='approved'
+-- campaign         = public.campaigns, (end_date >= current_date OR report_published)
 
-begin;
+BEGIN;
 
-create table public.editorial_tags (
-  id uuid primary key default gen_random_uuid(),
-  slug text not null unique check (slug = lower(slug) and slug ~ '^[a-z0-9][a-z0-9-]*$'),
-  label text not null,
-  created_by uuid references auth.users(id),
-  created_at timestamptz not null default now()
+-- Existing dependencies (not created here): auth.users, gen_random_uuid(),
+-- public.has_role(uuid,text), public.has_min_role(uuid,text), and the five
+-- content tables above. Existing rows, policies, and public routes are not
+-- altered. All proposed objects are additive.
+-- The reviewed editor guard is public.has_min_role(auth.uid(), 'editor').
+-- Public visibility is intentionally content-specific: published/approved.
+
+-- ---------------------------------------------------------------------------
+-- 1. Conversion allow-list, reusable tags, relationships, provenance/drafts
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE public.editorial_conversion_targets (
+  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure')),
+  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure')),
+  enabled BOOLEAN NOT NULL DEFAULT true,
+  required_source_fields JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (source_type, target_type),
+  CHECK (source_type <> target_type),
+  CHECK (jsonb_typeof(required_source_fields) = 'array')
 );
 
-create table public.editorial_content_tags (
-  content_type text not null check (content_type in ('article','report','alert','campaign','infrastructure')),
-  content_id uuid not null,
-  tag_id uuid not null references public.editorial_tags(id) on delete cascade,
-  created_by uuid not null references auth.users(id),
-  created_at timestamptz not null default now(),
-  primary key (content_type, content_id, tag_id)
+INSERT INTO public.editorial_conversion_targets(source_type,target_type,required_source_fields) VALUES
+ ('article','report','["title","body"]'),
+ ('report','article','["title","description"]'),
+ ('article','alert','["title","body"]'),
+ ('alert','article','["title","description"]'),
+ ('article','campaign','["title","summary"]'),
+ ('campaign','article','["title","description"]'),
+ ('article','infrastructure','["title","body"]'),
+ ('infrastructure','article','["title","summary","content"]'),
+ ('report','alert','["title","description","county"]'),
+ ('alert','report','["title","description","county"]'),
+ ('report','infrastructure','["title","description","county"]'),
+ ('infrastructure','alert','["title","summary","road_name"]')
+ON CONFLICT DO NOTHING;
+
+CREATE TABLE public.editorial_tags (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL,
+  label TEXT NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT editorial_tags_slug_format CHECK (slug = lower(slug) AND slug ~ '^[a-z0-9][a-z0-9-]*$'),
+  CONSTRAINT editorial_tags_label_nonempty CHECK (length(btrim(label)) > 0)
 );
+CREATE UNIQUE INDEX editorial_tags_slug_uq ON public.editorial_tags(slug);
+CREATE UNIQUE INDEX editorial_tags_label_ci_uq ON public.editorial_tags(lower(btrim(label)));
 
-create table public.editorial_content_relationships (
-  id uuid primary key default gen_random_uuid(),
-  source_type text not null check (source_type in ('article','report','alert','campaign','infrastructure')),
-  source_id uuid not null,
-  target_type text not null check (target_type in ('article','report','alert','campaign','infrastructure')),
-  target_id uuid not null,
-  relationship_type text not null check (relationship_type in ('related','derived_from','follows_up','covers')),
-  created_by uuid not null references auth.users(id),
-  created_at timestamptz not null default now(),
-  unique (source_type, source_id, target_type, target_id, relationship_type),
-  check (not (source_type = target_type and source_id = target_id))
+CREATE TABLE public.editorial_content_tags (
+  content_type TEXT NOT NULL CHECK (content_type IN ('article','report','alert','campaign','infrastructure')),
+  content_id UUID NOT NULL,
+  tag_id UUID NOT NULL REFERENCES public.editorial_tags(id) ON DELETE RESTRICT,
+  created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (content_type, content_id, tag_id)
 );
+CREATE INDEX editorial_content_tags_tag_idx ON public.editorial_content_tags(tag_id,content_type,content_id);
+CREATE INDEX editorial_content_tags_content_idx ON public.editorial_content_tags(content_type,content_id);
 
-create index editorial_content_tags_lookup on public.editorial_content_tags(content_type, content_id);
-create index editorial_content_tags_reverse on public.editorial_content_tags(tag_id, content_type);
-create index editorial_relationships_source on public.editorial_content_relationships(source_type, source_id);
-create index editorial_relationships_target on public.editorial_content_relationships(target_type, target_id);
+CREATE TABLE public.editorial_content_relationships (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure')),
+  source_id UUID NOT NULL,
+  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure')),
+  target_id UUID NOT NULL,
+  relationship_type TEXT NOT NULL CHECK (relationship_type IN ('related','derived_from','follows_up','covers')),
+  created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  generation_request_id UUID,
+  provider TEXT,
+  prompt_version TEXT,
+  source_snapshot_hash TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (NOT (source_type = target_type AND source_id = target_id)),
+  UNIQUE(source_type,source_id,target_type,target_id,relationship_type)
+);
+CREATE INDEX editorial_relationships_source_idx ON public.editorial_content_relationships(source_type,source_id,created_at DESC);
+CREATE INDEX editorial_relationships_target_idx ON public.editorial_content_relationships(target_type,target_id,created_at DESC);
+CREATE INDEX editorial_relationships_request_idx ON public.editorial_content_relationships(generation_request_id) WHERE generation_request_id IS NOT NULL;
 
-alter table public.editorial_tags enable row level security;
-alter table public.editorial_content_tags enable row level security;
-alter table public.editorial_content_relationships enable row level security;
+CREATE TABLE public.editorial_related_drafts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure')),
+  source_id UUID NOT NULL,
+  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure')),
+  target_id UUID,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','saved','abandoned','expired')),
+  provider TEXT CHECK (provider IS NULL OR provider IN ('groq','grok')),
+  prompt_version TEXT,
+  generation_request_id UUID NOT NULL UNIQUE,
+  source_snapshot JSONB NOT NULL,
+  source_snapshot_hash TEXT NOT NULL,
+  generated_draft JSONB NOT NULL,
+  created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ,
+  CHECK (source_type <> target_type),
+  CHECK (jsonb_typeof(source_snapshot) = 'object' AND jsonb_typeof(generated_draft) = 'object'),
+  CHECK ((status = 'saved') = (target_id IS NOT NULL))
+);
+CREATE UNIQUE INDEX editorial_related_drafts_open_uq ON public.editorial_related_drafts
+  (created_by,source_type,source_id,target_type,source_snapshot_hash) WHERE status='open';
+CREATE INDEX editorial_related_drafts_source_idx ON public.editorial_related_drafts(source_type,source_id,created_at DESC);
+CREATE INDEX editorial_related_drafts_creator_idx ON public.editorial_related_drafts(created_by,status,updated_at DESC);
 
--- Editors manage the vocabulary and assignments. Public discovery must use a
--- server-owned published-content function rather than exposing raw IDs.
-create policy editorial_tags_read_authenticated on public.editorial_tags
-  for select to authenticated using (true);
-create policy editorial_tags_manage_editor on public.editorial_tags
-  for all to authenticated
-  using (public.has_min_role(auth.uid(), 'editor'))
-  with check (public.has_min_role(auth.uid(), 'editor'));
+CREATE TABLE public.editorial_generation_events (
+  request_id UUID PRIMARY KEY,
+  actor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
+  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure')),
+  source_id UUID NOT NULL,
+  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure')),
+  provider TEXT NOT NULL CHECK (provider IN ('groq','grok')),
+  prompt_version TEXT NOT NULL,
+  source_snapshot_hash TEXT NOT NULL,
+  output_hash TEXT,
+  outcome TEXT NOT NULL CHECK (outcome IN ('started','succeeded','failed')),
+  safe_error_code TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  completed_at TIMESTAMPTZ
+);
+CREATE INDEX editorial_generation_events_actor_idx ON public.editorial_generation_events(actor_id,created_at DESC);
+CREATE INDEX editorial_generation_events_source_idx ON public.editorial_generation_events(source_type,source_id,created_at DESC);
 
-create policy editorial_content_tags_manage_editor on public.editorial_content_tags
-  for all to authenticated
-  using (public.has_min_role(auth.uid(), 'editor'))
-  with check (public.has_min_role(auth.uid(), 'editor'));
+-- ---------------------------------------------------------------------------
+-- 2. Polymorphic validation against the real content tables
+-- ---------------------------------------------------------------------------
 
-create policy editorial_relationships_manage_editor on public.editorial_content_relationships
-  for all to authenticated
-  using (public.has_min_role(auth.uid(), 'editor'))
-  with check (public.has_min_role(auth.uid(), 'editor'));
+CREATE OR REPLACE FUNCTION public.editorial_content_table(_type TEXT)
+RETURNS TEXT LANGUAGE sql IMMUTABLE STRICT AS $$
+  SELECT CASE _type WHEN 'article' THEN 'news' WHEN 'report' THEN 'accident_reports'
+    WHEN 'alert' THEN 'alerts' WHEN 'campaign' THEN 'campaigns'
+    WHEN 'infrastructure' THEN 'infrastructure_issues' ELSE NULL END
+$$;
 
--- Expected follow-up RPCs, to be implemented and security-reviewed together:
--- 1. create_related_draft(source_type, source_id, target_type): verifies the
---    caller can edit the source, checks duplicate links, invokes the existing
---    server Editorial AI service, and returns an unsaved target draft.
--- 2. save_related_draft(...): verifies target permissions, persists the target
---    record without publishing, then creates derived_from relationship in the
---    same transaction.
--- 3. public_related_content(content_type, content_id): SECURITY DEFINER,
---    validates that both records are published/approved before returning
---    canonical links; it must never expose private or abandoned drafts.
--- 4. assign_editorial_tags(...): canonicalizes slugs and validates content
---    ownership/role before inserting assignments.
+CREATE OR REPLACE FUNCTION public.editorial_content_exists(_type TEXT,_id UUID)
+RETURNS BOOLEAN LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE t TEXT := public.editorial_content_table(_type); ok BOOLEAN;
+BEGIN
+  IF t IS NULL OR _id IS NULL THEN RETURN false; END IF;
+  EXECUTE format('SELECT EXISTS (SELECT 1 FROM public.%I WHERE id=$1)',t) INTO ok USING _id;
+  RETURN ok;
+END $$;
 
+CREATE OR REPLACE FUNCTION public.editorial_content_is_public(_type TEXT,_id UUID)
+RETURNS BOOLEAN LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE ok BOOLEAN;
+BEGIN
+  IF _type='article' THEN SELECT EXISTS(SELECT 1 FROM public.news WHERE id=_id AND status='published') INTO ok;
+  ELSIF _type='report' THEN SELECT EXISTS(SELECT 1 FROM public.accident_reports WHERE id=_id AND status='approved') INTO ok;
+  ELSIF _type='alert' THEN SELECT EXISTS(SELECT 1 FROM public.alerts WHERE id=_id AND status='active') INTO ok;
+  ELSIF _type='infrastructure' THEN SELECT EXISTS(SELECT 1 FROM public.infrastructure_issues WHERE id=_id AND status='approved') INTO ok;
+  ELSIF _type='campaign' THEN SELECT EXISTS(SELECT 1 FROM public.campaigns WHERE id=_id AND (end_date>=CURRENT_DATE OR report_published)) INTO ok;
+  ELSE ok := false;
+  END IF;
+  RETURN ok;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.editorial_can_edit_content(_type TEXT,_id UUID)
+RETURNS BOOLEAN LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE ok BOOLEAN;
+BEGIN
+  IF _type='article' THEN
+    SELECT EXISTS(SELECT 1 FROM public.news WHERE id=_id AND public.has_role(auth.uid(),'admin')) INTO ok;
+  ELSIF _type='report' THEN
+    SELECT EXISTS(SELECT 1 FROM public.accident_reports WHERE id=_id AND
+      (user_id=auth.uid() OR public.has_role(auth.uid(),'admin') OR public.has_role(auth.uid(),'moderator'))) INTO ok;
+  ELSIF _type='alert' THEN
+    SELECT EXISTS(SELECT 1 FROM public.alerts WHERE id=_id AND
+      (user_id=auth.uid() OR public.has_role(auth.uid(),'admin'))) INTO ok;
+  ELSIF _type='campaign' THEN
+    SELECT EXISTS(SELECT 1 FROM public.campaigns WHERE id=_id AND public.has_min_role(auth.uid(),'editor')) INTO ok;
+  ELSIF _type='infrastructure' THEN
+    SELECT EXISTS(SELECT 1 FROM public.infrastructure_issues WHERE id=_id AND
+      ((user_id=auth.uid() AND status <> 'approved') OR public.has_min_role(auth.uid(),'moderator'))) INTO ok;
+  ELSE ok := false;
+  END IF;
+  RETURN ok;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.validate_editorial_content_reference()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+BEGIN
+  IF NOT public.editorial_content_exists(NEW.content_type,NEW.content_id) THEN
+    RAISE EXCEPTION 'unknown editorial content reference' USING ERRCODE='23503';
+  END IF; RETURN NEW;
+END $$;
+CREATE OR REPLACE FUNCTION public.validate_editorial_relationship_reference()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+BEGIN
+  IF NOT public.editorial_content_exists(NEW.source_type,NEW.source_id)
+     OR NOT public.editorial_content_exists(NEW.target_type,NEW.target_id) THEN
+    RAISE EXCEPTION 'unknown editorial relationship endpoint' USING ERRCODE='23503';
+  END IF; RETURN NEW;
+END $$;
+CREATE TRIGGER editorial_content_tags_reference_trg BEFORE INSERT OR UPDATE ON public.editorial_content_tags
+  FOR EACH ROW EXECUTE FUNCTION public.validate_editorial_content_reference();
+CREATE TRIGGER editorial_relationships_reference_trg BEFORE INSERT OR UPDATE ON public.editorial_content_relationships
+  FOR EACH ROW EXECUTE FUNCTION public.validate_editorial_relationship_reference();
+
+-- ---------------------------------------------------------------------------
+-- 3. RLS. No anon direct table access; public discovery uses the RPC below.
+-- ---------------------------------------------------------------------------
+
+ALTER TABLE public.editorial_conversion_targets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.editorial_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.editorial_content_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.editorial_content_relationships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.editorial_related_drafts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.editorial_generation_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY conversion_targets_editor_read ON public.editorial_conversion_targets FOR SELECT TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor'));
+CREATE POLICY conversion_targets_admin_write ON public.editorial_conversion_targets FOR ALL TO authenticated
+  USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
+CREATE POLICY tags_editor_read ON public.editorial_tags FOR SELECT TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor'));
+CREATE POLICY tags_editor_insert ON public.editorial_tags FOR INSERT TO authenticated
+  WITH CHECK (public.has_min_role(auth.uid(),'editor') AND created_by=auth.uid());
+CREATE POLICY tags_editor_update ON public.editorial_tags FOR UPDATE TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor')) WITH CHECK (public.has_min_role(auth.uid(),'editor'));
+CREATE POLICY tags_admin_delete ON public.editorial_tags FOR DELETE TO authenticated
+  USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY content_tags_editor_read ON public.editorial_content_tags FOR SELECT TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor'));
+CREATE POLICY content_tags_editor_write ON public.editorial_content_tags FOR ALL TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor')) WITH CHECK (public.has_min_role(auth.uid(),'editor') AND created_by=auth.uid());
+CREATE POLICY relationships_editor_read ON public.editorial_content_relationships FOR SELECT TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor'));
+CREATE POLICY relationships_editor_write ON public.editorial_content_relationships FOR ALL TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor')) WITH CHECK (public.has_min_role(auth.uid(),'editor') AND created_by=auth.uid());
+CREATE POLICY drafts_editor_read ON public.editorial_related_drafts FOR SELECT TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor') AND (created_by=auth.uid() OR public.has_role(auth.uid(),'admin')));
+CREATE POLICY drafts_editor_insert ON public.editorial_related_drafts FOR INSERT TO authenticated
+  WITH CHECK (public.has_min_role(auth.uid(),'editor') AND created_by=auth.uid());
+CREATE POLICY drafts_editor_update ON public.editorial_related_drafts FOR UPDATE TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor') AND (created_by=auth.uid() OR public.has_role(auth.uid(),'admin')))
+  WITH CHECK (public.has_min_role(auth.uid(),'editor') AND (created_by=auth.uid() OR public.has_role(auth.uid(),'admin')));
+CREATE POLICY generation_events_owner_read ON public.editorial_generation_events FOR SELECT TO authenticated
+  USING (public.has_min_role(auth.uid(),'editor') AND (actor_id=auth.uid() OR public.has_role(auth.uid(),'admin')));
+-- No client INSERT policy: trusted server code/service_role writes audit events.
+
+GRANT SELECT ON public.editorial_conversion_targets TO authenticated;
+GRANT SELECT,INSERT,UPDATE ON public.editorial_tags TO authenticated;
+GRANT SELECT,INSERT,UPDATE,DELETE ON public.editorial_content_tags TO authenticated;
+GRANT SELECT,INSERT,UPDATE,DELETE ON public.editorial_content_relationships TO authenticated;
+GRANT SELECT,INSERT,UPDATE ON public.editorial_related_drafts TO authenticated;
+GRANT SELECT ON public.editorial_generation_events TO authenticated;
+GRANT ALL ON public.editorial_conversion_targets, public.editorial_tags,
+  public.editorial_content_tags, public.editorial_content_relationships,
+  public.editorial_related_drafts, public.editorial_generation_events TO service_role;
+
+-- ---------------------------------------------------------------------------
+-- 4. Exact RPC contract and security model
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.editorial_register_related_draft(
+  _source_type TEXT,_source_id UUID,_target_type TEXT,_request_id UUID,
+  _provider TEXT,_prompt_version TEXT,_source_snapshot JSONB,
+  _source_snapshot_hash TEXT,_generated_draft JSONB)
+RETURNS public.editorial_related_drafts LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE r public.editorial_related_drafts;
+BEGIN
+  IF NOT public.has_min_role(auth.uid(),'editor') THEN RAISE EXCEPTION 'editor role required'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM public.editorial_conversion_targets WHERE source_type=_source_type AND target_type=_target_type AND enabled) THEN RAISE EXCEPTION 'conversion is not enabled'; END IF;
+  IF NOT public.editorial_content_exists(_source_type,_source_id) THEN RAISE EXCEPTION 'source does not exist' USING ERRCODE='23503'; END IF;
+  IF NOT public.editorial_can_edit_content(_source_type,_source_id) THEN RAISE EXCEPTION 'source edit permission required'; END IF;
+  IF EXISTS(SELECT 1 FROM public.editorial_content_relationships WHERE source_type=_source_type AND source_id=_source_id AND target_type=_target_type AND relationship_type='derived_from') THEN RAISE EXCEPTION 'saved related record already exists'; END IF;
+  INSERT INTO public.editorial_related_drafts(source_type,source_id,target_type,provider,prompt_version,generation_request_id,source_snapshot,source_snapshot_hash,generated_draft,created_by)
+    VALUES(_source_type,_source_id,_target_type,_provider,_prompt_version,_request_id,_source_snapshot,_source_snapshot_hash,_generated_draft,auth.uid())
+    ON CONFLICT (created_by,source_type,source_id,target_type,source_snapshot_hash) WHERE status='open'
+    DO UPDATE SET generated_draft=EXCLUDED.generated_draft,updated_at=now() RETURNING * INTO r;
+  RETURN r;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.editorial_save_related_draft(
+  _draft_id UUID,_target_id UUID,_relationship_type TEXT DEFAULT 'derived_from',_request_id UUID DEFAULT NULL)
+RETURNS public.editorial_content_relationships LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE d public.editorial_related_drafts; r public.editorial_content_relationships;
+BEGIN
+  IF NOT public.has_min_role(auth.uid(),'editor') THEN RAISE EXCEPTION 'editor role required'; END IF;
+  SELECT * INTO d FROM public.editorial_related_drafts WHERE id=_draft_id AND (created_by=auth.uid() OR public.has_role(auth.uid(),'admin')) FOR UPDATE;
+  IF NOT FOUND OR d.status<>'open' THEN RAISE EXCEPTION 'draft is unavailable'; END IF;
+  IF NOT public.editorial_content_exists(d.target_type,_target_id) THEN RAISE EXCEPTION 'target does not exist' USING ERRCODE='23503'; END IF;
+  IF NOT public.editorial_can_edit_content(d.target_type,_target_id) THEN RAISE EXCEPTION 'target edit permission required'; END IF;
+  IF public.editorial_content_is_public(d.target_type,_target_id) THEN RAISE EXCEPTION 'target must remain unpublished'; END IF;
+  INSERT INTO public.editorial_content_relationships(source_type,source_id,target_type,target_id,relationship_type,created_by,generation_request_id,provider,prompt_version,source_snapshot_hash)
+    VALUES(d.source_type,d.source_id,d.target_type,_target_id,_relationship_type,auth.uid(),COALESCE(_request_id,d.generation_request_id),d.provider,d.prompt_version,d.source_snapshot_hash)
+    ON CONFLICT DO NOTHING RETURNING * INTO r;
+  IF r.id IS NULL THEN RAISE EXCEPTION 'duplicate relationship'; END IF;
+  UPDATE public.editorial_related_drafts SET status='saved',target_id=_target_id,updated_at=now() WHERE id=_draft_id;
+  RETURN r;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.editorial_assign_tag(_type TEXT,_id UUID,_tag UUID)
+RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+BEGIN
+  IF NOT public.has_min_role(auth.uid(),'editor') THEN RAISE EXCEPTION 'editor role required'; END IF;
+  IF NOT public.editorial_content_exists(_type,_id) THEN RAISE EXCEPTION 'content does not exist' USING ERRCODE='23503'; END IF;
+  IF NOT public.editorial_can_edit_content(_type,_id) THEN RAISE EXCEPTION 'content edit permission required'; END IF;
+  INSERT INTO public.editorial_content_tags(content_type,content_id,tag_id,created_by) VALUES(_type,_id,_tag,auth.uid()) ON CONFLICT DO NOTHING;
+END $$;
+CREATE OR REPLACE FUNCTION public.editorial_remove_tag(_type TEXT,_id UUID,_tag UUID)
+RETURNS VOID LANGUAGE sql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+  DELETE FROM public.editorial_content_tags WHERE content_type=_type AND content_id=_id AND tag_id=_tag AND public.has_min_role(auth.uid(),'editor');
+$$;
+CREATE OR REPLACE FUNCTION public.editorial_public_related_content(_type TEXT,_id UUID,_limit INTEGER DEFAULT 12)
+RETURNS TABLE(related_type TEXT,related_id UUID,relationship_type TEXT,linked_at TIMESTAMPTZ)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
+  SELECT r.target_type,r.target_id,r.relationship_type,r.created_at FROM public.editorial_content_relationships r
+    WHERE r.source_type=_type AND r.source_id=_id AND public.editorial_content_is_public(r.target_type,r.target_id)
+  UNION ALL
+  SELECT r.source_type,r.source_id,r.relationship_type,r.created_at FROM public.editorial_content_relationships r
+    WHERE r.target_type=_type AND r.target_id=_id AND public.editorial_content_is_public(r.source_type,r.source_id)
+  ORDER BY linked_at DESC LIMIT LEAST(GREATEST(COALESCE(_limit,12),1),50);
+$$;
+CREATE OR REPLACE FUNCTION public.editorial_search_tags(_query TEXT,_limit INTEGER DEFAULT 20)
+RETURNS SETOF public.editorial_tags LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
+  SELECT * FROM public.editorial_tags WHERE public.has_min_role(auth.uid(),'editor') AND active
+    AND (lower(label) LIKE '%'||lower(COALESCE(_query,''))||'%' OR slug LIKE '%'||lower(COALESCE(_query,''))||'%')
+  ORDER BY label LIMIT LEAST(GREATEST(COALESCE(_limit,20),1),100);
+$$;
+
+REVOKE ALL ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_content_table(TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_content_exists(TEXT,UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_content_is_public(TEXT,UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_can_edit_content(TEXT,UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_save_related_draft(UUID,UUID,TEXT,UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_assign_tag(TEXT,UUID,UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_remove_tag(TEXT,UUID,UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_public_related_content(TEXT,UUID,INTEGER) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.editorial_search_tags(TEXT,INTEGER) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.editorial_save_related_draft(UUID,UUID,TEXT,UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.editorial_assign_tag(TEXT,UUID,UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.editorial_remove_tag(TEXT,UUID,UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.editorial_public_related_content(TEXT,UUID,INTEGER) TO anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.editorial_search_tags(TEXT,INTEGER) TO authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 5. Dependencies, preservation, implementation sequence, rollback
+-- ---------------------------------------------------------------------------
+
+-- Compatibility gates before approval:
+-- * confirm every referenced production table has UUID id; the current
+--   content tables do not have a shared deleted_at column, so their existing
+--   status/date visibility predicates are used as audited above;
+-- * confirm the listed status values and existing role-function signatures;
+-- * regenerate Supabase types after migration; no current table/policy is
+--   modified and no existing content is backfilled.
+--
+-- Post-approval sequence: review predicates/matrix; apply additive objects in
+-- one migration; generate types; ship server-only callers behind a feature
+-- flag; test permissions, source fidelity, duplicate handling and public
+-- filtering in staging; enable tagging; then enable related-draft saving.
+-- Existing content is linkable only after an explicit editor action.
+--
+-- Rollback after disabling callers and exporting the new tables:
+--   export editorial_conversion_targets, editorial_tags,
+--   editorial_content_tags, editorial_content_relationships,
+--   editorial_related_drafts, editorial_generation_events;
+--   revoke RPC EXECUTE; drop triggers/functions; drop the six new tables in
+--   reverse dependency order. Never delete or update source content. Restore
+--   the exported additive data if the feature is re-enabled.
+-- No destructive production rollback is authorized by this proposal.
+
+-- Intentionally no COMMIT: an accidental execution remains inert.
 rollback;
