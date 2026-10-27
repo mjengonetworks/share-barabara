@@ -28,6 +28,7 @@ import { longDate, slugify } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import type { EditorialMode, EditorialProvider } from "@/lib/ai/editorial.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
   head: () => ({ meta: [{ title: "Campaigns: Share Barabara Admin" }] }),
@@ -235,6 +236,23 @@ function CampaignsAdminPage() {
               <DialogTitle>{editingId ? "Edit campaign" : "New campaign"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              <div className="space-y-3">
+                {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : [])] as Array<{ mode: EditorialMode; provider: EditorialProvider }>).map(({ mode, provider }) => (
+                  <EditorialAIButton
+                    key={`${mode}-${provider}`}
+                    contentType="campaign"
+                    mode={mode}
+                    provider={provider}
+                     current={form as unknown as Record<string, import("@/lib/ai/editorial.functions").EditorialValue>}
+                     {...(editingId ? { contentId: editingId } : {})}
+                    source=""
+                    onDraft={(draft) => setForm((current) => ({
+                      ...current,
+                      ...Object.fromEntries(Object.entries(draft).filter(([key]) => key in current)),
+                    }) as EventForm)}
+                  />
+                ))}
+              </div>
               <div>
                 <Label htmlFor="c-title">Title</Label>
                 <Input
@@ -262,14 +280,14 @@ function CampaignsAdminPage() {
                 />
               </div>
               <div className="space-y-3">
-                {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : [])] as const).map(({ mode, provider }) => (
+                {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : [])] as Array<{ mode: EditorialMode; provider: EditorialProvider }>).map(({ mode, provider }) => (
                   <EditorialAIButton
                     key={`${mode}-${provider}`}
                     contentType="campaign"
                     mode={mode}
                     provider={provider}
                     current={form}
-                    contentId={editingId ?? undefined}
+                    {...(editingId ? { contentId: editingId } : {})}
                     source=""
                     onDraft={(draft) => setForm((current) => ({
                       ...current,

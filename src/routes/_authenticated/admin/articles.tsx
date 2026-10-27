@@ -247,6 +247,16 @@ function ArticlesQueuePage() {
           };
           const set = (patch: Partial<ArticleDraft>) =>
             setDrafts((prev) => ({ ...prev, [a.id]: { ...d, ...patch } }));
+          const applyAI = (draft: Record<string, unknown>) => {
+            const patch: Partial<ArticleDraft> = {};
+            for (const field of ["title", "summary", "body", "image_alt", "image_caption", "image_credit", "seo_title", "seo_description", "seo_keywords"] as const) {
+              const value = draft[field];
+              if (typeof value === "string" && value.trim()) patch[field] = value as never;
+            }
+            const category = draft["category"];
+            if (typeof category === "string" && category.trim()) patch.categories = [category];
+            set(patch);
+          };
           const expanded = expandedId === a.id;
 
           return (
@@ -365,16 +375,7 @@ function ArticlesQueuePage() {
                         provider="grok"
                         current={d}
                         source=""
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                       <EditorialAIButton
                         contentType="article"
@@ -382,16 +383,7 @@ function ArticlesQueuePage() {
                         provider="groq"
                         current={d}
                         source=""
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                       <EditorialAIButton
                         contentType="article"
@@ -399,16 +391,7 @@ function ArticlesQueuePage() {
                         provider="grok"
                         current={d}
                         source=""
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                       <EditorialAIButton
                         contentType="article"
@@ -417,16 +400,7 @@ function ArticlesQueuePage() {
                         provider="grok"
                         contentId={a.id}
                         current={d}
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                       <div>
                         <Label htmlFor={`at-${a.id}`}>Headline</Label>

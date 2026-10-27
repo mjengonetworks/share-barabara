@@ -18,8 +18,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
+import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
-export function InfrastructureIssueForm({ onDone }: { onDone?: () => void }) {
+export function InfrastructureIssueForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
@@ -68,6 +69,24 @@ export function InfrastructureIssueForm({ onDone }: { onDone?: () => void }) {
         submit.mutate();
       }}
     >
+      {editorial ? (
+        <div className="space-y-4">
+          {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }] as const).map(({ mode, provider }) => (
+            <EditorialAIButton
+              key={`${mode}-${provider}`}
+              contentType="infrastructure"
+              mode={mode}
+              provider={provider}
+              current={form}
+              source=""
+              onDraft={(draft) => setForm((current) => ({
+                ...current,
+                ...Object.fromEntries(Object.entries(draft).filter(([field, value]) => field in current && value !== null && value !== "")),
+              }))}
+            />
+          ))}
+        </div>
+      ) : null}
       <div>
         <Label htmlFor="i-road">Road name</Label>
         <Input

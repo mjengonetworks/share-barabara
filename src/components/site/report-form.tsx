@@ -351,11 +351,19 @@ export function ReportForm({ onDone }: { onDone?: () => void }) {
                       ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
                       ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
                       ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
+                      ...(typeof draft.incident_type === "string" && draft.incident_type.trim() ? { incident_type: draft.incident_type } : {}),
                       ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
                       ...(typeof draft.occurred_at === "string" && draft.occurred_at.trim() ? { occurred_at: draft.occurred_at.slice(0, 16) } : {}),
                       ...(typeof draft.vehicles_involved === "number" ? { vehicles_involved: draft.vehicles_involved } : {}),
                       ...(typeof draft.casualties === "number" ? { casualties: draft.casualties } : {}),
                       ...(typeof draft.fatalities === "number" ? { fatalities: draft.fatalities } : {}),
+                      ...(Array.isArray(draft.parties_involved) ? { parties_involved: draft.parties_involved } : {}),
+                      ...(typeof draft.seo_title === "string" && draft.seo_title.trim() ? { seo_title: draft.seo_title } : {}),
+                      ...(typeof draft.seo_description === "string" && draft.seo_description.trim() ? { seo_description: draft.seo_description } : {}),
+                      ...(typeof draft.seo_keywords === "string" && draft.seo_keywords.trim() ? { seo_keywords: draft.seo_keywords } : {}),
+                      ...(typeof draft.image_alt === "string" && draft.image_alt.trim() ? { image_alt: draft.image_alt } : {}),
+                      ...(typeof draft.image_caption === "string" && draft.image_caption.trim() ? { image_caption: draft.image_caption } : {}),
+                      ...(typeof draft.image_credit === "string" && draft.image_credit.trim() ? { image_credit: draft.image_credit } : {}),
                     }))
                   }
                 />
