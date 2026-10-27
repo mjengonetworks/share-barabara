@@ -39,3 +39,11 @@ test("alert lifecycle migration audits and authorises status changes", () => {
   assert.match(migration, /has_min_role\(auth\.uid\(\), 'editor'\)/);
   assert.match(migration, /NEW\.status NOT IN \('active', 'in_progress', 'resolved'\)/);
 });
+
+test("non-production database acceptance script covers RLS, reopen and rollback", () => {
+  const sql = read("supabase/inspection/alert-lifecycle-acceptance.sql");
+  assert.match(sql, /SET LOCAL ROLE authenticated/);
+  assert.match(sql, /cross-account status update unexpectedly succeeded/);
+  assert.match(sql, /UPDATE public\.alerts SET status = 'active'/);
+  assert.match(sql, /ROLLBACK;/);
+});
