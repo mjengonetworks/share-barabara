@@ -102,6 +102,7 @@ function AlertsPage() {
   const searchParams = Route.useSearch();
   const [county, setCounty] = useState(searchParams.county ?? "all");
   const [hazard, setHazard] = useState(searchParams.hazard ?? "all");
+  const [status, setStatus] = useState("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const { data: hazardTypes = [] } = useIncidentTaxonomy();
 
@@ -131,6 +132,7 @@ function AlertsPage() {
   const visible = alerts.filter(
     (a) =>
       (county === "all" || a.county === county) &&
+      (status === "all" || a.status === status) &&
       (!selectedHazards || selectedHazards.has(a.hazard_type)),
   );
   const latest = alerts.slice(0, 12);
@@ -322,6 +324,15 @@ function AlertsPage() {
                       {c}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="resolved">Resolved</SelectItem>
                 </SelectContent>
               </Select>
             </div>

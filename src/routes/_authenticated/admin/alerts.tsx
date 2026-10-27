@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Eye, MoreVertical, Plus, Trash2 } from "lucide-react";
@@ -62,6 +62,7 @@ function AlertsAdminPage() {
   const [county, setCounty] = useState("all");
   const [hazard, setHazard] = useState("all");
   const [severity, setSeverity] = useState("all");
+  const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
   const [editingParties, setEditingParties] = useState<{
     id: string;
@@ -96,11 +97,12 @@ function AlertsAdminPage() {
       if (county !== "all" && a.county !== county) return false;
       if (hazard !== "all" && a.hazard_type !== hazard) return false;
       if (severity !== "all" && a.severity !== severity) return false;
+      if (status !== "all" && a.status !== status) return false;
       if (q && !a.title.toLowerCase().includes(q) && !a.description.toLowerCase().includes(q))
         return false;
       return true;
     });
-  }, [allAlerts, county, hazard, severity, search]);
+  }, [allAlerts, county, hazard, severity, status, search]);
 
   const { data: names = {} } = useProfileNames(alerts.map((a) => a.user_id));
   const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
@@ -115,6 +117,15 @@ function AlertsAdminPage() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const setStatusMutation = useMutation({
+    mutationFn: async ({ id, nextStatus }: { id: string; nextStatus: string }) => {
+      const { error } = await supabase.from("alerts").update({ status: nextStatus }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Alert status updated"); queryClient.invalidateQueries({ queryKey: ["admin-alerts"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -225,6 +236,10 @@ function AlertsAdminPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="all">All statuses</SelectItem><SelectItem value="active">Active</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="resolved">Resolved</SelectItem></SelectContent>
+          </Select>
         </div>
         <div className="min-w-48 flex-1">
           <Label htmlFor="alert-search">Search</Label>
@@ -246,6 +261,7 @@ function AlertsAdminPage() {
               <TableHead>Alert</TableHead>
               <TableHead>County</TableHead>
               <TableHead>Severity</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Reported by</TableHead>
               <TableHead>Views</TableHead>
               <TableHead>Posted</TableHead>
@@ -281,6 +297,12 @@ function AlertsAdminPage() {
                         </SelectItem>
                       ))}
                     </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Select value={a.status} onValueChange={(v) => setStatusMutation.mutate({ id: a.id, nextStatus: v })}>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="resolved">Resolved</SelectItem></SelectContent>
                   </Select>
                 </TableCell>
                 <TableCell>
@@ -337,7 +359,7 @@ function AlertsAdminPage() {
             ))}
             {!isLoading && alerts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                   Nothing matches these filters.
                 </TableCell>
               </TableRow>

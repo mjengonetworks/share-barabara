@@ -9,7 +9,7 @@ export function useNotifications() {
   const key = ["notifications", user?.id];
   const seenRealtimeIds = useRef(new Set<string>());
 
-  const { data: notifications = [] } = useQuery({
+  const notificationsQuery = useQuery({
     queryKey: key,
     enabled: !!user,
     queryFn: async () => {
@@ -25,7 +25,7 @@ export function useNotifications() {
     refetchOnWindowFocus: true,
   });
 
-  const { data: unreadTotal = 0 } = useQuery({
+  const unreadQuery = useQuery({
     queryKey: ["notifications-unread-count", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -95,7 +95,10 @@ export function useNotifications() {
         .eq("user_id", user!.id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: key });
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread-count", user?.id] });
+    },
   });
 
   const markAllRead = useMutation({
@@ -108,12 +111,17 @@ export function useNotifications() {
         .is("read_at", null);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: key });
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread-count", user?.id] });
+    },
   });
 
   return {
-    notifications,
-    unreadCount: unreadTotal,
+    notifications: notificationsQuery.data ?? [],
+    unreadCount: unreadQuery.data ?? 0,
+    isLoading: notificationsQuery.isLoading,
+    isError: notificationsQuery.isError || unreadQuery.isError,
     markRead: (id: string) => markRead.mutate(id),
     markAllRead: () => markAllRead.mutate(),
   };
