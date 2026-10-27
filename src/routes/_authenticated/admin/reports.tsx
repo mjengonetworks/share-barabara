@@ -294,7 +294,7 @@ function ReportsQueuePage() {
         <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Incident / location</span><span>Severity / status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {reports.map((r) => {
-          const d: ReportDraft = drafts[r.id] ?? {
+          const d = (drafts[r.id] ?? {
             title: r.title,
             description: r.description,
             county: r.county,
@@ -314,9 +314,11 @@ function ReportsQueuePage() {
             seo_keywords: r.seo_keywords ?? "",
             parties_involved: r.parties_involved ?? [],
             casualty_breakdown: (r.casualty_breakdown as CasualtyBreakdown | null) ?? {},
-          };
+          }) as unknown as ReportDraft & Record<string, import("@/lib/ai/editorial.functions").EditorialValue>;
           const set = (patch: Partial<ReportDraft>) =>
             setDrafts((prev) => ({ ...prev, [r.id]: { ...d, ...patch } }));
+          const applyAI = (draft: Record<string, unknown>) =>
+            set(Object.fromEntries(Object.entries(draft).filter(([field, value]) => field in d && value !== null && value !== "")) as Partial<ReportDraft>);
           const expanded = expandedId === r.id;
 
           return (
@@ -429,24 +431,7 @@ function ReportsQueuePage() {
                         provider={provider}
                         current={d}
                         source=""
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["description"] === "string" ? { description: draft["description"] } : {}),
-                            ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
-                            ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
-                            ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
-                            ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null
-                              ? { vehicles_involved: draft["vehicles_involved"] }
-                              : {}),
-                            ...(typeof draft["casualties"] === "number" || draft["casualties"] === null
-                              ? { casualties: draft["casualties"] }
-                              : {}),
-                            ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null
-                              ? { fatalities: draft["fatalities"] }
-                              : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                     ))}
                     <EditorialAIButton
@@ -455,26 +440,7 @@ function ReportsQueuePage() {
                       mode="update"
                       contentId={r.id}
                       current={d}
-                      onDraft={(draft) =>
-                        set({
-                          ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                          ...(typeof draft["description"] === "string"
-                            ? { description: draft["description"] }
-                            : {}),
-                          ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
-                          ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
-                          ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
-                          ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null
-                            ? { vehicles_involved: draft["vehicles_involved"] }
-                            : {}),
-                          ...(typeof draft["casualties"] === "number" || draft["casualties"] === null
-                            ? { casualties: draft["casualties"] }
-                            : {}),
-                          ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null
-                            ? { fatalities: draft["fatalities"] }
-                            : {}),
-                        })
-                      }
+                      onDraft={applyAI}
                     />
                     <div>
                       <Label htmlFor={`t-${r.id}`}>Summary</Label>
