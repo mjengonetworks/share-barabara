@@ -3,9 +3,7 @@
 -- dropped automatically. This file does not execute or apply any migration.
 -- Run with an owner-authorized read-only SQL session against the existing
 -- Share Barabara production project before approving the migration.
-
-\set ON_ERROR_STOP on
-\set QUIET on
+-- This is plain SQL and is compatible with the Supabase SQL Editor.
 
 BEGIN;
 
