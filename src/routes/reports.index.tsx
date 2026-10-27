@@ -23,6 +23,7 @@ import { KENYA_COUNTIES } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
@@ -40,8 +41,8 @@ import {
   type PublicIncidentCard,
 } from "@/components/site/public-layout";
 import {
-  publicCategoryBadgeClass,
-  publicCategoryBadgeSelectedClass,
+  publicCategoryNavigationClass,
+  publicCategoryNavigationSelectedClass,
 } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/reports/")({
@@ -257,7 +258,7 @@ function ReportsPage() {
                 <button
                   onClick={() => setSeverity("all")}
                   className={
-                    severity === "all" ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
+                    severity === "all" ? publicCategoryNavigationSelectedClass : publicCategoryNavigationClass
                   }
                 >
                   All severities
@@ -268,8 +269,8 @@ function ReportsPage() {
                     onClick={() => setSeverity(s.value)}
                     className={
                       severity === s.value
-                        ? publicCategoryBadgeSelectedClass
-                        : publicCategoryBadgeClass
+                        ? publicCategoryNavigationSelectedClass
+                        : publicCategoryNavigationClass
                     }
                   >
                     {s.label}
@@ -339,6 +340,7 @@ function ReportsPage() {
             </div>
         </div>
       </div>
+      <GlobalEditorialPreview destination="reports" topic={incident !== "all" ? incident : null} />
       <EditorialDiscoveryRail exclude="reports" />
       <MjengoPreviews context="reports" />
     </div>

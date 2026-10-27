@@ -44,6 +44,7 @@ import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -162,16 +163,16 @@ function ArticlesQueuePage() {
   });
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Content & moderation"
-        title="Articles"
+        title="Manage Articles"
         description="Review submissions from contributors. Publishing or rejecting needs moderator rank or above."
         websiteHref="/news"
-        actions={<Button asChild size="sm"><Link to="/admin/my-articles"><Plus className="mr-1.5 size-4" /> Add new article</Link></Button>}
+        actions={<Button asChild size="sm"><Link to="/admin/my-articles"><Plus className="mr-1.5 size-4" /> Add New Article</Link></Button>}
       />
 
-      <div className="mt-6 flex flex-wrap items-end gap-3">
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -203,9 +204,9 @@ function ArticlesQueuePage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="min-w-48 flex-1">
+        <div className="min-w-48 flex-1 sm:col-span-2 lg:col-span-4">
           <Label htmlFor="article-search">Search</Label>
-          <Input
+            <Input
             id="article-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -228,7 +229,9 @@ function ArticlesQueuePage() {
         </p>
       ) : null}
 
-      <ul className="mt-6 space-y-3">
+      <AdminListingSurface>
+        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Article / metadata</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {articles.map((a) => {
           const d: ArticleDraft = drafts[a.id] ?? {
             title: a.title,
@@ -257,26 +260,33 @@ function ArticlesQueuePage() {
           const expanded = expandedId === a.id;
 
           return (
-            <li key={a.id} className="rounded-lg border border-border bg-card card-elevated">
-              <div className="flex items-center gap-3 p-4">
+            <li key={a.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
+              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
+                <input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <button
                   type="button"
                   onClick={() => setExpandedId(expanded ? null : a.id)}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  className="min-w-0 text-left"
                 >
                   {a.image_url ? (
                     <img
                       src={a.image_url}
                       alt=""
-                      className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
+                      className="h-12 w-[70px] shrink-0 rounded bg-muted object-cover"
                     />
                   ) : (
-                    <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
                       <Newspaper className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{a.title}</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : a.id)}
+                    className="min-w-0 text-left"
+                  >
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 font-semibold">{a.title}</p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
                       {(a.categories?.length ? a.categories : [a.category]).map((c) => (
                         <span
@@ -297,8 +307,9 @@ function ArticlesQueuePage() {
                       <span>· {dateTime(a.created_at)}</span>
                     </p>
                   </div>
-                </button>
+                  </button>
 
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="size-8 shrink-0">
@@ -523,6 +534,7 @@ function ArticlesQueuePage() {
           );
         })}
       </ul>
+      </AdminListingSurface>
     </div>
   );
 }

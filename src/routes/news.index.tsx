@@ -17,6 +17,11 @@ import {
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import {
+  publicCategoryNavigationClass,
+  publicCategoryNavigationSelectedClass,
+} from "@/components/site/public-ui";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { groupLatestByEntity } from "@/lib/category-entity";
 import {
@@ -113,25 +118,35 @@ type ArticleCard = {
 function LatestStrip({ articles }: { articles: ArticleCard[] }) {
   if (!articles.length) return null;
   return (
-    <div className="mt-5 overflow-hidden rounded-xl border border-border bg-card card-elevated">
-      <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
+    <section aria-labelledby="latest-news-updates" className="mt-6">
+      <div className="flex items-center justify-between gap-3">
         <span className="shrink-0 text-xs font-extrabold uppercase tracking-[0.18em] text-brand-blue">
-          Latest update
+          Latest updates
         </span>
-        <div className="grid min-w-0 flex-1 gap-2 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <Link to="/news" className="text-xs font-bold text-brand-blue underline underline-offset-2">
+          View all
+        </Link>
+      </div>
+      <div id="latest-news-updates" className="mt-3 grid gap-3 sm:grid-cols-3">
           {articles.slice(0, 3).map((article) => (
             <Link
               key={article.id}
               to="/news/$slug"
               params={{ slug: article.slug }}
-              className="truncate px-0 text-sm font-semibold hover:text-brand-blue hover:underline sm:px-4 first:sm:pl-0"
+              className="group flex min-w-0 items-center gap-3 rounded-lg border border-border bg-card p-3 card-elevated hover:border-accent"
             >
-              {article.title}
+              {article.image_url ? (
+                <img src={article.image_url} alt="" loading="lazy" className="size-14 shrink-0 rounded object-cover" />
+              ) : (
+                <span className="flex size-14 shrink-0 items-center justify-center rounded bg-primary/5 text-[10px] text-muted-foreground">News</span>
+              )}
+              <span className="min-w-0 text-sm font-semibold leading-snug group-hover:text-brand-blue group-hover:underline">
+                {article.title}
+              </span>
             </Link>
           ))}
-        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -144,11 +159,7 @@ function CategoryFilters({ categories, active }: { categories: string[]; active?
       <Link
         to="/news"
         aria-current={!active ? "page" : undefined}
-        className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 sm:py-2 sm:text-sm ${
-          !active
-            ? "border-accent bg-accent text-brand-navy"
-            : "border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
-        }`}
+        className={!active ? publicCategoryNavigationSelectedClass : publicCategoryNavigationClass}
       >
         All articles
       </Link>
@@ -158,11 +169,11 @@ function CategoryFilters({ categories, active }: { categories: string[]; active?
           to="/news"
           search={{ category }}
           aria-current={active === category ? "page" : undefined}
-          className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 sm:py-2 sm:text-sm ${
+          className={
             active === category
-              ? "border-accent bg-accent text-brand-navy"
-              : "border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:border-accent hover:bg-accent/20"
-          }`}
+              ? publicCategoryNavigationSelectedClass
+              : publicCategoryNavigationClass
+          }
         >
           {category}
         </Link>
@@ -325,13 +336,13 @@ function NewsIndex() {
         description="Road safety reporting, transport insight and community stories about how Kenyans travel and how we can make every journey safer."
         image={heroRoad}
         fullBleed
+        compact
       >
         <div className="basis-full min-w-0">
           <CategoryFilters categories={loaderData.categories} active={category} />
         </div>
       </PublicPageHero>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {!category ? <LatestStrip articles={latest} /> : null}
         {user && canWrite ? (
           <div className="mt-4 flex justify-end">
             <WriteButton signedIn={!!user} canWrite={canWrite} />
@@ -406,6 +417,8 @@ function NewsIndex() {
             ) : null}
           </div>
         )}
+        {!category ? <LatestStrip articles={latest} /> : null}
+        <GlobalEditorialPreview destination="news" category={category} />
         <EditorialDiscoveryRail exclude="news" />
         <MjengoPreviews context="articles" />
       </div>

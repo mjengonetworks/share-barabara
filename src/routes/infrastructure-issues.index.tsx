@@ -25,6 +25,7 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { EditorialBand, SectionHeader } from "@/components/site/public-layout";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 
 export const Route = createFileRoute("/infrastructure-issues/")({
   validateSearch: (
@@ -209,9 +210,6 @@ function InfrastructureIssuesPage() {
                         <MapPin className="size-3.5" /> {issue.road_name}
                         {issue.county ? ` · ${issue.county}` : ""}
                       </p>
-                      <p className="mt-2 line-clamp-2 flex-1 text-sm text-muted-foreground">
-                        {issue.summary}
-                      </p>
                     </div>
                   </Link>
                 </Fragment>
@@ -219,6 +217,7 @@ function InfrastructureIssuesPage() {
             </div>
           </EditorialBand>
         ) : null}
+        <GlobalEditorialPreview destination="infrastructure" />
         <EditorialDiscoveryRail exclude="infrastructure" />
       </div>
     </div>

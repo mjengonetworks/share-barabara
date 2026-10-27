@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Eye, MoreVertical, Plus, Trash2 } from "lucide-react";
@@ -48,6 +48,7 @@ import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { AlertForm } from "@/components/site/alert-form";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
@@ -62,7 +63,6 @@ function AlertsAdminPage() {
   const [county, setCounty] = useState("all");
   const [hazard, setHazard] = useState("all");
   const [severity, setSeverity] = useState("all");
-  const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
   const [editingParties, setEditingParties] = useState<{
     id: string;
@@ -97,12 +97,11 @@ function AlertsAdminPage() {
       if (county !== "all" && a.county !== county) return false;
       if (hazard !== "all" && a.hazard_type !== hazard) return false;
       if (severity !== "all" && a.severity !== severity) return false;
-      if (status !== "all" && a.status !== status) return false;
       if (q && !a.title.toLowerCase().includes(q) && !a.description.toLowerCase().includes(q))
         return false;
       return true;
     });
-  }, [allAlerts, county, hazard, severity, status, search]);
+  }, [allAlerts, county, hazard, severity, search]);
 
   const { data: names = {} } = useProfileNames(alerts.map((a) => a.user_id));
   const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
@@ -117,15 +116,6 @@ function AlertsAdminPage() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const setStatusMutation = useMutation({
-    mutationFn: async ({ id, nextStatus }: { id: string; nextStatus: string }) => {
-      const { error } = await supabase.from("alerts").update({ status: nextStatus }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => { toast.success("Alert status updated"); queryClient.invalidateQueries({ queryKey: ["admin-alerts"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -171,7 +161,7 @@ function AlertsAdminPage() {
   });
 
   return (
-    <div>
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Content & moderation"
         title="Hazard alerts"
@@ -188,7 +178,7 @@ function AlertsAdminPage() {
         }
       />
 
-      <div className="mt-6 flex flex-wrap items-end gap-3">
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Label>County</Label>
           <Select value={county} onValueChange={setCounty}>
@@ -236,10 +226,6 @@ function AlertsAdminPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent><SelectItem value="all">All statuses</SelectItem><SelectItem value="active">Active</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="resolved">Resolved</SelectItem></SelectContent>
-          </Select>
         </div>
         <div className="min-w-48 flex-1">
           <Label htmlFor="alert-search">Search</Label>
@@ -254,14 +240,15 @@ function AlertsAdminPage() {
 
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
+      <AdminListingSurface className="mt-0">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10"><span className="sr-only">Select</span></TableHead>
+              <TableHead>Image</TableHead>
               <TableHead>Alert</TableHead>
               <TableHead>County</TableHead>
               <TableHead>Severity</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Reported by</TableHead>
               <TableHead>Views</TableHead>
               <TableHead>Posted</TableHead>
@@ -271,6 +258,10 @@ function AlertsAdminPage() {
           <TableBody>
             {alerts.map((a) => (
               <TableRow key={a.id}>
+                <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" /></TableCell>
+                <TableCell>
+                  {a.image_url ? <img src={a.image_url} alt="" className="size-12 rounded object-cover" /> : <div className="size-12 rounded bg-muted" aria-label="No featured image" />}
+                </TableCell>
                 <TableCell className="max-w-xs">
                   <Link
                     to="/alerts/$alertId"
@@ -297,12 +288,6 @@ function AlertsAdminPage() {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Select value={a.status} onValueChange={(v) => setStatusMutation.mutate({ id: a.id, nextStatus: v })}>
-                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="resolved">Resolved</SelectItem></SelectContent>
                   </Select>
                 </TableCell>
                 <TableCell>
@@ -359,14 +344,14 @@ function AlertsAdminPage() {
             ))}
             {!isLoading && alerts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
                   Nothing matches these filters.
                 </TableCell>
               </TableRow>
             ) : null}
           </TableBody>
         </Table>
-      </div>
+      </AdminListingSurface>
 
       <Dialog open={!!editingParties} onOpenChange={(v) => !v && setEditingParties(null)}>
         <DialogContent>

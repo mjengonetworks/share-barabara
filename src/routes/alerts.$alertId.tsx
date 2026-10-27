@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, TriangleAlert } from "lucide-react";
+import { ArrowLeft, MapPin, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileNames } from "@/lib/profiles";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
@@ -21,12 +21,15 @@ import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachment-gallery";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
-import { DiscoverySections } from "@/components/site/discovery-sections";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { EditorialSummary } from "@/components/site/editorial-summary";
 import { AlertPreviewCard } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
+import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   loader: async ({ params }) => {
@@ -34,6 +37,7 @@ export const Route = createFileRoute("/alerts/$alertId")({
       .from("alerts")
       .select("*")
       .eq("id", params.alertId)
+      .eq("status", "active")
       .maybeSingle();
     return data;
   },
@@ -80,6 +84,7 @@ function AlertDetail() {
         .from("alerts")
         .select("*")
         .eq("id", alertId)
+        .eq("status", "active")
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -151,7 +156,6 @@ function AlertDetail() {
   }
 
   const linkedRoad = roadMap[alert.road_id ?? ""];
-  const statusLabel = alert.status === "in_progress" ? "In Progress" : alert.status === "resolved" ? "Resolved" : alert.status === "active" ? "Active" : alert.status;
 
   return (
     <>
@@ -162,25 +166,42 @@ function AlertDetail() {
           { label: alert.title },
         ]}
       />
-      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
-        <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-caution">Alert / Hazard</p>
-          <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-4 shrink-0" /> {alert.county}
-            {alert.road ? <> {" · "} {linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{alert.road}</Link> : alert.road}</> : null}
-          </p>
-          <h1 className="mt-2 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
-            {alert.title}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
+          <Link
+            to="/alerts"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground"
+          >
+            <ArrowLeft className="size-4" /> All alerts
+          </Link>
+
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <TriangleAlert className="size-4 text-caution" />
             <SeverityBadge value={alert.severity} />
-            <span className="rounded bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            <PublicEditorialCategoryBadge>
               {hazardTypes.find((h) => h.value === alert.hazard_type)?.label ?? alert.hazard_type}
-            </span>
-            <span className={`rounded px-2 py-0.5 text-xs font-semibold ${alert.status === "resolved" ? "bg-emerald-500/15 text-emerald-700" : alert.status === "in_progress" ? "bg-caution/20 text-caution" : "bg-accent/15 text-accent-foreground"}`}>{statusLabel}</span>
+            </PublicEditorialCategoryBadge>
+            <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Reported {longDate(alert.created_at)}</p>
+
+          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            {alert.title}
+          </h1>
+          <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="size-4" /> {alert.county}
+            {alert.road ? (
+              <>
+                {" · "}
+                {linkedRoad ? (
+                  <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">
+                    {alert.road}
+                  </Link>
+                ) : (
+                  alert.road
+                )}
+              </>
+            ) : null}
+          </p>
           <p className="mt-2 text-sm text-muted-foreground">
             Reported by{" "}
             <UserLink
@@ -205,13 +226,7 @@ function AlertDetail() {
                 alt={alert.image_alt || alert.title}
                 className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
               />
-              {alert.image_caption || alert.image_credit ? (
-                <figcaption className="mt-1.5 text-xs text-muted-foreground">
-                  {alert.image_caption}
-                  {alert.image_caption && alert.image_credit ? " · " : ""}
-                  {alert.image_credit ? <em>Credit: {alert.image_credit}</em> : null}
-                </figcaption>
-              ) : null}
+              <EditorialMediaMeta caption={alert.image_caption} credit={alert.image_credit} />
             </figure>
           ) : null}
 
@@ -225,9 +240,7 @@ function AlertDetail() {
             </div>
           ) : null}
 
-          <div className="mt-6 space-y-4 text-foreground/90">
-            {renderRichText(alert.description)}
-          </div>
+          <EditorialSummary className="mt-6">{renderRichText(alert.description)}</EditorialSummary>
 
           <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />
 
@@ -268,7 +281,7 @@ function AlertDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 More from {alert.county}
               </h2>
-              <AlertList alerts={related} />
+              <AlertList alerts={related.slice(0, 3)} />
               <Link
                 to="/alerts"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -282,7 +295,7 @@ function AlertDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Latest alerts
               </h2>
-              <AlertList alerts={latest} />
+              <AlertList alerts={latest.slice(0, 3)} />
               <Link
                 to="/alerts"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -293,10 +306,14 @@ function AlertDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
-      <DiscoverySections
-        focus="alert"
-        currentId={alert.id}
-        context={{ county: alert.county, road: alert.road, topic: alert.hazard_type }}
+      <GlobalEditorialPreview
+        destination="alerts"
+        excludeId={alert.id}
+        topic={alert.hazard_type}
+        excludeKeys={[
+          ...related.slice(0, 3).map((item) => `alerts:${item.id}`),
+          ...latest.slice(0, 3).map((item) => `alerts:${item.id}`),
+        ]}
       />
     </>
   );

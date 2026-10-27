@@ -24,6 +24,7 @@ type PublicPageHeroProps = {
   secondaryCta?: HeroLink;
   children?: ReactNode;
   fullBleed?: boolean;
+  compact?: boolean;
 };
 
 /** Compact editorial hero for public landing pages. The homepage keeps its own flagship hero. */
@@ -38,6 +39,7 @@ export function PublicPageHero({
   secondaryCta,
   children,
   fullBleed = false,
+  compact = false,
 }: PublicPageHeroProps) {
   return (
     <section
@@ -62,7 +64,7 @@ export function PublicPageHero({
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14 lg:py-16">
+      <div className={`relative mx-auto max-w-7xl px-5 ${compact ? "py-7 sm:px-8 sm:py-9 lg:py-10" : "py-10 sm:px-8 sm:py-14 lg:py-16"}`}>
         {breadcrumbs?.length ? (
           <nav aria-label="Breadcrumb" className="mb-5 text-xs text-primary-foreground/75">
             <ol className="flex flex-wrap items-center gap-2">

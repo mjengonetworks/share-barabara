@@ -79,9 +79,9 @@ export function SiteHeader() {
       ref={headerRef}
       className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur"
     >
-      <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center gap-2 px-3 sm:gap-3 sm:px-5 lg:grid lg:h-16 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-5 lg:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center gap-1 px-1.5 sm:gap-3 sm:px-5 lg:grid lg:h-16 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-5 lg:px-6">
         <button
-          className="order-first flex size-9 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-muted lg:hidden"
+          className="order-first flex size-9 shrink-0 items-center justify-start rounded-md pl-0.5 text-foreground hover:bg-muted sm:justify-center sm:pl-0 lg:hidden"
           aria-label="Toggle menu"
           aria-expanded={open}
           aria-controls="mobile-site-navigation"
@@ -89,7 +89,7 @@ export function SiteHeader() {
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
-        <Link to="/" className="flex items-center" aria-label="Share Barabara home">
+        <Link to="/" className="-ml-3 flex items-center sm:ml-0" aria-label="Share Barabara home">
           <img src={logoUrl} alt="Share Barabara" className="h-11 w-auto sm:h-12 lg:h-12" />
         </Link>
 

@@ -32,6 +32,7 @@ import {
   TaxonomyDiscovery,
 } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -445,12 +446,6 @@ function Index() {
 
       <section className="border-t border-border bg-secondary/40">
         <div className="mx-auto max-w-6xl space-y-8 px-4 py-10">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-              Explore the platform
-            </p>
-            <h2 className="mt-1 text-[1.44375rem] font-bold">More from Share Barabara</h2>
-          </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <PreviewCard
               title="Share Barabara AI"
@@ -506,6 +501,7 @@ function Index() {
               <TaxonomyDiscovery kind="reports" />
             </div>
           </div>
+          <GlobalEditorialPreview destination="news" />
           <MjengoPreviews context="home" />
           <SisterPlatformPreviews />
         </div>

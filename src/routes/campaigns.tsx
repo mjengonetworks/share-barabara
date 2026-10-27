@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 
 export const Route = createFileRoute("/campaigns")({
   head: () => ({
@@ -71,7 +72,6 @@ function CampaignListItem({
           {dateLabel}
           {c.location ? ` · ${c.location}` : ""}
         </p>
-        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>
       </div>
     </Link>
   );
@@ -274,6 +274,7 @@ function CampaignsPage() {
         <FeaturedPageCard slot="campaigns_page_of_week" />
       </section>
 
+      <GlobalEditorialPreview destination="campaigns" />
       <EditorialDiscoveryRail exclude="campaigns" />
 
       <section className="mt-14 border-t border-border pt-10">

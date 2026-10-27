@@ -22,7 +22,9 @@ import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { displayReportCount } from "@/lib/report-metrics";
-import { DiscoverySections } from "@/components/site/discovery-sections";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { EditorialSummary } from "@/components/site/editorial-summary";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
 import { isAdInterval } from "@/lib/ad-placement";
@@ -30,6 +32,7 @@ import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { ReportPreviewCard } from "@/components/site/discovery-sections";
 import { socialHead } from "@/lib/seo";
+import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -203,8 +206,8 @@ function ReportDetail() {
           { label: report.title },
         ]}
       />
-      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
-        <article className="min-w-0 rounded-xl border border-border bg-card p-3 card-elevated sm:rounded-2xl sm:p-6">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
           <Link
             to="/reports"
             className="inline-flex items-center gap-1 text-sm text-muted-foreground"
@@ -212,7 +215,10 @@ function ReportDetail() {
             <ArrowLeft className="size-4" /> All reports
           </Link>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <PublicEditorialCategoryBadge>
+              {report.incident_type || "Accident report"}
+            </PublicEditorialCategoryBadge>
             <SeverityBadge value={report.severity} />
             {report.status !== "approved" ? (
               <span
@@ -233,7 +239,7 @@ function ReportDetail() {
               {report.rejection_reason}
             </p>
           ) : null}
-          <h1 className="mt-3 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {report.title}
           </h1>
           <div className="mt-3">
@@ -246,13 +252,7 @@ function ReportDetail() {
                 alt={report.image_alt || report.title}
                 className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
               />
-              {report.image_caption || report.image_credit ? (
-                <figcaption className="mt-1.5 text-xs text-muted-foreground">
-                  {report.image_caption}
-                  {report.image_caption && report.image_credit ? " · " : ""}
-                  {report.image_credit ? <em>Credit: {report.image_credit}</em> : null}
-                </figcaption>
-              ) : null}
+              <EditorialMediaMeta caption={report.image_caption} credit={report.image_credit} />
             </figure>
           ) : null}
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
@@ -360,7 +360,9 @@ function ReportDetail() {
           ) : null}
 
           <div className="mt-6 space-y-4 text-foreground/90">
-            <AdRichText content={report.description} placement="report-body" />
+            <EditorialSummary>
+              <AdRichText content={report.description} placement="report-body" />
+            </EditorialSummary>
           </div>
 
           <AttachmentGallery attachments={report.attachments as AttachmentRow[]} />
@@ -403,7 +405,7 @@ function ReportDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 More from {report.county}
               </h2>
-              <ReportList reports={related} />
+              <ReportList reports={related.slice(0, 3)} />
               <Link
                 to="/reports"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -417,7 +419,7 @@ function ReportDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 Latest reports
               </h2>
-              <ReportList reports={latest} />
+              <ReportList reports={latest.slice(0, 3)} />
               <Link
                 to="/reports"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -431,7 +433,7 @@ function ReportDetail() {
               <h2 className="flex items-center gap-1 text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 <Flame className="size-4 text-destructive" /> Trending
               </h2>
-              <ReportList reports={trending} />
+              <ReportList reports={trending.slice(0, 3)} />
               <Link
                 to="/reports"
                 className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
@@ -442,10 +444,15 @@ function ReportDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
-      <DiscoverySections
-        focus="report"
-        currentId={report.id}
-        context={{ county: report.county, road: report.road, topic: report.incident_type }}
+      <GlobalEditorialPreview
+        destination="reports"
+        excludeId={report.id}
+        topic={report.incident_type}
+        excludeKeys={[
+          ...related.slice(0, 3).map((item) => `reports:${item.id}`),
+          ...latest.slice(0, 3).map((item) => `reports:${item.id}`),
+          ...trending.slice(0, 3).map((item) => `reports:${item.id}`),
+        ]}
       />
     </>
   );
