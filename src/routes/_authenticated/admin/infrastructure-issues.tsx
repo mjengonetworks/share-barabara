@@ -39,6 +39,8 @@ import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { InfrastructureIssueForm } from "@/components/site/infrastructure-issue-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
   head: () => ({ meta: [{ title: "Infrastructure Issues: Share Barabara Admin" }] }),
@@ -65,6 +67,7 @@ function InfrastructureIssuesAdminPage() {
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: allIssues = [], isLoading } = useQuery({
     queryKey: ["admin-infrastructure-issues"],
@@ -130,7 +133,15 @@ function InfrastructureIssuesAdminPage() {
         eyebrow="Content & moderation"
         title="Manage Infrastructure Issues"
         description="Roads, bridges, drainage and signage problems reported by the community."
+        actions={<Button size="sm" onClick={() => setCreateOpen(true)}><Plus className="mr-1.5 size-4" /> Add New Issue</Button>}
       />
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>New infrastructure issue</DialogTitle></DialogHeader>
+          <InfrastructureIssueForm editorial onDone={() => setCreateOpen(false)} />
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>

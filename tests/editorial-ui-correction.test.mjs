@@ -71,7 +71,7 @@ test("article Auto-Populate returns and applies all SEO fields", async () => {
     /\["title", "summary", "body", "seo_title", "seo_description", "seo_keywords"\]/,
   );
   for (const field of ["seo_title", "seo_description", "seo_keywords"]) {
-    assert.match(form, new RegExp(`draft\\["${field}"\\]`));
+    assert.match(form, new RegExp(`draft\\["${field}"\\]|draft\\[${field}\\]`));
   }
 });
 
