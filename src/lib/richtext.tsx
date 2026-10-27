@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import katex from "katex";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 
 /**
  * A deliberately small markdown-lite dialect, not full CommonMark: bold
@@ -143,13 +144,7 @@ export function renderRichText(content: string): ReactNode {
             alt={imageMatch[1]}
             className="w-full rounded-lg border border-border object-cover"
           />
-          {caption || credit ? (
-            <figcaption className="mt-1.5 text-xs text-muted-foreground">
-              {caption}
-              {caption && credit ? " · " : ""}
-              {credit ? <em>Credit: {credit}</em> : null}
-            </figcaption>
-          ) : null}
+          <EditorialMediaMeta caption={caption} credit={credit} />
         </figure>
       );
     }

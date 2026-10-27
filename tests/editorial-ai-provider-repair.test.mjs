@@ -38,6 +38,23 @@ test("editorial source textareas start empty instead of receiving CMS draft labe
   assert.match(files.join("\n"), /source=""/);
 });
 
+test("cross-device Editorial AI keeps source material separate and exposes safe diagnostics", async () => {
+  const [button, server, worker] = await Promise.all([
+    read("src/components/site/editorial-ai-button.tsx"),
+    read("src/server.ts"),
+    read("public/sw.js"),
+  ]);
+  assert.match(button, /initialSourceMaterial/);
+  assert.match(button, /\^title:\\s\*summary:\\s\*body/);
+  assert.match(button, /data-editorial-ai-ui-version/);
+  assert.match(button, /category: "authentication"/);
+  assert.match(button, /finally \{/);
+  assert.match(server, /cache-control.*no-cache, must-revalidate/);
+  assert.match(server, /x-share-barabara-app-version/);
+  assert.doesNotMatch(worker, /addEventListener\(["']fetch/);
+  assert.doesNotMatch(worker, /caches\.open/);
+});
+
 test("Editorial AI panels are collapsed by default and Update is persisted-record only", async () => {
   const [button, editorial, articleForm, campaign, infrastructure] = await Promise.all([
     read("src/components/site/editorial-ai-button.tsx"),

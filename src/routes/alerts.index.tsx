@@ -25,6 +25,7 @@ import { descendantsOf } from "@/lib/incident-taxonomy";
 import { isAdInterval } from "@/lib/ad-placement";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
@@ -41,8 +42,8 @@ import {
   type PublicIncidentCard,
 } from "@/components/site/public-layout";
 import {
-  publicCategoryBadgeClass,
-  publicCategoryBadgeSelectedClass,
+  publicCategoryNavigationClass,
+  publicCategoryNavigationSelectedClass,
 } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/alerts/")({
@@ -285,7 +286,7 @@ function AlertsPage() {
                 <button
                   onClick={() => setHazard("all")}
                   className={
-                    hazard === "all" ? publicCategoryBadgeSelectedClass : publicCategoryBadgeClass
+                    hazard === "all" ? publicCategoryNavigationSelectedClass : publicCategoryNavigationClass
                   }
                 >
                   All hazards
@@ -296,8 +297,8 @@ function AlertsPage() {
                     onClick={() => setHazard(h.value)}
                     className={
                       hazard === h.value
-                        ? publicCategoryBadgeSelectedClass
-                        : publicCategoryBadgeClass
+                        ? publicCategoryNavigationSelectedClass
+                        : publicCategoryNavigationClass
                     }
                   >
                     {h.label}
@@ -355,6 +356,7 @@ function AlertsPage() {
         </div>
       </div>
 
+      <GlobalEditorialPreview destination="alerts" topic={hazard !== "all" ? hazard : null} />
       <EditorialDiscoveryRail exclude="alerts" />
       <TopContributingProfiles />
       <MjengoPreviews context="alerts" />

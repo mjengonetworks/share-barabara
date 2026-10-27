@@ -9,10 +9,11 @@ import {
   ExternalLink,
   MoreVertical,
   Pencil,
-  Plus,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -38,8 +39,8 @@ import { UserLink } from "@/components/site/user-link";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { InfrastructureIssueForm } from "@/components/site/infrastructure-issue-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
   head: () => ({ meta: [{ title: "Infrastructure Issues: Share Barabara Admin" }] }),
@@ -127,25 +128,22 @@ function InfrastructureIssuesAdminPage() {
   });
 
   return (
-    <div className="max-w-4xl">
-      <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
-        Moderation queue
-      </p>
-      <h1 className="mt-1 text-[1.44375rem] font-extrabold">Infrastructure issues</h1>
-      <p className="mt-2 text-muted-foreground">
-        Roads, bridges, drainage and signage problems reported by the community.
-      </p>
+    <div className="w-full max-w-[1500px]">
+      <AdminPageHeader
+        eyebrow="Content & moderation"
+        title="Manage Infrastructure Issues"
+        description="Roads, bridges, drainage and signage problems reported by the community."
+        actions={<Button size="sm" onClick={() => setCreateOpen(true)}><Plus className="mr-1.5 size-4" /> Add New Issue</Button>}
+      />
+
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogTrigger asChild>
-          <Button className="mt-4"><Plus className="mr-1.5 size-4" /> Add infrastructure issue</Button>
-        </DialogTrigger>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader><DialogTitle>New infrastructure issue</DialogTitle></DialogHeader>
           <InfrastructureIssueForm editorial onDone={() => setCreateOpen(false)} />
         </DialogContent>
       </Dialog>
 
-      <div className="mt-6 flex flex-wrap items-end gap-3">
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -176,7 +174,7 @@ function InfrastructureIssuesAdminPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="min-w-48 flex-1">
+        <div className="min-w-48 flex-1 sm:col-span-2 lg:col-span-4">
           <Label htmlFor="infra-search">Search</Label>
           <Input
             id="infra-search"
@@ -194,7 +192,9 @@ function InfrastructureIssuesAdminPage() {
         </p>
       ) : null}
 
-      <ul className="mt-6 space-y-3">
+      <AdminListingSurface>
+        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Issue / location</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {issues.map((i) => {
           const d: Draft = drafts[i.id] ?? {
             title: i.title,
@@ -211,26 +211,33 @@ function InfrastructureIssuesAdminPage() {
           const expanded = expandedId === i.id;
 
           return (
-            <li key={i.id} className="rounded-lg border border-border bg-card card-elevated">
-              <div className="flex items-center gap-3 p-4">
+            <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
+              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
+                <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <button
                   type="button"
                   onClick={() => setExpandedId(expanded ? null : i.id)}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  className="min-w-0 text-left"
                 >
                   {i.image_url ? (
                     <img
                       src={i.image_url}
                       alt=""
-                      className="size-14 shrink-0 rounded object-cover"
+                      className="h-12 w-[70px] shrink-0 rounded object-cover"
                     />
                   ) : (
-                    <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
                       <Construction className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{i.title}</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : i.id)}
+                    className="min-w-0 text-left"
+                  >
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 font-semibold">{i.title}</p>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {i.road_name}
                       {i.county ? ` · ${i.county}` : ""} · by{" "}
@@ -238,8 +245,9 @@ function InfrastructureIssuesAdminPage() {
                       {dateTime(i.created_at)}
                     </p>
                   </div>
-                </button>
+                  </button>
 
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="size-8 shrink-0">
@@ -298,20 +306,6 @@ function InfrastructureIssuesAdminPage() {
               {expanded ? (
                 <div className="border-t border-border p-5">
                   <div className="space-y-4">
-                    <div className="space-y-3">
-                      {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, { mode: "update", provider: "grok" }] as const).map(({ mode, provider }) => (
-                        <EditorialAIButton
-                          key={`${mode}-${provider}`}
-                          contentType="infrastructure"
-                          mode={mode}
-                          provider={provider}
-                          contentId={i.id}
-                          current={d}
-                          source=""
-                          onDraft={(draft) => set(Object.fromEntries(Object.entries(draft).filter(([key]) => key in d)) as Partial<Draft>)}
-                        />
-                      ))}
-                    </div>
                     <div>
                       <Label htmlFor={`t-${i.id}`}>Issue title</Label>
                       <Input
@@ -396,6 +390,20 @@ function InfrastructureIssuesAdminPage() {
                         onChange={(v) => set({ content: v })}
                       />
                     </div>
+                    <div className="space-y-3">
+                      {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, { mode: "update", provider: "grok" }] as const).map(({ mode, provider }) => (
+                        <EditorialAIButton
+                          key={`${mode}-${provider}`}
+                          contentType="infrastructure"
+                          mode={mode}
+                          provider={provider}
+                          contentId={i.id}
+                          current={d}
+                          source=""
+                          onDraft={(draft) => set(Object.fromEntries(Object.entries(draft).filter(([key]) => key in d)) as Partial<Draft>)}
+                        />
+                      ))}
+                    </div>
                     <div>
                       <Label htmlFor={`n-${i.id}`}>Moderator's note (shown publicly)</Label>
                       <Input
@@ -445,6 +453,7 @@ function InfrastructureIssuesAdminPage() {
           );
         })}
       </ul>
+      </AdminListingSurface>
     </div>
   );
 }

@@ -75,11 +75,11 @@ test("article Auto-Populate returns and applies all SEO fields", async () => {
   }
 });
 
-test("article detail related and latest sections cap at four cards", async () => {
+test("article detail related and latest sections cap at three cards", async () => {
   const detail = await source("src/routes/news.$slug.tsx");
   assert.match(detail, /\.limit\(4\)/);
-  assert.match(detail, /related\.slice\(0, 4\)/);
-  assert.match(detail, /sidebarLatest\.slice\(0, 4\)/);
+  assert.match(detail, /related\.slice\(0, 3\)/);
+  assert.match(detail, /sidebarLatest\.slice\(0, 3\)/);
   assert.match(detail, /image_url/);
 });
 

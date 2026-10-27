@@ -13,22 +13,43 @@ import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
 import { InfrastructureIssuePreviewCard } from "@/components/site/discovery-sections";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { EditorialSummary } from "@/components/site/editorial-summary";
+import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
   loader: async ({ params }) => {
-    const { data } = await supabase.from("infrastructure_issues").select("*").eq("id", params.issueId).eq("status", "approved").maybeSingle();
+    const { data } = await supabase
+      .from("infrastructure_issues")
+      .select("*")
+      .eq("id", params.issueId)
+      .eq("status", "approved")
+      .maybeSingle();
     return data;
   },
-  head: ({ loaderData }) => socialHead({
-    title: loaderData?.title || "Infrastructure Issue",
-    description: loaderData?.summary || "Read the full infrastructure issue report and see related issues nearby.",
-    pathname: `/infrastructure-issues/${loaderData?.id ?? ""}`,
-    imageUrl: loaderData?.image_url,
-  }),
+  head: ({ loaderData }) =>
+    socialHead({
+      title: loaderData?.title || "Infrastructure Issue",
+      description:
+        loaderData?.summary ||
+        "Read the full infrastructure issue report and see related issues nearby.",
+      pathname: `/infrastructure-issues/${loaderData?.id ?? ""}`,
+      imageUrl: loaderData?.image_url,
+    }),
   component: IssueDetail,
 });
 
-type RelatedIssue = { id: string; title: string; road_name: string; county: string | null; summary: string | null; image_url: string | null; structure_type: string | null; status: string | null };
+type RelatedIssue = {
+  id: string;
+  title: string;
+  road_name: string;
+  county: string | null;
+  summary: string | null;
+  image_url: string | null;
+  structure_type: string | null;
+  status: string | null;
+};
 
 function IssueDetail() {
   const { issueId } = Route.useParams();
@@ -125,8 +146,8 @@ function IssueDetail() {
           { label: issue.title },
         ]}
       />
-      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-8">
-        <article className="min-w-0 rounded-xl border border-border bg-card p-4 card-elevated sm:rounded-2xl sm:p-6">
+      <div className="mx-auto grid w-full max-w-[1500px] gap-5 px-4 py-3 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
+        <article className="min-w-0 rounded-xl border border-border bg-card p-2 card-elevated sm:rounded-2xl sm:p-3">
           <Link
             to="/infrastructure-issues"
             className="inline-flex items-center gap-1 text-sm text-muted-foreground"
@@ -134,12 +155,12 @@ function IssueDetail() {
             <ArrowLeft className="size-4" /> All infrastructure issues
           </Link>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-            <span className="flex items-center gap-1 rounded bg-accent/20 px-2 py-0.5 font-semibold uppercase tracking-wide text-accent-foreground">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+            <PublicEditorialCategoryBadge>
               <Construction className="size-3.5" />
               {STRUCTURE_TYPES.find((s) => s.value === issue.structure_type)?.label ??
                 issue.structure_type}
-            </span>
+            </PublicEditorialCategoryBadge>
             {issue.authority ? (
               <span className="rounded bg-muted px-2 py-0.5 text-muted-foreground">
                 {ROAD_AUTHORITIES.find((a) => a.value === issue.authority)?.label ??
@@ -150,7 +171,7 @@ function IssueDetail() {
             <span className="ml-auto text-muted-foreground">{longDate(issue.created_at)}</span>
           </div>
 
-          <h1 className="mt-3 text-[1.7325rem] font-extrabold leading-tight">{issue.title}</h1>
+          <h1 className="mt-1.5 text-[1.7325rem] font-extrabold leading-tight">{issue.title}</h1>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {issue.road_name}
             {issue.county ? ` · ${issue.county}` : ""}
@@ -170,14 +191,16 @@ function IssueDetail() {
 
           {issue.image_url ? (
             <figure className="mt-4">
-              <img src={issue.image_url} alt={issue.title} className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain" />
-              {issue.image_caption || issue.image_credit ? <figcaption className="mt-2 text-xs text-muted-foreground">{issue.image_caption}{issue.image_caption && issue.image_credit ? " · " : ""}{issue.image_credit ? <em>Credit: {issue.image_credit}</em> : null}</figcaption> : null}
+              <img
+                src={issue.image_url}
+                alt={issue.title}
+                className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
+              />
+              <EditorialMediaMeta caption={issue.image_caption} credit={issue.image_credit} />
             </figure>
           ) : null}
 
-          <p className="mt-6 border-l-4 border-accent pl-4 text-lg text-foreground/90">
-            {issue.summary}
-          </p>
+          <EditorialSummary className="mt-6">{issue.summary}</EditorialSummary>
           <div className="mt-6 space-y-4 text-foreground/90">{renderRichText(issue.content)}</div>
 
           {issue.editor_note ? (
@@ -198,7 +221,11 @@ function IssueDetail() {
               <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                 More in {issue.county}
               </h2>
-              <div className="mt-3 grid gap-3">{byCounty.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
+              <div className="mt-3 grid gap-3">
+                {byCounty.slice(0, 3).map((item) => (
+                  <InfrastructureIssuePreviewCard key={item.id} issue={item} />
+                ))}
+              </div>
             </div>
           ) : null}
           {byAuthority.length > 0 ? (
@@ -208,7 +235,11 @@ function IssueDetail() {
                 {ROAD_AUTHORITIES.find((a) => a.value === issue.authority)?.label ??
                   issue.authority}
               </h2>
-              <div className="mt-3 grid gap-3">{byAuthority.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
+              <div className="mt-3 grid gap-3">
+                {byAuthority.slice(0, 3).map((item) => (
+                  <InfrastructureIssuePreviewCard key={item.id} issue={item} />
+                ))}
+              </div>
             </div>
           ) : null}
           {byStructure.length > 0 ? (
@@ -221,7 +252,11 @@ function IssueDetail() {
                 ).toLowerCase()}{" "}
                 issues
               </h2>
-              <div className="mt-3 grid gap-3">{byStructure.map((item) => <InfrastructureIssuePreviewCard key={item.id} issue={item} />)}</div>
+              <div className="mt-3 grid gap-3">
+                {byStructure.slice(0, 3).map((item) => (
+                  <InfrastructureIssuePreviewCard key={item.id} issue={item} />
+                ))}
+              </div>
             </div>
           ) : null}
           <Link
@@ -232,6 +267,15 @@ function IssueDetail() {
           </Link>
         </EditorialSidebar>
       </div>
+      <GlobalEditorialPreview
+        destination="infrastructure"
+        excludeId={issue.id}
+        excludeKeys={[
+          ...byCounty.slice(0, 3).map((item) => `infrastructure:${item.id}`),
+          ...byAuthority.slice(0, 3).map((item) => `infrastructure:${item.id}`),
+          ...byStructure.slice(0, 3).map((item) => `infrastructure:${item.id}`),
+        ]}
+      />
     </>
   );
 }

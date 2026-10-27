@@ -1,5 +1,9 @@
 # Pending
 
+- **GLOBAL HEADER + ARTICLE DETAIL SPACING REFINEMENT — DEPLOYED.** Final runtime commit `a10cff630879830e956f0c48d407514b646103db` was built from the independently verified live runtime commit `04dc8ebdcac99187b250d79cf551b97deedf9bd2` and deployed to Worker `64deafd6-a834-49ce-b7a8-260feb7d2d00` at 100% on 2026-10-26. The pre-deployment Worker was `369a8591-03e0-44aa-ab77-b5f114217587`. Mobile header base padding changed from `px-3` to `px-1.5` and gap from `gap-2` to `gap-1`; breadcrumb/detail top spacing and article card padding were reduced approximately 50%; Article title/date divider was removed with title/date spacing reduced from `pb-4 + mt-3` to `pb-2 + mt-1.5`; detail category-to-title spacing was reduced to `mt-1.5` across Articles, Alerts, Reports, Campaigns and Infrastructure Issues. Focused checks **39/39**, full regression **400/400**, security checks **14/14**, production build and diff checks passed. Public smoke routes `/`, `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues` returned HTTP 200. Browser visual verification at 360, 390, 412, 768, 1280 and 1440 pixels was unavailable because CUA initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`. No admin, Editorial AI, summary, Read Also, preview, advertising, authentication, Task 70 or SearXNG changes were made. Live SearXNG remains explicitly PENDING.
+
+- **GLOBAL EDITORIAL PREVIEW + UI CORRECTIONS — DEPLOYED.** Release branch `release/global-preview-ui-20261026` is deployed from code commit `3918325` (full SHA recorded in Git) as production Worker `fc84339d-7b82-4e7c-b858-8269d9155464` on 2026-10-26. The pre-deployment production Worker `9282cddd-d668-4da1-8d28-6a76b8d90e7d` is the rollback target. The release preserves the deployed Editorial AI repair commit `012843a8e41b566ee78c1ff46e88b003b0ee9e0a`, including direct field population, source-fidelity handling and bounded provider retries. Global cross-content previews, responsive three-card desktop/latest-only mobile behavior, canonical View More/View All links, italic captions, upright attribution without an automatic `Credit:` prefix, left-bordered editorial summaries and the shared admin content-listing surfaces are included. Campaigns and Infrastructure Issues intentionally retain the honest Latest fallback because no view-tracking tables/RPCs exist; no migration was created or executed. Production smoke GETs returned HTTP 200 for `/`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/search`, `/auth` and the five applicable admin listing shells. Focused UI/preview/AI checks, full suite **385/385**, security **14/14**, production build and `git diff --check` passed. The normal Nitro wrapper rejected the generated staging environment block; the same production artifact was deployed directly with authenticated Wrangler after removing only that generated non-production block. CUA browser initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`, so screenshots and interactive responsive/provider acceptance were not claimed. No database migrations, advertisements, Task 70, authentication or SearXNG changes were made; Live SearXNG remains explicitly PENDING. Live Grok/Groq generation was not exercised with production credentials.
+
 - **ALERTS HAZARD FORM CORRECTION — DEPLOYED / BROWSER ACCEPTANCE OPEN.** Commit `1482834b56938869df1ab478e3abdd74c4c2e0e9` was deployed to the production `share-barabara` Worker as version `647a32e3-cbd8-4055-ab10-4a6f2a6a525a` on 2026-10-25 using the authenticated Wrangler production artifact after removing the generated staging environment block. Previous Worker `0df07f26-0c37-4375-91ee-9cfebf8cbdcd` remains the rollback target. Smoke GETs returned HTTP 200 for `/`, `/news`, `/reports`, `/alerts`, `/infrastructure-issues`, `/campaigns`, `/search`, the report detail route and `/auth`. Production `/alerts` HTML confirms the new hazard form marker, no old persistent sidebar grid marker, AI header and advertisement markers; `/news` confirms category browsing and View More markers. No migration, AI/auth, Task 70, advertisement or SearXNG changes were deployed. Live SearXNG remains explicitly PENDING. Browser screenshots and responsive interaction/value-preservation checks remain owner acceptance items.
 - **ALERTS HAZARD FORM LAYOUT — IMPLEMENTED / READY FOR DEPLOYMENT.** On branch `feat/category-entity-browsing`, the permanent `/alerts` report sidebar was removed. Critical Alerts now occupy the full content width, followed by one responsive Report a hazard editorial card. Sign-in guidance, safety copy, AlertForm permissions and existing moderation behavior are preserved. Category/entity grouping remains separate from urgent and trending collections. Focused UI tests pass **9/9**; full suite passes **361/361**; security tests pass **14/14**; `bun run build` and `git diff --check` pass. No migrations, AI/auth, ads, Task 70 or SearXNG changes were made. Live SearXNG remains explicitly PENDING. Browser visual acceptance remains separate from automated validation.
 
@@ -453,6 +457,22 @@ removal are deployed to production. Continuing owner visual refinement remains o
 COMPLETED or begin later batches without approval. No database migration or hosted data change is part of this
 release.
 
+Global Admin CMS Listing Standardisation — DEPLOYED / BROWSER VISUAL ACCEPTANCE PENDING. The admin-only
+standardisation is committed on `e1ed2d1` and the final reconciled tree is `51a0647`, which also cherry-picks
+the approved concurrent public correction `2d088a8` after Cloudflare showed another instance had deployed it
+while this work was in progress. Shared admin listing surfaces now use full-width responsive containers,
+consistent management headers, compact responsive filter grids, zebra rows, restrained thumbnails and
+accessible image metadata across Articles, Alerts, Accident Reports, Campaigns and Infrastructure Issues.
+Existing route permissions, filters, actions, moderation, recycle-bin behavior and content-specific fields
+were preserved. Focused admin/public checks passed (11/11), full regression passed (393/393), security tests
+passed (14/14), `git diff --check` passed, and the production build passed. Worker `b4f1d5b2-1204-4254-8178-
+ea0cfbe27833` receives 100% traffic; immediate rollback target is the concurrent public baseline Worker
+`36ebab6b-40c8-4fd2-8cd2-32b7ecc5e287` (the earlier pre-admin baseline was `fc84339d-7b82-4e7c-b858-
+8269d9155464`). Public and admin route HTTP smoke tests returned 200. Authenticated browser screenshots,
+mobile/tablet visual review, and authenticated admin workflow acceptance remain pending because browser/CUA
+access and an authorized admin session were unavailable. No migrations, advertisements, Task 70, Editorial AI,
+authentication, or SearXNG changes were made by the admin workstream.
+
 Admin Workspace Separation — TESTING. The authenticated management area now has dedicated admin chrome,
 independent navigation, role-filtered management surfaces, admin-owned Article/Alert/Report authoring entry
 points, Editorial AI access on editorial editors, and website preview actions. Public routes retain their
@@ -498,6 +518,22 @@ shell smoke tests returned HTTP 200. Authenticated browser/provider acceptance r
 Grok/Groq credentialed call or visual browser review was available. No migration, advertisement, Task 70,
 unrelated AI/authentication, or SearXNG change was made.
 
+Global Editorial Preview System — IMPLEMENTED ON feat/global-editorial-preview / NOT DEPLOYED. The additive
+GlobalEditorialPreview component is mounted on the homepage, News, Alerts, Accident Reports, Campaigns,
+Infrastructure Issues, category/topic-filtered listing views, and the corresponding detail surfaces. Desktop
+shows Latest plus up to two eligible categories ranked from the existing recorded-view RPCs; each populated
+card uses one featured item and two compact items. Mobile keeps only Latest. Every module has canonical item
+links and a visible View All link. Existing category/entity browsing cards remain unchanged. Sparse data
+produces an explicit empty state rather than fabricated categories or engagement. Campaigns and Infrastructure
+Issues currently have no recorded-view tables/RPCs, so their category ranking cards remain unranked until an
+owner-approved backend capability exists; no schema or migration was added. The smallest safe future migration
+would add separate public insert / moderator-read view tables and SECURITY DEFINER trending RPCs for campaigns
+and infrastructure issues, each with a foreign key to its existing content table and public-status filtering.
+This requires owner approval and production schema review before implementation. Focused preview tests, full
+tests (373/373), security tests (14/14), build and whitespace checks pass. Browser desktop/mobile visual
+acceptance is pending because browser automation initialization failed
+before exposing a target surface. No deployment was performed.
+
 Editorial AI UX Cleanup and Direct Field Population — DEPLOYED / BROWSER AND LIVE-PROVIDER ACCEPTANCE
 PENDING. Code commit `7371afd1253348ad537ffcc61ff0c4618ab6c5f6` removes the obsolete preview/confirmation
 UI, applies validated Generate, Groq Auto-Populate, Grok Auto-Populate and Update Existing results directly
@@ -512,3 +548,48 @@ shells returned HTTP 200. Authenticated editor interaction and live Grok/Groq ca
 no authorized browser/provider test session was available; HTTP smoke checks do not establish visual or live
 provider acceptance. No migration, Task 70, advertisement, unrelated AI/authentication, or SearXNG change was
 made.
+
+Editorial AI Source Textarea and Transient Provider Repair — DEPLOYED / LIVE AUTHENTICATED ACCEPTANCE
+PENDING. Commit `012843a8e41b566ee78c1ff46e88b003b0ee9e0a` removes draft-derived source values from all
+editorial AI controls and adds bounded retries only for transient provider failures. Worker
+`9282cddd-d668-4da1-8d28-6a76b8d90e7d` receives 100% traffic; rollback target is
+`4684cefb-d62b-4948-aafc-14860ddb2d7e`. No migration, advertisement, Task 70, unrelated authentication or
+SearXNG change was made.
+
+Cross-Device Admin Editorial AI Consistency — TESTING / DEPLOYMENT PENDING. Production inspection found
+the HTML shell had no explicit revalidation policy while fingerprinted JS assets were immutable and the
+push-only service worker did not cache application responses. The shared Editorial AI control now removes
+only the exact legacy `Title: Summary: Body:` scaffold from its initial source value, preserves all other
+editor-supplied material, exposes a non-sensitive UI version data attribute, and classifies authentication,
+source-retrieval, transient-provider and invalid-response failures without logging source text or secrets.
+HTML responses now use `Cache-Control: no-cache, must-revalidate` and expose an optional non-secret
+`x-share-barabara-app-version` diagnostic header; static assets remain fingerprinted/immutable. Focused
+Editorial AI tests pass (7/7), full regression passes (394/394 with a 30-second artifact-test timeout),
+security tests pass (14/14), production build passes, and `git diff --check` passes. No browser/CUA or
+authenticated mobile/provider session was available, so Phone A/Phone B live reproduction and real Grok/Groq
+acceptance remain pending. No migration, public UI, advertisement, Task 70, unrelated AI/authentication,
+or SearXNG change was made.
+
+Cross-Device Admin Editorial AI Consistency — DEPLOYED / BROWSER AND LIVE-PROVIDER ACCEPTANCE PENDING.
+The latest production deployment before this release was Worker `22348c43-daf0-409c-b5c1-2b61f90e00e7`,
+associated with the production admin-listing commit `4b34ad9`; no newer deployed branch was merged. The
+reconciled source commit `3d6cfb8ca5a442d9d12713e517862b2344227995` includes that production tree and the
+cross-device Editorial AI/cache fix. It was deployed as Worker `b78fc802-e222-4951-a051-f98edc871f05`,
+which receives 100% traffic; rollback target is `22348c43-daf0-409c-b5c1-2b61f90e00e7`. Focused Editorial
+AI tests passed (7/7), full regression passed (395/395), security tests passed (14/14), production build
+passed, and `git diff --check` passed. Production smoke checks returned HTTP 200 for `/`, `/news`,
+`/reports`, `/alerts`, `/infrastructure-issues`, `/campaigns`, `/search` and `/admin/articles`. The live
+HTML exposes `Cache-Control: no-cache, must-revalidate`; the deployed Editorial AI bundle contains the
+non-sensitive UI diagnostic marker and no `Title: Summary: Body:` scaffold. Authenticated mobile browser
+reproduction and real Grok/Groq calls remain pending because no authorized browser/provider session was
+available. No migration, public UI, advertisement, Task 70, unrelated AI/authentication, or SearXNG change
+was made.
+# Global Editorial Discovery Final Corrections — DEPLOYED / VISUAL ACCEPTANCE PENDING
+
+The independently verified pre-deployment production baseline was Git `053ce19cf4a4a3620c19f05cfc2090b35d1db7d2` with active Worker `e69cd270-9006-4f0e-8b9f-50ffdfaceefe`. Candidate commit `9170e13` included that baseline and was deployed as Worker `dfa7cb6f-195e-4c60-b4ca-f883443f147c` at 100%; rollback target is `e69cd270-9006-4f0e-8b9f-50ffdfaceefe`.
+
+The global discovery renderer no longer emits the generic Keep Exploring / More from Share Barabara heading or its top spacer. It now considers News, Alerts, Accident Reports, Campaigns, Infrastructure Issues, published Statistics datasets when available, and featured Media when available. Source cards are chunked into three-column desktop rows and stacked three-card mobile groups, with one existing BannerAd after each complete group of three outer cards. Every card selects up to three genuine latest records, uses a large first item and two compact items, and never renders a fourth item. Statistics and Media fail closed when their optional tables are unavailable.
+
+Page-level composite exclusion keys now remove the current record, earlier related/sidebar recommendations, and duplicate records across source cards, with candidate backfill from later eligible records. Detail-side recommendation lists were capped at three visible records. The mobile Article detail H1 is now `23.52px`; tablet and desktop Article sizing and all non-Article headline sizes remain unchanged. No database migration or unrelated AI/admin/authentication/moderation/advertisement/Task 70/SearXNG change was made.
+
+Focused tests passed `21/21`; full suite passed `385/388`, with the three unchanged Editorial AI provider/source tests still failing under the repository's direct Node runner because of extensionless/`@/integrations` module resolution. Security tests passed `14/14`; production build and `git diff --check` passed. Public smoke routes `/`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/statistics` and `/feed` returned HTTP 200. Browser visual verification remains pending because CUA initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`; HTTP smoke checks do not establish rendered visual acceptance. Live provider testing was not performed.

@@ -54,6 +54,7 @@ import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { ReportForm } from "@/components/site/report-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -206,15 +207,15 @@ function ReportsQueuePage() {
   });
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Content & moderation"
-        title="Accident reports"
+        title="Manage Accident Reports"
         description="Edit submissions for accuracy and clarity, then approve them."
         websiteHref="/reports"
         actions={
           <Dialog>
-            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new report</Button></DialogTrigger>
+            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add New Report</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
               <DialogHeader><DialogTitle>New accident report</DialogTitle></DialogHeader>
               <ReportForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
@@ -224,7 +225,7 @@ function ReportsQueuePage() {
       />
       <IncidentDiscoveryPanel />
 
-      <div className="mt-6 flex flex-wrap items-end gap-3">
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -271,7 +272,7 @@ function ReportsQueuePage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="min-w-48 flex-1">
+        <div className="min-w-48 flex-1 sm:col-span-2 lg:col-span-4">
           <Label htmlFor="report-search">Search</Label>
           <Input
             id="report-search"
@@ -289,7 +290,9 @@ function ReportsQueuePage() {
         </p>
       ) : null}
 
-      <ul className="mt-6 space-y-3">
+      <AdminListingSurface>
+        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Incident / location</span><span>Severity / status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {reports.map((r) => {
           const d = (drafts[r.id] ?? {
             title: r.title,
@@ -319,28 +322,35 @@ function ReportsQueuePage() {
           const expanded = expandedId === r.id;
 
           return (
-            <li key={r.id} className="rounded-lg border border-border bg-card card-elevated">
-              <div className="flex items-center gap-3 p-4">
+            <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
+              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
+                <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <button
                   type="button"
                   onClick={() => setExpandedId(expanded ? null : r.id)}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  className="min-w-0 text-left"
                 >
                   {r.image_url ? (
                     <img
                       src={r.image_url}
                       alt=""
-                      className="h-14 w-20 shrink-0 rounded bg-muted object-contain"
+                      className="h-12 w-[70px] shrink-0 rounded bg-muted object-cover"
                     />
                   ) : (
-                    <div className="flex size-14 shrink-0 items-center justify-center rounded bg-muted">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
                       <ShieldAlert className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : r.id)}
+                    className="min-w-0 text-left"
+                  >
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <SeverityBadge value={r.severity} />
-                      <p className="truncate font-semibold">{r.title}</p>
+                      <p className="line-clamp-2 font-semibold">{r.title}</p>
                     </div>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
                       <span>
@@ -358,8 +368,9 @@ function ReportsQueuePage() {
                       {r.duplicate_of_report_id ? <span>Linked duplicate</span> : null}
                     </p>
                   </div>
-                </button>
+                  </button>
 
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="size-8 shrink-0">
@@ -627,6 +638,7 @@ function ReportsQueuePage() {
           );
         })}
       </ul>
+      </AdminListingSurface>
     </div>
   );
 }

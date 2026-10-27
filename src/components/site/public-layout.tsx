@@ -136,11 +136,6 @@ export function FeaturedLeadCard({ article }: { article: PublicArticleCard }) {
         <h3 className="mt-3 text-2xl font-extrabold leading-tight text-brand-navy group-hover:underline sm:text-3xl">
           {article.title}
         </h3>
-        {article.summary ? (
-          <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground sm:text-base">
-            {article.summary}
-          </p>
-        ) : null}
       </div>
     </Link>
   );
@@ -161,11 +156,6 @@ export function CompactArticleCard({ article }: { article: PublicArticleCard }) 
         <h3 className="mt-1.5 line-clamp-3 font-bold leading-snug text-brand-navy group-hover:underline sm:text-base">
           {article.title}
         </h3>
-        {article.summary ? (
-          <p className="mt-2 hidden line-clamp-2 text-sm text-muted-foreground sm:block">
-            {article.summary}
-          </p>
-        ) : null}
       </div>
     </Link>
   );
@@ -487,7 +477,7 @@ export function PublicBreadcrumbStrip({ items }: { items: PublicBreadcrumbItem[]
       aria-label="Breadcrumb"
       className="w-full bg-gradient-to-r from-brand-navy via-brand-blue to-primary text-primary-foreground"
     >
-      <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-4 py-2 text-xs sm:px-6">
+      <div className="mx-auto flex min-h-[38px] max-w-[1500px] items-center gap-1 overflow-hidden px-4 py-1 text-xs sm:px-6">
         {items.map((item, index) => (
           <span key={`${item.label}-${index}`} className="flex min-w-0 items-center gap-1">
             {index ? <span className="shrink-0 text-primary-foreground/60">›</span> : null}

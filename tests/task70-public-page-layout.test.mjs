@@ -43,7 +43,8 @@ test("news listing keeps the editorial lead, compact cards, sections and ad plac
   assert.match(news, /Relevant Alerts/);
   assert.match(news, /news-context-midpoint/);
   assert.match(news, /function LatestStrip/);
-  assert.match(news, /Latest update/);
+  assert.match(news, /Latest updates/);
+  assert.match(news, /size-14 shrink-0 rounded object-cover/);
   assert.match(news, /fullBleed/);
   assert.match(news, /Filter articles by category/);
   assert.match(news, /from\("accident_reports"\)/);
@@ -102,7 +103,7 @@ test("batch one visual correction keeps listing and detail density compact", () 
   assert.match(layout, /CompactEditorialColumn/);
   assert.match(layout, /w-\[38%\]/);
   assert.match(news, /CategoryEntityCard/);
-  assert.match(detail, /text-\[28px\].*sm:text-\[34px\]/);
+  assert.match(detail, /text-\[23\.52px\].*sm:text-\[34px\]/);
   assert.match(detail, /max-w-\[1500px\].*lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/s);
   assert.match(detail, /ArticleSidebar/);
   assert.match(publicUi, /from-amber-300/);
