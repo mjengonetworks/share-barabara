@@ -613,3 +613,17 @@ authenticated browser verification, live provider calls and real-RLS validation 
 editor stores generated target drafts in the new related-draft table; target-form hydration after migration approval
 is the remaining integration item before claiming full end-to-end CMS conversion acceptance. Live SearXNG remains
 PENDING and urgent Grok schema repair remains separate.
+
+Cross-Content Offline Database Verification — PREPARED / DATABASE EXECUTION BLOCKED.
+Created `tests/cross-content-database.sql`, a rollback-safe psql harness that assumes the baseline migrations and
+`20261027120000_cross_content_editorial_relationships.sql` are already applied to an isolated non-production
+Supabase database. It covers migration object prerequisites, RLS inventory, anonymous/ordinary/editor/admin access,
+tags, relationships, duplicate drafts/links, provenance and audit events, public filtering, cross-account rejection,
+draft-only behavior and existing-content preservation. It creates temporary fixtures inside a transaction and rolls
+back at the end.
+
+No authorized development Supabase project is configured: `.env` references project `yhqoggbntunxvlbcatwj`, while
+`supabase/config.toml` references `gdarljnruwowxxcnnndl`; neither is identified as non-production. The harness was
+not executed, no Supabase project was contacted, and no SQL was run. Application verification remains focused 7/7,
+security 14/14, build passed; the full suite is 416/417 because of the known `ai-server-function-artifact` timeout.
+Do not connect to either configured project or execute production SQL without explicit authorization.
