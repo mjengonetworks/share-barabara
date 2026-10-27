@@ -176,11 +176,14 @@ function AlertDetail() {
           </Link>
 
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <span className="sr-only">Alert / Hazard</span>
             <TriangleAlert className="size-4 text-caution" />
             <SeverityBadge value={alert.severity} />
             <PublicEditorialCategoryBadge>
               {hazardTypes.find((h) => h.value === alert.hazard_type)?.label ?? alert.hazard_type}
             </PublicEditorialCategoryBadge>
+            {alert.status === "in_progress" ? <span className="text-sm text-muted-foreground">In Progress</span> : null}
+            {alert.status === "resolved" ? <span className="text-sm text-muted-foreground">Resolved</span> : null}
             <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
           </div>
 

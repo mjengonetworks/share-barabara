@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
 import { longDate, slugify } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import type { EditorialMode, EditorialProvider } from "@/lib/ai/editorial.functions";
 
@@ -77,6 +78,7 @@ function CampaignsAdminPage() {
     report_published: false,
   });
   const [reportAttachments, setReportAttachments] = useState<Attachment[]>([]);
+  const [search, setSearch] = useState("");
 
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: ["admin-campaigns"],
@@ -94,6 +96,11 @@ function CampaignsAdminPage() {
     queryClient.invalidateQueries({ queryKey: ["admin-campaigns"] });
     queryClient.invalidateQueries({ queryKey: ["campaigns"] });
   };
+
+  const visibleCampaigns = campaigns.filter((campaign) => {
+    const query = search.trim().toLowerCase();
+    return !query || campaign.title.toLowerCase().includes(query) || (campaign.location ?? "").toLowerCase().includes(query);
+  });
 
   const openCreate = () => {
     setEditingId(null);
@@ -193,10 +200,10 @@ function CampaignsAdminPage() {
   });
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full max-w-[1500px]">
       <AdminPageHeader
         eyebrow="Site content"
-        title="Campaigns"
+        title="Manage Campaigns"
         websiteHref="/campaigns"
         actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> New campaign</Button>}
         description={
@@ -219,7 +226,7 @@ function CampaignsAdminPage() {
         >
           <DialogTrigger asChild>
             <Button onClick={openCreate}>
-              <Plus className="mr-1.5 size-4" /> New campaign
+               <Plus className="mr-1.5 size-4" /> Add New Campaign
             </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
@@ -321,16 +328,26 @@ function CampaignsAdminPage() {
 
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
-      <ul className="mt-6 space-y-3">
-        {campaigns.map((c) => {
+      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="min-w-48 flex-1 sm:col-span-2 lg:col-span-4">
+          <Label htmlFor="campaign-search">Search</Label>
+          <Input id="campaign-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search campaigns" />
+        </div>
+      </div>
+
+      <AdminListingSurface>
+        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Campaign / dates</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
+        <ul className="divide-y divide-border/70">
+        {visibleCampaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
             <li
               key={c.id}
               className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
             >
+              <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
               {c.image_url ? (
-                <img src={c.image_url} alt="" className="size-12 shrink-0 rounded object-cover" />
+                <img src={c.image_url} alt="" className="h-12 w-[70px] shrink-0 rounded object-cover" />
               ) : (
                 <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
                   <Megaphone className="size-5 text-muted-foreground" />
@@ -437,12 +454,13 @@ function CampaignsAdminPage() {
             </li>
           );
         })}
-        {!isLoading && campaigns.length === 0 ? (
+        {!isLoading && visibleCampaigns.length === 0 ? (
           <p className="rounded border border-dashed border-border p-8 text-center text-muted-foreground">
             No campaigns yet.
           </p>
         ) : null}
-      </ul>
+        </ul>
+      </AdminListingSurface>
     </div>
   );
 }
