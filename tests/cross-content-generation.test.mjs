@@ -12,8 +12,8 @@ test("cross-content migration is additive and covers the approved content model"
   }
   assert.match(migration, /source_snapshot_hash/);
   assert.match(migration, /generation_request_id/);
-  assert.match(migration, /UNIQUE\(source_type,source_id,target_type,target_id,relationship_type\)/);
-  assert.match(migration, /ON CONFLICT \(created_by,source_type,source_id,target_type,source_snapshot_hash\)/);
+  assert.match(migration, /CREATE UNIQUE INDEX editorial_relationships_active_uq/);
+  assert.match(migration, /ON CONFLICT \(source_type,source_id,target_type,source_snapshot_hash\) WHERE status='open'/);
 });
 
 test("production preflight is read-only and covers schema, RLS, dependencies, and history", () => {
@@ -39,9 +39,12 @@ test("cross-content RPCs enforce permissions, validation, and public filtering",
 });
 
 test("admin integration exposes one shared cross-content editor", () => {
+  const editor = readFileSync("src/components/admin/editorial-record-editor.tsx", "utf8");
+  assert.match(editor, /import \{ CrossContentEditor \}/);
+  assert.match(editor, /<CrossContentEditor sourceType=\{type\} sourceId=\{id\}/);
   for (const route of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = readFileSync(`src/routes/_authenticated/admin/${route}`, "utf8");
-    assert.match(source, /CrossContentEditor/);
+    assert.match(source, /admin\/.*(?:new|\$.*edit)|Outlet/);
   }
   assert.match(panel, /Generate related draft/);
   assert.match(panel, /Save related draft/);

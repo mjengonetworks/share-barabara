@@ -15,6 +15,7 @@ import { PartyCasualtyInputs, type CasualtyBreakdown } from "@/components/site/p
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
 import { PARTIES_INVOLVED } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
@@ -171,6 +172,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         {type === "campaign" ? <><div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div><div><Label>Start date</Label><Input type="datetime-local" value={form.start_date?.slice(0, 16)} onChange={(e) => set("start_date", e.target.value)} /></div><div><Label>End date</Label><Input type="datetime-local" value={form.end_date?.slice(0, 16)} onChange={(e) => set("end_date", e.target.value)} /></div></> : null}
       </section>
       <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
+      <CrossContentEditor sourceType={type} sourceId={id} sourceRecord={recordQuery.data ?? {}} />
       <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><Button type="button" onClick={() => save.mutate()} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : "Save changes"}</Button></section>
     </div>
   </div>;

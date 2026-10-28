@@ -397,6 +397,9 @@ DECLARE source_row RECORD;
 BEGIN
   IF NEW.duplicate_of_report_id IS NULL
      OR NEW.duplicate_of_report_id=OLD.duplicate_of_report_id THEN RETURN NEW; END IF;
+  IF COALESCE(auth.uid(),NEW.reviewed_by) IS NULL THEN
+    RAISE EXCEPTION 'canonical duplicate merge requires a reviewer';
+  END IF;
   SELECT id INTO target_incident FROM public.canonical_accident_incidents
   WHERE canonical_report_id=NEW.duplicate_of_report_id AND deleted_at IS NULL FOR UPDATE;
   SELECT id INTO old_incident FROM public.canonical_accident_incidents
