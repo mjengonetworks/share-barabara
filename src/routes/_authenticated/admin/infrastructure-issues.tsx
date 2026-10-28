@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -60,6 +60,8 @@ type Draft = {
 type Status = "pending" | "approved" | "rejected";
 
 function InfrastructureIssuesAdminPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/infrastructure-issues\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");

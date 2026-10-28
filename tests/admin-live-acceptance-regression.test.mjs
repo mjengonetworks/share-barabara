@@ -84,3 +84,41 @@ test("My Content remains an ownership-aware admin route", async () => {
   assert.match(route, /\.eq\(source\.owner, user!\.id\)/);
   assert.doesNotMatch(route, /\/profile/);
 });
+
+test("the actual Add Accident Report form exposes AI outside collapsed details", async () => {
+  const reportForm = await read("src/components/site/report-form.tsx");
+  const aiPanel = reportForm.indexOf('aria-label="Accident report Editorial AI"');
+  const details = reportForm.indexOf("<Collapsible>");
+  assert.ok(aiPanel >= 0);
+  assert.ok(aiPanel < details);
+  assert.match(reportForm, /mode: "generate", provider: "grok"/);
+  assert.match(reportForm, /mode: "autopopulate", provider: "groq"/);
+  assert.match(reportForm, /mode: "autopopulate", provider: "grok"/);
+});
+
+test("report editor owns structured accident fields and same-record update", async () => {
+  const editor = await read("src/components/admin/editorial-record-editor.tsx");
+  for (const field of ["incident_type", "occurred_at", "latitude", "longitude", "vehicles_involved", "casualties", "fatalities", "parties_involved", "casualty_breakdown", "attachments"]) assert.match(editor, new RegExp(field), field);
+  assert.match(editor, /type === "report"/);
+  assert.match(editor, /\.update\(payload\).*eq\("id", id\)/s);
+});
+
+test("all editorial listing parents delegate edit URLs to the child editor", async () => {
+  const routes = [
+    ["articles.tsx", "articles"],
+    ["alerts.tsx", "alerts"],
+    ["reports.tsx", "reports"],
+    ["campaigns.tsx", "campaigns"],
+    ["infrastructure-issues.tsx", "infrastructure-issues"],
+  ];
+  for (const [file, segment] of routes) {
+    const source = await read(`src/routes/_authenticated/admin/${file}`);
+    assert.match(source, /Outlet/ , file);
+    assert.match(source, new RegExp(`admin\\/${segment}\\/`), file);
+    assert.match(source, /return <Outlet \/>/, file);
+    assert.match(source, /useRouterState/, file);
+  }
+  const editor = await read("src/components/admin/editorial-record-editor.tsx");
+  assert.match(editor, /recordQuery\.error/);
+  assert.match(editor, /Unable to load this/);
+});

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -87,6 +87,8 @@ type ReportDraft = {
 type Status = "pending" | "approved" | "rejected";
 
 function ReportsQueuePage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/reports\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: severities = [] } = useReportSeverities();

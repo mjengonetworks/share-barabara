@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
@@ -57,6 +57,8 @@ export const Route = createFileRoute("/_authenticated/admin/alerts")({
 });
 
 function AlertsAdminPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/alerts\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const queryClient = useQueryClient();
   const { data: hazardTypes = [] } = useHazardTypes();
   const { data: severities = [] } = useAlertSeverities();
@@ -268,7 +270,7 @@ function AlertsAdminPage() {
               <TableHead>Reported by</TableHead>
               <TableHead>Views</TableHead>
               <TableHead>Posted</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
