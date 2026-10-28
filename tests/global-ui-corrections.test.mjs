@@ -110,7 +110,7 @@ test("admin content listings use the shared responsive listing surface", async (
   }
   const listing = await fs.readFile("src/components/admin/admin-listing-surface.tsx", "utf8");
   assert.match(listing, /odd:bg-background/);
-  assert.match(listing, /lg:grid/);
+  assert.match(listing, /xl:grid/);
 });
 
 test("admin editorial listings use the Mjengo-style checkbox, thumbnail and dense row hierarchy", async () => {
@@ -122,7 +122,7 @@ test("admin editorial listings use the Mjengo-style checkbox, thumbnail and dens
     assert.match(source, /image_url/, `${name} exposes the featured image field`);
   }
   const listing = await fs.readFile("src/components/admin/admin-listing-surface.tsx", "utf8");
-  assert.match(listing, /grid-cols-\[auto_72px_minmax/);
+  assert.match(listing, /grid-cols-\[auto_56px_minmax/);
   assert.match(listing, /uppercase tracking-wider/);
   assert.match(listing, /even:bg-muted/);
 });

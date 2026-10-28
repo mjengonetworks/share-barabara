@@ -114,22 +114,23 @@ function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
 
 type CasualtyBreakdownRow = Record<string, { dead?: number; injured?: number }> | null;
 
-/** Actual dead + injured counts per party, summed from the casualty
- *  breakdown reporters (or an admin, backfilling later) filled in on alerts
- *  and reports, not just how many rows merely tagged a party as present. */
+/** Actual dead + injured counts per party from approved reports. Alerts are
+ * intentionally not merged here until a reviewed Alert -> canonical Report
+ * relationship exists. Without that relationship, combining both tables can
+ * count the same crash twice; the safe fallback is to keep the report metric
+ * authoritative rather than publish a fabricated/double-counted total. */
 function usePartiesCasualtyCounts() {
   return useQuery({
     queryKey: ["parties-casualty-counts"],
     queryFn: async () => {
-      const [{ data: alerts, error: e1 }, { data: reports, error: e2 }] = await Promise.all([
-        supabase.from("alerts").select("casualty_breakdown"),
-        supabase.from("accident_reports").select("casualty_breakdown").eq("status", "approved"),
-      ]);
-      if (e1) throw e1;
-      if (e2) throw e2;
+      const { data: reports, error } = await supabase
+        .from("accident_reports")
+        .select("casualty_breakdown")
+        .eq("status", "approved");
+      if (error) throw error;
       const counts: Record<string, number> = {};
       const unknown: Record<string, boolean> = {};
-      for (const row of [...(alerts ?? []), ...(reports ?? [])]) {
+      for (const row of reports ?? []) {
         const breakdown = row.casualty_breakdown as CasualtyBreakdownRow;
         for (const [party, c] of Object.entries(breakdown ?? {})) {
           for (const value of [c.dead, c.injured]) {

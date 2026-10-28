@@ -40,8 +40,8 @@ test("admin content lists preserve unknown casualty values and unavailable views
   const reports = await read("src/routes/_authenticated/admin/reports.tsx");
   const articles = await read("src/routes/_authenticated/admin/articles.tsx");
   const alerts = await read("src/routes/_authenticated/admin/alerts.tsx");
-  assert.match(reports, /Injured:.*Unknown/);
-  assert.match(reports, /Deaths:.*Unknown/);
+  assert.match(reports, /NullableNumberField[\s\S]*label="Injured"/);
+  assert.match(reports, /NullableNumberField[\s\S]*label="Deaths"/);
   assert.match(reports, /viewCountsError \? "—"/);
   assert.match(articles, /viewCountsError \? "—"/);
   assert.match(alerts, /viewCountsError \? "—"/);
