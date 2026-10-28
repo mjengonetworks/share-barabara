@@ -44,6 +44,7 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
     description: "",
     county: "Nairobi",
     road: "",
+    road_id: null as string | null,
     hazard_type: "crash",
     severity: "medium",
     latitude: null as number | null,
@@ -57,7 +58,7 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
   const submit = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
-      const road_id = await findExistingRoad(form.road);
+      const road_id = form.road_id ?? await findExistingRoad(form.road);
       await submitAlert({ data: {
         ...form,
         road_id,
@@ -71,7 +72,7 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
     },
     onSuccess: () => {
       toast.success("Alert published, thank you");
-      setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
+      setForm({ ...form, title: "", description: "", road: "", road_id: null, latitude: null, longitude: null });
       setPartiesInvolved([]);
       setCasualties({});
       setAttachments([]);
@@ -151,7 +152,7 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
             </SelectContent>
           </Select>
         </div>
-        <RoadInput value={form.road} onChange={(v) => setForm({ ...form, road: v })} id="a-road" />
+        <RoadInput value={form.road} onChange={(v) => setForm({ ...form, road: v })} onRoadIdChange={(id) => setForm((current) => ({ ...current, road_id: id }))} id="a-road" />
         <div className="sm:col-span-2">
           <LocationButton
             latitude={form.latitude}
