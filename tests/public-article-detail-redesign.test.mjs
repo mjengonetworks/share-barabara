@@ -45,6 +45,20 @@ test("public article detail uses one responsive article/sidebar shell", async ()
   assert.match(detail, /!relatedIds\.has\(item\.id\)/);
 });
 
+test("only the mobile article detail headline is 5% larger than production", async () => {
+  const article = await source("src/routes/news.$slug.tsx");
+  assert.match(article, /text-\[29\.4px\][\s\S]*sm:text-\[34px\]/);
+  assert.doesNotMatch(article, /text-\[28px\]/);
+  for (const file of [
+    "src/routes/alerts.$alertId.tsx",
+    "src/routes/reports.$reportId.tsx",
+    "src/routes/campaigns.$slug.tsx",
+    "src/routes/infrastructure-issues.$issueId.tsx",
+  ]) {
+    assert.doesNotMatch(await source(file), /text-\[29\.4px\]/);
+  }
+});
+
 test("article sidebar previews omit dates and preserve compact thumbnails", async () => {
   const sidebar = await source("src/components/site/article-detail-sidebar.tsx");
   assert.match(sidebar, /aspect-video w-full object-cover/);
