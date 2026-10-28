@@ -23,6 +23,8 @@ import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { findExistingRoad } from "@/lib/roads";
 import { submitAccidentReport } from "@/lib/report.functions";
 import { RoadInput } from "@/components/site/road-input";
+import { GeographyFields } from "@/components/admin/geography-fields";
+import { useUnifiedGeographySchema } from "@/hooks/useUnifiedGeographySchema";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -40,7 +42,7 @@ function stringValue(record: RecordValue, key: string) {
   return typeof record[key] === "string" ? record[key] : "";
 }
 
-function initialForm(type: EditorialRecordType, record: RecordValue): RecordValue {
+function initialForm(type: EditorialRecordType, record: RecordValue, isNew = false): RecordValue {
   const common = {
     title: stringValue(record, "title"),
     summary: stringValue(record, "summary"),
@@ -50,10 +52,14 @@ function initialForm(type: EditorialRecordType, record: RecordValue): RecordValu
     image_caption: stringValue(record, "image_caption"),
     image_credit: stringValue(record, "image_credit"),
     status: stringValue(record, "status") || "draft",
+    country_code: isNew ? "KE" : stringValue(record, "country_code"),
+    admin_area_id: isNew ? "" : stringValue(record, "admin_area_id"),
+    transport_mode: isNew ? "road" : stringValue(record, "transport_mode"),
+    transport_entity_id: stringValue(record, "transport_entity_id") || null,
   };
   if (type === "article") return { ...common, category: stringValue(record, "category"), categories: Array.isArray(record.categories) ? record.categories : [], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
-  if (type === "report") return { ...common, county: stringValue(record, "county"), road: stringValue(record, "road"), road_id: stringValue(record, "road_id") || null, incident_type: stringValue(record, "incident_type"), severity: stringValue(record, "severity"), occurred_at: stringValue(record, "occurred_at"), latitude: typeof record.latitude === "number" ? record.latitude : null, longitude: typeof record.longitude === "number" ? record.longitude : null, vehicles_involved: record.vehicles_involved ?? null, casualties: record.casualties ?? null, fatalities: record.fatalities ?? null, parties_involved: Array.isArray(record.parties_involved) ? record.parties_involved : [], casualty_breakdown: (record.casualty_breakdown ?? {}) as CasualtyBreakdown, attachments: (Array.isArray(record.attachments) ? record.attachments : []) as Attachment[], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
-  if (type === "alert") return { ...common, description: stringValue(record, "description"), county: stringValue(record, "county"), road: stringValue(record, "road"), road_id: stringValue(record, "road_id") || null, hazard_type: stringValue(record, "hazard_type"), severity: stringValue(record, "severity") };
+  if (type === "report") return { ...common, admin_area_id: stringValue(record, "admin_area_id") || stringValue(record, "county"), county: stringValue(record, "county"), road: stringValue(record, "road"), road_id: stringValue(record, "road_id") || null, incident_type: stringValue(record, "incident_type"), severity: stringValue(record, "severity"), occurred_at: stringValue(record, "occurred_at"), latitude: typeof record.latitude === "number" ? record.latitude : null, longitude: typeof record.longitude === "number" ? record.longitude : null, vehicles_involved: record.vehicles_involved ?? null, casualties: record.casualties ?? null, fatalities: record.fatalities ?? null, parties_involved: Array.isArray(record.parties_involved) ? record.parties_involved : [], casualty_breakdown: (record.casualty_breakdown ?? {}) as CasualtyBreakdown, attachments: (Array.isArray(record.attachments) ? record.attachments : []) as Attachment[], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
+  if (type === "alert") return { ...common, admin_area_id: stringValue(record, "admin_area_id") || stringValue(record, "county"), description: stringValue(record, "description"), county: stringValue(record, "county"), road: stringValue(record, "road"), road_id: stringValue(record, "road_id") || null, hazard_type: stringValue(record, "hazard_type"), severity: stringValue(record, "severity") };
   if (type === "infrastructure") return { ...common, road_name: stringValue(record, "road_name"), road_scope: stringValue(record, "road_scope") || "county", county: stringValue(record, "county"), authority: stringValue(record, "authority"), structure_type: stringValue(record, "structure_type") };
   return { ...common, description: stringValue(record, "description"), location: stringValue(record, "location"), start_date: stringValue(record, "start_date"), end_date: stringValue(record, "end_date") };
 }
@@ -64,7 +70,9 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   const { user } = useAuth();
   const { canReview } = useRoles();
   const { identity } = useActiveIdentity();
-  const [form, setForm] = useState<RecordValue | null>(() => isEditing ? null : initialForm(type, {}));
+  const geographySchema = useUnifiedGeographySchema();
+  const geographyAvailable = geographySchema.data?.available === true;
+  const [form, setForm] = useState<RecordValue | null>(() => isEditing ? null : initialForm(type, {}, true));
   const recordQuery = useQuery({
     queryKey: ["admin-editorial-record", type, id],
     enabled: isEditing,
@@ -109,11 +117,13 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
           category: form.category, categories: form.categories,
           seo_title: form.seo_title, seo_description: form.seo_description, seo_keywords: form.seo_keywords,
+          ...(geographyAvailable ? { country_code: form.country_code, admin_area_id: form.admin_area_id || null, transport_mode: form.transport_mode, transport_entity_id: form.transport_entity_id } : {}),
         };
       } else if (type === "report") {
         payload = {
           title: form.title, description: form.body, county: form.county, road: form.road, road_id: form.road_id,
           incident_type: form.incident_type || null, severity: form.severity,
+          ...(geographyAvailable ? { country_code: form.country_code, admin_area_id: form.admin_area_id || null, transport_mode: form.transport_mode, transport_entity_id: form.transport_entity_id } : {}),
           occurred_at: form.occurred_at, latitude: form.latitude, longitude: form.longitude,
           vehicles_involved: form.vehicles_involved, casualties: form.casualties, fatalities: form.fatalities,
           parties_involved: form.parties_involved, casualty_breakdown: form.casualty_breakdown,
@@ -126,6 +136,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         payload = {
           title: form.title, description: form.description, county: form.county, road: form.road, road_id: form.road_id,
           hazard_type: form.hazard_type, severity: form.severity,
+          ...(geographyAvailable ? { country_code: form.country_code, admin_area_id: form.admin_area_id || null, transport_mode: form.transport_mode, transport_entity_id: form.transport_entity_id } : {}),
           image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
           image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
         };
@@ -136,6 +147,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           summary: form.summary, content: form.body, image_url: form.image_url.trim() || null,
           image_alt: form.image_alt.trim() || null, image_caption: form.image_caption.trim() || null,
           image_credit: form.image_credit.trim() || null,
+          ...(geographyAvailable ? { country_code: form.country_code, admin_area_id: form.admin_area_id || null, transport_mode: form.transport_mode, transport_entity_id: form.transport_entity_id } : {}),
         };
       } else {
         payload = {
@@ -143,6 +155,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           start_date: form.start_date, end_date: form.end_date, image_url: form.image_url.trim() || null,
           image_alt: form.image_alt.trim() || null, image_caption: form.image_caption.trim() || null,
           image_credit: form.image_credit.trim() || null,
+          ...(geographyAvailable ? { country_code: form.country_code, admin_area_id: form.admin_area_id || null, transport_mode: form.transport_mode, transport_entity_id: form.transport_entity_id } : {}),
         };
       }
       const status = requestedStatus === "approved" && canReview ? "approved" : undefined;
@@ -159,6 +172,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           road: form.road,
           incident_type: form.incident_type || null,
           severity: form.severity,
+          ...(geographyAvailable ? { country_code: form.country_code, admin_area_id: form.admin_area_id || null, transport_mode: form.transport_mode, transport_entity_id: form.transport_entity_id } : {}),
           occurred_at: new Date(form.occurred_at).toISOString(),
           vehicles_involved: form.vehicles_involved,
           casualties: form.casualties,
@@ -215,7 +229,8 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         {type === "article" || type === "infrastructure" ? <div className="sm:col-span-2"><Label htmlFor="editor-summary">Summary</Label><Textarea id="editor-summary" value={form.summary} onChange={(e) => set("summary", e.target.value)} /></div> : null}
         {type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-description">Advisory content</Label><RichTextEditor id="editor-description" value={form.description} onChange={(value) => set("description", value)} /></div> : <div className="sm:col-span-2"><Label htmlFor="editor-body">Full content</Label><RichTextEditor id="editor-body" value={form.body} onChange={(value) => set("body", value)} /></div>}
         {type === "article" ? <><div><Label>Category</Label><Input value={form.category} onChange={(e) => set("category", e.target.value)} /></div><div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div></> : null}
-        {type === "alert" || type === "report" ? <><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><RoadInput value={form.road} onChange={(value) => set("road", value)} onRoadIdChange={(id) => set("road_id", id)} id="editor-road" label="Road / corridor" /><div><Label>Severity</Label><Input value={form.severity} onChange={(e) => set("severity", e.target.value)} /></div></> : null}
+        {type === "article" || type === "alert" || type === "report" || type === "campaign" || type === "infrastructure" ? <GeographyFields countryCode={form.country_code} adminAreaId={form.admin_area_id} transportMode={form.transport_mode} incidentType={form.incident_type ?? ""} showIncidentType={type === "alert" || type === "report"} transportEntityId={form.transport_entity_id} onChange={(patch) => setForm((current) => current ? { ...current, ...patch, county: patch.admin_area_id ?? current.county, incident_type: patch.incident_type ?? current.incident_type } : current)} /> : null}
+        {type === "alert" || type === "report" ? <><div><Label>County / administrative area</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><RoadInput value={form.road} onChange={(value) => set("road", value)} onRoadIdChange={(id) => set("road_id", id)} id="editor-road" label="Road / corridor" /><div><Label>Severity</Label><Input value={form.severity} onChange={(e) => set("severity", e.target.value)} /></div></> : null}
         {type === "report" ? <>
           <div className="sm:col-span-2 border-t border-border pt-4"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Incident details</h2></div>
           <div><Label>Incident type</Label><Input value={form.incident_type} onChange={(e) => set("incident_type", e.target.value)} /></div>

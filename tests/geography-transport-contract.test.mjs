@@ -28,3 +28,25 @@ test("existing report and alert forms persist selected canonical road IDs", asyn
   assert.match(alert, /road_id: null as string \| null/);
   assert.match(alert, /road_id = form\.road_id/);
 });
+
+test("country and transport controls are feature-gated until the additive schema exists", async () => {
+  const countries = await readFile(new URL("../src/lib/countries.ts", import.meta.url), "utf8");
+  const gate = await readFile(new URL("../src/hooks/useUnifiedGeographySchema.ts", import.meta.url), "utf8");
+  const fields = await readFile(new URL("../src/components/admin/geography-fields.tsx", import.meta.url), "utf8");
+  assert.match(countries, /code: string/);
+  assert.match(countries, /KE/);
+  assert.match(gate, /countries/);
+  assert.match(gate, /admin_areas/);
+  assert.match(gate, /transport_entities/);
+  assert.match(fields, /Existing road and county fields remain active/);
+});
+
+test("mode-specific transport entities are queried by canonical type", async () => {
+  const selector = await readFile(new URL("../src/components/admin/transport-entity-selector.tsx", import.meta.url), "utf8");
+  const proposal = await readFile(new URL("../docs/unified-geography-transport-contract.md", import.meta.url), "utf8");
+  assert.match(selector, /transport_entities/);
+  assert.match(selector, /ENTITY_TYPES/);
+  assert.match(selector, /railway/);
+  assert.match(selector, /airport/);
+  assert.match(proposal, /No step should rewrite historical location values/);
+});
