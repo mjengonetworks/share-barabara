@@ -9,7 +9,7 @@ export function useRoadSuggestions(query: string) {
       const { data, error } = await supabase
         .from("roads")
         .select("id, name, slug")
-        .ilike("name", `%${query.trim()}%`)
+        .or(`name.ilike.%${query.trim()}%,slug.ilike.%${query.trim()}%`)
         .order("name")
         .limit(8);
       if (error) throw error;
