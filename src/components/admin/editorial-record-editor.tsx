@@ -84,6 +84,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
     if (!current) return current;
     const next = { ...current };
     for (const [key, value] of Object.entries(draft)) {
+      if (type === "alert" && key === "summary") continue;
       if (key in next && value !== null && value !== undefined && value !== "" && (!(typeof value === "string") || value.trim())) next[key] = value;
     }
     return next;
@@ -123,7 +124,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         };
       } else if (type === "alert") {
         payload = {
-          title: form.title, description: form.description, county: form.county, road: form.road,
+          title: form.title, summary: form.summary.trim() || null, description: form.description, county: form.county, road: form.road,
           hazard_type: form.hazard_type, severity: form.severity,
           image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
           image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
@@ -211,7 +212,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       </section>
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2"><Label htmlFor="editor-title">Title</Label><Input id="editor-title" value={form.title} onChange={(e) => set("title", e.target.value)} /></div>
-        {type === "article" || type === "infrastructure" ? <div className="sm:col-span-2"><Label htmlFor="editor-summary">Summary</Label><Textarea id="editor-summary" value={form.summary} onChange={(e) => set("summary", e.target.value)} /></div> : null}
+        {type === "article" || type === "alert" || type === "infrastructure" ? <div className="sm:col-span-2"><Label htmlFor="editor-summary">{type === "alert" ? "Editorial summary" : "Summary"}</Label><Textarea id="editor-summary" value={form.summary} onChange={(e) => set("summary", e.target.value)} placeholder={type === "alert" ? "A concise introduction shown above the full alert description." : undefined} /></div> : null}
         {type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-description">Advisory content</Label><RichTextEditor id="editor-description" value={form.description} onChange={(value) => set("description", value)} /></div> : <div className="sm:col-span-2"><Label htmlFor="editor-body">Full content</Label><RichTextEditor id="editor-body" value={form.body} onChange={(value) => set("body", value)} /></div>}
         {type === "article" ? <><div><Label>Category</Label><Input value={form.category} onChange={(e) => set("category", e.target.value)} /></div><div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div></> : null}
         {type === "alert" || type === "report" ? <><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road / location</Label><Input value={form.road} onChange={(e) => set("road", e.target.value)} /></div><div><Label>Severity</Label><Input value={form.severity} onChange={(e) => set("severity", e.target.value)} /></div></> : null}

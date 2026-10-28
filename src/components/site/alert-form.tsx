@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -41,6 +42,7 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
   const [anonymous, setAnonymous] = useState(false);
   const [form, setForm] = useState({
     title: "",
+    summary: "",
     description: "",
     county: "Nairobi",
     road: "",
@@ -60,6 +62,7 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
       const road_id = await findExistingRoad(form.road);
       await submitAlert({ data: {
         ...form,
+        summary: form.summary.trim() || null,
         road_id,
         parties_involved: partiesInvolved,
         casualty_breakdown: casualties,
@@ -71,7 +74,7 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
     },
     onSuccess: () => {
       toast.success("Alert published, thank you");
-      setForm({ ...form, title: "", description: "", road: "", latitude: null, longitude: null });
+      setForm({ ...form, title: "", summary: "", description: "", road: "", latitude: null, longitude: null });
       setPartiesInvolved([]);
       setCasualties({});
       setAttachments([]);
@@ -85,7 +88,7 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
   function applyEditorialDraft(draft: Record<string, unknown>) {
     setForm((current) => ({
       ...current,
-      ...Object.fromEntries(Object.entries(draft).filter(([field, value]) => field in current && typeof value === "string" && value.trim())),
+      ...Object.fromEntries(Object.entries(draft).filter(([field, value]) => field !== "summary" && field in current && typeof value === "string" && value.trim())),
     }));
     const parties = draft["parties_involved"];
     if (Array.isArray(parties) && parties.every((value) => typeof value === "string")) {
@@ -134,6 +137,17 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           placeholder="e.g. Lorry overturned blocking two lanes"
         />
+      </div>
+      <div>
+        <Label htmlFor="a-summary">Editorial summary</Label>
+        <Textarea
+          id="a-summary"
+          value={form.summary}
+          onChange={(e) => setForm({ ...form, summary: e.target.value })}
+          placeholder="A concise introduction shown above the full alert description."
+          rows={3}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">This is separate from the advisory details and Share Barabara AI.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
