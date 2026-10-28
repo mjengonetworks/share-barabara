@@ -54,7 +54,7 @@ export function QuoteOfTheDay() {
             Road safety quote of the day
           </p>
           <p className="mt-2 text-lg font-semibold italic">
-            {quote?.quote ?? "Every journey home should end at home."}
+            {quote?.quote ?? "Quote unavailable while the editorial feed loads."}
           </p>
           {quote?.author ? <p className="mt-1 text-sm text-muted-foreground">{quote.author}</p> : null}
         </div>

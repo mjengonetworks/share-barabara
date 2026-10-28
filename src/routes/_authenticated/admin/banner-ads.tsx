@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ function BannerAdsPage() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const { data: ads = [], isLoading } = useQuery({
     queryKey: ["admin-banner-ads"],
@@ -58,6 +59,30 @@ function BannerAdsPage() {
     onSuccess: () => {
       toast.success("Banner ad created");
       setForm(EMPTY);
+      setOpen(false);
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const update = useMutation({
+    mutationFn: async () => {
+      if (!editingId) throw new Error("Select an advertisement to edit");
+      const { error } = await supabase
+        .from("banner_ads")
+        .update({
+          title: form.title.trim(),
+          advertiser: form.advertiser.trim() || null,
+          image_url: form.image_url.trim() || null,
+          link_url: form.link_url.trim(),
+        })
+        .eq("id", editingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Banner ad updated");
+      setForm(EMPTY);
+      setEditingId(null);
       setOpen(false);
       refresh();
     },
@@ -96,7 +121,16 @@ function BannerAdsPage() {
       </p>
 
       <div className="mt-6">
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog
+          open={open}
+          onOpenChange={(nextOpen) => {
+            setOpen(nextOpen);
+            if (!nextOpen) {
+              setForm(EMPTY);
+              setEditingId(null);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-1.5 size-4" /> New banner ad
@@ -104,7 +138,7 @@ function BannerAdsPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>New banner ad</DialogTitle>
+              <DialogTitle>{editingId ? "Edit banner ad" : "New banner ad"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               <div>
@@ -142,10 +176,15 @@ function BannerAdsPage() {
                 />
               </div>
               <Button
-                disabled={form.title.trim().length < 2 || !form.link_url.trim() || create.isPending}
-                onClick={() => create.mutate()}
+                disabled={
+                  form.title.trim().length < 2 ||
+                  !form.link_url.trim() ||
+                  create.isPending ||
+                  update.isPending
+                }
+                onClick={() => (editingId ? update.mutate() : create.mutate())}
               >
-                Create
+                {editingId ? "Save changes" : "Create"}
               </Button>
             </div>
           </DialogContent>
@@ -175,6 +214,22 @@ function BannerAdsPage() {
                 checked={ad.active}
                 onCheckedChange={(v) => toggleActive.mutate({ id: ad.id, active: v })}
               />
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setEditingId(ad.id);
+                  setForm({
+                    title: ad.title,
+                    advertiser: ad.advertiser ?? "",
+                    image_url: ad.image_url ?? "",
+                    link_url: ad.link_url,
+                  });
+                  setOpen(true);
+                }}
+              >
+                <Pencil className="mr-1 size-4" /> Edit
+              </Button>
               <Button
                 size="sm"
                 variant="ghost"

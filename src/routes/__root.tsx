@@ -19,6 +19,8 @@ import { CookieConsent } from "../components/site/cookie-consent";
 import { NotificationPermissionPrompt } from "../components/site/notification-permission-prompt";
 import { InstallAppPrompt } from "../components/site/install-app-prompt";
 import { MockApiBadge } from "../components/site/mock-api-badge";
+import { BackToTop } from "../components/site/back-to-top";
+import { QuoteOfTheDay } from "../components/site/quote-of-the-day";
 import { isStaging } from "../lib/deployment-env";
 
 function NotFoundComponent() {
@@ -158,6 +160,8 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isAdminApp = pathname === "/admin" || pathname.startsWith("/admin/");
+  const showSharedQuote =
+    !isAdminApp && pathname !== "/" && !pathname.startsWith("/merch") && pathname !== "/partner-with-us";
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -176,6 +180,11 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </main>
+        {showSharedQuote ? (
+          <section className="mx-auto w-full max-w-6xl px-4 py-8">
+            <QuoteOfTheDay />
+          </section>
+        ) : null}
         {!isAdminApp ? <SiteFooter /> : null}
       </div>
       <Toaster />
@@ -183,6 +192,7 @@ function RootComponent() {
       {!isAdminApp ? <InstallAppPrompt /> : null}
       {!isAdminApp ? <CookieConsent /> : null}
       {!isAdminApp ? <MockApiBadge /> : null}
+      {!isAdminApp ? <BackToTop /> : null}
     </QueryClientProvider>
   );
 }

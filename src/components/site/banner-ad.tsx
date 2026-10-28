@@ -54,10 +54,10 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
     <div data-ad-placement={placement} className={`flex flex-wrap items-center gap-3 rounded-xl border border-brand-blue/30 bg-brand-navy p-4 text-white ${className}`}>
       <Megaphone className="size-6 shrink-0 text-accent" />
       <div className="min-w-0 flex-1">
-        <p className="font-semibold uppercase tracking-wide text-white">YOUR AD HERE</p>
+        <p className="font-semibold tracking-wide text-white">Your Ad Here</p>
         <p className="mt-0.5 text-xs text-white/70">Reach road users and the wider transport community.</p>
       </div>
-      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90">Advertise with us</Link>
+      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-navy">Visit Advertiser</Link>
     </div>
   );
 }

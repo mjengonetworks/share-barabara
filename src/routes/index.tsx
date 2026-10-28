@@ -88,7 +88,7 @@ function Index() {
       const { data, error } = await supabase
         .from("accident_reports")
         .select(
-          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities, duplicate_of_report_id",
         )
         .eq("status", "approved")
         .order("occurred_at", { ascending: false })
@@ -96,6 +96,19 @@ function Index() {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: recordedAccidents, isError: recordedAccidentsError } = useQuery({
+    queryKey: ["home-recorded-accidents"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("accident_reports")
+        .select("id, duplicate_of_report_id")
+        .eq("status", "approved");
+      if (error) throw error;
+      return data.filter((report) => !report.duplicate_of_report_id).length;
+    },
+    staleTime: 60_000,
   });
 
   const { data: pages = [] } = useFeaturedPagesList();
@@ -178,13 +191,17 @@ function Index() {
               <Link to="/statistics">View the statistics</Link>
             </Button>
           </div>
-          {latest ? (
-            <div className="mt-8 grid max-w-2xl gap-4 sm:grid-cols-3">
-              <Stat value={num(latest.fatalities)} label={`deaths in ${latest.year}`} danger />
-              <Stat value={num(latest.serious_injuries)} label="seriously injured" />
-              <Stat value="~13" label="deaths every day" danger />
-            </div>
-          ) : null}
+          <div className="mt-8 grid max-w-3xl gap-4 sm:grid-cols-3">
+            <Link to="/reports" className="rounded-lg border-2 border-accent bg-card/95 p-4 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              <Stat
+                value={recordedAccidentsError ? "—" : recordedAccidents === undefined ? "…" : num(recordedAccidents)}
+                label="recorded road accidents"
+                danger
+              />
+            </Link>
+            {latest ? <Stat value={num(latest.fatalities)} label={`deaths in ${latest.year}`} danger /> : <Stat value="—" label="confirmed fatalities" />}
+            {latest ? <Stat value={num(latest.serious_injuries)} label="confirmed serious injuries" /> : <Stat value="—" label="confirmed serious injuries" />}
+          </div>
         </div>
       </section>
 
@@ -343,8 +360,8 @@ function Index() {
               to="/statistics"
               cta="View statistics"
               icon={BarChart3}
-              stat={latest ? num(latest.fatalities) : undefined}
-              statLabel={latest ? `deaths in ${latest.year}` : undefined}
+              stat={recordedAccidentsError ? undefined : recordedAccidents === undefined ? "…" : num(recordedAccidents)}
+              statLabel="recorded accidents"
             />
             <PreviewCard
               title="Campaigns"
@@ -406,10 +423,13 @@ function Index() {
           <PublicNewsletterCard
             title="Get the Share Barabara newsletter"
             description="Hazard trends, new campaigns and top stories, straight to your inbox."
-            className="flex flex-wrap items-center justify-between gap-6"
+            className="mx-auto max-w-5xl gap-6 p-6 sm:p-8 lg:flex lg:items-center lg:justify-between"
           >
-            <div className="w-full sm:w-auto sm:min-w-[20rem]">
-              <NewsletterForm variant="gold" />
+            <div className="w-full max-w-2xl lg:shrink-0">
+              <NewsletterForm
+                variant="gold"
+                className="sm:grid sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"
+              />
             </div>
           </PublicNewsletterCard>
         </div>
