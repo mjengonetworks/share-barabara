@@ -113,11 +113,14 @@ test("legacy and current-year language does not claim verified official data", a
   assert.doesNotMatch(source, /verified accident reports/);
 });
 
-test("alerts keep their existing active/public semantics while reports require approval", async () => {
+test("incident statistics keep alerts separate until a canonical relationship exists", async () => {
   const source = await readFile(new URL("../src/routes/statistics.tsx", import.meta.url), "utf8");
   assert.match(source, /useLiveCount\("alerts", "alerts"\)/);
-  assert.match(source, /supabase\.from\("alerts"\)\.select\("casualty_breakdown"\)/);
-  assert.match(source, /supabase\.from\("accident_reports"\)\.select\("casualty_breakdown"\)\.eq\("status", "approved"\)/);
+  assert.doesNotMatch(source, /supabase\.from\("alerts"\)\.select\("casualty_breakdown"\)/);
+  assert.ok(source.includes('.from("accident_reports")'));
+  assert.ok(source.includes('.select("casualty_breakdown")'));
+  assert.ok(source.includes('.eq("status", "approved")'));
+  assert.match(source, /canonical Report/);
 });
 
 test("the runtime page preserves legacy tables and optionally reads published provenance", async () => {

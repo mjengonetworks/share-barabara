@@ -46,4 +46,25 @@ END $$;
 --  10. Concurrent Alert-to-Report links produce one canonical mapping.
 --  11. Existing Report, Alert and statistics rows are unchanged.
 
+-- Transport extension acceptance checks. These run only after the dependent
+-- review migration is approved in a disposable database.
+DO $$
+BEGIN
+  IF to_regclass('public.canonical_incident_transport_modes') IS NULL
+     OR to_regprocedure('public.public_canonical_transport_statistics(date,date,text,text,text)') IS NULL
+     OR to_regprocedure('public.public_canonical_transport_map(text,text)') IS NULL THEN
+    RAISE EXCEPTION 'transport statistics extension is missing';
+  END IF;
+END $$;
+
+-- Required transport cases:
+--  12. One incident may have road and rail modes but one overall incident ID.
+--  13. A second active primary mode is rejected by the partial unique index.
+--  14. Invalid mode, country, coordinate pair and unauthorized RPC calls fail.
+--  15. Mode filters do not sum multimodal rows into duplicate overall counts.
+--  16. Country/admin-area filters preserve NULL geography when unknown.
+--  17. Map RPC excludes rows without verified coordinate pairs.
+--  18. Deleted/merged incidents and deleted mode links disappear from reads.
+--  19. Report authority remains intact when supporting Alerts are present.
+
 ROLLBACK;

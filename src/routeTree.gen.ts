@@ -75,6 +75,7 @@ import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminSocialLinksRouteImport } from './routes/_authenticated/admin/social-links'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVideosRouteImport } from './routes/_authenticated/admin/videos'
+import { Route as AuthenticatedAdminReportsNewRouteImport } from './routes/_authenticated/admin/reports.new'
 import { Route as AuthenticatedAdminAlertsAlertIdEditRouteImport } from './routes/_authenticated/admin/alerts.$alertId.edit'
 import { Route as AuthenticatedAdminArticlesArticleIdEditRouteImport } from './routes/_authenticated/admin/articles.$articleId.edit'
 import { Route as AuthenticatedAdminCampaignsCampaignIdEditRouteImport } from './routes/_authenticated/admin/campaigns.$campaignId.edit'
@@ -435,6 +436,12 @@ const AuthenticatedAdminVideosRoute =
     path: '/videos',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminReportsNewRoute =
+  AuthenticatedAdminReportsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminReportsRoute,
+  } as any)
 const AuthenticatedAdminAlertsAlertIdEditRoute =
   AuthenticatedAdminAlertsAlertIdEditRouteImport.update({
     id: '/$alertId/edit',
@@ -532,6 +539,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/videos': typeof AuthenticatedAdminVideosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/reports/new': typeof AuthenticatedAdminReportsNewRoute
   '/admin/alerts/$alertId/edit': typeof AuthenticatedAdminAlertsAlertIdEditRoute
   '/admin/articles/$articleId/edit': typeof AuthenticatedAdminArticlesArticleIdEditRoute
   '/admin/campaigns/$campaignId/edit': typeof AuthenticatedAdminCampaignsCampaignIdEditRoute
@@ -603,6 +611,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/videos': typeof AuthenticatedAdminVideosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/reports/new': typeof AuthenticatedAdminReportsNewRoute
   '/admin/alerts/$alertId/edit': typeof AuthenticatedAdminAlertsAlertIdEditRoute
   '/admin/articles/$articleId/edit': typeof AuthenticatedAdminArticlesArticleIdEditRoute
   '/admin/campaigns/$campaignId/edit': typeof AuthenticatedAdminCampaignsCampaignIdEditRoute
@@ -677,6 +686,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/videos': typeof AuthenticatedAdminVideosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/reports/new': typeof AuthenticatedAdminReportsNewRoute
   '/_authenticated/admin/alerts/$alertId/edit': typeof AuthenticatedAdminAlertsAlertIdEditRoute
   '/_authenticated/admin/articles/$articleId/edit': typeof AuthenticatedAdminArticlesArticleIdEditRoute
   '/_authenticated/admin/campaigns/$campaignId/edit': typeof AuthenticatedAdminCampaignsCampaignIdEditRoute
@@ -751,6 +761,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/videos'
     | '/admin/'
+    | '/admin/reports/new'
     | '/admin/alerts/$alertId/edit'
     | '/admin/articles/$articleId/edit'
     | '/admin/campaigns/$campaignId/edit'
@@ -822,6 +833,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/videos'
     | '/admin'
+    | '/admin/reports/new'
     | '/admin/alerts/$alertId/edit'
     | '/admin/articles/$articleId/edit'
     | '/admin/campaigns/$campaignId/edit'
@@ -895,6 +907,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/videos'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/reports/new'
     | '/_authenticated/admin/alerts/$alertId/edit'
     | '/_authenticated/admin/articles/$articleId/edit'
     | '/_authenticated/admin/campaigns/$campaignId/edit'
@@ -1402,6 +1415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVideosRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/reports/new': {
+      id: '/_authenticated/admin/reports/new'
+      path: '/new'
+      fullPath: '/admin/reports/new'
+      preLoaderRoute: typeof AuthenticatedAdminReportsNewRouteImport
+      parentRoute: typeof AuthenticatedAdminReportsRoute
+    }
     '/_authenticated/admin/alerts/$alertId/edit': {
       id: '/_authenticated/admin/alerts/$alertId/edit'
       path: '/$alertId/edit'
@@ -1501,11 +1521,13 @@ const AuthenticatedAdminInfrastructureIssuesRouteWithChildren =
   )
 
 interface AuthenticatedAdminReportsRouteChildren {
+  AuthenticatedAdminReportsNewRoute: typeof AuthenticatedAdminReportsNewRoute
   AuthenticatedAdminReportsReportIdEditRoute: typeof AuthenticatedAdminReportsReportIdEditRoute
 }
 
 const AuthenticatedAdminReportsRouteChildren: AuthenticatedAdminReportsRouteChildren =
   {
+    AuthenticatedAdminReportsNewRoute: AuthenticatedAdminReportsNewRoute,
     AuthenticatedAdminReportsReportIdEditRoute:
       AuthenticatedAdminReportsReportIdEditRoute,
   }

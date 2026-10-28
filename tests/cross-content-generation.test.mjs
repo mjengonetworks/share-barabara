@@ -41,7 +41,7 @@ test("cross-content RPCs enforce permissions, validation, and public filtering",
 test("admin integration exposes one shared cross-content editor", () => {
   const editor = readFileSync("src/components/admin/editorial-record-editor.tsx", "utf8");
   assert.match(editor, /import \{ CrossContentEditor \}/);
-  assert.match(editor, /<CrossContentEditor sourceType=\{type\} sourceId=\{id\}/);
+  assert.match(editor, /<CrossContentEditor sourceType=\{type\} sourceId=\{id!\}/);
   for (const route of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = readFileSync(`src/routes/_authenticated/admin/${route}`, "utf8");
     assert.match(source, /admin\/.*(?:new|\$.*edit)|Outlet/);

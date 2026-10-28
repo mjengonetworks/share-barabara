@@ -12,11 +12,11 @@ test("all five editorial listings navigate Edit to dedicated full editor routes"
     read("src/routes/_authenticated/admin/campaigns.tsx"),
     read("src/routes/_authenticated/admin/infrastructure-issues.tsx"),
   ]);
-  assert.match(sources[0], /\/admin\/articles\/\$articleId\/edit/);
-  assert.match(sources[1], /\/admin\/reports\/\$reportId\/edit/);
-  assert.match(sources[2], /\/admin\/alerts\/\$alertId\/edit/);
-  assert.match(sources[3], /\/admin\/campaigns\/\$campaignId\/edit/);
-  assert.match(sources[4], /\/admin\/infrastructure-issues\/\$issueId\/edit/);
+  assert.match(sources[0], /\/admin\/articles\/\$\{a\.id\}\/edit/);
+  assert.match(sources[1], /\/admin\/reports\/\$\{r\.id\}\/edit/);
+  assert.match(sources[2], /\/admin\/alerts\/\$\{a\.id\}\/edit/);
+  assert.match(sources[3], /\/admin\/campaigns\/\$\{c\.id\}\/edit/);
+  assert.match(sources[4], /\/admin\/infrastructure-issues\/\$\{i\.id\}\/edit/);
 });
 
 test("shared editor loads existing records, preserves media fields and routes all AI actions", async () => {
@@ -28,5 +28,5 @@ test("shared editor loads existing records, preserves media fields and routes al
   assert.match(editor, /image_credit/);
   assert.match(editor, /contentId=\{id\}/);
   assert.match(editor, /mode: "update"/);
-  assert.match(editor, /\.update\(payload\)\.eq\("id", id\)/);
+  assert.match(editor, /\.update\(patch\).*\.eq\("id", id\)/s);
 });

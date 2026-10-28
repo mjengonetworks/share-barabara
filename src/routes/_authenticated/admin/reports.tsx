@@ -55,8 +55,6 @@ import { EditorialUpdatesManager } from "@/components/site/editorial-updates-man
 import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
-import { ReportForm } from "@/components/site/report-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -88,7 +86,7 @@ type Status = "pending" | "approved" | "rejected";
 
 function ReportsQueuePage() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  if (/^\/admin\/reports\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
+  if (/^\/admin\/reports\/(?:new|[^/]+\/edit)\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: severities = [] } = useReportSeverities();
@@ -216,13 +214,7 @@ function ReportsQueuePage() {
         description="Edit submissions for accuracy and clarity, then approve them."
         websiteHref="/reports"
         actions={
-          <Dialog>
-            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add New Report</Button></DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-              <DialogHeader><DialogTitle>New accident report</DialogTitle></DialogHeader>
-              <ReportForm editorial onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
-            </DialogContent>
-          </Dialog>
+          <Button asChild size="sm"><Link to="/admin/reports/new"><Plus className="mr-1.5 size-4" /> Add New Report</Link></Button>
         }
       />
       <IncidentDiscoveryPanel />

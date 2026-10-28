@@ -148,3 +148,35 @@ calls and a separate public-route regression test passes.
 7. Only then prepare a coordinated release.
 
 No migration in this proposal should be executed yet.
+
+## 9. Transport-mode extension and Fourth-instance contract
+
+`20261028140000_canonical_transport_statistics_extension_review.sql` is a
+separate dependent layer. It adds classification columns to the canonical
+incident row and a many-to-many `canonical_incident_transport_modes` table.
+It does not create country, county, road, corridor, station, airport, port or
+other competing taxonomy tables. The Fourth instance remains the owner of
+those entities; future foreign-key columns may be added only after its stable
+identifiers and names are confirmed.
+
+The allowed modes are `road`, `rail`, `aviation`, `maritime`,
+`inland_water`, and `other`. Modes classify one incident; they do not create
+additional incident identities. The overall count key is always
+`canonical_accident_incidents.id`. A multimodal incident therefore appears
+once in all-transport totals and may appear in each explicitly filtered mode
+view without being summed as separate incidents.
+
+The extension's classification RPC is moderator-only, requires at least one
+mode, validates country and coordinate pairs, and preserves NULL geography.
+Its public statistics and map functions expose only the existing canonical
+eligible read model. Map output excludes rows without verified coordinates.
+
+The Fourth instance's report editor must call the canonical link/eligibility
+RPCs only after the Report is approved and must treat blank casualties as
+unknown. Its duplicate merge workflow remains authoritative for
+`duplicate_of_report_id`; the canonical sync trigger transfers identity and
+supporting Alerts transactionally without publishing or restoring content.
+
+This remains a review-only contract until the canonical and transport
+migrations are approved, applied in a disposable environment, and verified
+against the Fourth instance's final geography identifiers.
