@@ -66,6 +66,8 @@ test("admin listing implementation remains intact while scoped public discovery 
     "src/components/site/cross-content-editor.tsx",
     "src/routes/reports.$reportId.tsx",
     "src/routes/reports.index.tsx",
+    // This task explicitly integrates the canonical statistics consumer.
+    "src/routes/statistics.tsx",
   ]);
   for (const file of output.split(/\r?\n/).filter(Boolean)) {
     if (file.startsWith("src/") && !file.includes("/_authenticated/admin/") && !allowedPublicChanges.has(file)) {

@@ -43,6 +43,7 @@ import {
 } from "@/lib/statistics.mjs";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
+import { loadLiveCanonicalIncidents, type LiveIncidentRow } from "@/lib/canonical-statistics";
 
 export const Route = createFileRoute("/statistics")({
   head: () => ({
@@ -147,35 +148,17 @@ function usePartiesCasualtyCounts() {
   });
 }
 
-type LiveReport = {
-  occurred_at: string;
-  county: string;
-  severity: string;
-  fatalities: number | null;
-  casualties: number | null;
-  parties_involved: string[];
-  duplicate_of_report_id?: string | null;
-  incident_type?: string | null;
-};
-
 /** This year's and last year's approved reports, fetched once and filtered/
  *  aggregated client-side, the live, community-fed counterpart to the
- *  admin-entered yearly_stats figures below. */
-function useLiveYearReports() {
+ *  admin-entered yearly_stats figures below. The canonical RPC is preferred
+ *  once its migration is active; the adapter falls back to approved Reports. */
+function useLiveYearReports(transportMode: string) {
   const currentYear = new Date().getFullYear();
   return useQuery({
-    queryKey: ["live-year-reports", currentYear],
+    queryKey: ["live-canonical-incidents", currentYear, transportMode],
     queryFn: async () => {
       const since = new Date(currentYear - 1, 0, 1).toISOString();
-      const { data, error } = await supabase
-        .from("accident_reports")
-        .select(
-          "occurred_at, county, severity, fatalities, casualties, parties_involved, duplicate_of_report_id, incident_type",
-        )
-        .eq("status", "approved")
-        .gte("occurred_at", since);
-      if (error) throw error;
-      return (data ?? []) as LiveReport[];
+      return loadLiveCanonicalIncidents({ from: since, transportMode: transportMode === "all" ? null : transportMode });
     },
   });
 }
@@ -417,14 +400,16 @@ function StatisticsPage() {
   const countiesForYear = counties.filter((c) => c.year === activeYear);
   const victimsForYear = victims.filter((v) => v.year === activeYear);
   const totalVictims = victimsForYear.reduce((sum, v) => sum + v.fatalities, 0);
-  const { data: liveReports = [] } = useLiveYearReports();
   const { data: provenance = [] } = usePublishedStatisticsProvenance();
   const [liveCounty, setLiveCounty] = useState("all");
   const [liveSeverity, setLiveSeverity] = useState("all");
   const [liveParty, setLiveParty] = useState("all");
-  const liveFiltered = liveCounty !== "all" || liveSeverity !== "all" || liveParty !== "all";
+  const [liveTransportMode, setLiveTransportMode] = useState("all");
+  const { data: liveReports = [] } = useLiveYearReports(liveTransportMode);
+  const liveUsesCanonical = liveReports.some((row) => row.source === "canonical");
+  const liveFiltered = liveCounty !== "all" || liveSeverity !== "all" || liveParty !== "all" || liveTransportMode !== "all";
 
-  const matchesLiveFilters = (r: LiveReport) =>
+  const matchesLiveFilters = (r: LiveIncidentRow) =>
     (liveCounty === "all" || r.county === liveCounty) &&
     (liveSeverity === "all" || r.severity === liveSeverity) &&
     (liveParty === "all" || r.parties_involved.includes(liveParty));
@@ -627,14 +612,14 @@ function StatisticsPage() {
             <span className="relative inline-flex size-2.5 rounded-full bg-destructive" />
           </span>
           <p className="text-xs font-semibold uppercase tracking-widest text-destructive">
-            Live · counted from approved Share Barabara reports
+            Live · {liveUsesCanonical ? "canonical verified incidents" : "approved Share Barabara reports"}
           </p>
         </div>
         <h2 className="mt-2 text-[1.7325rem] font-extrabold">{currentYear} so far</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Share Barabara reported data only — not Kenya's official national road-safety total. The
-          figures below count approved reports and exclude unknown casualty values from numeric
-          sums.
+          figures below use the canonical verified incident read model when available, otherwise
+          approved Reports only. Unknown casualty values remain excluded from numeric sums.
         </p>
 
         <div className="mt-6 flex flex-wrap items-end gap-2">
@@ -677,6 +662,18 @@ function StatisticsPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={liveTransportMode} onValueChange={setLiveTransportMode}>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All transport incidents</SelectItem>
+              <SelectItem value="road">Road accidents</SelectItem>
+              <SelectItem value="rail">Rail incidents</SelectItem>
+              <SelectItem value="aviation">Aviation incidents</SelectItem>
+              <SelectItem value="maritime">Maritime incidents</SelectItem>
+              <SelectItem value="inland_water">Inland water incidents</SelectItem>
+              <SelectItem value="other">Other transport incidents</SelectItem>
+            </SelectContent>
+          </Select>
           {liveFiltered ? (
             <Button
               variant="ghost"
@@ -685,6 +682,7 @@ function StatisticsPage() {
                 setLiveCounty("all");
                 setLiveSeverity("all");
                 setLiveParty("all");
+                setLiveTransportMode("all");
               }}
             >
               Clear filters

@@ -185,6 +185,8 @@ SELECT
   s.county,
   s.road,
   s.road_id,
+  s.vehicles_involved,
+  s.casualty_breakdown,
   COALESCE(i.verified_severity,s.severity) AS severity,
   COALESCE(i.verified_incident_type,s.incident_type) AS incident_type,
   s.fatalities,
@@ -214,8 +216,13 @@ RETURNS TABLE(
   locality TEXT,
   transport_corridor TEXT,
   occurred_at TIMESTAMPTZ,
+  county TEXT,
+  road TEXT,
+  road_id UUID,
   severity TEXT,
   incident_type TEXT,
+  vehicles_involved INTEGER,
+  casualty_breakdown JSONB,
   fatalities INTEGER,
   injuries INTEGER,
   latitude NUMERIC,
@@ -228,7 +235,8 @@ SECURITY DEFINER
 SET search_path=public,pg_temp
 AS $$
   SELECT s.incident_id,s.transport_mode,s.is_primary,s.country_code,s.admin_area,
-    s.locality,s.transport_corridor,s.occurred_at,s.severity,s.incident_type,
+    s.locality,s.transport_corridor,s.occurred_at,s.county,s.road,s.road_id,
+    s.severity,s.incident_type,s.vehicles_involved,s.casualty_breakdown,
     s.fatalities,s.injuries,s.latitude,s.longitude,s.report_id,s.alert_id
   FROM public.canonical_transport_statistics s
   WHERE (_from IS NULL OR s.occurred_at::date >= _from)
