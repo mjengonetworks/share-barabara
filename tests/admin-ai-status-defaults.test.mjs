@@ -27,15 +27,15 @@ test("all primary admin content listings default to All statuses", async () => {
 
 test("admin Add forms explicitly enable authorized editorial AI controls", async () => {
   const alert = await read("src/components/site/alert-form.tsx");
-  const report = await read("src/components/site/report-form.tsx");
+  const report = await read("src/components/admin/editorial-record-editor.tsx");
   const alertRoute = await read("src/routes/_authenticated/admin/alerts.tsx");
   const reportRoute = await read("src/routes/_authenticated/admin/reports.tsx");
   assert.match(alert, /editorial = false/);
-  assert.match(report, /editorial = false/);
+  assert.match(report, /type: EditorialRecordType/);
   assert.match(alert, /const editorialAccess = editorial \|\| canReview/);
-  assert.match(report, /const editorialAccess = editorial \|\| canReview/);
   assert.match(alertRoute, /<AlertForm editorial/);
-  assert.match(reportRoute, /<ReportForm editorial/);
+  assert.match(reportRoute, /\/admin\/reports\/new/);
+  assert.match(await read("src/routes/_authenticated/admin/reports.new.tsx"), /EditorialRecordEditor type="report"/);
 });
 
 test("status filtering applies before rendering alert rows", async () => {

@@ -26,7 +26,7 @@ test("content management pages expose internal authoring and website preview act
   assert.match(header, /View on website/);
   assert.match(articles, /to="\/admin\/my-articles"/);
   assert.match(alerts, /<AlertForm editorial onDone=/);
-  assert.match(reports, /<ReportForm editorial onDone=/);
+  assert.match(reports, /\/admin\/reports\/new/);
   assert.match(campaigns, /websiteHref="\/campaigns"/);
   for (const source of [articles, alerts, reports, campaigns]) {
     assert.match(source, /AdminPageHeader/);

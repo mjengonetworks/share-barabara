@@ -85,22 +85,25 @@ test("My Content remains an ownership-aware admin route", async () => {
   assert.doesNotMatch(route, /\/profile/);
 });
 
-test("the actual Add Accident Report form exposes AI outside collapsed details", async () => {
-  const reportForm = await read("src/components/site/report-form.tsx");
-  const aiPanel = reportForm.indexOf('aria-label="Accident report Editorial AI"');
-  const details = reportForm.indexOf("<Collapsible>");
-  assert.ok(aiPanel >= 0);
-  assert.ok(aiPanel < details);
-  assert.match(reportForm, /mode: "generate", provider: "grok"/);
-  assert.match(reportForm, /mode: "autopopulate", provider: "groq"/);
-  assert.match(reportForm, /mode: "autopopulate", provider: "grok"/);
+test("the actual Add Accident Report route is a full-page shared editor with visible AI actions", async () => {
+  const route = await read("src/routes/_authenticated/admin/reports.new.tsx");
+  const listing = await read("src/routes/_authenticated/admin/reports.tsx");
+  const editor = await read("src/components/admin/editorial-record-editor.tsx");
+  assert.match(route, /EditorialRecordEditor type="report"/);
+  assert.doesNotMatch(listing, /<Dialog>/);
+  assert.match(listing, /\/admin\/reports\/new/);
+  assert.match(editor, /mode: "generate"/);
+  assert.match(editor, /provider: "groq"/);
+  assert.match(editor, /provider: "grok"/);
+  assert.match(editor, /\.\.\.\(isEditing \? \[\{ mode: "update"/);
 });
 
 test("report editor owns structured accident fields and same-record update", async () => {
   const editor = await read("src/components/admin/editorial-record-editor.tsx");
   for (const field of ["incident_type", "occurred_at", "latitude", "longitude", "vehicles_involved", "casualties", "fatalities", "parties_involved", "casualty_breakdown", "attachments"]) assert.match(editor, new RegExp(field), field);
   assert.match(editor, /type === "report"/);
-  assert.match(editor, /\.update\(payload\).*eq\("id", id\)/s);
+  assert.match(editor, /\.update\(patch\).*eq\("id", id\)/s);
+  assert.match(editor, /submitAccidentReport/);
 });
 
 test("all editorial listing parents delegate edit URLs to the child editor", async () => {

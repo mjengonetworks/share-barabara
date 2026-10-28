@@ -11,12 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
-import { PartyCasualtyInputs, type CasualtyBreakdown } from "@/components/site/party-casualty-inputs";
+import { PartyCasualtyInputs, type CasualtyBreakdown, casualtyBreakdownError, withUnspecifiedCasualties } from "@/components/site/party-casualty-inputs";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
 import { PARTIES_INVOLVED } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { useAuth } from "@/hooks/useAuth";
+import { useRoles } from "@/hooks/useRoles";
+import { useActiveIdentity } from "@/hooks/useActiveIdentity";
+import { findExistingRoad } from "@/lib/roads";
+import { submitAccidentReport } from "@/lib/report.functions";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -52,11 +57,16 @@ function initialForm(type: EditorialRecordType, record: RecordValue): RecordValu
   return { ...common, description: stringValue(record, "description"), location: stringValue(record, "location"), start_date: stringValue(record, "start_date"), end_date: stringValue(record, "end_date") };
 }
 
-export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType; id: string }) {
+export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType; id?: string }) {
   const config = CONFIG[type];
-  const [form, setForm] = useState<RecordValue | null>(null);
+  const isEditing = Boolean(id);
+  const { user } = useAuth();
+  const { canReview } = useRoles();
+  const { identity } = useActiveIdentity();
+  const [form, setForm] = useState<RecordValue | null>(() => isEditing ? null : initialForm(type, {}));
   const recordQuery = useQuery({
     queryKey: ["admin-editorial-record", type, id],
+    enabled: isEditing,
     queryFn: async () => {
       const { data, error } = await (supabase.from(config.table) as any).select("*").eq("id", id).single();
       if (error) throw error;
@@ -80,8 +90,16 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   });
 
   const save = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (requestedStatus?: "draft" | "approved") => {
       if (!form) throw new Error("Record is still loading");
+      if (type === "report" && !form.title.trim()) throw new Error("Report title is required");
+      if (type === "report" && !form.body.trim()) throw new Error("Incident description is required");
+      if (type === "report" && !form.county.trim()) throw new Error("County is required");
+      if (type === "report" && !form.occurred_at) throw new Error("Occurrence date and time are required");
+      if (type === "report") {
+        const breakdownError = casualtyBreakdownError(form.casualty_breakdown, { dead: form.fatalities, injured: form.casualties });
+        if (breakdownError) throw new Error(breakdownError);
+      }
       let payload: RecordValue;
       if (type === "article") {
         payload = {
@@ -126,26 +144,66 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           image_credit: form.image_credit.trim() || null,
         };
       }
-      const { error } = await (supabase.from(config.table) as any).update(payload).eq("id", id);
-      if (error) throw error;
+      const status = requestedStatus === "approved" && canReview ? "approved" : undefined;
+      if (isEditing) {
+        const patch = status ? { ...payload, status } : payload;
+        const { error } = await (supabase.from(config.table) as any).update(patch).eq("id", id);
+        if (error) throw error;
+      } else if (type === "report") {
+        const road_id = await findExistingRoad(form.road);
+        await submitAccidentReport({ data: {
+          title: form.title,
+          description: form.body,
+          county: form.county,
+          road: form.road,
+          incident_type: form.incident_type || null,
+          severity: form.severity,
+          occurred_at: new Date(form.occurred_at).toISOString(),
+          vehicles_involved: form.vehicles_involved,
+          casualties: form.casualties,
+          fatalities: form.fatalities,
+          latitude: form.latitude,
+          longitude: form.longitude,
+          image_url: form.image_url.trim() || null,
+          image_alt: form.image_alt.trim() || null,
+          image_caption: form.image_caption.trim() || null,
+          image_credit: form.image_credit.trim() || null,
+          road_id,
+          parties_involved: form.parties_involved,
+          casualty_breakdown: withUnspecifiedCasualties(form.casualty_breakdown, { dead: form.fatalities, injured: form.casualties }),
+          attachments: form.attachments,
+          page_id: identity.type === "page" ? identity.pageId : null,
+          is_anonymous: false,
+          requestedStatus: status === "approved" ? "approved" : "pending",
+        } });
+      } else {
+        const insertPayload = {
+          ...payload,
+          user_id: user?.id ?? null,
+          status: status === "approved" ? "approved" : "pending",
+        };
+        const { error } = await (supabase.from(config.table) as any).insert(insertPayload);
+        if (error) throw error;
+      }
     },
-    onSuccess: () => toast.success(`${config.label} saved. Existing media and fields were preserved.`),
+    onSuccess: () => toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created as a draft.`),
     onError: (error: Error) => toast.error(error.message),
   });
 
-  if (recordQuery.error) return <p className="rounded-lg border border-destructive/30 p-6 text-destructive">Unable to load this {config.label.toLowerCase()}.</p>;
-  if (recordQuery.isLoading || !form) return <p className="p-8 text-muted-foreground">Loading {config.label.toLowerCase()}…</p>;
+  if (isEditing && recordQuery.error) return <p className="rounded-lg border border-destructive/30 p-6 text-destructive">Unable to load this {config.label.toLowerCase()}.</p>;
+  if (isEditing && (recordQuery.isLoading || !form)) return <p className="p-8 text-muted-foreground">Loading {config.label.toLowerCase()}…</p>;
+  if (!form) return <p className="p-8 text-muted-foreground">Preparing {config.label.toLowerCase()}…</p>;
 
   const aiActions = [
     { mode: "generate" as const, provider: "grok" as const },
     { mode: "autopopulate" as const, provider: "groq" as const },
     { mode: "autopopulate" as const, provider: "grok" as const },
-    { mode: "update" as const, provider: "grok" as const },
+    ...(isEditing ? [{ mode: "update" as const, provider: "grok" as const }] : []),
   ];
 
   return <div className="w-full max-w-4xl space-y-6">
     <Link to={config.back} className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue"><ArrowLeft className="size-4" /> Back to {config.label.toLowerCase()}s</Link>
-    <AdminPageHeader eyebrow="Editorial workspace" title={`Edit ${config.label}`} description="Complete record editor. Existing values and media remain intact unless you change them." websiteHref={config.list} />
+    <AdminPageHeader eyebrow="Editorial workspace" title={`${isEditing ? "Edit" : "New"} ${config.label}`} description={isEditing ? "Complete record editor. Existing values and media remain intact unless you change them." : "Create a structured record. Save a draft or publish when your role permits."} websiteHref={config.list} />
     <div className="space-y-5 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-7">
       <section className="space-y-3" aria-labelledby="editorial-ai-heading">
         <h2 id="editorial-ai-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial AI</h2>
@@ -158,12 +216,14 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         {type === "article" ? <><div><Label>Category</Label><Input value={form.category} onChange={(e) => set("category", e.target.value)} /></div><div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div></> : null}
         {type === "alert" || type === "report" ? <><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road / location</Label><Input value={form.road} onChange={(e) => set("road", e.target.value)} /></div><div><Label>Severity</Label><Input value={form.severity} onChange={(e) => set("severity", e.target.value)} /></div></> : null}
         {type === "report" ? <>
+          <div className="sm:col-span-2 border-t border-border pt-4"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Incident details</h2></div>
           <div><Label>Incident type</Label><Input value={form.incident_type} onChange={(e) => set("incident_type", e.target.value)} /></div>
           <div><Label>Incident date/time</Label><Input type="datetime-local" value={form.occurred_at?.slice(0, 16)} onChange={(e) => set("occurred_at", e.target.value)} /></div>
           <div><Label>Latitude</Label><Input type="number" value={form.latitude ?? ""} onChange={(e) => set("latitude", e.target.value === "" ? null : Number(e.target.value))} /></div>
           <div><Label>Longitude</Label><Input type="number" value={form.longitude ?? ""} onChange={(e) => set("longitude", e.target.value === "" ? null : Number(e.target.value))} /></div>
           {([['vehicles_involved', 'Vehicles involved'], ['casualties', 'Confirmed injuries'], ['fatalities', 'Confirmed fatalities']] as const).map(([key, label]) => <div key={key}><Label>{label}</Label><Input type="number" min="0" value={form[key] ?? ""} onChange={(e) => set(key, e.target.value === "" ? null : Number(e.target.value))} /></div>)}
-          <div className="sm:col-span-2"><Label>Road-user categories involved</Label><div className="mt-2 flex flex-wrap gap-3">{PARTIES_INVOLVED.map((party) => <label key={party.value} className="flex items-center gap-2 text-sm"><Checkbox checked={form.parties_involved.includes(party.value)} onCheckedChange={(checked) => set("parties_involved", checked === true ? [...form.parties_involved, party.value] : form.parties_involved.filter((value: string) => value !== party.value))} />{party.label}</label>)}</div><PartyCasualtyInputs parties={form.parties_involved} value={form.casualty_breakdown} onChange={(value) => set("casualty_breakdown", value)} /></div>
+          <div className="sm:col-span-2 border-t border-border pt-4"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Vehicles, road users and casualties</h2></div>
+          <div className="sm:col-span-2"><Label>Road-user categories involved</Label><div className="mt-2 flex flex-wrap gap-3">{PARTIES_INVOLVED.map((party) => <label key={party.value} className="flex items-center gap-2 text-sm"><Checkbox checked={form.parties_involved.includes(party.value)} onCheckedChange={(checked) => set("parties_involved", checked === true ? [...form.parties_involved, party.value] : form.parties_involved.filter((value: string) => value !== party.value))} />{party.label}</label>)}</div><PartyCasualtyInputs parties={form.parties_involved} value={form.casualty_breakdown} onChange={(value) => set("casualty_breakdown", value)} /><p className="mt-2 text-xs text-muted-foreground">Leave casualty fields blank when the source does not confirm a figure; blank is unknown, not zero.</p></div>
           <div className="sm:col-span-2"><Label>Supporting media</Label><AttachmentsField value={form.attachments} onChange={(value) => set("attachments", value)} /></div>
           <div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div><div><Label>SEO description</Label><Input value={form.seo_description} onChange={(e) => set("seo_description", e.target.value)} /></div><div className="sm:col-span-2"><Label>SEO keywords</Label><Input value={form.seo_keywords} onChange={(e) => set("seo_keywords", e.target.value)} /></div>
         </> : null}
@@ -171,7 +231,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         {type === "campaign" ? <><div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div><div><Label>Start date</Label><Input type="datetime-local" value={form.start_date?.slice(0, 16)} onChange={(e) => set("start_date", e.target.value)} /></div><div><Label>End date</Label><Input type="datetime-local" value={form.end_date?.slice(0, 16)} onChange={(e) => set("end_date", e.target.value)} /></div></> : null}
       </section>
       <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
-      <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><Button type="button" onClick={() => save.mutate()} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : "Save changes"}</Button></section>
+      <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => save.mutate("draft")} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Save changes" : "Save draft"}</Button>{canReview ? <Button type="button" onClick={() => save.mutate("approved")} disabled={save.isPending}>{isEditing ? "Save & publish" : "Publish report"}</Button> : null}</div></section>
     </div>
   </div>;
 }
