@@ -357,7 +357,7 @@ function NewsDetail() {
             </p>
           ) : null}
           <div className="mt-2 pb-2">
-            <h1 className="max-w-4xl text-[23.52px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            <h1 className="max-w-4xl text-[24.696px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
               {article.title}
             </h1>
           </div>
