@@ -1,14 +1,4 @@
--- REVIEW ONLY. DO NOT EXECUTE.
--- This is a dependency-order proposal, not an approved Supabase migration.
--- It intentionally contains no executable SQL so it cannot be applied accidentally.
--- Reuse the existing roads table; do not create a duplicate road table.
--- Proposed objects, subject to second-instance contract review:
---   countries(iso_code, name, active)
---   admin_areas(id, country_code, level, name, code, parent_id, active)
---   transport_entities(id, entity_type, country_code, admin_area_id, name, slug, geometry, verified)
---   transport_entity_aliases(entity_id, alias, normalized_alias, source, verified)
---   content_geography(content_type, content_id, country_code, admin_area_id, transport_entity_id, relationship_kind, provenance)
--- Proposed nullable content columns: country_code, admin_area_id, transport_mode, transport_entity_id.
--- Required review gates: RLS, public eligibility, ownership, indexes, backfill policy,
--- canonical incident deduplication, statistics query contracts, and rollback plan.
--- No historical country/mode inference and no data rewrite are permitted by this proposal.
+-- Superseded review note. The executable additive candidate is now:
+-- supabase/migrations/20261028150000_unified_geography_transport_schema.sql
+-- It remains unapplied and requires owner approval plus the second-instance
+-- canonical incident/statistics dependency order.

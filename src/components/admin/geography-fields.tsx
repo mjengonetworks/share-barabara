@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { KENYA_COUNTIES } from "@/lib/constants";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 import { TRANSPORT_MODES, transportIncidentOptions, type TransportMode } from "@/lib/transport-safety";
 import { useUnifiedGeographySchema } from "@/hooks/useUnifiedGeographySchema";
 import { TransportEntitySelector } from "@/components/admin/transport-entity-selector";
+import { supabase } from "@/integrations/supabase/client";
 
 export function GeographyFields({
   countryCode,
@@ -27,7 +28,18 @@ export function GeographyFields({
 }) {
   const schema = useUnifiedGeographySchema();
   const [countrySearch, setCountrySearch] = useState("");
+  const [regionSearch, setRegionSearch] = useState("");
   const countries = useMemo(() => COUNTRY_OPTIONS.filter((country) => `${country.name} ${country.code}`.toLowerCase().includes(countrySearch.toLowerCase())).slice(0, 80), [countrySearch]);
+  const regionsQuery = useQuery({
+    queryKey: ["admin-areas", countryCode],
+    enabled: Boolean(schema.data?.available && countryCode),
+    queryFn: async () => {
+      const { data, error } = await (supabase.from("admin_areas" as never) as any).select("id,name,level").eq("country_code", countryCode).order("name").limit(500);
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; name: string; level: string }>;
+    },
+    staleTime: 5 * 60_000,
+  });
   const kenya = countryCode === "KE";
   const knownMode = TRANSPORT_MODES.some((mode) => mode.value === transportMode);
   const incidentOptions = knownMode ? transportIncidentOptions(transportMode as TransportMode) : [];
@@ -40,7 +52,7 @@ export function GeographyFields({
     <div><h2 id="geography-transport-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Geography and transport</h2><p className="mt-1 text-xs text-muted-foreground">New records default to Kenya. Existing values are preserved until you change them.</p></div>
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2"><Label htmlFor="country-search">Country</Label><Input id="country-search" value={countrySearch || COUNTRY_OPTIONS.find((country) => country.code === countryCode)?.name || countryCode} onChange={(event) => setCountrySearch(event.target.value)} placeholder="Search country" autoComplete="off" /><div className="mt-1 max-h-44 overflow-y-auto rounded border border-border bg-card">{countries.map((country) => <button type="button" key={country.code} className={`block w-full px-3 py-2 text-left text-sm hover:bg-muted ${country.code === countryCode ? "bg-muted" : ""}`} onClick={() => { onChange({ country_code: country.code, admin_area_id: "" }); setCountrySearch(country.name); }}>{country.name} <span className="text-xs text-muted-foreground">({country.code})</span></button>)}</div></div>
-      <div><Label>Administrative area</Label><Select value={adminAreaId || "none"} onValueChange={(value) => onChange({ admin_area_id: value === "none" ? "" : value })}><SelectTrigger><SelectValue placeholder={kenya ? "Select county" : "Select region"} /></SelectTrigger><SelectContent><SelectItem value="none">Not specified</SelectItem>{kenya ? KENYA_COUNTIES.map((county) => <SelectItem key={county} value={county}>{county}</SelectItem>) : <SelectItem value="unavailable" disabled>Reference regions pending</SelectItem>}</SelectContent></Select><p className="mt-1 text-xs text-muted-foreground">{kenya ? "Kenya county reference" : "Country-specific subdivision reference"}</p></div>
+      <div><Label htmlFor="region-search">{kenya ? "County" : "State / province / region"}</Label><Input id="region-search" value={regionSearch} onChange={(event) => setRegionSearch(event.target.value)} placeholder={kenya ? "Search Kenya counties" : "Search administrative areas"} disabled={regionsQuery.isLoading} /><Select value={adminAreaId || "none"} onValueChange={(value) => { const region = (regionsQuery.data ?? []).find((item) => item.id === value); onChange({ admin_area_id: value === "none" ? "" : value, admin_area_name: region?.name ?? "" }); }}><SelectTrigger className="mt-2"><SelectValue placeholder={kenya ? "Select county" : "Select region"} /></SelectTrigger><SelectContent><SelectItem value="none">Not specified</SelectItem>{(regionsQuery.data ?? []).filter((region) => region.name.toLowerCase().includes(regionSearch.toLowerCase())).map((region) => <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>)}</SelectContent></Select><p className="mt-1 text-xs text-muted-foreground">{kenya ? "Canonical Kenya county reference" : "Country-specific subdivision reference"}</p></div>
       <div><Label>Transport mode</Label><Select value={transportMode || "unknown"} onValueChange={(value) => onChange({ transport_mode: value === "unknown" ? "" : value })}><SelectTrigger><SelectValue placeholder="Not specified" /></SelectTrigger><SelectContent><SelectItem value="unknown">Not specified</SelectItem>{TRANSPORT_MODES.map((mode) => <SelectItem key={mode.value} value={mode.value}>{mode.label}</SelectItem>)}</SelectContent></Select></div>
       {showIncidentType ? <div className="sm:col-span-2"><Label>Mode-specific incident type</Label><Select value={incidentType || "unknown"} onValueChange={(value) => onChange({ incident_type: value === "unknown" ? "" : value })}><SelectTrigger><SelectValue placeholder="Unknown / not specified" /></SelectTrigger><SelectContent><SelectItem value="unknown">Unknown / not specified</SelectItem>{incidentOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select></div> : null}
       <TransportEntitySelector mode={transportMode} value={transportEntityId} onChange={(id) => onChange({ transport_entity_id: id ?? "" })} />

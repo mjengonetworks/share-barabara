@@ -2,12 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("transport contract defines stable multimodal values without implying persistence", async () => {
+test("transport contract matches canonical statistics mode identifiers", async () => {
   const source = await readFile(new URL("../src/lib/transport-safety.ts", import.meta.url), "utf8");
-  for (const value of ["road", "rail", "aviation", "maritime_water", "other_multimodal"]) {
+  const migration = await readFile(new URL("../supabase/migrations/20261028150000_unified_geography_transport_schema.sql", import.meta.url), "utf8");
+  for (const value of ["road", "rail", "aviation", "maritime", "inland_water", "other"]) {
     assert.match(source, new RegExp(`value: "${value}"`));
+    assert.match(migration, new RegExp(`'${value}'`));
   }
-  assert.match(source, /Persistence is[\s\S]*pending/);
+  assert.match(migration, /ALTER TABLE public\.accident_reports/);
+  assert.match(migration, /content_geography/);
+  assert.match(migration, /transport_entity_aliases/);
 });
 
 test("road autocomplete supports canonical IDs, keyboard selection and alias-safe name/slug search", async () => {
@@ -49,4 +53,26 @@ test("mode-specific transport entities are queried by canonical type", async () 
   assert.match(selector, /railway/);
   assert.match(selector, /airport/);
   assert.match(proposal, /No step should rewrite historical location values/);
+});
+
+test("country and region persistence uses stable IDs without historical Kenya backfill", async () => {
+  const editor = await readFile(new URL("../src/components/admin/editorial-record-editor.tsx", import.meta.url), "utf8");
+  const fields = await readFile(new URL("../src/components/admin/geography-fields.tsx", import.meta.url), "utf8");
+  const migration = await readFile(new URL("../supabase/migrations/20261028150000_unified_geography_transport_schema.sql", import.meta.url), "utf8");
+  assert.match(editor, /isNew \? "KE"/);
+  assert.match(editor, /admin_area_id: isNew \? "" : stringValue\(record, "admin_area_id"\)/);
+  assert.match(fields, /admin_area_name/);
+  assert.match(migration, /KE-047/);
+  assert.match(migration, /No historical backfill/);
+});
+
+test("schema candidate is additive and protects reference data with RLS", async () => {
+  const migration = await readFile(new URL("../supabase/migrations/20261028150000_unified_geography_transport_schema.sql", import.meta.url), "utf8");
+  assert.doesNotMatch(migration, /DROP\s+(TABLE|COLUMN|SCHEMA)/i);
+  assert.doesNotMatch(migration, /UPDATE\s+public\.(accident_reports|alerts|news|campaigns|infrastructure_issues)/i);
+  for (const table of ["countries", "admin_areas", "transport_entities", "content_geography", "content_transport_modes"]) {
+    assert.match(migration, new RegExp(`ALTER TABLE public\\.${table} ENABLE ROW LEVEL SECURITY`));
+  }
+  assert.match(migration, /has_min_role\(auth\.uid\(\),\s*'editor'\)/);
+  assert.match(migration, /CREATE POLICY unified_content_geography_editor_read/);
 });

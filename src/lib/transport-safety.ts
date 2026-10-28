@@ -1,11 +1,11 @@
-/** Stable values for the planned transport-mode dimension. Persistence is
- * intentionally pending the reviewed additive schema contract. */
+/** Stable values shared with the canonical statistics migration. */
 export const TRANSPORT_MODES = [
   { value: "road", label: "Road" },
   { value: "rail", label: "Rail" },
   { value: "aviation", label: "Aviation" },
-  { value: "maritime_water", label: "Maritime / water transport" },
-  { value: "other_multimodal", label: "Other / multimodal" },
+  { value: "maritime", label: "Maritime" },
+  { value: "inland_water", label: "Inland water transport" },
+  { value: "other", label: "Other / multimodal" },
 ] as const;
 
 export type TransportMode = (typeof TRANSPORT_MODES)[number]["value"];
@@ -32,14 +32,19 @@ export const TRANSPORT_INCIDENT_TYPES: Record<TransportMode, readonly { value: s
     { value: "ground_handling_incident", label: "Ground-handling incident" },
     { value: "other_aviation_incident", label: "Other verified aviation incident" },
   ],
-  maritime_water: [
+  maritime: [
     { value: "vessel_collision", label: "Vessel collision" },
-    { value: "capsizing", label: "Capsizing" },
     { value: "grounding", label: "Grounding" },
-    { value: "passenger_ferry_incident", label: "Passenger ferry incident" },
-    { value: "other_water_incident", label: "Other verified water-transport incident" },
+    { value: "maritime_passenger_incident", label: "Maritime passenger incident" },
+    { value: "other_maritime_incident", label: "Other verified maritime incident" },
   ],
-  other_multimodal: [{ value: "other_transport_incident", label: "Other verified transport incident" }],
+  inland_water: [
+    { value: "capsizing", label: "Capsizing" },
+    { value: "passenger_ferry_incident", label: "Passenger ferry incident" },
+    { value: "waterway_collision", label: "Waterway collision" },
+    { value: "other_water_incident", label: "Other verified inland-water incident" },
+  ],
+  other: [{ value: "other_transport_incident", label: "Other verified transport incident" }],
 };
 
 export function transportIncidentOptions(mode: TransportMode) {
