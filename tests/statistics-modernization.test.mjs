@@ -118,7 +118,7 @@ test("incident statistics keep alerts separate until a canonical relationship ex
   assert.match(source, /useLiveCount\("alerts", "alerts"\)/);
   assert.doesNotMatch(source, /supabase\.from\("alerts"\)\.select\("casualty_breakdown"\)/);
   assert.ok(source.includes('.from("accident_reports")'));
-  assert.ok(source.includes('.select("casualty_breakdown")'));
+  assert.match(source, /\.select\("casualty_breakdown(?:, duplicate_of_report_id)?"\)/);
   assert.ok(source.includes('.eq("status", "approved")'));
   assert.match(source, /canonical Report/);
 });

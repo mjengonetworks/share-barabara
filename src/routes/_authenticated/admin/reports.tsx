@@ -53,6 +53,7 @@ import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs"
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
+import { IncidentRelationshipPanel } from "@/components/site/incident-relationship-panel";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 
@@ -218,6 +219,7 @@ function ReportsQueuePage() {
         }
       />
       <IncidentDiscoveryPanel />
+      <IncidentRelationshipPanel />
 
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>

@@ -93,13 +93,14 @@ function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
   return useQuery({
     queryKey: ["group-counts", table, column],
     queryFn: async () => {
-      let query = supabase.from(table).select(column);
+      let query = supabase.from(table).select(`${column}, duplicate_of_report_id`);
       if (table === "accident_reports") query = query.eq("status", "approved");
       const { data, error } = await query;
       if (error) throw error;
       const rows = (data ?? []) as unknown as Record<string, string>[];
       const counts: Record<string, number> = {};
       for (const row of rows) {
+        if (table === "accident_reports" && row.duplicate_of_report_id) continue;
         const rawKey = row[column];
         const key =
           rawKey === undefined || rawKey === null || String(rawKey).trim() === ""
@@ -108,6 +109,24 @@ function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
         counts[key] = (counts[key] ?? 0) + 1;
       }
       return counts;
+    },
+  });
+}
+
+function usePublishedReportCount() {
+  return useQuery({
+    queryKey: ["published-eligible-report-count"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("published_accident_report_count");
+      if (!error) return Number(data ?? 0);
+      // Compatibility fallback until the additive relationship/statistics
+      // migration is approved and available in the connected database.
+      const { data: rows, error: fallbackError } = await supabase
+        .from("accident_reports")
+        .select("id, duplicate_of_report_id")
+        .eq("status", "approved");
+      if (fallbackError) throw error;
+      return (rows ?? []).filter((row) => !row.duplicate_of_report_id).length;
     },
   });
 }
@@ -125,12 +144,13 @@ function usePartiesCasualtyCounts() {
     queryFn: async () => {
       const { data: reports, error } = await supabase
         .from("accident_reports")
-        .select("casualty_breakdown")
+        .select("casualty_breakdown, duplicate_of_report_id")
         .eq("status", "approved");
       if (error) throw error;
       const counts: Record<string, number> = {};
       const unknown: Record<string, boolean> = {};
       for (const row of reports ?? []) {
+        if (row.duplicate_of_report_id) continue;
         const breakdown = row.casualty_breakdown as CasualtyBreakdownRow;
         for (const [party, c] of Object.entries(breakdown ?? {})) {
           for (const value of [c.dead, c.injured]) {
@@ -189,7 +209,7 @@ function useTopRoads(limit = 8) {
     queryFn: async () => {
       const { data: reports, error } = await supabase
         .from("accident_reports")
-        .select("road_id, fatalities, casualties")
+        .select("road_id, fatalities, casualties, duplicate_of_report_id")
         .eq("status", "approved")
         .not("road_id", "is", null);
       if (error) throw error;
@@ -204,6 +224,7 @@ function useTopRoads(limit = 8) {
         }
       >();
       for (const r of reports ?? []) {
+        if (r.duplicate_of_report_id) continue;
         if (!r.road_id) continue;
         const entry = totals.get(r.road_id) ?? {
           fatalities: 0,
@@ -387,10 +408,7 @@ function StatisticsPage() {
   }>("road_class_stats", "fatalities", false);
 
   const { data: alertsCount } = useLiveCount("alerts", "alerts");
-  const { data: reportsFiledCount } = useLiveCount("reports-approved", "accident_reports", [
-    "status",
-    "approved",
-  ]);
+  const { data: reportsFiledCount } = usePublishedReportCount();
   const { data: hazardCounts = {} } = useGroupCounts("alerts", "hazard_type");
   const { data: reportSeverityCounts = {} } = useGroupCounts("accident_reports", "severity");
   const { data: partyStats = { counts: {}, unknown: {} } } = usePartiesCasualtyCounts();
