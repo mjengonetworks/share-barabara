@@ -23,7 +23,7 @@ import { AttachmentGallery, type AttachmentRow } from "@/components/site/attachm
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
-import { EditorialSummary } from "@/components/site/editorial-summary";
+import { AlertDescriptionDisclosure, AlertSummary } from "@/components/site/alert-detail-content";
 import { AlertPreviewCard } from "@/components/site/discovery-sections";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
@@ -60,6 +60,11 @@ type RelatedAlert = {
   road: string | null;
   hazard_type: string;
   severity: string;
+};
+
+type AlertEditorialFields = {
+  // Optional until the editorial Alert Summary schema/API contract lands.
+  summary?: string | null;
 };
 
 function AlertList({ alerts }: { alerts: RelatedAlert[] }) {
@@ -156,6 +161,7 @@ function AlertDetail() {
   }
 
   const linkedRoad = roadMap[alert.road_id ?? ""];
+  const editorialSummary = (alert as typeof alert & AlertEditorialFields).summary?.trim() || null;
 
   return (
     <>
@@ -175,18 +181,17 @@ function AlertDetail() {
             <ArrowLeft className="size-4" /> All alerts
           </Link>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            {alert.title}
+          </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <TriangleAlert className="size-4 text-caution" />
             <SeverityBadge value={alert.severity} />
             <PublicEditorialCategoryBadge>
               {hazardTypes.find((h) => h.value === alert.hazard_type)?.label ?? alert.hazard_type}
             </PublicEditorialCategoryBadge>
-            <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
+            <span className="text-sm text-muted-foreground">Published {longDate(alert.created_at)}</span>
           </div>
-
-          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
-            {alert.title}
-          </h1>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {alert.county}
             {alert.road ? (
@@ -219,6 +224,19 @@ function AlertDetail() {
             <ShareButtons title={alert.title} />
           </div>
 
+          {editorialSummary ? <AlertSummary>{editorialSummary}</AlertSummary> : null}
+
+          {alert.status === "active" ? (
+            <ShareBarabaraAI
+              contextType="alert"
+              contextId={alert.id}
+              title={alert.title}
+              sourceText={`${alert.title}\n${alert.description ?? ""}\nCounty: ${alert.county}\nRoad: ${alert.road ?? ""}\nHazard: ${alert.hazard_type}\nSeverity: ${alert.severity}\nStatus: ${alert.status}`}
+            />
+          ) : null}
+
+          <AlertDescriptionDisclosure>{renderRichText(alert.description)}</AlertDescriptionDisclosure>
+
           {alert.image_url ? (
             <figure className="mt-4">
               <img
@@ -239,8 +257,6 @@ function AlertDetail() {
               ))}
             </div>
           ) : null}
-
-          <EditorialSummary className="mt-6">{renderRichText(alert.description)}</EditorialSummary>
 
           <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />
 
@@ -264,14 +280,6 @@ function AlertDetail() {
           <div className="mt-8">
             <BannerAd placement="alert-primary-content" />
           </div>
-          {alert.status === "active" ? (
-            <ShareBarabaraAI
-              contextType="alert"
-              contextId={alert.id}
-              title={alert.title}
-              sourceText={`${alert.title}\n${alert.description ?? ""}\nCounty: ${alert.county}\nRoad: ${alert.road ?? ""}\nHazard: ${alert.hazard_type}\nSeverity: ${alert.severity}\nStatus: ${alert.status}`}
-            />
-          ) : null}
           <CommentSection entityType="alert" entityId={alert.id} />
         </article>
 
