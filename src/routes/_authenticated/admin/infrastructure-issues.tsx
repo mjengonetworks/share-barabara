@@ -1,8 +1,10 @@
-import { Fragment, useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+  ChevronDown,
+  ChevronUp,
   Construction,
   ExternalLink,
   MoreVertical,
@@ -10,9 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { mediaPublicUrl } from "@/lib/storage";
-import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -38,8 +38,9 @@ import { UserLink } from "@/components/site/user-link";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
-import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { InfrastructureIssueForm } from "@/components/site/infrastructure-issue-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
   head: () => ({ meta: [{ title: "Infrastructure Issues: Share Barabara Admin" }] }),
@@ -59,13 +60,16 @@ type Draft = {
 type Status = "pending" | "approved" | "rejected";
 
 function InfrastructureIssuesAdminPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/infrastructure-issues\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [countyFilter, setCountyFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: allIssues = [], isLoading } = useQuery({
     queryKey: ["admin-infrastructure-issues"],
@@ -131,7 +135,15 @@ function InfrastructureIssuesAdminPage() {
         eyebrow="Content & moderation"
         title="Manage Infrastructure Issues"
         description="Roads, bridges, drainage and signage problems reported by the community."
+        actions={<Button size="sm" onClick={() => setCreateOpen(true)}><Plus className="mr-1.5 size-4" /> Add New Issue</Button>}
       />
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>New infrastructure issue</DialogTitle></DialogHeader>
+          <InfrastructureIssueForm editorial onDone={() => setCreateOpen(false)} />
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>
@@ -183,11 +195,8 @@ function InfrastructureIssuesAdminPage() {
       ) : null}
 
       <AdminListingSurface>
-        <Table>
-          <TableHeader><TableRow>
-            <TableHead className="w-10"><span className="sr-only">Select</span></TableHead><TableHead className="w-[86px]">Image</TableHead><TableHead>Issue</TableHead><TableHead>Location</TableHead><TableHead>Issue type</TableHead><TableHead>Status</TableHead><TableHead>Reported by</TableHead><TableHead>Posted</TableHead><TableHead className="text-right">Actions</TableHead>
-          </TableRow></TableHeader>
-          <TableBody>
+        <AdminListingHeader><span>Image</span><span>Title</span><span>Issue type</span><span>Location</span><span>Status</span><span>Author</span><span>Created</span><span>Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {issues.map((i) => {
           const d: Draft = drafts[i.id] ?? {
             title: i.title,
@@ -204,20 +213,39 @@ function InfrastructureIssuesAdminPage() {
           const expanded = expandedId === i.id;
 
           return (
-            <Fragment key={i.id}>
-              <TableRow>
-                <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} /></TableCell>
-                <TableCell className="w-[86px]"><button type="button" aria-label={`Expand ${i.title}`} onClick={() => setExpandedId(expanded ? null : i.id)}>{mediaPublicUrl(i.image_url) ? <img src={mediaPublicUrl(i.image_url) ?? undefined} alt="" className="h-12 w-[70px] rounded object-cover" /> : <div className="flex h-12 w-[70px] items-center justify-center rounded bg-muted"><Construction className="size-5 text-muted-foreground" /></div>}</button></TableCell>
-                <TableCell className="max-w-xs"><button type="button" onClick={() => setExpandedId(expanded ? null : i.id)} className="min-w-0 text-left"><p className="line-clamp-2 font-semibold">{i.title}</p><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{i.summary || "No summary"}</p></button></TableCell>
-                <TableCell className="text-sm">{i.road_name}{i.county ? ` · ${i.county}` : ""}</TableCell>
-                <TableCell className="text-xs capitalize">{i.structure_type || "Unclassified"}</TableCell>
-                <TableCell><span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span></TableCell>
-                <TableCell className="text-sm"><UserLink userId={i.user_id} name={names[i.user_id]} /></TableCell>
-                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{dateTime(i.created_at)}</TableCell>
-                <TableCell className="text-right">
+            <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
+              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,auto)_auto]">
+                <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
+                <div className="min-w-0 text-left">
+                  {i.image_url ? (
+                    <img
+                      src={i.image_url}
+                      alt=""
+                      className="h-12 w-[70px] shrink-0 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
+                      <Construction className="size-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  </div>
+                  <div className="min-w-0 text-left">
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 font-semibold">{i.title}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{i.summary || "No summary"}</p>
+                  </div>
+                  </div>
+
+                <span className="hidden truncate text-sm xl:block">{i.structure_type || "—"}</span>
+                <span className="hidden truncate text-sm xl:block">{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
+                <span className="hidden min-w-0 truncate text-sm xl:block">{i.user_id ? <UserLink userId={i.user_id} name={names[i.user_id]} /> : "—"}</span>
+                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(i.created_at)}</span>
+                <div className="flex items-center gap-1">
+                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/infrastructure-issues/${i.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -233,8 +261,8 @@ function InfrastructureIssuesAdminPage() {
                         </Link>
                       </DropdownMenuItem>
                     ) : null}
-                    <DropdownMenuItem onClick={() => setExpandedId(i.id)}>
-                      <Pencil className="mr-2 size-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <a href={`/admin/infrastructure-issues/${i.id}/edit`}><Pencil className="mr-2 size-4" /> Edit</a>
                     </DropdownMenuItem>
                     {i.status !== "approved" ? (
                       <DropdownMenuItem
@@ -259,41 +287,12 @@ function InfrastructureIssuesAdminPage() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                </TableCell>
-              </TableRow>
+                </div>
+              </div>
 
               {expanded ? (
-                <TableRow><TableCell colSpan={9} className="border-t border-border p-5">
+                <div className="border-t border-border p-5">
                   <div className="space-y-4">
-                    <div className="space-y-3">
-                      {(
-                        [
-                          { mode: "generate", provider: "grok" },
-                          { mode: "autopopulate", provider: "groq" },
-                          { mode: "autopopulate", provider: "grok" },
-                          { mode: "update", provider: "grok" },
-                        ] as const
-                      ).map(({ mode, provider }) => (
-                        <EditorialAIButton
-                          key={`${mode}-${provider}`}
-                          contentType="infrastructure"
-                          mode={mode}
-                          provider={provider}
-                          contentId={i.id}
-                          current={d}
-                          source=""
-                          onDraft={(draft) =>
-                            set(
-                              Object.fromEntries(
-                                Object.entries(draft).filter(([key]) => key in d),
-                              ) as Partial<Draft>,
-                            )
-                          }
-                        />
-                      ))}
-                    </div>
-                    <CrossContentEditor sourceType="infrastructure" sourceId={i.id} sourceRecord={i as unknown as Record<string, unknown>} />
                     <div>
                       <Label htmlFor={`t-${i.id}`}>Issue title</Label>
                       <Input
@@ -378,6 +377,20 @@ function InfrastructureIssuesAdminPage() {
                         onChange={(v) => set({ content: v })}
                       />
                     </div>
+                    <div className="space-y-3">
+                      {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, { mode: "update", provider: "grok" }] as const).map(({ mode, provider }) => (
+                        <EditorialAIButton
+                          key={`${mode}-${provider}`}
+                          contentType="infrastructure"
+                          mode={mode}
+                          provider={provider}
+                          contentId={i.id}
+                          current={d}
+                          source=""
+                          onDraft={(draft) => set(Object.fromEntries(Object.entries(draft).filter(([key]) => key in d)) as Partial<Draft>)}
+                        />
+                      ))}
+                    </div>
                     <div>
                       <Label htmlFor={`n-${i.id}`}>Moderator's note (shown publicly)</Label>
                       <Input
@@ -421,13 +434,12 @@ function InfrastructureIssuesAdminPage() {
                       </Button>
                     ) : null}
                   </div>
-                </TableCell></TableRow>
+                </div>
               ) : null}
-            </Fragment>
+            </li>
           );
         })}
-          </TableBody>
-        </Table>
+      </ul>
       </AdminListingSurface>
     </div>
   );

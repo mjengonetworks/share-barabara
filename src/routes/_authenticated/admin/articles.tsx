@@ -1,8 +1,10 @@
-import { Fragment, useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+  ChevronDown,
+  ChevronUp,
   Eye,
   ExternalLink,
   MoreVertical,
@@ -12,7 +14,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { mediaPublicUrl } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,10 +43,8 @@ import { dateTime } from "@/lib/format";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
-import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -67,11 +66,13 @@ type ArticleDraft = {
 type Status = "draft" | "pending_review" | "published" | "rejected";
 
 function ArticlesQueuePage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/articles\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const { canPublishArticles } = useRoles();
   const queryClient = useQueryClient();
   const { data: categories = [] } = useNewsCategories();
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending_review");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, ArticleDraft>>({});
@@ -231,12 +232,8 @@ function ArticlesQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <Table>
-          <TableHeader><TableRow>
-            <TableHead className="w-10"><span className="sr-only">Select</span></TableHead><TableHead className="w-[86px]">Image</TableHead>
-            <TableHead>Article</TableHead><TableHead>Category</TableHead><TableHead>Author</TableHead><TableHead>Status</TableHead><TableHead>Views</TableHead><TableHead>Posted</TableHead><TableHead className="text-right">Actions</TableHead>
-          </TableRow></TableHeader>
-          <TableBody>
+        <AdminListingHeader><span>Image</span><span>Title</span><span>Category</span><span>Status</span><span>Author</span><span>Views</span><span>Created</span><span>Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {articles.map((a) => {
           const d: ArticleDraft = drafts[a.id] ?? {
             title: a.title,
@@ -252,23 +249,49 @@ function ArticlesQueuePage() {
           };
           const set = (patch: Partial<ArticleDraft>) =>
             setDrafts((prev) => ({ ...prev, [a.id]: { ...d, ...patch } }));
+          const applyAI = (draft: Record<string, unknown>) => {
+            const patch: Partial<ArticleDraft> = {};
+            for (const field of ["title", "summary", "body", "image_alt", "image_caption", "image_credit", "seo_title", "seo_description", "seo_keywords"] as const) {
+              const value = draft[field];
+              if (typeof value === "string" && value.trim()) patch[field] = value as never;
+            }
+            const category = draft["category"];
+            if (typeof category === "string" && category.trim()) patch.categories = [category];
+            set(patch);
+          };
           const expanded = expandedId === a.id;
 
           return (
-            <Fragment key={a.id}>
-              <TableRow>
-                <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} /></TableCell>
-                <TableCell className="w-[86px]"><button type="button" aria-label={`Expand ${a.title}`} onClick={() => setExpandedId(expanded ? null : a.id)}>{mediaPublicUrl(a.image_url) ? <img src={mediaPublicUrl(a.image_url) ?? undefined} alt="" className="h-12 w-[70px] rounded bg-muted object-cover" /> : <div className="flex h-12 w-[70px] items-center justify-center rounded bg-muted"><Newspaper className="size-5 text-muted-foreground" /></div>}</button></TableCell>
-                <TableCell className="max-w-xs"><button type="button" onClick={() => setExpandedId(expanded ? null : a.id)} className="min-w-0 text-left"><p className="line-clamp-2 font-semibold">{a.title}</p><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{a.summary || "No summary"}</p></button></TableCell>
-                <TableCell className="text-xs">{(a.categories?.length ? a.categories : [a.category]).join(", ")}</TableCell>
-                <TableCell className="text-sm">{a.author_id ? <UserLink userId={a.author_id} name={names[a.author_id]} /> : "—"}</TableCell>
-                <TableCell><span className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</span></TableCell>
-                <TableCell className="whitespace-nowrap text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span></TableCell>
-                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{dateTime(a.created_at)}</TableCell>
-                <TableCell className="text-right">
+            <li key={a.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
+              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto]">
+                <input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
+                <div className="min-w-0 text-left">
+                  {a.image_url ? (
+                    <img
+                      src={a.image_url}
+                      alt=""
+                      className="h-12 w-[70px] shrink-0 rounded bg-muted object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
+                      <Newspaper className="size-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  </div>
+                  <div className="min-w-0 text-left">
+                  <div className="min-w-0"><p className="line-clamp-2 font-semibold">{a.title}</p></div>
+                  </div>
+
+                <div className="hidden min-w-0 flex-wrap gap-1 xl:flex">{(a.categories?.length ? a.categories : [a.category]).map((c) => <span key={c} className="rounded bg-accent/20 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-accent-foreground">{c}</span>)}</div>
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</span>
+                <span className="hidden min-w-0 truncate text-sm xl:block">{a.author_id ? <UserLink userId={a.author_id} name={names[a.author_id]} /> : "—"}</span>
+                <span className="hidden items-center gap-1 text-xs text-muted-foreground xl:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span>
+                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(a.created_at)}</span>
+                <div className="flex items-center gap-1">
+                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/articles/${a.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -279,8 +302,8 @@ function ArticlesQueuePage() {
                         {a.status === "published" ? "View on website" : "Preview"}
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setExpandedId(a.id)}>
-                      <Pencil className="mr-2 size-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <a href={`/admin/articles/${a.id}/edit`}><Pencil className="mr-2 size-4" /> Edit</a>
                     </DropdownMenuItem>
                     {canPublishArticles && a.status !== "published" ? (
                       <DropdownMenuItem
@@ -310,12 +333,11 @@ function ArticlesQueuePage() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                </TableCell>
-              </TableRow>
+                </div>
+              </div>
 
               {expanded ? (
-                <TableRow><TableCell colSpan={9} className="border-t border-border p-5">
+                <div className="border-t border-border p-5">
                   {canPublishArticles ? (
                     <div className="space-y-4">
                       <EditorialAIButton
@@ -324,16 +346,7 @@ function ArticlesQueuePage() {
                         provider="grok"
                         current={d}
                         source=""
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                       <EditorialAIButton
                         contentType="article"
@@ -341,16 +354,7 @@ function ArticlesQueuePage() {
                         provider="groq"
                         current={d}
                         source=""
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                       <EditorialAIButton
                         contentType="article"
@@ -358,16 +362,7 @@ function ArticlesQueuePage() {
                         provider="grok"
                         current={d}
                         source=""
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                       <EditorialAIButton
                         contentType="article"
@@ -376,18 +371,8 @@ function ArticlesQueuePage() {
                         provider="grok"
                         contentId={a.id}
                         current={d}
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["summary"] === "string" ? { summary: draft["summary"] } : {}),
-                            ...(typeof draft["body"] === "string" ? { body: draft["body"] } : {}),
-                            ...(typeof draft["seo_title"] === "string" ? { seo_title: draft["seo_title"] } : {}),
-                            ...(typeof draft["seo_description"] === "string" ? { seo_description: draft["seo_description"] } : {}),
-                            ...(typeof draft["seo_keywords"] === "string" ? { seo_keywords: draft["seo_keywords"] } : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
-                      <CrossContentEditor sourceType="article" sourceId={a.id} sourceRecord={a as unknown as Record<string, unknown>} />
                       <div>
                         <Label htmlFor={`at-${a.id}`}>Headline</Label>
                         <Input
@@ -514,13 +499,12 @@ function ArticlesQueuePage() {
                       ) : null}
                     </div>
                   ) : null}
-                </TableCell></TableRow>
+                </div>
               ) : null}
-            </Fragment>
+            </li>
           );
         })}
-          </TableBody>
-        </Table>
+      </ul>
       </AdminListingSurface>
     </div>
   );

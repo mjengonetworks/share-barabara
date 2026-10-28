@@ -1,8 +1,10 @@
-import { Fragment, useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
+  ChevronDown,
+  ChevronUp,
   Eye,
   ExternalLink,
   MoreVertical,
@@ -12,7 +14,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { mediaPublicUrl } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,17 +48,15 @@ import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
 import { useReportSeverities } from "@/hooks/useTaxonomy";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
-import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs";
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { ReportForm } from "@/components/site/report-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -88,10 +87,12 @@ type ReportDraft = {
 type Status = "pending" | "approved" | "rejected";
 
 function ReportsQueuePage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/reports\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: severities = [] } = useReportSeverities();
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [countyFilter, setCountyFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -219,7 +220,7 @@ function ReportsQueuePage() {
             <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add New Report</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
               <DialogHeader><DialogTitle>New accident report</DialogTitle></DialogHeader>
-              <ReportForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
+              <ReportForm editorial onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-reports"] })} />
             </DialogContent>
           </Dialog>
         }
@@ -292,24 +293,10 @@ function ReportsQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10"><span className="sr-only">Select</span></TableHead>
-              <TableHead className="w-[86px]">Image</TableHead>
-              <TableHead>Incident / location</TableHead>
-              <TableHead>County</TableHead>
-              <TableHead>Severity</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Reported by</TableHead>
-              <TableHead>Views</TableHead>
-              <TableHead>Posted</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <AdminListingHeader><span>Image</span><span>Title</span><span>Location</span><span>Severity</span><span>Status</span><span>Author</span><span>Views</span><span>Created</span><span>Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {reports.map((r) => {
-          const d: ReportDraft = drafts[r.id] ?? {
+          const d = (drafts[r.id] ?? {
             title: r.title,
             description: r.description,
             county: r.county,
@@ -329,37 +316,47 @@ function ReportsQueuePage() {
             seo_keywords: r.seo_keywords ?? "",
             parties_involved: r.parties_involved ?? [],
             casualty_breakdown: (r.casualty_breakdown as CasualtyBreakdown | null) ?? {},
-          };
+          }) as unknown as ReportDraft & Record<string, import("@/lib/ai/editorial.functions").EditorialValue>;
           const set = (patch: Partial<ReportDraft>) =>
             setDrafts((prev) => ({ ...prev, [r.id]: { ...d, ...patch } }));
+          const applyAI = (draft: Record<string, unknown>) =>
+            set(Object.fromEntries(Object.entries(draft).filter(([field, value]) => field in d && value !== null && value !== "")) as Partial<ReportDraft>);
           const expanded = expandedId === r.id;
 
           return (
-            <Fragment key={r.id}>
-              <TableRow>
-                <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} /></TableCell>
-                <TableCell className="w-[86px]">
-                  <button type="button" aria-label={`Expand ${r.title}`} onClick={() => setExpandedId(expanded ? null : r.id)}>
-                    {mediaPublicUrl(r.image_url) ? <img src={mediaPublicUrl(r.image_url) ?? undefined} alt="" className="h-12 w-[70px] rounded bg-muted object-cover" /> : <div className="flex h-12 w-[70px] items-center justify-center rounded bg-muted"><ShieldAlert className="size-5 text-muted-foreground" /></div>}
-                  </button>
-                </TableCell>
-                <TableCell className="max-w-xs">
-                  <button type="button" onClick={() => setExpandedId(expanded ? null : r.id)} className="min-w-0 text-left">
+            <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
+              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto]">
+                <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
+                <div className="min-w-0 text-left">
+                  {r.image_url ? (
+                    <img
+                      src={r.image_url}
+                      alt=""
+                      className="h-12 w-[70px] shrink-0 rounded bg-muted object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
+                      <ShieldAlert className="size-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  </div>
+                  <div className="min-w-0 text-left">
+                  <div className="min-w-0">
                     <p className="line-clamp-2 font-semibold">{r.title}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{r.road || "Location not specified"}{r.duplicate_of_report_id ? " · Linked duplicate" : ""}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Injured: {r.casualties === null || r.casualties === undefined ? "Unknown" : r.casualties} · Deaths: {r.fatalities === null || r.fatalities === undefined ? "Unknown" : r.fatalities}</p>
-                  </button>
-                </TableCell>
-                <TableCell className="text-sm">{r.county || "Not specified"}</TableCell>
-                <TableCell><SeverityBadge value={r.severity} /></TableCell>
-                <TableCell><span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span></TableCell>
-                <TableCell className="text-sm"><UserLink userId={r.user_id} name={names[r.user_id]} /></TableCell>
-                <TableCell className="whitespace-nowrap text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span></TableCell>
-                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{dateTime(r.created_at)}</TableCell>
-                <TableCell className="text-right">
+                  </div>
+                  </div>
+
+                <span className="hidden truncate text-sm xl:block">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
+                <span className="hidden xl:block"><SeverityBadge value={r.severity} /></span>
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
+                <span className="hidden min-w-0 truncate text-sm xl:block">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
+                <span className="hidden items-center gap-1 text-xs text-muted-foreground xl:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
+                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(r.created_at)}</span>
+                <div className="flex items-center gap-1">
+                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -369,8 +366,8 @@ function ReportsQueuePage() {
                         <ExternalLink className="mr-2 size-4" /> View on website
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setExpandedId(r.id)}>
-                      <Pencil className="mr-2 size-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-2 size-4" /> Edit</a>
                     </DropdownMenuItem>
                     {r.status !== "approved" ? (
                       <DropdownMenuItem
@@ -395,13 +392,11 @@ function ReportsQueuePage() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                </TableCell>
-              </TableRow>
+                </div>
+              </div>
 
               {expanded ? (
-                <TableRow>
-                  <TableCell colSpan={10} className="border-t border-border p-5">
+                <div className="border-t border-border p-5">
                   <div className="space-y-4">
                     {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }] as const).map(({ mode, provider }) => (
                       <EditorialAIButton
@@ -411,24 +406,7 @@ function ReportsQueuePage() {
                         provider={provider}
                         current={d}
                         source=""
-                        onDraft={(draft) =>
-                          set({
-                            ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                            ...(typeof draft["description"] === "string" ? { description: draft["description"] } : {}),
-                            ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
-                            ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
-                            ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
-                            ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null
-                              ? { vehicles_involved: draft["vehicles_involved"] }
-                              : {}),
-                            ...(typeof draft["casualties"] === "number" || draft["casualties"] === null
-                              ? { casualties: draft["casualties"] }
-                              : {}),
-                            ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null
-                              ? { fatalities: draft["fatalities"] }
-                              : {}),
-                          })
-                        }
+                        onDraft={applyAI}
                       />
                     ))}
                     <EditorialAIButton
@@ -437,26 +415,7 @@ function ReportsQueuePage() {
                       mode="update"
                       contentId={r.id}
                       current={d}
-                      onDraft={(draft) =>
-                        set({
-                          ...(typeof draft["title"] === "string" ? { title: draft["title"] } : {}),
-                          ...(typeof draft["description"] === "string"
-                            ? { description: draft["description"] }
-                            : {}),
-                          ...(typeof draft["county"] === "string" ? { county: draft["county"] } : {}),
-                          ...(typeof draft["road"] === "string" ? { road: draft["road"] } : {}),
-                          ...(typeof draft["severity"] === "string" ? { severity: draft["severity"] } : {}),
-                          ...(typeof draft["vehicles_involved"] === "number" || draft["vehicles_involved"] === null
-                            ? { vehicles_involved: draft["vehicles_involved"] }
-                            : {}),
-                          ...(typeof draft["casualties"] === "number" || draft["casualties"] === null
-                            ? { casualties: draft["casualties"] }
-                            : {}),
-                          ...(typeof draft["fatalities"] === "number" || draft["fatalities"] === null
-                            ? { fatalities: draft["fatalities"] }
-                            : {}),
-                        })
-                      }
+                      onDraft={applyAI}
                     />
                     <div>
                       <Label htmlFor={`t-${r.id}`}>Summary</Label>
@@ -572,7 +531,6 @@ function ReportsQueuePage() {
                       parentTitle={d.title}
                       parentBody={d.description}
                     />
-                    <CrossContentEditor sourceType="report" sourceId={r.id} sourceRecord={r as unknown as Record<string, unknown>} />
                     <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Featured image details</p>
                       <div><Label htmlFor={`rimg-alt-${r.id}`}>Alt text</Label><Input id={`rimg-alt-${r.id}`} value={d.image_alt} onChange={(e) => set({ image_alt: e.target.value })} placeholder="Describes the image for screen readers and search engines" /></div>
@@ -649,14 +607,12 @@ function ReportsQueuePage() {
                       </Button>
                     ) : null}
                   </div>
-                  </TableCell>
-                </TableRow>
+                </div>
               ) : null}
-            </Fragment>
+            </li>
           );
         })}
-          </TableBody>
-        </Table>
+      </ul>
       </AdminListingSurface>
     </div>
   );

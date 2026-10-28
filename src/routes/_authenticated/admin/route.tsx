@@ -41,6 +41,11 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AdminGlobalSearch } from "@/components/admin/admin-global-search";
+import { useAuth } from "@/hooks/useAuth";
+import { primaryRoleLabel } from "@/hooks/useRoles";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -77,6 +82,7 @@ const SECTIONS: NavSection[] = [
         icon: FileText,
         minRank: ROLE_RANK.guest_author,
       },
+      { to: "/admin/my-content", label: "My Content", icon: LayoutGrid, minRank: ROLE_RANK.guest_author },
     ],
   },
   {
@@ -108,7 +114,7 @@ const SECTIONS: NavSection[] = [
         minRank: ROLE_RANK.moderator,
       },
       { to: "/admin/feed", label: "Feed Posts", icon: MessageSquare, minRank: ROLE_RANK.moderator },
-      { to: "/admin/videos", label: "Videos", icon: Video, minRank: ROLE_RANK.moderator },
+      { to: "/admin/videos", label: "Media library", icon: Video, minRank: ROLE_RANK.moderator },
       { to: "/admin/requests", label: "Requests", icon: Inbox, minRank: ROLE_RANK.moderator },
     ],
   },
@@ -187,7 +193,8 @@ const SECTIONS: NavSection[] = [
 ];
 
 function AdminLayout() {
-  const { rank, isLoading } = useRoles();
+  const { rank, roles, isLoading } = useRoles();
+  const { user } = useAuth();
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
   if (isLoading) {
@@ -209,9 +216,9 @@ function AdminLayout() {
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible="offcanvas">
-        <SidebarHeader className="px-3 py-4">
-          <Link to="/" className="text-lg font-extrabold tracking-tight text-sidebar-foreground">
+      <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
+        <SidebarHeader className="px-4 py-5">
+          <Link to="/" className="text-xl font-extrabold tracking-tight text-sidebar-foreground">
             Share Barabara
           </Link>
           <p className="text-xs text-sidebar-foreground/60">Admin dashboard</p>
@@ -221,12 +228,12 @@ function AdminLayout() {
             const items = section.items.filter((item) => rank >= item.minRank);
             if (items.length === 0) return null;
             return (
-              <SidebarGroup key={section.label}>
+              <SidebarGroup key={section.label} className="px-3 py-2">
                 <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {items.map((item) => (
-                      <SidebarMenuItem key={item.to}>
+                      <SidebarMenuItem key={item.to} className="mb-1">
                         <NavLink item={item} active={currentPath === item.to} />
                       </SidebarMenuItem>
                     ))}
@@ -238,11 +245,21 @@ function AdminLayout() {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-14 items-center gap-3 border-b border-border px-4">
+        <header className="sticky top-0 z-40 flex min-h-14 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur">
           <SidebarTrigger />
-          <Link to="/dashboard" className="ml-auto text-sm text-muted-foreground hover:underline">
-            Back to my activity
-          </Link>
+          <span className="hidden text-sm font-bold sm:inline">Admin Panel</span>
+          <AdminGlobalSearch />
+          <DropdownMenu>
+            <DropdownMenuTrigger className="ml-auto rounded-md border border-border px-3 py-2 text-sm font-semibold hover:bg-muted">
+              {user?.email ?? "Account"}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel><span className="block truncate">{user?.email ?? "Signed-in user"}</span><span className="text-xs font-normal text-muted-foreground">Role: {primaryRoleLabel(roles)}</span></DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild><Link to="/dashboard">Back to my activity</Link></DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { void supabase.auth.signOut(); }}>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
         <div className="flex-1 p-4 sm:p-6">
           <Outlet />

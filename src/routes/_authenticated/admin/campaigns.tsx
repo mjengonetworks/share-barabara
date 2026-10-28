@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, Megaphone, Plus } from "lucide-react";
+import { AlertTriangle, Megaphone, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { mediaPublicUrl } from "@/lib/storage";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +17,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
@@ -27,10 +32,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
 import { longDate, slugify } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
-import { CrossContentEditor } from "@/components/site/cross-content-editor";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
   head: () => ({ meta: [{ title: "Campaigns: Share Barabara Admin" }] }),
@@ -68,6 +71,8 @@ type ReportForm = {
 };
 
 function CampaignsAdminPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/campaigns\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -238,35 +243,6 @@ function CampaignsAdminPage() {
               <DialogTitle>{editingId ? "Edit campaign" : "New campaign"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              {editingId ? <CrossContentEditor sourceType="campaign" sourceId={editingId} sourceRecord={form as unknown as Record<string, unknown>} /> : null}
-              <div className="space-y-3">
-                {(
-                  [
-                    { mode: "generate", provider: "grok" },
-                    { mode: "autopopulate", provider: "groq" },
-                    { mode: "autopopulate", provider: "grok" },
-                    ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : []),
-                  ] as const
-                ).map(({ mode, provider }) => (
-                  <EditorialAIButton
-                    key={`${mode}-${provider}`}
-                    contentType="campaign"
-                    mode={mode}
-                    provider={provider}
-                    current={form}
-                    contentId={editingId ?? undefined}
-                    source=""
-                    onDraft={(draft) =>
-                      setForm((current) => ({
-                        ...current,
-                        ...Object.fromEntries(
-                          Object.entries(draft).filter(([key]) => key in current),
-                        ),
-                      }) as EventForm)
-                    }
-                  />
-                ))}
-              </div>
               <div>
                 <Label htmlFor="c-title">Title</Label>
                 <Input
@@ -292,6 +268,23 @@ function CampaignsAdminPage() {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
+              </div>
+              <div className="space-y-3">
+                {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : [])] as const).map(({ mode, provider }) => (
+                  <EditorialAIButton
+                    key={`${mode}-${provider}`}
+                    contentType="campaign"
+                    mode={mode}
+                    provider={provider}
+                    current={form}
+                    contentId={editingId ?? undefined}
+                    source=""
+                    onDraft={(draft) => setForm((current) => ({
+                      ...current,
+                      ...Object.fromEntries(Object.entries(draft).filter(([key]) => key in current)),
+                    }) as EventForm)}
+                  />
+                ))}
               </div>
               <div>
                 <Label>Main banner (optional)</Label>
@@ -364,22 +357,46 @@ function CampaignsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface>
-        <Table>
-          <TableHeader><TableRow>
-            <TableHead className="w-10"><span className="sr-only">Select</span></TableHead><TableHead className="w-[86px]">Image</TableHead><TableHead>Campaign</TableHead><TableHead>Dates</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
-          </TableRow></TableHeader>
-          <TableBody>
+        <AdminListingHeader className="xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto]"><span>Image</span><span>Title</span><span>Location</span><span>Status</span><span>Dates</span><span>Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {visibleCampaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
-            <TableRow key={c.id}>
-              <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" /></TableCell>
-              <TableCell className="w-[86px]">{mediaPublicUrl(c.image_url) ? <img src={mediaPublicUrl(c.image_url) ?? undefined} alt="" className="h-12 w-[70px] rounded object-cover" /> : <div className="flex h-12 w-[70px] items-center justify-center rounded bg-muted"><Megaphone className="size-5 text-muted-foreground" /></div>}</TableCell>
-              <TableCell className="max-w-xs"><p className="line-clamp-2 font-semibold">{c.title}</p><p className="mt-1 text-xs text-muted-foreground">{c.location || "Location not specified"}</p></TableCell>
-              <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{longDate(c.start_date)} – {longDate(c.end_date)}</TableCell>
-              <TableCell><div className="flex flex-wrap gap-1"><Badge variant={STATUS_VARIANT[status]} className="capitalize">{status}</Badge>{c.report_needs_review ? <Badge variant="destructive" className="gap-1"><AlertTriangle className="size-3" /> Review</Badge> : null}</div></TableCell>
-              <TableCell className="text-right"><div className="flex justify-end gap-1">
-              <Button size="sm" variant="outline" onClick={() => openEdit(c.id)}>Edit</Button>
+            <li
+              key={c.id}
+              className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 border-b border-border/70 px-3 py-3 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto]"
+            >
+              <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
+              {c.image_url ? (
+                <img src={c.image_url} alt="" className="h-12 w-[70px] shrink-0 rounded object-cover" />
+              ) : (
+                <div className="flex size-12 shrink-0 items-center justify-center rounded bg-muted">
+                  <Megaphone className="size-5 text-muted-foreground" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={STATUS_VARIANT[status]} className="capitalize">
+                    {status}
+                  </Badge>
+                  {c.report_needs_review ? (
+                    <Badge variant="destructive" className="gap-1">
+                      <AlertTriangle className="size-3" /> Report needs review
+                    </Badge>
+                  ) : null}
+                  {status === "previous" ? (
+                    <Badge variant={c.report_published ? "default" : "outline"}>
+                      {c.report_published ? "Report published" : "Not visible to public yet"}
+                    </Badge>
+                  ) : null}
+                  <p className="line-clamp-2 font-semibold">{c.title}</p>
+                </div>
+              </div>
+              <span className="hidden truncate text-sm xl:block">{c.location || "—"}</span>
+              <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
+              <span className="hidden whitespace-nowrap text-xs text-muted-foreground xl:block">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
+              <div className="flex flex-wrap items-center gap-1">
+              <Button size="sm" variant="outline" asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></Button>
               <Dialog
                 open={reportOpenId === c.id}
                 onOpenChange={(v) => setReportOpenId(v ? c.id : null)}
@@ -453,15 +470,29 @@ function CampaignsAdminPage() {
               >
                 Delete
               </Button>
-              </div></TableCell>
-            </TableRow>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
+                    <MoreVertical className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => remove.mutate(c.id)} className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 size-4" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              </div>
+            </li>
           );
         })}
         {!isLoading && visibleCampaigns.length === 0 ? (
-          <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">No campaigns yet.</TableCell></TableRow>
+          <p className="rounded border border-dashed border-border p-8 text-center text-muted-foreground">
+            No campaigns yet.
+          </p>
         ) : null}
-          </TableBody>
-        </Table>
+      </ul>
       </AdminListingSurface>
     </div>
   );

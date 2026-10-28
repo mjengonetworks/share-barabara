@@ -30,9 +30,10 @@ import { submitAlert } from "@/lib/alert.functions";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { useRoles } from "@/hooks/useRoles";
 
-export function AlertForm({ onDone }: { onDone?: () => void }) {
+export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
   const { canReview } = useRoles();
+  const editorialAccess = editorial || canReview;
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
   const { data: hazardTypes = [] } = useIncidentTaxonomy();
@@ -81,6 +82,17 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  function applyEditorialDraft(draft: Record<string, unknown>) {
+    setForm((current) => ({
+      ...current,
+      ...Object.fromEntries(Object.entries(draft).filter(([field, value]) => field in current && typeof value === "string" && value.trim())),
+    }));
+    const parties = draft["parties_involved"];
+    if (Array.isArray(parties) && parties.every((value) => typeof value === "string")) {
+      setPartiesInvolved(parties as string[]);
+    }
+  }
+
   return (
     <form
       className="space-y-4"
@@ -89,7 +101,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         submit.mutate();
       }}
     >
-      {canReview ? (
+      {editorialAccess ? (
         <div className="space-y-4">
           {(["generate", "autopopulate"] as const).map((mode) => (
             <EditorialAIButton
@@ -99,15 +111,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
               provider={mode === "autopopulate" ? "groq" : "grok"}
               current={form}
               source=""
-              onDraft={(draft) => setForm((current) => ({
-                ...current,
-                ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
-                ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
-                ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
-                ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
-                ...(typeof draft.hazard_type === "string" && draft.hazard_type.trim() ? { hazard_type: draft.hazard_type } : {}),
-                ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
-              }))}
+              onDraft={applyEditorialDraft}
             />
           ))}
           <EditorialAIButton
@@ -116,15 +120,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
             provider="grok"
             current={form}
               source=""
-            onDraft={(draft) => setForm((current) => ({
-              ...current,
-              ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
-              ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
-              ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
-              ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
-              ...(typeof draft.hazard_type === "string" && draft.hazard_type.trim() ? { hazard_type: draft.hazard_type } : {}),
-              ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
-            }))}
+            onDraft={applyEditorialDraft}
           />
         </div>
       ) : null}

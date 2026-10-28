@@ -101,7 +101,6 @@ test("public header and detail pages use the compact spacing contract", async ()
     assert.match(source, /mt-1\.5/);
   }
 });
-
 test("admin content listings use the shared responsive listing surface", async () => {
   const files = ["articles", "alerts", "reports", "campaigns", "infrastructure-issues"];
   for (const name of files) {
