@@ -7,6 +7,14 @@
 \set ON_ERROR_STOP on
 BEGIN;
 
+-- psql does not expand variables inside dollar-quoted DO blocks. Copy the
+-- fixture identifiers into transaction-local settings so the assertions below
+-- remain parameterized without constructing dynamic SQL.
+SELECT set_config('sb5.alert_id', :'alert_id', true);
+SELECT set_config('sb5.owner_id', :'owner_id', true);
+SELECT set_config('sb5.editor_id', :'editor_id', true);
+SELECT set_config('sb5.other_user_id', :'other_user_id', true);
+
 DO $$
 BEGIN
   IF to_regclass('public.alert_status_history') IS NULL THEN
@@ -29,25 +37,25 @@ WHERE id = :'alert_id'::uuid AND user_id = :'owner_id'::uuid;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', :'owner_id', true);
 DO $$
+DECLARE changed integer;
 BEGIN
-  BEGIN
-    UPDATE public.alerts SET status = 'resolved' WHERE id = :'alert_id'::uuid;
+    UPDATE public.alerts SET status = 'resolved' WHERE id = current_setting('sb5.alert_id')::uuid;
+    GET DIAGNOSTICS changed = ROW_COUNT;
+    IF changed > 0 THEN
     RAISE EXCEPTION 'ordinary owner status update unexpectedly succeeded';
-  EXCEPTION WHEN OTHERS THEN
-    IF SQLERRM = 'ordinary owner status update unexpectedly succeeded' THEN RAISE; END IF;
-  END;
+    END IF;
 END $$;
 
 -- An unrelated authenticated account must also be rejected.
 SELECT set_config('request.jwt.claim.sub', :'other_user_id', true);
 DO $$
+DECLARE changed integer;
 BEGIN
-  BEGIN
-    UPDATE public.alerts SET status = 'resolved' WHERE id = :'alert_id'::uuid;
+    UPDATE public.alerts SET status = 'resolved' WHERE id = current_setting('sb5.alert_id')::uuid;
+    GET DIAGNOSTICS changed = ROW_COUNT;
+    IF changed > 0 THEN
     RAISE EXCEPTION 'cross-account status update unexpectedly succeeded';
-  EXCEPTION WHEN OTHERS THEN
-    IF SQLERRM = 'cross-account status update unexpectedly succeeded' THEN RAISE; END IF;
-  END;
+    END IF;
 END $$;
 
 -- An editor may move an alert through the supported lifecycle and reopen it.
@@ -67,7 +75,7 @@ LIMIT 3;
 DO $$
 BEGIN
   BEGIN
-    UPDATE public.alerts SET status = 'legacy_test_value' WHERE id = :'alert_id'::uuid;
+    UPDATE public.alerts SET status = 'legacy_test_value' WHERE id = current_setting('sb5.alert_id')::uuid;
     RAISE EXCEPTION 'unsupported lifecycle value unexpectedly succeeded';
   EXCEPTION WHEN OTHERS THEN
     IF SQLERRM = 'unsupported lifecycle value unexpectedly succeeded' THEN RAISE; END IF;

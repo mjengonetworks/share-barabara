@@ -14,6 +14,9 @@ CREATE INDEX IF NOT EXISTS notifications_user_created_idx
   ON public.notifications (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS notifications_source_idx
   ON public.notifications (source_type, source_id);
+CREATE UNIQUE INDEX IF NOT EXISTS notifications_user_dedupe_idx
+  ON public.notifications (user_id, dedupe_key)
+  WHERE dedupe_key IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS public.alert_status_history (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -50,9 +53,10 @@ BEGIN
     INSERT INTO public.alert_status_history(alert_id, previous_status, new_status, changed_by)
     VALUES (NEW.id, OLD.status, NEW.status, auth.uid());
     IF NEW.status IN ('in_progress', 'resolved') THEN
-      INSERT INTO public.notifications(user_id, type, title, body, link, source_type, source_id)
+      INSERT INTO public.notifications(user_id, type, title, body, link, source_type, source_id, dedupe_key)
       VALUES (NEW.user_id, 'alert_status', 'Your hazard alert status changed', NEW.title,
-        '/alerts/' || NEW.id, 'alert', NEW.id);
+        '/alerts/' || NEW.id, 'alert', NEW.id, 'alert-status:' || NEW.id || ':' || NEW.status)
+      ON CONFLICT DO NOTHING;
     END IF;
   END IF;
   RETURN NEW;
