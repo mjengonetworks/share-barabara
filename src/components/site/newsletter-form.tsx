@@ -88,7 +88,7 @@ export function NewsletterForm({
       <Button
         type="submit"
         disabled={subscribe.isPending}
-        className={`${variant === "gold" ? "w-full bg-brand-navy text-white hover:bg-brand-blue" : "bg-accent text-accent-foreground hover:bg-accent/90"} ${variant === "sidebar" || variant === "gold" ? "w-full" : ""}`}
+        className={`${variant === "gold" ? "w-full bg-brand-blue text-white hover:bg-brand-navy" : "bg-accent text-accent-foreground hover:bg-accent/90"} ${variant === "sidebar" || variant === "gold" ? "w-full" : ""}`}
       >
         <Mail className="mr-1 size-4" />
         {subscribe.isPending ? "Subscribing…" : "Subscribe"}
