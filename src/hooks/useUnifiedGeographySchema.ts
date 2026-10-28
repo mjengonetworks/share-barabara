@@ -8,16 +8,21 @@ export function useUnifiedGeographySchema() {
     queryKey: ["unified-geography-schema"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const [countries, areas, entities, reports] = await Promise.all([
+      const [countries, areas, entities, reports, alerts, news, infrastructure, campaigns] = await Promise.all([
         supabase.from("countries" as never).select("iso_code, name").limit(1),
         supabase.from("admin_areas" as never).select("id").limit(1),
         supabase.from("transport_entities" as never).select("id").limit(1),
         supabase.from("accident_reports").select("country_code, admin_area_id, transport_mode, transport_entity_id").limit(1),
+        supabase.from("alerts").select("country_code, admin_area_id, transport_mode, transport_entity_id").limit(1),
+        supabase.from("news").select("country_code, admin_area_id, transport_mode, transport_entity_id").limit(1),
+        supabase.from("infrastructure_issues").select("country_code, admin_area_id, transport_mode, transport_entity_id").limit(1),
+        supabase.from("campaigns").select("country_code, admin_area_id, transport_mode, transport_entity_id").limit(1),
       ]);
+      const contentColumnsAvailable = [reports, alerts, news, infrastructure, campaigns].every((result) => !result.error);
       return {
-        available: !countries.error && !areas.error && !entities.error && !reports.error,
+        available: !countries.error && !areas.error && !entities.error && contentColumnsAvailable,
         countriesAvailable: !countries.error,
-        contentColumnsAvailable: !reports.error,
+        contentColumnsAvailable,
         administrativeAreasAvailable: !areas.error,
         transportEntitiesAvailable: !entities.error,
       };
