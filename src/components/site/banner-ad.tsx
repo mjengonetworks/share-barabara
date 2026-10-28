@@ -3,6 +3,16 @@ import { Megaphone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
+function isPlacementSchemaMissing(error: { code?: string; message?: string }) {
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    /column .*placement|column .*starts_at|column .*ends_at|column .*priority/i.test(
+      error.message ?? "",
+    )
+  );
+}
+
 /**
  * Every page carries at least one of these. With no active sponsor ad it
  * falls back to a house placeholder promoting Partner With Us, rather than
@@ -10,20 +20,50 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export function BannerAd({ className = "", placement = "site-default" }: { className?: string; placement?: string }) {
   const { data: ads = [] } = useQuery({
-    queryKey: ["banner-ads"],
+    queryKey: ["banner-ads", placement],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const placementQuery = await supabase
         .from("banner_ads")
         .select("*")
         .eq("active", true)
+        .in("placement", [placement, "site-default"])
+        .order("priority", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(10);
-      if (error) throw error;
-      return data;
+
+      // The additive placement migration is intentionally deployable separately.
+      // Until it is applied, keep the existing active-ad behavior as a safe fallback.
+      if (placementQuery.error) {
+        if (!isPlacementSchemaMissing(placementQuery.error)) throw placementQuery.error;
+        const legacy = await supabase
+          .from("banner_ads")
+          .select("*")
+          .eq("active", true)
+          .order("created_at", { ascending: false })
+          .limit(10);
+        if (legacy.error) throw legacy.error;
+        return legacy.data;
+      }
+
+      const now = Date.now();
+      return placementQuery.data
+        .filter((ad) => {
+          const startsAt = ad.starts_at ? Date.parse(ad.starts_at) : Number.NEGATIVE_INFINITY;
+          const endsAt = ad.ends_at ? Date.parse(ad.ends_at) : Number.POSITIVE_INFINITY;
+          return startsAt <= now && endsAt >= now;
+        })
+        .sort((a, b) => {
+          const aExact = a.placement === placement ? 1 : 0;
+          const bExact = b.placement === placement ? 1 : 0;
+          return bExact - aExact;
+        });
     },
     staleTime: 60_000,
   });
 
-  const ad = ads.length > 0 ? ads[Math.floor(Math.random() * ads.length)] : null;
+  const isSafeDestination = (url: string) => /^https?:\/\//i.test(url);
+  const eligibleAds = ads.filter((ad) => isSafeDestination(ad.link_url));
+  const ad = eligibleAds.length > 0 ? eligibleAds[0] : null;
 
   if (ad) {
     return (

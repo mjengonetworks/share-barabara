@@ -35,11 +35,30 @@ test("global engagement controls and advertising fallback are scoped safely", as
 
 test("advertising management retains admin-gated CRUD and adds edit support", async () => {
   const adminAds = await source("src/routes/_authenticated/admin/banner-ads.tsx");
+  const migration = await source(
+    "supabase/migrations/20261029120000_banner_ad_placements_review.sql",
+  );
   assert.match(adminAds, /createFileRoute\("\/_authenticated\/admin\/banner-ads"\)/);
   assert.match(adminAds, /supabase\.from\("banner_ads"\)\.update/);
   assert.match(adminAds, /toggleActive/);
   assert.match(adminAds, /supabase\.from\("banner_ads"\)\.delete/);
   assert.match(adminAds, /Save changes/);
+  assert.match(adminAds, /starts_at/);
+  assert.match(adminAds, /ends_at/);
+  assert.match(adminAds, /priority/);
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS placement/);
+  assert.match(migration, /banner_ads_public_read/);
+  assert.match(migration, /active = true/);
+});
+
+test("report hash navigation retries after the conditional submission card mounts", async () => {
+  const reports = await source("src/routes/reports.index.tsx");
+  assert.match(reports, /useEffect/);
+  assert.match(reports, /window\.location\.hash !== "#report-form"/);
+  assert.match(reports, /document\.getElementById\("report-form"\)/);
+  assert.match(reports, /scrollIntoView/);
+  assert.match(reports, /\[featured\.length, latest\.length, isLoading\]/);
+  assert.match(reports, /to="\/auth"/);
 });
 
 test("homepage newsletter keeps existing submission component and constrained layout", async () => {
@@ -50,4 +69,18 @@ test("homepage newsletter keeps existing submission component and constrained la
   assert.match(homepage, /<NewsletterForm[\s\S]*variant="gold"/);
   assert.match(newsletter, /newsletter_subscribers/);
   assert.match(newsletter, /Enter a valid email address/);
+});
+
+
+test("Partner With Us validates and persists only the existing enquiry contract", async () => {
+  const partner = await source("src/routes/partner-with-us.tsx");
+  const admin = await source("src/routes/_authenticated/admin/partner-enquiries.tsx");
+  assert.match(partner, /partner_enquiries/);
+  assert.match(partner, /company\.trim\(\)/);
+  assert.match(partner, /contact_email\.trim\(\)\.toLowerCase\(\)/);
+  assert.match(partner, /goals\.trim\(\)/);
+  assert.match(partner, /Enter a valid contact email/);
+  assert.match(partner, /minLength=\{10\}/);
+  assert.match(partner, /user_id: user\?\.id \?\? null/);
+  assert.match(admin, /partner_enquiries/);
 });

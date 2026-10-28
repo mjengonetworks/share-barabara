@@ -87,8 +87,20 @@ function PartnerPage() {
 
   const submit = useMutation({
     mutationFn: async () => {
+      const company = form.company.trim();
+      const contact_email = form.contact_email.trim().toLowerCase();
+      const goals = form.goals.trim();
+      const budget = form.budget.trim();
+      if (company.length < 2) throw new Error("Enter your company or organisation name.");
+      if (!/^\S+@\S+\.\S+$/.test(contact_email)) {
+        throw new Error("Enter a valid contact email.");
+      }
+      if (goals.length < 10) throw new Error("Tell us a little more about your advertising goals.");
       const { error } = await supabase.from("partner_enquiries").insert({
-        ...form,
+        company,
+        contact_email,
+        goals,
+        budget: budget || null,
         user_id: user?.id ?? null,
       });
       if (error) throw error;
@@ -187,6 +199,7 @@ function PartnerPage() {
                 <Input
                   id="p-company"
                   required
+                    maxLength={120}
                   value={form.company}
                   onChange={(e) => setForm({ ...form, company: e.target.value })}
                 />
@@ -197,6 +210,7 @@ function PartnerPage() {
                   id="p-email"
                   type="email"
                   required
+                    maxLength={254}
                   value={form.contact_email}
                   onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
                 />
@@ -205,6 +219,7 @@ function PartnerPage() {
                 <Label htmlFor="p-budget">Budget (optional)</Label>
                 <Input
                   id="p-budget"
+                    maxLength={120}
                   value={form.budget}
                   onChange={(e) => setForm({ ...form, budget: e.target.value })}
                   placeholder="e.g. KES 50,000/month"
@@ -216,6 +231,8 @@ function PartnerPage() {
               <Textarea
                 id="p-goals"
                 required
+                minLength={10}
+                maxLength={2000}
                 rows={4}
                 value={form.goals}
                 onChange={(e) => setForm({ ...form, goals: e.target.value })}

@@ -22,16 +22,16 @@ Baseline: `b8487ffc5f63326a98729839d7e0b103044466e8` (the deployed footer releas
 - [x] Make the existing quote module available consistently across public pages, excluding Merch and Partner With Us, without duplicate instances.
 - [x] Redesign the homepage newsletter composition while preserving the existing NewsletterForm and footer styling.
 - [x] Audit and repair ad placeholders and safe Partner With Us fallback links; existing active-ad selection remains in place.
-- [ ] Verify admin-only advertisement controls, including creative, destination, placement, lifecycle dates, priority and deactivate/edit flows using existing infrastructure. Edit/deactivate are now covered; placement, lifecycle dates and priority are blocked by the current schema.
-- [ ] Verify the Partner With Us advertising enquiry journey, validation, persistence/delivery and admin visibility before claiming completion.
-- [ ] Add focused regressions for statistics integrity, Back to Top, quote coverage, newsletter behavior, ads, enquiry validation, responsive contracts and permissions.
-- [ ] Run focused/security/full tests, production build and `git diff --check`.
+- [x] Add migration-reviewed admin/public support for placement, lifecycle dates, priority, active filtering, fallback and edit/preview behavior. Migration remains unapplied pending approval.
+- [x] Verify the Partner With Us advertising enquiry journey in source: validation, persistence contract and admin visibility are preserved; live delivery remains unverified.
+- [x] Add focused regressions for statistics integrity, report hash navigation, Back to Top, quote coverage, newsletter behavior, ads, enquiry validation and admin contracts.
+- [x] Run focused/security/full tests, production build and `git diff --check`; full suite has unrelated pre-existing alias/import failures documented in the handoff.
 - [ ] Perform browser verification at 320, 375, 390, 430, 440, 768, 1024, 1280 and 1440px where tooling is available.
 
 ### Dependencies and blockers
 
 - Canonical incident identity and deduplication remain owned by SB 2. Do not create a competing statistics calculation or incident table.
-- Any statistics or advertising schema migration must remain a review-only candidate; no migration may be applied without separate approval.
+- `20261029120000_banner_ad_placements_review.sql` is a review-only additive candidate; no migration may be applied without separate approval.
 - A platform/browser session or authorised test account is required to verify computed styles, keyboard/focus behavior, post-load hash scrolling and authenticated flows.
 - Claims about ad enquiry delivery require evidence from the existing persistence or delivery path; code presence alone is insufficient.
 
