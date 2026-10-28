@@ -8,8 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
+import { PartyCasualtyInputs, type CasualtyBreakdown } from "@/components/site/party-casualty-inputs";
+import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
+import { PARTIES_INVOLVED } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
@@ -42,7 +46,7 @@ function initialForm(type: EditorialRecordType, record: RecordValue): RecordValu
     status: stringValue(record, "status") || "draft",
   };
   if (type === "article") return { ...common, category: stringValue(record, "category"), categories: Array.isArray(record.categories) ? record.categories : [], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
-  if (type === "report") return { ...common, county: stringValue(record, "county"), road: stringValue(record, "road"), incident_type: stringValue(record, "incident_type"), severity: stringValue(record, "severity"), occurred_at: stringValue(record, "occurred_at"), vehicles_involved: record.vehicles_involved ?? null, casualties: record.casualties ?? null, fatalities: record.fatalities ?? null };
+  if (type === "report") return { ...common, county: stringValue(record, "county"), road: stringValue(record, "road"), incident_type: stringValue(record, "incident_type"), severity: stringValue(record, "severity"), occurred_at: stringValue(record, "occurred_at"), latitude: typeof record.latitude === "number" ? record.latitude : null, longitude: typeof record.longitude === "number" ? record.longitude : null, vehicles_involved: record.vehicles_involved ?? null, casualties: record.casualties ?? null, fatalities: record.fatalities ?? null, parties_involved: Array.isArray(record.parties_involved) ? record.parties_involved : [], casualty_breakdown: (record.casualty_breakdown ?? {}) as CasualtyBreakdown, attachments: (Array.isArray(record.attachments) ? record.attachments : []) as Attachment[], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
   if (type === "alert") return { ...common, description: stringValue(record, "description"), county: stringValue(record, "county"), road: stringValue(record, "road"), hazard_type: stringValue(record, "hazard_type"), severity: stringValue(record, "severity") };
   if (type === "infrastructure") return { ...common, road_name: stringValue(record, "road_name"), road_scope: stringValue(record, "road_scope") || "county", county: stringValue(record, "county"), authority: stringValue(record, "authority"), structure_type: stringValue(record, "structure_type") };
   return { ...common, description: stringValue(record, "description"), location: stringValue(record, "location"), start_date: stringValue(record, "start_date"), end_date: stringValue(record, "end_date") };
@@ -91,8 +95,11 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         payload = {
           title: form.title, description: form.body, county: form.county, road: form.road,
           incident_type: form.incident_type || null, severity: form.severity,
-          occurred_at: form.occurred_at, vehicles_involved: form.vehicles_involved,
-          casualties: form.casualties, fatalities: form.fatalities,
+          occurred_at: form.occurred_at, latitude: form.latitude, longitude: form.longitude,
+          vehicles_involved: form.vehicles_involved, casualties: form.casualties, fatalities: form.fatalities,
+          parties_involved: form.parties_involved, casualty_breakdown: form.casualty_breakdown,
+          attachments: form.attachments, seo_title: form.seo_title || null,
+          seo_description: form.seo_description || null, seo_keywords: form.seo_keywords || null,
           image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
           image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
         };
@@ -150,7 +157,16 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         {type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-description">Advisory content</Label><RichTextEditor id="editor-description" value={form.description} onChange={(value) => set("description", value)} /></div> : <div className="sm:col-span-2"><Label htmlFor="editor-body">Full content</Label><RichTextEditor id="editor-body" value={form.body} onChange={(value) => set("body", value)} /></div>}
         {type === "article" ? <><div><Label>Category</Label><Input value={form.category} onChange={(e) => set("category", e.target.value)} /></div><div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div></> : null}
         {type === "alert" || type === "report" ? <><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road / location</Label><Input value={form.road} onChange={(e) => set("road", e.target.value)} /></div><div><Label>Severity</Label><Input value={form.severity} onChange={(e) => set("severity", e.target.value)} /></div></> : null}
-        {type === "report" ? <><div><Label>Incident type</Label><Input value={form.incident_type} onChange={(e) => set("incident_type", e.target.value)} /></div><div><Label>Incident date/time</Label><Input type="datetime-local" value={form.occurred_at?.slice(0, 16)} onChange={(e) => set("occurred_at", e.target.value)} /></div></> : null}
+        {type === "report" ? <>
+          <div><Label>Incident type</Label><Input value={form.incident_type} onChange={(e) => set("incident_type", e.target.value)} /></div>
+          <div><Label>Incident date/time</Label><Input type="datetime-local" value={form.occurred_at?.slice(0, 16)} onChange={(e) => set("occurred_at", e.target.value)} /></div>
+          <div><Label>Latitude</Label><Input type="number" value={form.latitude ?? ""} onChange={(e) => set("latitude", e.target.value === "" ? null : Number(e.target.value))} /></div>
+          <div><Label>Longitude</Label><Input type="number" value={form.longitude ?? ""} onChange={(e) => set("longitude", e.target.value === "" ? null : Number(e.target.value))} /></div>
+          {([['vehicles_involved', 'Vehicles involved'], ['casualties', 'Confirmed injuries'], ['fatalities', 'Confirmed fatalities']] as const).map(([key, label]) => <div key={key}><Label>{label}</Label><Input type="number" min="0" value={form[key] ?? ""} onChange={(e) => set(key, e.target.value === "" ? null : Number(e.target.value))} /></div>)}
+          <div className="sm:col-span-2"><Label>Road-user categories involved</Label><div className="mt-2 flex flex-wrap gap-3">{PARTIES_INVOLVED.map((party) => <label key={party.value} className="flex items-center gap-2 text-sm"><Checkbox checked={form.parties_involved.includes(party.value)} onCheckedChange={(checked) => set("parties_involved", checked === true ? [...form.parties_involved, party.value] : form.parties_involved.filter((value: string) => value !== party.value))} />{party.label}</label>)}</div><PartyCasualtyInputs parties={form.parties_involved} value={form.casualty_breakdown} onChange={(value) => set("casualty_breakdown", value)} /></div>
+          <div className="sm:col-span-2"><Label>Supporting media</Label><AttachmentsField value={form.attachments} onChange={(value) => set("attachments", value)} /></div>
+          <div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div><div><Label>SEO description</Label><Input value={form.seo_description} onChange={(e) => set("seo_description", e.target.value)} /></div><div className="sm:col-span-2"><Label>SEO keywords</Label><Input value={form.seo_keywords} onChange={(e) => set("seo_keywords", e.target.value)} /></div>
+        </> : null}
         {type === "infrastructure" ? <><div><Label>Road name</Label><Input value={form.road_name} onChange={(e) => set("road_name", e.target.value)} /></div><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road scope</Label><Select value={form.road_scope} onValueChange={(value) => set("road_scope", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="county">County road</SelectItem><SelectItem value="national">National road</SelectItem></SelectContent></Select></div></> : null}
         {type === "campaign" ? <><div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div><div><Label>Start date</Label><Input type="datetime-local" value={form.start_date?.slice(0, 16)} onChange={(e) => set("start_date", e.target.value)} /></div><div><Label>End date</Label><Input type="datetime-local" value={form.end_date?.slice(0, 16)} onChange={(e) => set("end_date", e.target.value)} /></div></> : null}
       </section>

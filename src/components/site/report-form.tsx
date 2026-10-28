@@ -129,6 +129,26 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
     onError: (e: Error) => toast.error(e.message),
   });
 
+  function applyEditorialDraft(draft: Record<string, unknown>) {
+    setForm((current) => ({
+      ...current,
+      ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
+      ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
+      ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
+      ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
+      ...(typeof draft.incident_type === "string" && draft.incident_type.trim() ? { incident_type: draft.incident_type } : {}),
+      ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
+      ...(typeof draft.occurred_at === "string" && draft.occurred_at.trim() ? { occurred_at: draft.occurred_at.slice(0, 16) } : {}),
+      ...(typeof draft.vehicles_involved === "number" ? { vehicles_involved: draft.vehicles_involved } : {}),
+      ...(typeof draft.casualties === "number" ? { casualties: draft.casualties } : {}),
+      ...(typeof draft.fatalities === "number" ? { fatalities: draft.fatalities } : {}),
+      ...(Array.isArray(draft.parties_involved) ? { parties_involved: draft.parties_involved } : {}),
+      ...(typeof draft.image_alt === "string" && draft.image_alt.trim() ? { image_alt: draft.image_alt } : {}),
+      ...(typeof draft.image_caption === "string" && draft.image_caption.trim() ? { image_caption: draft.image_caption } : {}),
+      ...(typeof draft.image_credit === "string" && draft.image_credit.trim() ? { image_credit: draft.image_credit } : {}),
+    }));
+  }
+
   return (
     <form
       className="space-y-4"
@@ -159,6 +179,14 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
           placeholder="Describe what happened, where it happened and any immediate safety information."
         />
       </div>
+      {editorialAccess ? (
+        <div className="space-y-4 rounded-lg border border-accent/40 bg-accent/5 p-3" aria-label="Accident report Editorial AI">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Editorial AI</p>
+          {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }] as const).map(({ mode, provider }) => (
+            <EditorialAIButton key={`${mode}-${provider}`} contentType="report" mode={mode} provider={provider} current={form} source="" onDraft={applyEditorialDraft} />
+          ))}
+        </div>
+      ) : null}
       <div>
         <Label>Attachments</Label>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -332,45 +360,6 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
               </div>
             </div>
           </div>
-          {editorialAccess ? (
-            <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Reviewer tools
-              </p>
-          {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }] as const).map(({ mode, provider }) => (
-                <EditorialAIButton
-              key={`${mode}-${provider}`}
-                  contentType="report"
-                  mode={mode}
-              provider={provider}
-                  current={form}
-                  source=""
-                  onDraft={(draft) =>
-                    setForm((current) => ({
-                      ...current,
-                      ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
-                      ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
-                      ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
-                      ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
-                      ...(typeof draft.incident_type === "string" && draft.incident_type.trim() ? { incident_type: draft.incident_type } : {}),
-                      ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
-                      ...(typeof draft.occurred_at === "string" && draft.occurred_at.trim() ? { occurred_at: draft.occurred_at.slice(0, 16) } : {}),
-                      ...(typeof draft.vehicles_involved === "number" ? { vehicles_involved: draft.vehicles_involved } : {}),
-                      ...(typeof draft.casualties === "number" ? { casualties: draft.casualties } : {}),
-                      ...(typeof draft.fatalities === "number" ? { fatalities: draft.fatalities } : {}),
-                      ...(Array.isArray(draft.parties_involved) ? { parties_involved: draft.parties_involved } : {}),
-                      ...(typeof draft.seo_title === "string" && draft.seo_title.trim() ? { seo_title: draft.seo_title } : {}),
-                      ...(typeof draft.seo_description === "string" && draft.seo_description.trim() ? { seo_description: draft.seo_description } : {}),
-                      ...(typeof draft.seo_keywords === "string" && draft.seo_keywords.trim() ? { seo_keywords: draft.seo_keywords } : {}),
-                      ...(typeof draft.image_alt === "string" && draft.image_alt.trim() ? { image_alt: draft.image_alt } : {}),
-                      ...(typeof draft.image_caption === "string" && draft.image_caption.trim() ? { image_caption: draft.image_caption } : {}),
-                      ...(typeof draft.image_credit === "string" && draft.image_credit.trim() ? { image_credit: draft.image_credit } : {}),
-                    }))
-                  }
-                />
-              ))}
-            </div>
-          ) : null}
         </CollapsibleContent>
       </Collapsible>
       <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
