@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Apple, BadgeCheck, Smartphone } from "lucide-react";
+import { Apple, BadgeCheck, CarFront, Smartphone, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { EMERGENCY_CONTACTS } from "@/lib/constants";
 import { NewsletterForm } from "@/components/site/newsletter-form";
@@ -109,17 +109,6 @@ export function SiteFooter() {
             Newsletter
           </p>
           <NewsletterForm className="mt-3" variant="gold" />
-          {!alreadySubscribed ? (
-            <Button
-              asChild
-              size="sm"
-              className="mt-5 bg-accent text-accent-foreground hover:bg-accent/90"
-            >
-              <Link to="/subscribe">
-                <BadgeCheck className="mr-1.5 size-4" /> Subscribe to Premium
-              </Link>
-            </Button>
-          ) : null}
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">Explore</p>
@@ -210,6 +199,49 @@ export function SiteFooter() {
               </li>
             ))}
           </ul>
+          <div className="mt-5 space-y-2">
+            {!alreadySubscribed ? (
+              <Button
+                asChild
+                size="sm"
+                className="w-full justify-start bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                <Link to="/subscribe">
+                  <BadgeCheck className="size-4" /> Subscribe to Premium
+                </Link>
+              </Button>
+            ) : null}
+            <Button
+              asChild
+              size="sm"
+              className="w-full justify-start border border-caution/60 bg-caution/15 text-primary-foreground hover:bg-caution/25"
+            >
+              {user ? (
+                <Link to="/alerts" hash="alert-form">
+                  <TriangleAlert className="size-4 text-caution" /> Submit an Alert
+                </Link>
+              ) : (
+                <Link to="/auth" search={{ returnTo: "/alerts#alert-form" }}>
+                  <TriangleAlert className="size-4 text-caution" /> Submit an Alert
+                </Link>
+              )}
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              className="w-full justify-start border border-brand-blue/60 bg-brand-blue/20 text-primary-foreground hover:bg-brand-blue/35"
+            >
+              {user ? (
+                <Link to="/reports" hash="report-form">
+                  <CarFront className="size-4 text-blue-200" /> Submit a Report
+                </Link>
+              ) : (
+                <Link to="/auth" search={{ returnTo: "/reports#report-form" }}>
+                  <CarFront className="size-4 text-blue-200" /> Submit a Report
+                </Link>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
       <div className="hazard-stripe h-2" />

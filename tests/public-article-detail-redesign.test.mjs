@@ -46,17 +46,17 @@ test("public article detail uses one responsive article/sidebar shell", async ()
   assert.match(detail, /!relatedIds\.has\(item\.id\)/);
 });
 
-test("only the mobile article detail headline uses the corrected 23.52px size", async () => {
+test("only the mobile article detail headline is 5% larger than the live production baseline", async () => {
   const article = await source("src/routes/news.$slug.tsx");
-  assert.match(article, /text-\[23\.52px\][\s\S]*sm:text-\[34px\]/);
-  assert.doesNotMatch(article, /text-\[22\.4px\]/);
+  assert.match(article, /text-\[24\.696px\][\s\S]*sm:text-\[34px\]/);
+  assert.doesNotMatch(article, /text-\[23\.52px\]/);
   for (const file of [
     "src/routes/alerts.$alertId.tsx",
     "src/routes/reports.$reportId.tsx",
     "src/routes/campaigns.$slug.tsx",
     "src/routes/infrastructure-issues.$issueId.tsx",
   ]) {
-    assert.doesNotMatch(await source(file), /text-\[22\.4px\]/);
+    assert.doesNotMatch(await source(file), /text-\[24\.696px\]/);
   }
 });
 
