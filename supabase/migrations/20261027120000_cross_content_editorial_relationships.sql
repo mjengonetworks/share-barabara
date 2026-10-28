@@ -381,9 +381,11 @@ RETURNS SETOF public.editorial_tags LANGUAGE sql STABLE SECURITY DEFINER SET sea
 $$;
 
 REVOKE ALL ON FUNCTION public.editorial_content_table(TEXT),public.editorial_content_exists(TEXT,UUID),public.editorial_content_is_public(TEXT,UUID),public.editorial_can_edit_content(TEXT,UUID) FROM PUBLIC;
--- The production preflight found anonymous EXECUTE on these SECURITY DEFINER
--- role helpers. They are only needed internally by RLS and the RPCs below.
-REVOKE EXECUTE ON FUNCTION public.has_role(UUID,public.app_role),public.has_min_role(UUID,public.app_role) FROM anon;
+-- Do not revoke anonymous EXECUTE here. Production public SELECT policies
+-- currently reference these helpers in their USING expressions, and the
+-- existing migration history explicitly grants anon EXECUTE so those policies
+-- can be planned successfully. A future policy refactor may remove that
+-- exposure, but it must be audited and deployed separately.
 REVOKE ALL ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_finalize_related_draft(UUID,TEXT,UUID),public.editorial_search_tags(TEXT,INTEGER) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_finalize_related_draft(UUID,TEXT,UUID),public.editorial_search_tags(TEXT,INTEGER) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.editorial_public_related_content(TEXT,UUID,INTEGER) TO anon,authenticated;
