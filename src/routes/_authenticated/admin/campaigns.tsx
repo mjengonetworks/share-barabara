@@ -1,13 +1,14 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, Megaphone, Plus } from "lucide-react";
+import { AlertTriangle, Megaphone, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -16,6 +17,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
@@ -27,7 +34,6 @@ import { longDate, slugify } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
-import type { EditorialMode, EditorialProvider } from "@/lib/ai/editorial.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
   head: () => ({ meta: [{ title: "Campaigns: Share Barabara Admin" }] }),
@@ -65,6 +71,8 @@ type ReportForm = {
 };
 
 function CampaignsAdminPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/campaigns\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -72,13 +80,14 @@ function CampaignsAdminPage() {
   const [form, setForm] = useState<EventForm>(EMPTY_EVENT);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [reportOpenId, setReportOpenId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [reportForm, setReportForm] = useState<ReportForm>({
     report_content: "",
     report_image_url: "",
     report_published: false,
   });
   const [reportAttachments, setReportAttachments] = useState<Attachment[]>([]);
-  const [search, setSearch] = useState("");
 
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: ["admin-campaigns"],
@@ -97,10 +106,15 @@ function CampaignsAdminPage() {
     queryClient.invalidateQueries({ queryKey: ["campaigns"] });
   };
 
-  const visibleCampaigns = campaigns.filter((campaign) => {
+  const visibleCampaigns = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return !query || campaign.title.toLowerCase().includes(query) || (campaign.location ?? "").toLowerCase().includes(query);
-  });
+    return campaigns.filter((campaign) => {
+      const status = campaignStatus(campaign.start_date, campaign.end_date);
+      if (statusFilter !== "all" && status !== statusFilter) return false;
+      if (query && !campaign.title.toLowerCase().includes(query) && !(campaign.location ?? "").toLowerCase().includes(query)) return false;
+      return true;
+    });
+  }, [campaigns, search, statusFilter]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -205,7 +219,7 @@ function CampaignsAdminPage() {
         eyebrow="Site content"
         title="Manage Campaigns"
         websiteHref="/campaigns"
-        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> New campaign</Button>}
+        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> Add New Campaign</Button>}
         description={
           <>
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
@@ -216,7 +230,7 @@ function CampaignsAdminPage() {
         }
       />
 
-      <div className="mt-6">
+      <div className="mt-4">
         <Dialog
           open={open}
           onOpenChange={(v) => {
@@ -224,33 +238,11 @@ function CampaignsAdminPage() {
             if (!v) setEditingId(null);
           }}
         >
-          <DialogTrigger asChild>
-            <Button onClick={openCreate}>
-               <Plus className="mr-1.5 size-4" /> Add New Campaign
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
             <DialogHeader>
               <DialogTitle>{editingId ? "Edit campaign" : "New campaign"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="space-y-3">
-                {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : [])] as Array<{ mode: EditorialMode; provider: EditorialProvider }>).map(({ mode, provider }) => (
-                  <EditorialAIButton
-                    key={`${mode}-${provider}`}
-                    contentType="campaign"
-                    mode={mode}
-                    provider={provider}
-                     current={form as unknown as Record<string, import("@/lib/ai/editorial.functions").EditorialValue>}
-                     {...(editingId ? { contentId: editingId } : {})}
-                    source=""
-                    onDraft={(draft) => setForm((current) => ({
-                      ...current,
-                      ...Object.fromEntries(Object.entries(draft).filter(([key]) => key in current)),
-                    }) as EventForm)}
-                  />
-                ))}
-              </div>
               <div>
                 <Label htmlFor="c-title">Title</Label>
                 <Input
@@ -276,6 +268,23 @@ function CampaignsAdminPage() {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
+              </div>
+              <div className="space-y-3">
+                {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : [])] as const).map(({ mode, provider }) => (
+                  <EditorialAIButton
+                    key={`${mode}-${provider}`}
+                    contentType="campaign"
+                    mode={mode}
+                    provider={provider}
+                    current={form}
+                    contentId={editingId ?? undefined}
+                    source=""
+                    onDraft={(draft) => setForm((current) => ({
+                      ...current,
+                      ...Object.fromEntries(Object.entries(draft).filter(([key]) => key in current)),
+                    }) as EventForm)}
+                  />
+                ))}
               </div>
               <div>
                 <Label>Main banner (optional)</Label>
@@ -326,26 +335,38 @@ function CampaignsAdminPage() {
         </Dialog>
       </div>
 
-      {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
-
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <Label>Status</Label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="ongoing">Ongoing</SelectItem>
+              <SelectItem value="previous">Previous</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="min-w-48 flex-1 sm:col-span-2 lg:col-span-4">
           <Label htmlFor="campaign-search">Search</Label>
-          <Input id="campaign-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search campaigns" />
+          <Input id="campaign-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search title or location…" />
         </div>
       </div>
 
+      {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
+
       <AdminListingSurface>
-        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Campaign / dates</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
-        <ul className="divide-y divide-border/70">
+        <AdminListingHeader className="xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto]"><span>Image</span><span>Title</span><span>Location</span><span>Status</span><span>Dates</span><span>Actions</span></AdminListingHeader>
+      <ul className="divide-y divide-border/70">
         {visibleCampaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
             <li
               key={c.id}
-              className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
+              className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 border-b border-border/70 px-3 py-3 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto]"
             >
-              <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
+              <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
               {c.image_url ? (
                 <img src={c.image_url} alt="" className="h-12 w-[70px] shrink-0 rounded object-cover" />
               ) : (
@@ -353,7 +374,7 @@ function CampaignsAdminPage() {
                   <Megaphone className="size-5 text-muted-foreground" />
                 </div>
               )}
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={STATUS_VARIANT[status]} className="capitalize">
                     {status}
@@ -368,16 +389,14 @@ function CampaignsAdminPage() {
                       {c.report_published ? "Report published" : "Not visible to public yet"}
                     </Badge>
                   ) : null}
-                  <p className="truncate font-semibold">{c.title}</p>
+                  <p className="line-clamp-2 font-semibold">{c.title}</p>
                 </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {longDate(c.start_date)} – {longDate(c.end_date)}
-                  {c.location ? ` · ${c.location}` : ""}
-                </p>
               </div>
-              <Button size="sm" variant="outline" onClick={() => openEdit(c.id)}>
-                Edit event
-              </Button>
+              <span className="hidden truncate text-sm xl:block">{c.location || "—"}</span>
+              <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
+              <span className="hidden whitespace-nowrap text-xs text-muted-foreground xl:block">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
+              <div className="flex flex-wrap items-center gap-1">
+              <Button size="sm" variant="outline" asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></Button>
               <Dialog
                 open={reportOpenId === c.id}
                 onOpenChange={(v) => setReportOpenId(v ? c.id : null)}
@@ -451,6 +470,20 @@ function CampaignsAdminPage() {
               >
                 Delete
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
+                    <MoreVertical className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => remove.mutate(c.id)} className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 size-4" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              </div>
             </li>
           );
         })}
@@ -459,7 +492,7 @@ function CampaignsAdminPage() {
             No campaigns yet.
           </p>
         ) : null}
-        </ul>
+      </ul>
       </AdminListingSurface>
     </div>
   );

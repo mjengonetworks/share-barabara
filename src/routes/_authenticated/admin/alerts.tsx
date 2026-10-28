@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ExternalLink, Eye, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,12 +57,15 @@ export const Route = createFileRoute("/_authenticated/admin/alerts")({
 });
 
 function AlertsAdminPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/alerts\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const queryClient = useQueryClient();
   const { data: hazardTypes = [] } = useHazardTypes();
   const { data: severities = [] } = useAlertSeverities();
   const [county, setCounty] = useState("all");
   const [hazard, setHazard] = useState("all");
   const [severity, setSeverity] = useState("all");
+  const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
   const [editingParties, setEditingParties] = useState<{
     id: string;
@@ -97,11 +100,12 @@ function AlertsAdminPage() {
       if (county !== "all" && a.county !== county) return false;
       if (hazard !== "all" && a.hazard_type !== hazard) return false;
       if (severity !== "all" && a.severity !== severity) return false;
+      if (status !== "all" && a.status !== status) return false;
       if (q && !a.title.toLowerCase().includes(q) && !a.description.toLowerCase().includes(q))
         return false;
       return true;
     });
-  }, [allAlerts, county, hazard, severity, search]);
+  }, [allAlerts, county, hazard, severity, status, search]);
 
   const { data: names = {} } = useProfileNames(alerts.map((a) => a.user_id));
   const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
@@ -172,7 +176,7 @@ function AlertsAdminPage() {
             <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new alert</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
               <DialogHeader><DialogTitle>New hazard alert</DialogTitle></DialogHeader>
-              <AlertForm onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] })} />
+              <AlertForm editorial onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] })} />
             </DialogContent>
           </Dialog>
         }
@@ -227,6 +231,19 @@ function AlertsAdminPage() {
             </SelectContent>
           </Select>
         </div>
+        <div>
+          <Label>Status</Label>
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="in_progress">In progress</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="min-w-48 flex-1">
           <Label htmlFor="alert-search">Search</Label>
           <Input
@@ -249,10 +266,11 @@ function AlertsAdminPage() {
               <TableHead>Alert</TableHead>
               <TableHead>County</TableHead>
               <TableHead>Severity</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Reported by</TableHead>
               <TableHead>Views</TableHead>
               <TableHead>Posted</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -290,6 +308,7 @@ function AlertsAdminPage() {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</TableCell>
                 <TableCell>
                   <UserLink userId={a.user_id} name={names[a.user_id]} anonymous={a.is_anonymous} />
                 </TableCell>
@@ -300,10 +319,11 @@ function AlertsAdminPage() {
                   {dateTime(a.created_at)}
                 </TableCell>
                 <TableCell className="text-right">
+                  <Button asChild variant="outline" size="sm"><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="size-8">
-                        <MoreVertical className="size-4" />
+                    <Button variant="ghost" size="icon" className="size-8" aria-label="More actions">
+                      <MoreVertical className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -312,25 +332,7 @@ function AlertsAdminPage() {
                           <ExternalLink className="mr-2 size-4" /> View on website
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          setEditingParties({
-                            id: a.id,
-                            title: a.title,
-                            description: a.description,
-                            county: a.county,
-                            road: a.road ?? "",
-                            latitude: a.latitude,
-                            longitude: a.longitude,
-                            hazard_type: a.hazard_type,
-                            severity: a.severity,
-                            parties: a.parties_involved ?? [],
-                            casualties: (a.casualty_breakdown as CasualtyBreakdown | null) ?? {},
-                          })
-                        }
-                      >
-                        Edit alert
-                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-2 size-4" /> Edit alert</a></DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         onClick={() => remove.mutate(a.id)}
@@ -344,7 +346,7 @@ function AlertsAdminPage() {
             ))}
             {!isLoading && alerts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={10} className="py-8 text-center text-muted-foreground">
                   Nothing matches these filters.
                 </TableCell>
               </TableRow>

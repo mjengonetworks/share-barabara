@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -66,11 +66,13 @@ type ArticleDraft = {
 type Status = "draft" | "pending_review" | "published" | "rejected";
 
 function ArticlesQueuePage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/articles\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const { canPublishArticles } = useRoles();
   const queryClient = useQueryClient();
   const { data: categories = [] } = useNewsCategories();
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending_review");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, ArticleDraft>>({});
@@ -230,7 +232,7 @@ function ArticlesQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Article / metadata</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
+        <AdminListingHeader><span>Image</span><span>Title</span><span>Category</span><span>Status</span><span>Author</span><span>Views</span><span>Created</span><span>Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {articles.map((a) => {
           const d: ArticleDraft = drafts[a.id] ?? {
@@ -261,13 +263,9 @@ function ArticlesQueuePage() {
 
           return (
             <li key={a.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
+              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto]">
                 <input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expanded ? null : a.id)}
-                  className="min-w-0 text-left"
-                >
+                <div className="min-w-0 text-left">
                   {a.image_url ? (
                     <img
                       src={a.image_url}
@@ -279,40 +277,21 @@ function ArticlesQueuePage() {
                       <Newspaper className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : a.id)}
-                    className="min-w-0 text-left"
-                  >
-                  <div className="min-w-0">
-                    <p className="line-clamp-2 font-semibold">{a.title}</p>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-                      {(a.categories?.length ? a.categories : [a.category]).map((c) => (
-                        <span
-                          key={c}
-                          className="rounded bg-accent/20 px-1.5 py-0.5 font-semibold uppercase tracking-wide text-accent-foreground"
-                        >
-                          {c}
-                        </span>
-                      ))}
-                      {a.author_id ? (
-                        <>
-                          · by <UserLink userId={a.author_id} name={names[a.author_id]} />
-                        </>
-                      ) : null}
-                      <span className="inline-flex items-center gap-0.5">
-                        · <Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[a.id] ?? 0}
-                      </span>
-                      <span>· {dateTime(a.created_at)}</span>
-                    </p>
                   </div>
-                  </button>
+                  <div className="min-w-0 text-left">
+                  <div className="min-w-0"><p className="line-clamp-2 font-semibold">{a.title}</p></div>
+                  </div>
 
+                <div className="hidden min-w-0 flex-wrap gap-1 xl:flex">{(a.categories?.length ? a.categories : [a.category]).map((c) => <span key={c} className="rounded bg-accent/20 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-accent-foreground">{c}</span>)}</div>
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</span>
+                <span className="hidden min-w-0 truncate text-sm xl:block">{a.author_id ? <UserLink userId={a.author_id} name={names[a.author_id]} /> : "—"}</span>
+                <span className="hidden items-center gap-1 text-xs text-muted-foreground xl:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span>
+                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(a.created_at)}</span>
+                <div className="flex items-center gap-1">
+                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/articles/${a.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -323,8 +302,8 @@ function ArticlesQueuePage() {
                         {a.status === "published" ? "View on website" : "Preview"}
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setExpandedId(a.id)}>
-                      <Pencil className="mr-2 size-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <a href={`/admin/articles/${a.id}/edit`}><Pencil className="mr-2 size-4" /> Edit</a>
                     </DropdownMenuItem>
                     {canPublishArticles && a.status !== "published" ? (
                       <DropdownMenuItem
@@ -354,15 +333,7 @@ function ArticlesQueuePage() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                <button
-                  type="button"
-                  aria-label={expanded ? "Collapse" : "Expand"}
-                  onClick={() => setExpandedId(expanded ? null : a.id)}
-                  className="shrink-0 text-muted-foreground"
-                >
-                  {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                </button>
+                </div>
               </div>
 
               {expanded ? (

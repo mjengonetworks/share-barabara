@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -61,9 +61,11 @@ type Draft = {
 type Status = "pending" | "approved" | "rejected";
 
 function InfrastructureIssuesAdminPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/infrastructure-issues\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("pending");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [countyFilter, setCountyFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -134,6 +136,7 @@ function InfrastructureIssuesAdminPage() {
         eyebrow="Content & moderation"
         title="Manage Infrastructure Issues"
         description="Roads, bridges, drainage and signage problems reported by the community."
+        actions={<Button size="sm" onClick={() => setCreateOpen(true)}><Plus className="mr-1.5 size-4" /> Add New Issue</Button>}
       />
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogTrigger asChild>
@@ -195,7 +198,7 @@ function InfrastructureIssuesAdminPage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span className="sr-only">Select</span><span>Image</span><span>Issue / location</span><span>Status</span><span>Actions</span><span aria-hidden="true" /></AdminListingHeader>
+        <AdminListingHeader><span>Image</span><span>Title</span><span>Issue type</span><span>Location</span><span>Status</span><span>Author</span><span>Created</span><span>Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {issues.map((i) => {
           const d: Draft = drafts[i.id] ?? {
@@ -214,13 +217,9 @@ function InfrastructureIssuesAdminPage() {
 
           return (
             <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_70px_minmax(0,1fr)_auto_auto] items-center gap-3 p-3 sm:p-4 lg:grid-cols-[auto_72px_minmax(18rem,2fr)_minmax(8rem,1fr)_auto_auto]">
+              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,auto)_auto]">
                 <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expanded ? null : i.id)}
-                  className="min-w-0 text-left"
-                >
+                <div className="min-w-0 text-left">
                   {i.image_url ? (
                     <img
                       src={i.image_url}
@@ -232,27 +231,24 @@ function InfrastructureIssuesAdminPage() {
                       <Construction className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : i.id)}
-                    className="min-w-0 text-left"
-                  >
+                  </div>
+                  <div className="min-w-0 text-left">
                   <div className="min-w-0">
                     <p className="line-clamp-2 font-semibold">{i.title}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {i.road_name}
-                      {i.county ? ` · ${i.county}` : ""} · by{" "}
-                      <UserLink userId={i.user_id} name={names[i.user_id]} /> ·{" "}
-                      {dateTime(i.created_at)}
-                    </p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{i.summary || "No summary"}</p>
                   </div>
-                  </button>
+                  </div>
 
+                <span className="hidden truncate text-sm xl:block">{i.structure_type || "—"}</span>
+                <span className="hidden truncate text-sm xl:block">{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
+                <span className="hidden min-w-0 truncate text-sm xl:block">{i.user_id ? <UserLink userId={i.user_id} name={names[i.user_id]} /> : "—"}</span>
+                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(i.created_at)}</span>
+                <div className="flex items-center gap-1">
+                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/infrastructure-issues/${i.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
+                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -268,8 +264,8 @@ function InfrastructureIssuesAdminPage() {
                         </Link>
                       </DropdownMenuItem>
                     ) : null}
-                    <DropdownMenuItem onClick={() => setExpandedId(i.id)}>
-                      <Pencil className="mr-2 size-4" /> Edit
+                    <DropdownMenuItem asChild>
+                      <a href={`/admin/infrastructure-issues/${i.id}/edit`}><Pencil className="mr-2 size-4" /> Edit</a>
                     </DropdownMenuItem>
                     {i.status !== "approved" ? (
                       <DropdownMenuItem
@@ -294,15 +290,7 @@ function InfrastructureIssuesAdminPage() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                <button
-                  type="button"
-                  aria-label={expanded ? "Collapse" : "Expand"}
-                  onClick={() => setExpandedId(expanded ? null : i.id)}
-                  className="shrink-0 text-muted-foreground"
-                >
-                  {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                </button>
+                </div>
               </div>
 
               {expanded ? (

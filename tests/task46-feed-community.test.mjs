@@ -20,7 +20,8 @@ test("community posts have bounded body and conservative moderation states", () 
   assert.match(migration, /char_length\(btrim\(body\)\) BETWEEN 3 AND 4000/);
   assert.match(migration, /status IN \('pending','published','removed','hidden'\)/);
   assert.match(migration, /moderation_status TEXT.*pending.*approved.*rejected.*needs_review/s);
-  assert.match(route, /Posts are reviewed/);
+  assert.match(route, /pass automated safety checks publish immediately/);
+  assert.match(route, /held for moderator action/);
 });
 
 test("automatic content uses existing public visibility semantics", () => {
@@ -64,12 +65,13 @@ test("reporting and blocking are private-owner operations with moderation access
   assert.match(route, /blockedRows\.map/);
 });
 
-test("AI moderation is server-only Groq triage and never autonomous publication", () => {
+test("AI moderation is server-only Groq triage and only an allow result can publish", () => {
   assert.match(moderation, /requireSupabaseAuth/);
   assert.match(moderation, /completeWithProvider\("groq"/);
-  assert.match(moderation, /status = "pending"/);
+  assert.match(moderation, /moderation\.action === "allow" \? "published"/);
+  assert.match(moderation, /supabaseAdmin\.from\("feed_posts"\)/);
   assert.match(moderation, /Never publish or rewrite the post/);
-  assert.doesNotMatch(moderation, /service_role|VAPID_PRIVATE|SearXNG/i);
+  assert.doesNotMatch(moderation, /VAPID_PRIVATE|SearXNG/i);
 });
 
 test("moderators have a human Feed review queue", () => {

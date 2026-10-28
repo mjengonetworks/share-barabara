@@ -30,9 +30,10 @@ import { submitAlert } from "@/lib/alert.functions";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { useRoles } from "@/hooks/useRoles";
 
-export function AlertForm({ onDone }: { onDone?: () => void }) {
+export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
   const { canReview } = useRoles();
+  const editorialAccess = editorial || canReview;
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
   const { data: hazardTypes = [] } = useIncidentTaxonomy();
@@ -100,7 +101,7 @@ export function AlertForm({ onDone }: { onDone?: () => void }) {
         submit.mutate();
       }}
     >
-      {canReview ? (
+      {editorialAccess ? (
         <div className="space-y-4">
           {(["generate", "autopopulate"] as const).map((mode) => (
             <EditorialAIButton
