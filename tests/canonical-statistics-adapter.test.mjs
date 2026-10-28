@@ -27,6 +27,9 @@ test("statistics route consumes the adapter and exposes transport-mode filtering
 
 test("the map adapter uses the canonical map RPC and excludes coordinate-less rows", () => {
   assert.match(adapter, /public_canonical_transport_map/);
+  assert.match(adapter, /_from: filter\.from/);
+  assert.match(adapter, /_admin_area: filter\.adminArea/);
+  assert.match(adapter, /_transport_corridor: filter\.transportCorridor/);
   assert.match(adapter, /latitude !== null && row\.longitude !== null/);
   assert.match(adapter, /report_id/);
   assert.match(adapter, /alert_id/);

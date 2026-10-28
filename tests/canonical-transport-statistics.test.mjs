@@ -38,6 +38,6 @@ test("public read models preserve one incident identity and map eligibility", ()
 test("transport read RPCs are public only through security-definer functions", () => {
   assert.match(migration, /SECURITY DEFINER/);
   assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.public_canonical_transport_statistics.*anon,authenticated/);
-  assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.public_canonical_transport_map.*anon,authenticated/);
+  assert.match(migration, /GRANT EXECUTE ON FUNCTION public\.public_canonical_transport_map\(DATE,DATE,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT\).*anon,authenticated/);
   assert.match(migration, /REVOKE ALL ON public\.canonical_incident_transport_modes FROM PUBLIC, anon/);
 });

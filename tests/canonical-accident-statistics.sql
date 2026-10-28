@@ -52,7 +52,7 @@ DO $$
 BEGIN
   IF to_regclass('public.canonical_incident_transport_modes') IS NULL
      OR to_regprocedure('public.public_canonical_transport_statistics(date,date,text,text,text)') IS NULL
-     OR to_regprocedure('public.public_canonical_transport_map(text,text)') IS NULL THEN
+     OR to_regprocedure('public.public_canonical_transport_map(date,date,text,text,text,text,text,text)') IS NULL THEN
     RAISE EXCEPTION 'transport statistics extension is missing';
   END IF;
 END $$;

@@ -252,8 +252,14 @@ GRANT EXECUTE ON FUNCTION public.public_canonical_transport_statistics(DATE,DATE
 -- Map consumers must use verified coordinates only. Rows without coordinates
 -- remain available to text/statistics consumers but do not produce markers.
 CREATE OR REPLACE FUNCTION public.public_canonical_transport_map(
+  _from DATE DEFAULT NULL,
+  _to DATE DEFAULT NULL,
+  _country_code TEXT DEFAULT NULL,
+  _admin_area TEXT DEFAULT NULL,
   _transport_mode TEXT DEFAULT NULL,
-  _country_code TEXT DEFAULT NULL
+  _transport_corridor TEXT DEFAULT NULL,
+  _incident_type TEXT DEFAULT NULL,
+  _severity TEXT DEFAULT NULL
 )
 RETURNS TABLE(
   incident_id UUID,
@@ -277,9 +283,15 @@ AS $$
     s.report_id,s.alert_id
   FROM public.canonical_transport_statistics s
   WHERE s.latitude IS NOT NULL AND s.longitude IS NOT NULL
+    AND (_from IS NULL OR s.occurred_at::date >= _from)
+    AND (_to IS NULL OR s.occurred_at::date <= _to)
     AND (_transport_mode IS NULL OR s.transport_mode=_transport_mode)
-    AND (_country_code IS NULL OR s.country_code=_country_code);
+    AND (_country_code IS NULL OR s.country_code=_country_code)
+    AND (_admin_area IS NULL OR s.admin_area=_admin_area)
+    AND (_transport_corridor IS NULL OR s.transport_corridor=_transport_corridor)
+    AND (_incident_type IS NULL OR s.incident_type=_incident_type)
+    AND (_severity IS NULL OR s.severity=_severity);
 $$;
 
-REVOKE ALL ON FUNCTION public.public_canonical_transport_map(TEXT,TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.public_canonical_transport_map(TEXT,TEXT) TO anon,authenticated;
+REVOKE ALL ON FUNCTION public.public_canonical_transport_map(DATE,DATE,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.public_canonical_transport_map(DATE,DATE,TEXT,TEXT,TEXT,TEXT,TEXT,TEXT) TO anon,authenticated;

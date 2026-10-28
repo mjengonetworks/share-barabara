@@ -128,10 +128,16 @@ export async function loadLiveCanonicalIncidents(filter: CanonicalStatisticsFilt
   return toLiveRows(fallback, "reports-fallback");
 }
 
-export async function loadCanonicalMapRows(filter: Pick<CanonicalStatisticsFilter, "countryCode" | "transportMode"> = {}) {
+export async function loadCanonicalMapRows(filter: CanonicalStatisticsFilter & { transportCorridor?: string | null; incidentType?: string | null; severity?: string | null } = {}) {
   const { data, error } = await (supabase.rpc as any)("public_canonical_transport_map", {
+    _from: filter.from ?? null,
+    _to: filter.to ?? null,
+    _admin_area: filter.adminArea ?? null,
     _transport_mode: filter.transportMode ?? null,
     _country_code: filter.countryCode ?? null,
+    _transport_corridor: filter.transportCorridor ?? null,
+    _incident_type: filter.incidentType ?? null,
+    _severity: filter.severity ?? null,
   });
   if (!error && Array.isArray(data)) return data as Array<Pick<CanonicalTransportRow, "incident_id" | "transport_mode" | "country_code" | "admin_area" | "transport_corridor" | "occurred_at" | "severity" | "latitude" | "longitude" | "report_id" | "alert_id">>;
   if (error && !isMissingCanonicalRpc(error)) throw error;
