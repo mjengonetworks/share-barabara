@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, TriangleAlert } from "lucide-react";
+import { MapPin, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileNames } from "@/lib/profiles";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/alerts/$alertId")({
       .from("alerts")
       .select("*")
       .eq("id", params.alertId)
-      .eq("status", "active")
+      .in("status", ["active", "in_progress", "resolved"])
       .maybeSingle();
     return data;
   },
@@ -84,7 +84,7 @@ function AlertDetail() {
         .from("alerts")
         .select("*")
         .eq("id", alertId)
-        .eq("status", "active")
+        .in("status", ["active", "in_progress", "resolved"])
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -114,9 +114,8 @@ function AlertDetail() {
         .from("alerts")
         .select("id, title, description, county, road, hazard_type, severity")
         .eq("county", alert!.county)
-        .eq("status", "active")
+        .in("status", ["active", "in_progress", "resolved"])
         .neq("id", alert!.id)
-        .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(5);
       if (error) throw error;
@@ -168,15 +167,8 @@ function AlertDetail() {
       />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
-          <Link
-            to="/alerts"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground"
-          >
-            <ArrowLeft className="size-4" /> All alerts
-          </Link>
-
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <span className="sr-only">Alert / Hazard</span>
+            <span className="text-xs font-bold uppercase tracking-[0.12em] text-brand-blue">Alert / Hazard</span>
             <TriangleAlert className="size-4 text-caution" />
             <SeverityBadge value={alert.severity} />
             <PublicEditorialCategoryBadge>
@@ -184,12 +176,8 @@ function AlertDetail() {
             </PublicEditorialCategoryBadge>
             {alert.status === "in_progress" ? <span className="text-sm text-muted-foreground">In Progress</span> : null}
             {alert.status === "resolved" ? <span className="text-sm text-muted-foreground">Resolved</span> : null}
-            <span className="text-sm text-muted-foreground">{longDate(alert.created_at)}</span>
           </div>
 
-          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
-            {alert.title}
-          </h1>
           <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {alert.county}
             {alert.road ? (
@@ -205,6 +193,11 @@ function AlertDetail() {
               </>
             ) : null}
           </p>
+
+          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+            {alert.title}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">{longDate(alert.created_at)}</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Reported by{" "}
             <UserLink
