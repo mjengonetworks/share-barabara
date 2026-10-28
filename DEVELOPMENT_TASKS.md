@@ -36,3 +36,21 @@ RLS/permission verification with anonymous, ordinary authenticated and editor
 roles, authenticated browser acceptance of the admin panel, and owner approval
 for the migration and production deployment. Production Worker source metadata
 does not expose a Git SHA; do not infer ancestry from `origin/main`.
+
+## SB 2 integration — canonical statistics and map contract
+
+Status: **consolidated code candidate / migration review pending**.
+
+The canonical statistics adapter from `feat/cross-device-editorial-ai` is
+integrated with the relationship branch. It prefers the canonical transport
+RPCs, deduplicates multimodal rows by `incident_id`, filters map output to
+verified coordinates, and falls back to approved non-duplicate Reports only.
+Alerts are not independently counted by the fallback. The reviewed migration
+manifest is [docs/sb2-canonical-incident-migration-manifest.md](docs/sb2-canonical-incident-migration-manifest.md).
+
+The canonical-statistics branch's `canonical_accident_sources` table and
+`canonical_link_alert_to_report` function are intentionally not accepted as a
+second relationship authority. The canonical statistics migration must be
+reworked to consume confirmed `incident_content_links` before database
+application. SB 4's geography/transport schema remains a separate, reviewed
+dependency; its unfinished application changes are not merged here.
