@@ -30,8 +30,10 @@ test("public read models preserve one incident identity and map eligibility", ()
   assert.match(migration, /public_canonical_transport_map/);
   assert.match(migration, /s\.latitude IS NOT NULL AND s\.longitude IS NOT NULL/);
   assert.match(migration, /canonical_accident_statistics s/);
-  assert.match(canonical, /CASE WHEN r\.id IS NOT NULL THEN r\.fatalities ELSE s\.verified_fatalities END/);
-  assert.match(canonical, /CASE WHEN r\.id IS NOT NULL THEN r\.casualties ELSE s\.verified_injuries END/);
+  assert.match(canonical, /incident_content_links/);
+  assert.match(canonical, /r\.duplicate_of_report_id IS NULL/);
+  assert.doesNotMatch(canonical, /CREATE TABLE public\.canonical_accident_sources/);
+  assert.doesNotMatch(canonical, /CREATE OR REPLACE FUNCTION public\.canonical_link_alert_to_report/);
   assert.doesNotMatch(migration, /COALESCE\([^\n]*(fatalities|injuries|casualties)/i);
 });
 

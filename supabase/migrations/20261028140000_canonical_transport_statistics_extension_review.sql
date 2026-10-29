@@ -1,5 +1,6 @@
 -- REVIEW-ONLY dependent migration.
--- Requires 20261028130000_canonical_accident_statistics_review.sql.
+-- Requires 20261028130000_canonical_accident_statistics_review.sql and the
+-- authoritative 20261029100000_incident_content_links_review.sql.
 -- This migration is intentionally not executed by this workstream.
 -- It adds canonical incident classification without replacing the Fourth
 -- instance's geography/entity taxonomy.
@@ -7,7 +8,7 @@
 DO $$
 BEGIN
   IF to_regclass('public.canonical_accident_incidents') IS NULL
-     OR to_regclass('public.canonical_accident_sources') IS NULL THEN
+     OR to_regclass('public.incident_content_links') IS NULL THEN
     RAISE EXCEPTION 'canonical accident migration must be applied first';
   END IF;
 END $$;

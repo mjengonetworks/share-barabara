@@ -49,8 +49,32 @@ Alerts are not independently counted by the fallback. The reviewed migration
 manifest is [docs/sb2-canonical-incident-migration-manifest.md](docs/sb2-canonical-incident-migration-manifest.md).
 
 The canonical-statistics branch's `canonical_accident_sources` table and
-`canonical_link_alert_to_report` function are intentionally not accepted as a
-second relationship authority. The canonical statistics migration must be
-reworked to consume confirmed `incident_content_links` before database
-application. SB 4's geography/transport schema remains a separate, reviewed
-dependency; its unfinished application changes are not merged here.
+`canonical_link_alert_to_report` function have been removed from the reviewed
+candidate. The canonical statistics migration now consumes confirmed
+`incident_content_links` and creates no second relationship authority. SB 4's
+geography/transport schema remains a separate, reviewed dependency; its
+unfinished application changes are not merged here.
+
+## SB 2 — remaining acceptance tasks
+
+- **Live incident relationship testing — PENDING:** requires disposable
+  PostgreSQL/Supabase execution with authenticated editor and ordinary-user
+  fixtures, including concurrent confirmation and correction.
+- **Canonical statistics acceptance — CODE READY / DATABASE PENDING:** verify
+  one row per approved non-duplicate Report, Alert context without double
+  counting, nullable casualties, road totals and transport filters.
+- **Accident map/filter acceptance — CODE READY / BROWSER PENDING:** verify
+  date, country, admin-area, mode, corridor, incident-type and severity
+  filters, and coordinate-less exclusion in the rendered map consumer.
+- **Duplicate and casualty integrity — STATIC PASSED / DATABASE PENDING:**
+  execute duplicate merge, relationship correction and NULL casualty cases.
+- **Database migration approval and execution — PENDING:** owner approval and
+  disposable rehearsal required; production SQL is prohibited in this task.
+- **RLS and authenticated security verification — STATIC PASSED / DATABASE
+  PENDING:** verify anonymous, ordinary authenticated and editor policies/RPC
+  grants against PostgreSQL.
+- **Cross-workstream geography compatibility — REVIEW PENDING:** coordinate
+  canonical statistics with SB 4 `country_code`, `admin_area_id` and
+  `transport_entities`; no implicit text-to-ID backfill is allowed.
+- **Final responsive and user acceptance — PENDING:** authenticated browser,
+  mobile and desktop review of relationship, statistics and map workflows.

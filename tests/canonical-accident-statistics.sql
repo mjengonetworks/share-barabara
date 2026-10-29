@@ -1,31 +1,30 @@
 -- Review-only database verification plan for the dependent canonical-incident
--- migration. Do not run against production. Execute only after both the
--- hardened cross-content migration and the canonical-incident migration have
--- been approved and applied in an isolated test database.
+-- migration. Do not run against production. Execute only after the
+-- incident_content_links and canonical-incident migrations are approved in an
+-- isolated test database.
 
 BEGIN;
 
 DO $$
 BEGIN
   IF to_regclass('public.canonical_accident_incidents') IS NULL
-     OR to_regclass('public.canonical_accident_sources') IS NULL THEN
+     OR to_regclass('public.incident_content_links') IS NULL THEN
     RAISE EXCEPTION 'canonical accident objects are missing';
   END IF;
 END $$;
 
--- Schema checks: nullable verified casualty values and active uniqueness.
+-- Schema checks: canonical Report identity and active relationship uniqueness.
 DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='canonical_accident_sources'
-      AND column_name='verified_fatalities' AND is_nullable='YES'
+    WHERE table_schema='public' AND table_name='incident_content_links'
+      AND column_name='canonical_report_id'
   ) OR NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='canonical_accident_sources'
-      AND column_name='verified_injuries' AND is_nullable='YES'
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname='public' AND indexname='incident_content_links_one_confirmed_content'
   ) THEN
-    RAISE EXCEPTION 'unknown casualty values are not nullable';
+    RAISE EXCEPTION 'canonical relationship identity or uniqueness is missing';
   END IF;
 END $$;
 
@@ -37,14 +36,13 @@ END $$;
 --   2. Ordinary users cannot create, relink, verify or delete mappings.
 --   3. Editors can link one Alert to one approved canonical Report.
 --   4. A Report cannot be linked to two active incidents.
---   5. An Alert-only incident contributes only after explicit verification.
---   6. Linking a Report makes Report counts authoritative and counts once.
---   7. NULL injuries/fatalities remain NULL in the statistics read model.
---   8. Articles, Feed posts and unrelated editorial links cannot become
+--   5. Linking a Report makes Report counts authoritative and counts once.
+--   6. NULL injuries/fatalities remain NULL in the statistics read model.
+--   7. Articles, Feed posts and unrelated editorial links cannot become
 --      accident statistic sources.
---   9. Deleted, rejected, pending and duplicate Reports are excluded.
---  10. Concurrent Alert-to-Report links produce one canonical mapping.
---  11. Existing Report, Alert and statistics rows are unchanged.
+--   8. Deleted, rejected, pending and duplicate Reports are excluded.
+--   9. Concurrent Alert-to-Report links produce one canonical mapping.
+--  10. Existing Report, Alert and statistics rows are unchanged.
 
 -- Transport extension acceptance checks. These run only after the dependent
 -- review migration is approved in a disposable database.

@@ -16,16 +16,14 @@ Status: review-only integration candidate. No SQL was executed.
    approved. It is not required by `incident_content_links` and its generic
    `editorial_content_relationships` table must not be used for canonical
    accident identity.
-6. `20261028130000_canonical_accident_statistics_review.sql` is **not
-   executable as written** in this candidate. It introduces
-   `canonical_accident_sources` and `canonical_link_alert_to_report`, which
-   duplicate the relationship authority in step 4. It requires redesign to
-   derive Alert membership from confirmed `incident_content_links` and must
-   not be applied alongside the current relationship migration.
+6. `20261028130000_canonical_accident_statistics_review.sql` is now redesigned
+   for this candidate. It creates only the canonical Report identity table,
+   performs an additive identity backfill, and derives optional Alert context
+   from confirmed `incident_content_links`. It creates no competing source-link
+   table and no Alert/report link RPC.
 7. `20261028140000_canonical_transport_statistics_extension_review.sql` is
-   dependent on the canonical incident statistics read model and therefore
-   remains blocked until step 6 is reconciled. Its transport-mode values are
-   compatible with the reviewed contract: `road`, `rail`, `aviation`,
+   dependent on step 6 and the relationship migration. Its transport-mode
+   values are compatible with the reviewed contract: `road`, `rail`, `aviation`,
    `maritime`, `inland_water`, and `other`.
 8. SB 4 migration
    `20261028150000_unified_geography_transport_schema.sql` is a separate
@@ -35,11 +33,9 @@ Status: review-only integration candidate. No SQL was executed.
 
 ## Conflicts and safety gates
 
-- `canonical_accident_sources` is a competing source-link table and is
-  rejected from the executable order until replaced by a read projection over
-  `incident_content_links`.
-- `canonical_link_alert_to_report` conflicts with the editor-only
-  `confirm_incident_content_link` / correction / revocation workflow.
+- The previously proposed `canonical_accident_sources` and
+  `canonical_link_alert_to_report` objects are explicitly rejected. The
+  redesigned migration uses a read projection over `incident_content_links`.
 - The existing relationship migration uses `canonical_report_id` and
   `content_id`; SB 4 uses `country_code`, `admin_area_id`, and
   `transport_entities`. No implicit text-to-ID backfill is safe.
