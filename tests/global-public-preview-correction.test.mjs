@@ -17,17 +17,17 @@ test("shared public preview cards contain no summary or teaser paragraphs", () =
   assert.doesNotMatch(preview, /card\.description/);
 });
 
-test("News keeps detail summaries but uses image-led latest updates and primary-first ordering", () => {
+test("News keeps detail summaries and places latest, featured and trending before categories", () => {
   const news = read("src/routes/news.index.tsx");
   const detail = read("src/routes/news.$slug.tsx");
   assert.match(news, /function LatestStrip/);
   assert.match(news, /Latest updates/);
   assert.match(news, /article\.image_url/);
   assert.match(news, /CategoryEntityGrid/);
-  assert.match(
-    news,
-    /!category && sort !== "trending" \? <LatestStrip articles=\{latest\} \/> : null/,
-  );
+  assert.match(news, /title="Latest News"/);
+  assert.match(news, /articles=\{latest\.slice\(0, 3\)\}/);
+  assert.match(news, /title="Featured News"/);
+  assert.match(news, /title="Trending News"/);
   assert.match(news, /sort === "trending"/);
   assert.match(news, /TrendingCollection/);
   assert.match(detail, /article\.summary\?\.trim\(\)/);
@@ -36,7 +36,7 @@ test("News keeps detail summaries but uses image-led latest updates and primary-
 test("global discovery keeps the three-card desktop and complete-card mobile contract", () => {
   const preview = read("src/components/site/global-editorial-preview.tsx");
   assert.match(preview, /grid gap-4 md:grid-cols-3/);
-  assert.match(preview, /slice\(1, 3\)/);
+  assert.match(preview, /items\.slice\(0, 3\)/);
   assert.match(preview, /slice\(0, 3\)/);
   assert.match(preview, /BannerAd/);
   assert.doesNotMatch(preview, /Keep exploring|More from Share Barabara/);

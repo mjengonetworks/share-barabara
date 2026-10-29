@@ -394,6 +394,42 @@ function NewsIndex() {
           <div className="mt-8 space-y-0">
             <EditorialBand tone="plain">
               <SectionHeader
+                eyebrow="Fresh from the newsroom"
+                title="Latest News"
+                description="The newest published Share Barabara reporting and road-safety stories."
+                to="/news"
+                actionLabel="Read more"
+              />
+              <div className="mt-6">
+                <ArticleGridWithAds articles={latest.slice(0, 3)} placement="news-latest" />
+              </div>
+            </EditorialBand>
+            {loaderData.featured.length ? (
+              <EditorialBand tone="pale">
+                <SectionHeader
+                  eyebrow="Editor-selected coverage"
+                  title="Featured News"
+                  to="/news"
+                  actionLabel="Read more"
+                />
+                <div className="mt-6">
+                  <ArticleGridWithAds articles={loaderData.featured.slice(0, 3)} placement="news-featured" />
+                </div>
+              </EditorialBand>
+            ) : null}
+            {loaderData.trending.length ? (
+              <EditorialBand tone="plain">
+                <SectionHeader
+                  eyebrow="Ranked by recorded views"
+                  title="Trending News"
+                  to="/news"
+                  actionLabel="Read more"
+                />
+                <TrendingCollection articles={loaderData.trending.slice(0, 3)} />
+              </EditorialBand>
+            ) : null}
+            <EditorialBand tone="plain">
+              <SectionHeader
                 eyebrow="Browse the newsroom"
                 title="Browse by Category"
                 description="Explore published reporting by the topics that shape safer journeys."
@@ -442,7 +478,6 @@ function NewsIndex() {
             ) : null}
           </div>
         )}
-        {!category && sort !== "trending" ? <LatestStrip articles={latest} /> : null}
         <GlobalEditorialPreview
           destination="news"
           category={category}

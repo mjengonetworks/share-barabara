@@ -101,9 +101,15 @@ function Index() {
   const { data: recordedAccidents, isError: recordedAccidentsError } = useQuery({
     queryKey: ["home-recorded-accidents"],
     queryFn: async () => {
-      const current = await supabase.from("accident_reports").select("id, duplicate_of_report_id").eq("status", "approved");
+      const count = await (supabase as any).rpc("published_accident_report_count");
+      if (!count.error) return Number(count.data ?? 0);
+      const current = await supabase
+        .from("accident_reports")
+        .select("id, duplicate_of_report_id, deleted_at")
+        .eq("status", "approved")
+        .is("deleted_at", null);
       if (!current.error) return current.data.filter((report) => !report.duplicate_of_report_id).length;
-      if (!/duplicate_of_report_id|column .* does not exist|schema cache/i.test(current.error.message ?? "")) throw current.error;
+      if (!/duplicate_of_report_id|deleted_at|column .* does not exist|schema cache/i.test(current.error.message ?? "")) throw current.error;
       const legacy = await supabase.from("accident_reports").select("id").eq("status", "approved");
       if (legacy.error) throw legacy.error;
       return legacy.data.length;
@@ -192,7 +198,7 @@ function Index() {
             </Button>
           </div>
           <div className="mt-8 grid max-w-3xl gap-4 sm:grid-cols-3">
-            <Link to="/reports" className="rounded-lg border-2 border-accent bg-card/95 p-4 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+            <Link to="/statistics" className="rounded-lg border-2 border-accent bg-card/95 p-4 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
               <Stat value={recordedAccidentsError ? "—" : recordedAccidents === undefined ? "…" : num(recordedAccidents)} label="recorded road accidents" danger />
             </Link>
             {latest ? <Stat value={num(latest.fatalities)} label={`deaths in ${latest.year}`} danger /> : <Stat value="—" label="confirmed fatalities" />}

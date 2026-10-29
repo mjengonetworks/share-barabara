@@ -1,5 +1,51 @@
 # Development tasks
 
+## Task 70 / SB 2 — platform-wide public editorial hierarchy correction — IMPLEMENTED / DEPLOYMENT PENDING — 2026-10-29
+
+This is the consolidated follow-up to the existing Global Editorial Layout
+Corrections and SB 2 owner-acceptance records; no duplicate task was created.
+
+Implementation completed in the current release candidate:
+
+- shared editorial previews now use balanced three-card, image-led cards with
+  consistent proportions, metadata, titles and explicit Read more/View all
+  navigation;
+- News places Latest, Featured and Trending before Browse by Category, while
+  the shared discovery layer removes duplicate items across modules where
+  eligible content exists;
+- Reports use a balanced three-item Latest Accident Reports grid, retain
+  unknown casualty values, and no longer expose Editorial AI controls on the
+  public submission surface;
+- the homepage Recorded Road Accidents card uses the canonical Statistics
+  destination and the existing corrected count path;
+- Mjengo Hub and Mjengo Networks previews remain after Share Barabara content
+  and use a shared centred max-width container with responsive gutters;
+- Alerts, Campaigns, Infrastructure Issues and other public listings inherit
+  the shared preview/card treatment without changing moderation, statistics,
+  map, form, relationship, SB4 or advertising contracts.
+
+Acceptance criteria remain open until evidence is collected:
+
+- responsive checks at 320, 375, 390, 430, 768, 1024, 1280 and 1440px show
+  no horizontal overflow, oversized empty sections or broken destinations;
+- public Reports expose no administrative AI controls and preserve public
+  reporting, filters, statistics, maps and nullable casualty semantics;
+- owner review confirms Latest/Featured/Trending/category ordering, report and
+  alert navigation, verified map/filter behavior, and mobile/desktop layout;
+- production deployment and owner acceptance are still pending. Current
+  production baseline remains application commit
+  `96f1675f042e3d5a68bf48c70a408367bd998410` on Worker
+  `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb`; no SQL or migration changes are in
+  this candidate.
+
+Verification record for this candidate: focused public-hierarchy checks passed
+5/5; the previously completed baseline was 469/469 full tests, 14/14 security
+tests and a successful production build. The full suite, security suite and
+build must be rerun after this correction. Browser screenshots and authenticated
+visual acceptance remain Pending Live Testing because browser automation is not
+available in the current environment. SB4 geography/transport and advertising
+dependencies remain under their existing task IDs.
+
 ## SB 2 — current lifecycle and owner acceptance matrix — 2026-10-29
 
 Lifecycle: **Implemented → Deployed → Live Tested → User Accepted → Closed**.

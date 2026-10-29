@@ -87,45 +87,38 @@ const mapMedia = (item: any): PreviewItem => ({
   destination: "media",
 });
 
-function ItemLink({ item, featured }: { item: PreviewItem; featured?: boolean }) {
+function ItemLink({ item }: { item: PreviewItem }) {
   return (
     <a
       href={item.href}
-      className={`group flex min-w-0 gap-3 rounded-lg border border-border bg-background/70 p-3 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${featured ? "min-h-44 flex-col" : "items-center"}`}
+      className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-background/70 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {item.imageUrl ? (
         <img
           src={item.imageUrl}
           alt=""
           loading="lazy"
-          className={
-            featured
-              ? "aspect-video w-full rounded object-cover"
-              : "size-16 shrink-0 rounded object-cover"
-          }
+          className="aspect-video w-full object-cover"
         />
       ) : (
         <span
-          className={
-            featured
-              ? "flex aspect-video w-full items-center justify-center rounded bg-primary/5 text-primary/50"
-              : "flex size-16 shrink-0 items-center justify-center rounded bg-primary/5 text-primary/50"
-          }
+          className="flex aspect-video w-full items-center justify-center bg-primary/5 text-primary/50"
           aria-hidden="true"
         >
-          <Newspaper className={featured ? "size-8" : "size-5"} />
+          <Newspaper className="size-8" />
         </span>
       )}
-      <span className="min-w-0">
+      <span className="flex min-h-28 flex-1 flex-col p-3">
         {item.category ? (
           <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
             {item.category}
           </span>
         ) : null}
-        <span
-          className={`block line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline ${featured ? "mt-1 text-base" : "text-sm"}`}
-        >
+        <span className="mt-1 line-clamp-3 font-bold leading-snug text-brand-navy group-hover:underline">
           {item.title}
+        </span>
+        <span className="mt-auto pt-3 text-xs font-bold text-brand-blue underline underline-offset-4">
+          Read more
         </span>
       </span>
     </a>
@@ -133,15 +126,20 @@ function ItemLink({ item, featured }: { item: PreviewItem; featured?: boolean })
 }
 
 export function EditorialTripleCard({ title, items }: { title: string; items: PreviewItem[] }) {
+  const href = items[0] ? meta[items[0].destination].href : undefined;
   return (
-    <article className="rounded-xl border border-border bg-card p-3 card-elevated">
-      <h3 className="mb-3 truncate text-sm font-extrabold text-brand-navy">{title}</h3>
-      {items[0] ? (
-        <div className="space-y-2">
-          <ItemLink item={items[0]} featured />
-          {items.slice(1, 3).map((item) => (
-            <ItemLink key={item.id} item={item} />
-          ))}
+    <article className="rounded-xl border border-border bg-card p-4 card-elevated">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h3 className="truncate text-sm font-extrabold text-brand-navy">{title}</h3>
+        {href ? (
+          <a href={href} className="shrink-0 text-xs font-bold text-brand-blue underline underline-offset-4">
+            View all
+          </a>
+        ) : null}
+      </div>
+      {items.length ? (
+        <div className="grid gap-3 sm:grid-cols-3">
+          {items.slice(0, 3).map((item) => <ItemLink key={item.id} item={item} />)}
         </div>
       ) : null}
     </article>

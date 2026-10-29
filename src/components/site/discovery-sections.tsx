@@ -149,7 +149,7 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
     <Link
       to="/reports/$reportId"
       params={{ reportId: report.id }}
-      className="group overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
     >
       {report.image_url ? (
         <img
@@ -158,8 +158,12 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
           loading="lazy"
           className="aspect-video w-full object-cover"
         />
-      ) : null}
-      <div className="p-4">
+      ) : (
+        <div className="flex aspect-video w-full items-center justify-center bg-primary/5 text-sm text-muted-foreground">
+          Accident report
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-4">
         <div className="flex flex-wrap items-center gap-2">
           <SeverityBadge value={report.severity} />
         </div>
@@ -174,6 +178,9 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
           <span>{displayReportCount(report.casualties)} injured</span>
           <span>{displayReportCount(report.fatalities)} deaths</span>
         </div>
+        <span className="mt-auto pt-4 text-xs font-bold text-brand-blue underline underline-offset-4">
+          Read more
+        </span>
       </div>
     </Link>
   );

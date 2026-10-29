@@ -39,7 +39,10 @@ import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 export function ReportForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
   const { canReview } = useRoles();
-  const editorialAccess = editorial || canReview;
+  // Public report submission must never expose Editorial AI. Admin editors
+  // use the authenticated EditorialRecordEditor surface; keep this explicit
+  // prop for any authorised embedded editorial form.
+  const editorialAccess = editorial && canReview;
   const queryClient = useQueryClient();
   const { identity } = useActiveIdentity();
   const { data: severities = [] } = useReportSeverities();
@@ -360,7 +363,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
               </div>
             </div>
           </div>
-          {canReview ? (
+          {editorialAccess ? (
             <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Reviewer tools

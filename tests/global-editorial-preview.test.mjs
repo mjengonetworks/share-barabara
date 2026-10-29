@@ -91,7 +91,6 @@ test("shared discovery cards keep canonical destinations and the approved respon
   assert.match(source, /statistics_datasets/);
   assert.match(source, /from\("videos"\)/);
   assert.match(source, /grid gap-4 md:grid-cols-3/);
-  assert.match(source, /slice\(1, 3\)/);
   assert.match(source, /slice\(0, 3\)/);
   assert.match(source, /Math\.ceil\(cards\.length \/ 3\)/);
   assert.match(source, /excludeKeys/);

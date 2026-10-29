@@ -27,6 +27,7 @@ import { GlobalEditorialPreview } from "@/components/site/global-editorial-previ
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
+import { ReportPreviewCard } from "@/components/site/discovery-sections";
 import { BannerAd } from "@/components/site/banner-ad";
 import { displayReportCount } from "@/lib/report-metrics";
 import { PublicPageHero } from "@/components/site/public-page-hero";
@@ -226,13 +227,10 @@ function ReportsPage() {
                   to="/reports"
                   actionLabel="View all"
                 />
-                <div className="mt-5">
-                  <IncidentEntityGroups
-                    items={latest as PublicIncidentCard[]}
-                    kind="report"
-                    getEntity={(item) => item.incident_type ?? "Other reports"}
-                    renderActions={reportActions}
-                  />
+                <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {latest.slice(0, 3).map((report) => (
+                    <ReportPreviewCard key={report.id} report={report} />
+                  ))}
                 </div>
               </EditorialBand>
             ) : null}
