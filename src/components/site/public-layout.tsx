@@ -598,32 +598,34 @@ function IncidentRow({
   const to = kind === "alert" ? "/alerts/$alertId" : "/reports/$reportId";
   const params = kind === "alert" ? { alertId: item.id } : { reportId: item.id };
   return (
-    <Link
-      to={to as never}
-      params={params as never}
-      className="group flex min-w-0 gap-3 border-b border-border/70 py-3 first:pt-0 last:border-0 last:pb-0"
-    >
-      <div className="w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
-        <IncidentImage item={item} />
-      </div>
-      <div className="min-w-0 py-0.5">
-        <div className="flex flex-wrap items-center gap-1.5">
-          {item.severity ? <SeverityBadge value={item.severity} /> : null}
-          {kind === "alert" ? (
-            <span className="text-[11px] text-muted-foreground">
-              {longDateWithDay(item.occurred_at ?? item.created_at ?? "")}
-            </span>
-          ) : null}
+    <div>
+      <Link
+        to={to as never}
+        params={params as never}
+        className="group flex min-w-0 gap-3 border-b border-border/70 py-3 first:pt-0 last:border-0 last:pb-0"
+      >
+        <div className="w-[38%] shrink-0 overflow-hidden rounded-md bg-muted">
+          <IncidentImage item={item} />
         </div>
-        <h4 className="mt-1 line-clamp-3 text-[13px] font-bold leading-snug text-foreground group-hover:underline sm:text-sm">
-          {item.title}
-        </h4>
-        <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">
-          {[item.county, item.road].filter(Boolean).join(" · ") || "Location not provided"}
-        </p>
-        {actions ? <div className="mt-2">{actions(item)}</div> : null}
-      </div>
-    </Link>
+        <div className="min-w-0 py-0.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {item.severity ? <SeverityBadge value={item.severity} /> : null}
+            {kind === "alert" ? (
+              <span className="text-[11px] text-muted-foreground">
+                {longDateWithDay(item.occurred_at ?? item.created_at ?? "")}
+              </span>
+            ) : null}
+          </div>
+          <h4 className="mt-1 line-clamp-3 text-[13px] font-bold leading-snug text-foreground group-hover:underline sm:text-sm">
+            {item.title}
+          </h4>
+          <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">
+            {[item.county, item.road].filter(Boolean).join(" · ") || "Location not provided"}
+          </p>
+        </div>
+      </Link>
+      {actions ? <div className="mt-2">{actions(item)}</div> : null}
+    </div>
   );
 }
 
@@ -657,8 +659,8 @@ export function IncidentEntityGrid({
         <h4 className="mt-2 text-base font-bold leading-snug text-foreground group-hover:underline">{lead.title}</h4>
         <p className="mt-1 text-xs text-muted-foreground">{[lead.county, lead.road, lead.status].filter(Boolean).join(" · ") || "Location not provided"}</p>
         {kind === "report" ? <p className="mt-2 text-xs text-muted-foreground"><strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles · <strong>{displayReportCount(lead.casualties)}</strong> injured · <strong>{displayReportCount(lead.fatalities)}</strong> deaths</p> : null}
-        {renderActions ? <div className="mt-3">{renderActions(lead)}</div> : null}
       </Link>
+      {renderActions ? <div className="mt-3">{renderActions(lead)}</div> : null}
       {supporting.length ? <div className="mt-3 border-t border-border/70">{supporting.slice(0, 2).map((item) => <IncidentRow key={item.id} item={item} kind={kind} actions={renderActions} />)}</div> : null}
     </section>
   );
