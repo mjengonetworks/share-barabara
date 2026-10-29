@@ -133,19 +133,33 @@ function Index() {
     },
   });
 
-  const { data: latest } = useQuery({
-    queryKey: ["home-yearly"],
+  const { data: officialMetrics = [] } = useQuery({
+    queryKey: ["home-official-statistics"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("yearly_stats")
-        .select("*")
-        .order("year", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const { data, error } = await (supabase.from("statistics_datasets") as any)
+        .select("id,title,metric_type,unit,source_organization,source_url,reporting_period_start,reporting_period_end,last_verified_at,statistics_observations(value,record_status,verification_status,period_start,period_end)")
+        .eq("publication_status", "published")
+        .eq("geography_level", "national")
+        .order("reporting_period_end", { ascending: false })
+        .limit(24);
+      if (error) {
+        if (/statistics_datasets|statistics_observations|relation|schema cache|does not exist/i.test(error.message ?? "")) return [];
+        throw error;
+      }
+      return (data ?? [])
+        .map((dataset: any) => {
+          const observation = (dataset.statistics_observations ?? [])
+            .filter((row: any) => row.record_status === "published" && ["provisional", "final"].includes(row.verification_status))
+            .sort((a: any, b: any) => String(b.period_end).localeCompare(String(a.period_end)))[0];
+          return observation ? { ...dataset, observation } : null;
+        })
+        .filter(Boolean) as Array<Record<string, any>>;
     },
+    staleTime: 60_000,
   });
+
+  const officialMetric = (metric: string) => officialMetrics.find((item) =>
+    item.metric_type === metric || (metric === "deaths" && item.metric_type === "fatalities"));
 
   return (
     <div>
@@ -197,12 +211,13 @@ function Index() {
               <Link to="/statistics">View the statistics</Link>
             </Button>
           </div>
-          <div className="mt-8 grid max-w-3xl gap-4 sm:grid-cols-3">
-            <Link to="/statistics" className="rounded-lg border-2 border-accent bg-card/95 p-4 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+          <div className="mt-7 grid max-w-4xl gap-3 sm:grid-cols-3">
+            <Link to="/statistics" className="rounded-lg border border-accent/70 bg-card/95 p-3 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
               <Stat value={recordedAccidentsError ? "—" : recordedAccidents === undefined ? "…" : num(recordedAccidents)} label="recorded road accidents" danger />
+              <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Approved, deduplicated road reports</span>
             </Link>
-            {latest ? <Stat value={num(latest.fatalities)} label={`deaths in ${latest.year}`} danger /> : <Stat value="—" label="confirmed fatalities" />}
-            {latest ? <Stat value={num(latest.serious_injuries)} label="confirmed serious injuries" /> : <Stat value="—" label="confirmed serious injuries" />}
+            <OfficialMetricCard metric={officialMetric("deaths")} fallback="Official deaths pending verification" />
+            <OfficialMetricCard metric={officialMetric("serious_injuries")} fallback="Official serious injuries pending verification" />
           </div>
         </div>
       </section>
@@ -526,6 +541,17 @@ function Index() {
         </div>
       </section>
     </div>
+  );
+}
+
+function OfficialMetricCard({ metric, fallback }: { metric?: Record<string, any>; fallback: string }) {
+  return (
+    <Link to="/statistics" className="rounded-lg border border-border bg-card/95 p-3 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+      <Stat value={metric ? num(metric.observation.value) : "—"} label={metric ? `Official national ${metric.metric_type.replaceAll("_", " ")}` : fallback} />
+      <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {metric ? `${metric.source_organization} · as of ${metric.observation.period_end}` : "Source and reporting period required"}
+      </span>
+    </Link>
   );
 }
 

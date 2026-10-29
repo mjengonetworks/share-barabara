@@ -1,5 +1,46 @@
 # Development tasks
 
+## Task 70 / SB 2 — priority statistics and public design correction — IMPLEMENTED / DEPLOYMENT PENDING — 2026-10-29
+
+This update extends the existing Task 70 record; no duplicate task was created.
+
+- **P1 official statistics:** added the reviewed additive migration
+  `20261029150000_official_statistics_management_review.sql` and an authenticated
+  admin manager for source-backed official datasets. Metric type, unit, national
+  scope, reporting period, source URL, verification state, observations and
+  revision audit history are distinct from internal canonical incident counts.
+  Published observations remain immutable and corrections are revision-based.
+  The migration is prepared only; it was not applied and requires separate owner
+  approval. Homepage official metric cards fail closed to “pending verification”
+  when the provenance schema/observation is unavailable, so legacy `yearly_stats`
+  values are not presented as current 2026 official data.
+  Source review: the [KNBS Economic Survey 2026](https://www.knbs.or.ke/wp-content/uploads/2026/04/2026-Economic-Survey.pdf)
+  supports 5,009 deaths, 11,648 serious injuries and 8,248 slight injuries for
+  the provisional 2025 national series. The instructed NTSA 2026 figure was not
+  published because an authoritative source document was not verified here.
+- **P2 spacing:** compacted the shared public hero spacing and overlay, reduced
+  News page vertical framing and kept centered responsive containers without
+  negative-margin hacks.
+- **P3 trending:** dedicated `/news?sort=trending` now uses the genuine
+  `trending_news` view-count RPC for 24-hour, 7-day, month and year windows,
+  with category filtering, one lead story, ranked compact rows and Read more.
+  No chronological substitute or fabricated popularity was added.
+- **P4 cross-content previews:** the shared editorial preview now renders one
+  prominent lead plus up to two compact stories per section, preserving the
+  outer three-section desktop arrangement and working View all links.
+- **P5 alert images:** alert featured-image fields are selected through the
+  public discovery loaders and rendered with the same aspect-ratio treatment as
+  report previews; records without usable images retain a neutral fallback.
+
+Evidence: full suite `480/480`, security suite `14/14`, focused hierarchy and
+priority-correction tests `15/15`, production build passed, and `git diff --check`
+passed. Browser/CUA
+reported no available apps or browsers, so responsive screenshots at 320, 375,
+390, 430, 768, 1024, 1280 and 1440px remain **NOT VERIFIED**. No deployment,
+SQL execution or migration application was performed. Latest verified production
+baseline remains application commit `f0a26f87610e62eac6c2e73d4e8ab5255ea68fca`
+on Worker `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf` at 100%.
+
 ## Task 70 / SB 2 — platform-wide public editorial hierarchy correction — DEPLOYED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This is the consolidated follow-up to the existing Global Editorial Layout

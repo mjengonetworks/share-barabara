@@ -149,5 +149,6 @@ test("trending navigation targets the dedicated filtered News collection", async
   assert.match(sidebar, /search=\{\{ sort: "trending" \}\}/);
   assert.match(news, /search\.sort === "trending"/);
   assert.match(news, /title="Trending News"/);
-  assert.match(news, /grid gap-4 md:grid-cols-3/);
+    assert.match(news, /TrendingNewsView/);
+    assert.match(news, /Last 24 hours/);
 });

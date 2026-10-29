@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { StatisticsProposalsPanel } from "@/components/site/statistics-proposals-panel";
+import { OfficialStatisticsManager } from "@/components/site/official-statistics-manager";
 
 export const Route = createFileRoute("/_authenticated/admin/crash-statistics")({
   head: () => ({ meta: [{ title: "Crash Statistics: Share Barabara Admin" }] }),
@@ -320,6 +321,7 @@ function CrashStatisticsPage() {
       </p>
 
       <StatisticsProposalsPanel />
+      <OfficialStatisticsManager />
 
       <Tabs defaultValue="yearly" className="mt-6">
         <TabsList className="flex-wrap">

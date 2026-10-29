@@ -11,23 +11,20 @@ import heroRoad from "@/assets/hero-road.jpg";
 import { AdInterleave } from "@/components/site/ad-interleave";
 import {
   CompactArticleCard,
+  CompactArticleRow,
   CategoryEntityCard,
   EditorialBand,
   SectionHeader,
 } from "@/components/site/public-layout";
 import { AlertPreviewCard, ReportPreviewCard } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
-import {
-  EditorialTripleCard,
-  GlobalEditorialPreview,
-} from "@/components/site/global-editorial-preview";
+import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import {
   publicCategoryNavigationClass,
   publicCategoryNavigationSelectedClass,
 } from "@/components/site/public-ui";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { groupLatestByEntity } from "@/lib/category-entity";
-import type { PreviewItem } from "@/lib/global-editorial-preview";
 import {
   Dialog,
   DialogContent,
@@ -37,10 +34,11 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/news/")({
-  validateSearch: (search: Record<string, unknown>): { category?: string; sort?: "trending" } => {
+  validateSearch: (search: Record<string, unknown>): { category?: string; sort?: "trending"; range?: TrendingRange } => {
     const category = typeof search.category === "string" ? search.category : undefined;
     const sort = search.sort === "trending" ? "trending" : undefined;
-    return { ...(category ? { category } : {}), ...(sort ? { sort } : {}) };
+    const range = ["24h", "7d", "month", "year"].includes(String(search.range)) ? String(search.range) as TrendingRange : undefined;
+    return { ...(category ? { category } : {}), ...(sort ? { sort } : {}), ...(range ? { range } : {}) };
   },
   head: () => ({
     meta: [
@@ -64,7 +62,7 @@ export const Route = createFileRoute("/news/")({
       supabase.rpc("trending_news", { hours_back: 168, result_limit: 12 }),
       supabase
         .from("alerts")
-        .select("id, title, description, county, road, hazard_type, severity, created_at")
+        .select("id, title, description, county, road, hazard_type, severity, image_url, created_at")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(3),
@@ -119,6 +117,7 @@ type ArticleCard = {
   image_url?: string | null;
   categories?: string[] | null;
 };
+type TrendingRange = "24h" | "7d" | "month" | "year";
 
 function LatestStrip({ articles }: { articles: ArticleCard[] }) {
   if (!articles.length) return null;
@@ -284,7 +283,7 @@ function CategoryEntityGrid({ articles }: { articles: ArticleCard[] }) {
 function NewsIndex() {
   const { user } = useAuth();
   const canWrite = useCanWriteArticles();
-  const { category, sort } = Route.useSearch();
+  const { category, sort, range = "7d" } = Route.useSearch();
   const loaderData = Route.useLoaderData();
   const { data: filtered = [], isLoading: filteredLoading } = usePublishedQuery({
     name: "category",
@@ -312,7 +311,7 @@ function NewsIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("id, title, description, county, road, hazard_type, severity, created_at")
+        .select("id, title, description, county, road, hazard_type, severity, image_url, created_at")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(3);
@@ -340,7 +339,7 @@ function NewsIndex() {
   });
 
   return (
-    <div className="w-full py-8 sm:py-10">
+    <div className="w-full py-5 sm:py-7">
       <PublicPageHero
         eyebrow="Share Barabara newsroom"
         title="News & Articles"
@@ -369,7 +368,7 @@ function NewsIndex() {
               to="/news"
               actionLabel="All articles"
             />
-            <TrendingCollection articles={loaderData.trending} />
+            <TrendingNewsView articles={loaderData.trending} range={range} category={category} />
           </EditorialBand>
         ) : category ? (
           <EditorialBand className="mt-8" tone="plain">
@@ -515,31 +514,37 @@ function EmptyState({ label }: { label: string }) {
   );
 }
 
-function TrendingCollection({ articles }: { articles: ArticleCard[] }) {
-  const cards = Array.from({ length: Math.ceil(articles.length / 3) }, (_, index) => {
-    const items = articles.slice(index * 3, index * 3 + 3).map<PreviewItem>((article) => ({
-      id: article.id,
-      title: article.title,
-      href: `/news/${article.slug}`,
-      imageUrl: article.image_url,
-      category: article.category,
-      destination: "news",
-    }));
-    return { title: `Trending${items[0]?.category ? ` · ${items[0].category}` : ""}`, items };
+function TrendingNewsView({ articles: initial, range, category }: { articles: ArticleCard[]; range: TrendingRange; category?: string }) {
+  const hours = { "24h": 24, "7d": 168, month: 720, year: 8760 }[range];
+  const { data: ranked = initial } = useQuery({
+    queryKey: ["news-trending-window", hours, category],
+    initialData: initial,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("trending_news", { hours_back: hours, result_limit: 30 });
+      if (error) throw error;
+      const rows = (data ?? []) as ArticleCard[];
+      return category ? rows.filter((article) => article.category === category || article.categories?.includes(category)) : rows;
+    },
   });
-  if (!cards.length) return <EmptyState label="No eligible trending articles are available yet." />;
+  const lead = ranked[0];
+  const secondary = ranked.slice(1, 7);
+  if (!lead) return <EmptyState label="No view-ranked articles are available for this time window." />;
   return (
-    <div className="mt-6 space-y-4">
-      {Array.from({ length: Math.ceil(cards.length / 3) }, (_, row) => (
-        <div key={`trending-row-${row}`} className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            {cards.slice(row * 3, row * 3 + 3).map((card) => (
-              <EditorialTripleCard key={`${card.title}-${row}`} {...card} />
-            ))}
-          </div>
-          <BannerAd placement={`news-trending-row-${row + 1}`} />
+    <div className="mt-6">
+      <div className="flex flex-wrap gap-2" aria-label="Trending time window">
+        {(["24h", "7d", "month", "year"] as TrendingRange[]).map((value) => (
+          <Link key={value} to="/news" search={{ sort: "trending", ...(category ? { category } : {}), range: value }} className={value === range ? "rounded-full bg-brand-blue px-3 py-1.5 text-xs font-bold text-white" : "rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-brand-blue"}>
+            {value === "24h" ? "Last 24 hours" : value === "7d" ? "Past 7 days" : value === "month" ? "Past month" : "Past year"}
+          </Link>
+        ))}
+      </div>
+      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <CompactArticleCard article={lead} />
+        <div className="divide-y divide-border rounded-xl border border-border bg-card px-4">
+          {secondary.map((article, index) => <div key={article.id} className="flex items-start gap-3 py-3 first:pt-4 last:pb-4"><span className="pt-1 text-sm font-extrabold text-accent">{index + 2}</span><div className="min-w-0 flex-1"><CompactArticleRow article={article} /></div></div>)}
         </div>
-      ))}
+      </div>
+      <div className="mt-5 text-center"><Link to="/news" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more trending news</Link></div>
     </div>
   );
 }

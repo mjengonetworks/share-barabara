@@ -1,5 +1,21 @@
 # Pending
 
+- **TASK 70 / SB 2 PRIORITY CORRECTION — IMPLEMENTED / DEPLOYMENT AND OWNER
+  ACCEPTANCE PENDING (2026-10-29).** Official national statistics now have a
+  reviewed admin/provenance path separate from internal canonical incidents;
+  homepage cards will not expose legacy unverified 2025 aggregates as current
+  2026 official numbers. The candidate migration
+  `20261029150000_official_statistics_management_review.sql` is not applied and
+  needs separate approval. News trending uses genuine view windows (24h, 7d,
+  month, year), global/article previews use lead-plus-two-compact stories, and
+  Alert featured images flow through public loaders when present. Full tests
+  `476/476`, security `14/14`, focused hierarchy `11/11`, build and diff checks
+  pass (`480/480` full, `15/15` focused). No SQL or deployment was performed. Browser visual evidence is pending
+  because no browser surface is available. Reconcile before deployment with
+  production Worker `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf` and commit
+  `f0a26f87610e62eac6c2e73d4e8ab5255ea68fca`; owner must review responsive
+  screenshots and approve the migration separately.
+
 - **TASK 70 / SB 2 PUBLIC EDITORIAL HIERARCHY — DEPLOYED / OWNER ACCEPTANCE
   PENDING (2026-10-29).** The shared public release
   now provides separate Latest, Featured and Trending three-card sections for

@@ -17,9 +17,10 @@ test("public report submission does not expose editorial AI controls", () => {
   assert.match(source, /editorialAccess \? \([\s\S]{0,500}Reviewer tools/);
 });
 
-test("shared preview cards use equal image-led cards and explicit read-more links", () => {
+test("shared preview cards use one lead plus two compact stories", () => {
   const source = read("src/components/site/global-editorial-preview.tsx");
-  assert.match(source, /grid gap-3 sm:grid-cols-3/);
+  assert.match(source, /CompactItemLink/);
+  assert.match(source, /items\.slice\(1, 3\)/);
   assert.match(source, /aspect-video w-full object-cover/);
   assert.match(source, /Read more/);
 });

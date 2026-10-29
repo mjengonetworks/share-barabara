@@ -45,6 +45,7 @@ const mapAlert = (item: any): PreviewItem => ({
   href: `/alerts/${item.id}`,
   category: item.hazard_type,
   categoryKey: item.hazard_type,
+  imageUrl: item.image_url,
   destination: "alerts",
 });
 const mapReport = (item: any): PreviewItem => ({
@@ -125,6 +126,20 @@ function ItemLink({ item }: { item: PreviewItem }) {
   );
 }
 
+function CompactItemLink({ item }: { item: PreviewItem }) {
+  return (
+    <a href={item.href} className="group flex min-w-0 items-center gap-3 border-t border-border/70 py-3 first:border-t-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <span className="w-24 shrink-0 overflow-hidden rounded bg-primary/5">
+        {item.imageUrl ? <img src={item.imageUrl} alt="" loading="lazy" className="aspect-video w-full object-cover" /> : <span className="flex aspect-video items-center justify-center"><Newspaper className="size-5 text-muted-foreground" aria-hidden="true" /></span>}
+      </span>
+      <span className="min-w-0">
+        {item.category ? <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-accent-foreground">{item.category}</span> : null}
+        <span className="mt-1 block line-clamp-2 text-sm font-bold leading-snug text-brand-navy group-hover:underline">{item.title}</span>
+      </span>
+    </a>
+  );
+}
+
 export function EditorialTripleCard({ title, items }: { title: string; items: PreviewItem[] }) {
   const href = items[0] ? meta[items[0].destination].href : undefined;
   return (
@@ -138,8 +153,9 @@ export function EditorialTripleCard({ title, items }: { title: string; items: Pr
         ) : null}
       </div>
       {items.length ? (
-        <div className="grid gap-3 sm:grid-cols-3">
-          {items.slice(0, 3).map((item) => <ItemLink key={item.id} item={item} />)}
+        <div className="space-y-1">
+          <ItemLink item={items[0]} />
+          {items.slice(1, 3).map((item) => <CompactItemLink key={item.id} item={item} />)}
         </div>
       ) : null}
     </article>
@@ -170,7 +186,7 @@ export function GlobalEditorialPreview({
             .limit(18),
           supabase
             .from("alerts")
-            .select("id, title, hazard_type, created_at")
+            .select("id, title, hazard_type, image_url, created_at")
             .eq("status", "active")
             .order("created_at", { ascending: false })
             .limit(18),

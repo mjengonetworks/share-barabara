@@ -29,15 +29,15 @@ test("News keeps detail summaries and places latest, featured and trending befor
   assert.match(news, /title="Featured News"/);
   assert.match(news, /title="Trending News"/);
   assert.match(news, /sort === "trending"/);
-  assert.match(news, /TrendingCollection/);
+  assert.match(news, /TrendingNewsView/);
   assert.match(detail, /article\.summary\?\.trim\(\)/);
 });
 
-test("global discovery keeps the three-card desktop and complete-card mobile contract", () => {
+test("global discovery keeps three section cards with lead-plus-compact stories", () => {
   const preview = read("src/components/site/global-editorial-preview.tsx");
   assert.match(preview, /grid gap-4 md:grid-cols-3/);
-  assert.match(preview, /items\.slice\(0, 3\)/);
-  assert.match(preview, /slice\(0, 3\)/);
+  assert.match(preview, /items\.slice\(1, 3\)/);
+  assert.match(preview, /ItemLink item=\{items\[0\]\}/);
   assert.match(preview, /BannerAd/);
   assert.doesNotMatch(preview, /Keep exploring|More from Share Barabara/);
   assert.match(preview, /Math\.ceil\(cards\.length \/ 3\)/);

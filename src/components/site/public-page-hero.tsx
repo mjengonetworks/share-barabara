@@ -58,7 +58,7 @@ export function PublicPageHero({
           className="absolute inset-0 -z-20 size-full object-cover"
         />
       ) : null}
-      <div className="absolute inset-0 -z-10 bg-primary/90" aria-hidden="true" />
+      <div className="absolute inset-0 -z-10 bg-primary/78" aria-hidden="true" />
       <div
         className="absolute inset-y-0 right-0 -z-10 w-1/2 bg-gradient-to-l from-accent/20 to-transparent"
         aria-hidden="true"
@@ -98,7 +98,7 @@ export function PublicPageHero({
             title
           )}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-primary-foreground/80 sm:text-base">
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-primary-foreground/90 sm:text-base">
           {description}
         </p>
 

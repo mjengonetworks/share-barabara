@@ -98,7 +98,7 @@ export const Route = createFileRoute("/news/$slug")({
       article.road || article.county
         ? supabase
             .from("alerts")
-            .select("id, title, description, county, road, hazard_type, severity, created_at")
+            .select("id, title, description, county, road, hazard_type, severity, image_url, created_at")
             .eq("status", "active")
             .or(`road.eq.${article.road ?? ""},county.eq.${article.county ?? ""}`)
             .order("created_at", { ascending: false })

@@ -47,6 +47,7 @@ type AlertPreview = {
   incident_type?: string | null;
   severity: string;
   created_at: string;
+  image_url?: string | null;
 };
 
 type ReportPreview = {
@@ -124,8 +125,12 @@ export function AlertPreviewCard({ alert }: { alert: AlertPreview }) {
     <Link
       to="/alerts/$alertId"
       params={{ alertId: alert.id }}
-      className="group flex h-full flex-col rounded-lg border border-border bg-card p-4 card-elevated transition-colors hover:border-accent"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
     >
+      {alert.image_url ? (
+        <img src={alert.image_url} alt={alert.title} loading="lazy" className="aspect-video w-full object-cover" />
+      ) : null}
+      <div className="flex flex-1 flex-col p-4">
       <div className="flex flex-wrap items-center gap-2">
         <TriangleAlert className="size-4 text-caution" aria-hidden="true" />
         <SeverityBadge value={alert.severity} />
@@ -143,6 +148,7 @@ export function AlertPreviewCard({ alert }: { alert: AlertPreview }) {
       <span className="mt-auto pt-4 text-xs font-bold text-brand-blue underline underline-offset-4">
         Read more
       </span>
+      </div>
     </Link>
   );
 }
@@ -372,7 +378,7 @@ export function DiscoverySections({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("id, title, description, county, road, hazard_type, severity, created_at")
+        .select("id, title, description, county, road, hazard_type, severity, image_url, created_at")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(8);
