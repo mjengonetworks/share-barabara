@@ -22,6 +22,7 @@ import { useRoles } from "@/hooks/useRoles";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { findExistingRoad } from "@/lib/roads";
 import { submitAccidentReport } from "@/lib/report.functions";
+import { IncidentRelationshipPanel } from "@/components/site/incident-relationship-panel";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -49,6 +50,7 @@ function initialForm(type: EditorialRecordType, record: RecordValue): RecordValu
     image_caption: stringValue(record, "image_caption"),
     image_credit: stringValue(record, "image_credit"),
     status: stringValue(record, "status") || "draft",
+    featured: Boolean(record.featured),
   };
   if (type === "article") return { ...common, category: stringValue(record, "category"), categories: Array.isArray(record.categories) ? record.categories : [], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
   if (type === "report") return { ...common, county: stringValue(record, "county"), road: stringValue(record, "road"), incident_type: stringValue(record, "incident_type"), severity: stringValue(record, "severity"), occurred_at: stringValue(record, "occurred_at"), latitude: typeof record.latitude === "number" ? record.latitude : null, longitude: typeof record.longitude === "number" ? record.longitude : null, vehicles_involved: record.vehicles_involved ?? null, casualties: record.casualties ?? null, fatalities: record.fatalities ?? null, parties_involved: Array.isArray(record.parties_involved) ? record.parties_involved : [], casualty_breakdown: (record.casualty_breakdown ?? {}) as CasualtyBreakdown, attachments: (Array.isArray(record.attachments) ? record.attachments : []) as Attachment[], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
@@ -107,6 +109,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
           image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
           category: form.category, categories: form.categories,
+          featured: form.featured,
           seo_title: form.seo_title, seo_description: form.seo_description, seo_keywords: form.seo_keywords,
         };
       } else if (type === "report") {
@@ -118,6 +121,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           parties_involved: form.parties_involved, casualty_breakdown: form.casualty_breakdown,
           attachments: form.attachments, seo_title: form.seo_title || null,
           seo_description: form.seo_description || null, seo_keywords: form.seo_keywords || null,
+          featured: form.featured,
           image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
           image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
         };
@@ -125,6 +129,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         payload = {
           title: form.title, description: form.description, county: form.county, road: form.road,
           hazard_type: form.hazard_type, severity: form.severity,
+          featured: form.featured,
           image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
           image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
         };
@@ -209,6 +214,21 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         <h2 id="editorial-ai-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial AI</h2>
         {aiActions.map(({ mode, provider }) => <EditorialAIButton key={`${mode}-${provider}`} contentType={type} mode={mode} provider={provider} contentId={id} current={aiCurrent} source="" onDraft={applyDraft} />)}
       </section>
+      {type === "article" || type === "report" || type === "alert" ? (
+        <section className="rounded border border-dashed border-border bg-muted/30 p-3" aria-labelledby="editorial-selection-heading">
+          <h2 id="editorial-selection-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial selection</h2>
+          <label className="mt-3 flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={Boolean(form.featured)}
+              onCheckedChange={(checked) => set("featured", checked === true)}
+            />
+            <span>
+              <strong>Featured {config.label}</strong>
+              <span className="ml-1 text-xs text-muted-foreground">editor-selected public coverage</span>
+            </span>
+          </label>
+        </section>
+      ) : null}
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2"><Label htmlFor="editor-title">Title</Label><Input id="editor-title" value={form.title} onChange={(e) => set("title", e.target.value)} /></div>
         {type === "article" || type === "infrastructure" ? <div className="sm:col-span-2"><Label htmlFor="editor-summary">Summary</Label><Textarea id="editor-summary" value={form.summary} onChange={(e) => set("summary", e.target.value)} /></div> : null}
@@ -231,6 +251,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         {type === "campaign" ? <><div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div><div><Label>Start date</Label><Input type="datetime-local" value={form.start_date?.slice(0, 16)} onChange={(e) => set("start_date", e.target.value)} /></div><div><Label>End date</Label><Input type="datetime-local" value={form.end_date?.slice(0, 16)} onChange={(e) => set("end_date", e.target.value)} /></div></> : null}
       </section>
       <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
+      {isEditing && (type === "report" || type === "alert") ? <IncidentRelationshipPanel /> : null}
       <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => save.mutate("draft")} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Save changes" : "Save draft"}</Button>{canReview ? <Button type="button" onClick={() => save.mutate("approved")} disabled={save.isPending}>{isEditing ? "Save & publish" : "Publish report"}</Button> : null}</div></section>
     </div>
   </div>;

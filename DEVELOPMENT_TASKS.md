@@ -1,5 +1,34 @@
 # Development tasks
 
+## Task 70 / SB 2 — News Featured regression and editorial workflow audit — IMPLEMENTED / DEPLOYMENT PENDING — 2026-10-30
+
+This extends the existing Task 70 record; no duplicate task was created.
+
+- News now always renders a distinct `Featured Articles` section between Latest
+  News and Trending News. It shows three selected published cards when eligible
+  records exist, otherwise a compact labelled empty state. News editorial bands
+  use the compact spacing contract instead of the previous large vertical gaps.
+- The shared authenticated Article, Accident Report and Hazard Alert editors now
+  load and persist visible Featured controls, including Save and Save & publish.
+  The existing Alert-to-Report relationship review panel is also available from
+  Report and Alert edit forms, while preserving its editor-only RPC workflow.
+- Regression coverage now guards section presence/order, the empty state,
+  selected-card rendering, compact spacing, persisted Featured controls and
+  Report/Alert relationship-panel consumption.
+- Audit finding: the deployed `incident_content_links` schema and RPCs support
+  only Alert ↔ approved canonical Accident Report links. No Article, Campaign,
+  Infrastructure Issue or Media/Feed relationship picker or persisted
+  bidirectional relationship exists. Public cross-content previews remain
+  loader/ranking/taxonomy based, not editorial relationship records.
+- Audit finding: existing AI controls expose Generate, Auto-Populate and Update
+  Existing for the current CMS types, but source-to-destination conversion
+  actions and automatic bidirectional conversion links are not implemented.
+  Related overlapping branches include `feat/global-editorial-ai`,
+  `integration/final-production-editorial-ai` and `feat/cross-device-editorial-ai`;
+  none was merged or overwritten. A schema extension is required before generic
+  relationship persistence can be implemented safely and needs separate review.
+
+
 ## Task 70 / SB 2 — Reports, Alerts and view-count correction — DEPLOYED / DATABASE VERIFIED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This extends the existing Task 70 record; no duplicate task was created.

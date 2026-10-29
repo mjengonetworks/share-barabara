@@ -360,7 +360,7 @@ function NewsIndex() {
           </div>
         ) : null}
         {sort === "trending" ? (
-          <EditorialBand tone="plain">
+          <EditorialBand className="py-5 sm:py-7" tone="plain">
             <SectionHeader
               eyebrow="Ranked by recorded views"
               title="Trending News"
@@ -371,7 +371,7 @@ function NewsIndex() {
             <TrendingNewsView articles={loaderData.trending} range={range} category={category} />
           </EditorialBand>
         ) : category ? (
-          <EditorialBand className="mt-8" tone="plain">
+          <EditorialBand className="mt-4 py-5 sm:py-7" tone="plain">
             <SectionHeader
               eyebrow="Newsroom category"
               title={category}
@@ -390,8 +390,8 @@ function NewsIndex() {
             )}
           </EditorialBand>
         ) : (
-          <div className="mt-8 space-y-0">
-            <EditorialBand tone="plain">
+          <div className="mt-4 space-y-0">
+            <EditorialBand className="py-5 sm:py-7" tone="plain">
               <SectionHeader
                 eyebrow="Fresh from the newsroom"
                 title="Latest News"
@@ -408,26 +408,28 @@ function NewsIndex() {
                 </Link>
               </div>
             </EditorialBand>
-            {loaderData.featured.length ? (
-              <EditorialBand tone="pale">
+            <EditorialBand className="py-5 sm:py-7" tone="pale">
                 <SectionHeader
                   eyebrow="Editor-selected coverage"
-                  title="Featured News"
+                  title="Featured Articles"
                   to="/news"
                   actionLabel="Read more"
                 />
-                <div className="mt-6">
-                  <ArticleGridWithAds articles={loaderData.featured.slice(0, 3)} placement="news-featured" />
-                </div>
+                {loaderData.featured.length ? (
+                  <div className="mt-5">
+                    <ArticleGridWithAds articles={loaderData.featured.slice(0, 3)} placement="news-featured" />
+                  </div>
+                ) : (
+                  <EmptyState label="No Featured Articles have been selected by editors yet." />
+                )}
                 <div className="mt-5 text-center">
                   <Link to="/news" className="text-sm font-bold text-brand-blue underline underline-offset-4">
                     Read more
                   </Link>
                 </div>
-              </EditorialBand>
-            ) : null}
+            </EditorialBand>
             {loaderData.trending.length ? (
-              <EditorialBand tone="plain">
+              <EditorialBand className="py-5 sm:py-7" tone="plain">
                 <SectionHeader
                   eyebrow="Ranked by recorded views"
                   title="Trending News"
@@ -442,7 +444,7 @@ function NewsIndex() {
                 </div>
               </EditorialBand>
             ) : null}
-            <EditorialBand tone="plain">
+            <EditorialBand className="py-5 sm:py-7" tone="plain">
               <SectionHeader
                 eyebrow="Browse the newsroom"
                 title="Browse by Category"
@@ -456,7 +458,7 @@ function NewsIndex() {
               </div>
             </EditorialBand>
             {relatedReports.length ? (
-              <EditorialBand tone="plain">
+              <EditorialBand className="py-5 sm:py-7" tone="plain">
                 <SectionHeader
                   eyebrow="Road context"
                   title="Related Accident Reports"
@@ -472,7 +474,7 @@ function NewsIndex() {
               </EditorialBand>
             ) : null}
             {relatedAlerts.length ? (
-              <EditorialBand tone="pale">
+              <EditorialBand className="py-5 sm:py-7" tone="pale">
                 <SectionHeader
                   eyebrow="Live road context"
                   title="Relevant Alerts"

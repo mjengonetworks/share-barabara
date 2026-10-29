@@ -26,7 +26,7 @@ test("News keeps detail summaries and places latest, featured and trending befor
   assert.match(news, /CategoryEntityGrid/);
   assert.match(news, /title="Latest News"/);
   assert.match(news, /articles=\{latest\.slice\(0, 3\)\}/);
-  assert.match(news, /title="Featured News"/);
+  assert.match(news, /title="Featured Articles"/);
   assert.match(news, /title="Trending News"/);
   assert.match(news, /sort === "trending"/);
   assert.match(news, /TrendingNewsView/);

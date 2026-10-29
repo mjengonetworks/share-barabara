@@ -33,7 +33,7 @@ test("cross-platform previews stay inside the shared centred container", () => {
 test("news hierarchy renders latest, featured and trending before categories", () => {
   const source = read("src/routes/news.index.tsx");
   const latest = source.lastIndexOf('title="Latest News"');
-  const featured = source.lastIndexOf('title="Featured News"');
+  const featured = source.lastIndexOf('title="Featured Articles"');
   const trending = source.lastIndexOf('title="Trending News"');
   const categories = source.lastIndexOf("Browse by Category");
   assert.ok(latest >= 0 && featured >= 0 && trending >= 0 && categories >= 0);

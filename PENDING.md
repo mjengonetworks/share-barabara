@@ -1,5 +1,20 @@
 # Pending
 
+- **TASK 70 / SB 2 NEWS FEATURED AND EDITORIAL WORKFLOW CORRECTION — IMPLEMENTED /
+  DEPLOYMENT AND LIVE ACCEPTANCE PENDING (2026-10-30).** `/news` now keeps
+  Latest News → Featured Articles → Trending News → Browse by Category in that
+  order; Featured Articles has a compact empty state instead of disappearing,
+  and News section spacing is tightened. Shared Article, Report and Alert edit
+  forms expose persisted Featured controls, and the existing Alert-to-Report
+  review panel is mounted in Report/Alert edit forms. Focused checks pass `26/26`;
+  full suite and production build remain to be rerun after this correction.
+  Browser screenshots and authenticated owner acceptance remain pending.
+  Audit confirms `incident_content_links` is still only Alert → canonical Report;
+  Article, Campaign, Infrastructure Issue and Media/Feed relationships, generic
+  Related Content pickers and AI source-to-destination conversion links remain
+  pending a reviewed extension of the authoritative relationship schema. Existing
+  overlapping AI branches were preserved and not merged.
+
 - **TASK 70 / SB 2 REPORTS, ALERTS AND VIEW-COUNT CORRECTION — DEPLOYED /
   DATABASE VERIFIED / VISUAL ACCEPTANCE PENDING (2026-10-29).** Reports and Alerts
   now use separate Latest, Featured and Trending / Most Viewed sections. Featured
