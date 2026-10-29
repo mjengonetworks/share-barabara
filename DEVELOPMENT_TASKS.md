@@ -1,5 +1,27 @@
 # Development tasks
 
+## SB 2 — final acceptance attempt — 2026-10-29
+
+- **Disposable recovery rehearsal — PASSED:** the existing authorized CLI
+  connection created a second read-only custom-format archive containing the
+  migration-scope `public` and dependent `auth` schemas at
+  `E:\sb2-production-backup-20261029-cli-public-auth.dump` (747,350 bytes;
+  SHA-256 `F1CC7D7433DED20927467D49F2325AF778630515A3C83B869A33B850FF802FCE`).
+  `pg_restore --list` passed, and it restored cleanly into a separately
+  initialized local PostgreSQL 17 cluster on port 55432. Local Supabase role
+  stubs were created only in that disposable database. Restored checks passed:
+  15 Reports, 14 Alerts, 11 canonical incidents, count RPC 11, 26 auth users,
+  all four relationship/statistics tables RLS-enabled, six policies, four key
+  functions, and preserved NULL casualty values. The disposable cluster was
+  stopped and removed; the existing PostgreSQL service and backup archives were
+  preserved.
+- **Authenticated browser acceptance — BLOCKED / TOOLING PREREQUISITE:**
+  browser automation initialization returned no apps or browsers, and no
+  authenticated browser surface or test account was available. No relationship
+  confirmation, correction, revocation or editor UI workflow is marked passed
+  from database checks alone. The minimum prerequisite is an available browser
+  automation surface plus an authorized non-destructive editor test account.
+
 ## SB 2 — statistics integrity correction candidate — 2026-10-29
 
 - **Corrective migration — PREPARED / NOT EXECUTED:**

@@ -1,5 +1,18 @@
 # Pending
 
+- **SB 2 FINAL ACCEPTANCE — RECOVERY PASSED / AUTHENTICATED BROWSER BLOCKED
+  (2026-10-29).** A public+auth custom-format backup was restored successfully
+  into a disposable local PostgreSQL 17 cluster with isolated Supabase role
+  stubs. Restored data and contracts matched production: 15 Reports, 14
+  Alerts, 11 canonical incidents, RPC 11, 26 auth users, RLS on all relevant
+  tables, six policies, key relationship/statistics functions and NULL casualty
+  values. The disposable cluster was removed after verification. Browser CUA
+  initialization exposed no apps or browsers, and no authorized editor test
+  session was available; live confirmation, correction, revocation, audit-panel
+  navigation, filters and responsive authenticated review remain unverified.
+  Minimum prerequisite: browser automation plus a non-destructive authorized
+  editor test account.
+
 - **SB 2 STATISTICS INTEGRITY CORRECTION — EXECUTED / VERIFIED (2026-10-29).**
   Migration
   `20261029130000_published_accident_report_count_deleted_filter_review.sql`
@@ -7,8 +20,7 @@
   canonical statistics independently return 11 with matching eligibility;
   soft-deleted, duplicate and unapproved reports are excluded, unknown
   casualties remain NULL, and RPC/RLS checks passed. No redeployment occurred.
-  Only authenticated browser acceptance and disposable recovery rehearsal
-  remain pending.
+  Only authenticated browser acceptance remains pending.
 
 - **SB 2 PRODUCTION MIGRATIONS — EXECUTED / STATISTICS CORRECTION REQUIRED
   (2026-10-29).** Existing authenticated Supabase CLI authorization was used
