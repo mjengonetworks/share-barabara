@@ -2,6 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Megaphone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { selectEligibleBannerAds } from "@/lib/banner-ads";
+
+function isPlacementSchemaMissing(error: { code?: string; message?: string }) {
+  return error.code === "42703" || error.code === "PGRST204" || /column .*placement|column .*starts_at|column .*ends_at|column .*priority/i.test(error.message ?? "");
+}
 
 /**
  * Every page carries at least one of these. With no active sponsor ad it
@@ -10,20 +15,28 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export function BannerAd({ className = "", placement = "site-default" }: { className?: string; placement?: string }) {
   const { data: ads = [] } = useQuery({
-    queryKey: ["banner-ads"],
+    queryKey: ["banner-ads", placement],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const placementQuery = await supabase
         .from("banner_ads")
         .select("*")
         .eq("active", true)
+        .in("placement", [placement, "site-default"])
+        .order("priority", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(10);
-      if (error) throw error;
-      return data;
+      if (placementQuery.error) {
+        if (!isPlacementSchemaMissing(placementQuery.error)) throw placementQuery.error;
+        const legacy = await supabase.from("banner_ads").select("*").eq("active", true).order("created_at", { ascending: false }).limit(10);
+        if (legacy.error) throw legacy.error;
+        return selectEligibleBannerAds(legacy.data, placement);
+      }
+      return selectEligibleBannerAds(placementQuery.data, placement);
     },
     staleTime: 60_000,
   });
 
-  const ad = ads.length > 0 ? ads[Math.floor(Math.random() * ads.length)] : null;
+  const ad = ads[0] ?? null;
 
   if (ad) {
     return (
@@ -57,7 +70,7 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
         <p className="font-semibold uppercase tracking-wide text-white">YOUR AD HERE</p>
         <p className="mt-0.5 text-xs text-white/70">Reach road users and the wider transport community.</p>
       </div>
-      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90">Advertise with us</Link>
+      <Link to="/partner-with-us" className="shrink-0 rounded-md bg-accent px-2.5 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-navy">Visit Advertiser</Link>
     </div>
   );
 }

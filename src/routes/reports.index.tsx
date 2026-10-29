@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, MapPin } from "lucide-react";
@@ -127,6 +127,14 @@ function ReportsPage() {
   });
   const latest = reports.slice(0, 12);
   const featured = reports.filter((r) => /critical|high/i.test(r.severity ?? "")).slice(0, 12);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || window.location.hash !== "#report-form") return;
+    const form = document.getElementById("report-form");
+    if (!form) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.requestAnimationFrame(() => form.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" }));
+  }, [featured.length, latest.length, isLoading]);
 
   const { data: trending = [] } = useQuery({
     queryKey: ["reports-trending"],

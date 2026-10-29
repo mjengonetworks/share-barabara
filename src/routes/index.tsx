@@ -98,6 +98,19 @@ function Index() {
     },
   });
 
+  const { data: recordedAccidents, isError: recordedAccidentsError } = useQuery({
+    queryKey: ["home-recorded-accidents"],
+    queryFn: async () => {
+      const current = await supabase.from("accident_reports").select("id, duplicate_of_report_id").eq("status", "approved");
+      if (!current.error) return current.data.filter((report) => !report.duplicate_of_report_id).length;
+      if (!/duplicate_of_report_id|column .* does not exist|schema cache/i.test(current.error.message ?? "")) throw current.error;
+      const legacy = await supabase.from("accident_reports").select("id").eq("status", "approved");
+      if (legacy.error) throw legacy.error;
+      return legacy.data.length;
+    },
+    staleTime: 60_000,
+  });
+
   const { data: pages = [] } = useFeaturedPagesList();
 
   const { data: videos = [] } = useQuery({
@@ -178,13 +191,13 @@ function Index() {
               <Link to="/statistics">View the statistics</Link>
             </Button>
           </div>
-          {latest ? (
-            <div className="mt-8 grid max-w-2xl gap-4 sm:grid-cols-3">
-              <Stat value={num(latest.fatalities)} label={`deaths in ${latest.year}`} danger />
-              <Stat value={num(latest.serious_injuries)} label="seriously injured" />
-              <Stat value="~13" label="deaths every day" danger />
-            </div>
-          ) : null}
+          <div className="mt-8 grid max-w-3xl gap-4 sm:grid-cols-3">
+            <Link to="/reports" className="rounded-lg border-2 border-accent bg-card/95 p-4 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              <Stat value={recordedAccidentsError ? "—" : recordedAccidents === undefined ? "…" : num(recordedAccidents)} label="recorded road accidents" danger />
+            </Link>
+            {latest ? <Stat value={num(latest.fatalities)} label={`deaths in ${latest.year}`} danger /> : <Stat value="—" label="confirmed fatalities" />}
+            {latest ? <Stat value={num(latest.serious_injuries)} label="confirmed serious injuries" /> : <Stat value="—" label="confirmed serious injuries" />}
+          </div>
         </div>
       </section>
 
@@ -343,8 +356,8 @@ function Index() {
               to="/statistics"
               cta="View statistics"
               icon={BarChart3}
-              stat={latest ? num(latest.fatalities) : undefined}
-              statLabel={latest ? `deaths in ${latest.year}` : undefined}
+              stat={recordedAccidentsError ? undefined : recordedAccidents === undefined ? "…" : num(recordedAccidents)}
+              statLabel="recorded accidents"
             />
             <PreviewCard
               title="Campaigns"

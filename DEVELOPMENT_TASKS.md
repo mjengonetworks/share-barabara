@@ -40,8 +40,10 @@ Migration order and dependencies:
 Required before release: isolated disposable-database migration execution,
 RLS/permission verification with anonymous, ordinary authenticated and editor
 roles, authenticated browser acceptance of the admin panel, and owner approval
-for the migration and production deployment. Production Worker source metadata
-does not expose a Git SHA; do not infer ancestry from `origin/main`.
+for the migration and production deployment. The Instance 1 deployment record
+and local worktree now verify the Worker baseline as application commit
+`2025e9ccf340f0db0b6126919620df13b12edf82`, followed by documentation commits
+`46e0a06` and `2d22804`; Cloudflare itself still does not expose the Git SHA.
 
 ## SB 2 integration — canonical statistics and map contract
 
@@ -88,7 +90,7 @@ unfinished application changes are not merged here.
 ## SB 2 — current verification record
 
 - **Code and static integration — PASSED:** relationship/statistics/map/security
-  focused checks 37/37; full repository suite 462/462 using the repository
+  focused checks 37/37; full repository suite 467/467 using the repository
   Node TypeScript/alias/Markdown test loader at `tests/node-test-loader.mjs`;
   production build passed; `git diff --check` passed.
 - **Editorial AI module-resolution failures — RESOLVED:** the test command now
@@ -103,17 +105,21 @@ unfinished application changes are not merged here.
 - **Browser acceptance — PENDING:** no browser surface is available; public and
   authenticated relationship, statistics, filter and map workflows remain
   unverified in a real browser.
-- **Production deployment and production migration — PENDING:** Worker
-  `c193a8dd-725d-403e-9334-0446d1c86236` is live, but its Git source is
-  unavailable (`wrangler versions view` reports `Unknown (version_upload)`),
-  so the candidate cannot yet be proven to preserve newer deployed source
-  changes. The approved application-only deployment is gated on a verifiable
-  production source/export or an owner-approved deployment baseline. No
-  production migration is approved or executed.
+- **Production baseline — VERIFIED:** Instance 1's clean worktree contains
+  the exact deployed application commit `2025e9ccf340f0db0b6126919620df13b12edf82`
+  and descendants `46e0a06`, `2d22804`; its deployment record matches Worker
+  `c193a8dd-725d-403e-9334-0446d1c86236`, creation time and 100% traffic.
+  The candidate contains that commit in its ancestry. Candidate review restored
+  homepage recorded-accident metrics, report hash navigation, placement-aware
+  ads, Partner With Us validation and Back to Top/quote behavior.
+- **Production deployment and production migration — PENDING:** application-only
+  deployment is technically eligible after final build and source
+  reconciliation, but has not been executed in this turn. No production
+  migration is approved or executed.
 
 ## SB 2 — final verification update
 
-- **Full code suite — PASSED:** 462/462 via `npm test`.
+- **Full code suite — PASSED:** 467/467 via `npm test`.
 - **Security suite — PASSED:** 14/14 via `npm run test:security`.
 - **Production build — PASSED:** `npm run build` completed, including client,
   SSR and Cloudflare Nitro output. Existing bundler warnings are non-fatal.
@@ -121,7 +127,7 @@ unfinished application changes are not merged here.
 - **Application-only schema compatibility — CODE PASSED / LIVE PENDING:**
   pre-migration reads have legacy retries; no SQL was executed and no claim is
   made about the actual production catalog.
-- **Worker/source reconciliation — BLOCKED:** active Worker is c193a8dd at
-  100%, but Cloudflare exposes no Git provenance. This prevents a safe
-  no-overwrite deployment decision until the deployed source is exported or
-  otherwise verified.
+- **Worker/source reconciliation — PASSED WITH LOCAL EVIDENCE:** Cloudflare
+  metadata remains `Unknown (version_upload)`, but the exact deployed commit is
+  corroborated by the clean Instance 1 worktree, Git ancestry and deployment
+  record. No matching commit message was used as proof.
