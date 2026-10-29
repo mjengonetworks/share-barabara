@@ -403,6 +403,11 @@ function NewsIndex() {
               <div className="mt-6">
                 <ArticleGridWithAds articles={latest.slice(0, 3)} placement="news-latest" />
               </div>
+              <div className="mt-5 text-center">
+                <Link to="/news" className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                  Read more
+                </Link>
+              </div>
             </EditorialBand>
             {loaderData.featured.length ? (
               <EditorialBand tone="pale">
@@ -415,6 +420,11 @@ function NewsIndex() {
                 <div className="mt-6">
                   <ArticleGridWithAds articles={loaderData.featured.slice(0, 3)} placement="news-featured" />
                 </div>
+                <div className="mt-5 text-center">
+                  <Link to="/news" className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                    Read more
+                  </Link>
+                </div>
               </EditorialBand>
             ) : null}
             {loaderData.trending.length ? (
@@ -425,7 +435,12 @@ function NewsIndex() {
                   to="/news"
                   actionLabel="Read more"
                 />
-                <TrendingCollection articles={loaderData.trending.slice(0, 3)} />
+                <ArticleGridWithAds articles={loaderData.trending.slice(0, 3)} placement="news-trending" />
+                <div className="mt-5 text-center">
+                  <Link to="/news" search={{ sort: "trending" }} className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                    Read more
+                  </Link>
+                </div>
               </EditorialBand>
             ) : null}
             <EditorialBand tone="plain">

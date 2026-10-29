@@ -118,6 +118,7 @@ function ArticleMeta({
       {!compact && article.featured ? (
         <span className="font-semibold text-caution">Featured</span>
       ) : null}
+      {!compact && article.published_at ? <span>· {longDateWithDay(article.published_at)}</span> : null}
       {!compact && article.source ? <span>· {article.source}</span> : null}
     </div>
   );
@@ -322,6 +323,9 @@ export function CategoryEntityCard({
     <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
         <h3 className="min-w-0 text-base font-extrabold text-brand-navy">{entity}</h3>
+        <a href={viewMoreHref} className="shrink-0 text-xs font-bold text-brand-blue underline underline-offset-4">
+          View more
+        </a>
         {placement ? <span className="sr-only">{placement}</span> : null}
       </div>
       <a
@@ -341,12 +345,6 @@ export function CategoryEntityCard({
           ))}
         </div>
       ) : null}
-      <a
-        href={viewMoreHref}
-        className="mt-auto inline-flex items-center pt-4 text-xs font-bold text-brand-blue underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        View more <ArrowRight className="ml-1 size-3.5" aria-hidden="true" />
-      </a>
     </section>
   );
 }

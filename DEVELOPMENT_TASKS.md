@@ -38,13 +38,29 @@ Acceptance criteria remain open until evidence is collected:
   `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb`; no SQL or migration changes are in
   this candidate.
 
-Verification record for this candidate: focused public-hierarchy checks passed
-5/5; the previously completed baseline was 469/469 full tests, 14/14 security
-tests and a successful production build. The full suite, security suite and
-build must be rerun after this correction. Browser screenshots and authenticated
-visual acceptance remain Pending Live Testing because browser automation is not
-available in the current environment. SB4 geography/transport and advertising
-dependencies remain under their existing task IDs.
+Audit matrix for this corrected candidate:
+
+| Requirement | Result | Evidence |
+|---|---|---|
+| News hero/category navigation and Latest → Featured → Trending → Categories | PASS | `src/routes/news.index.tsx`, `CategoryEntityGrid` |
+| News Latest, Featured and Trending are separate three-card rows | PASS | `ArticleGridWithAds`, each capped at three, centered Read more links |
+| News category columns are three stories per category | PASS | `CategoryEntityCard`: one lead plus two compact stories and View more |
+| Reports Latest, Featured and Trending are separate three-card rows | PASS | `src/routes/reports.index.tsx`, `ReportPreviewCard` |
+| Alerts Latest and Most Viewed are separate three-card rows | PASS | `src/routes/alerts.index.tsx`, `AlertPreviewCard` |
+| Genuine Trending/Most Viewed source | PASS | Existing `trending_news`, `trending_reports` and `trending_alerts` RPCs remain the data source |
+| Homepage 11-accident Statistics destination and compact stat cards | PASS | `src/routes/index.tsx` canonical count RPC and `/statistics` link |
+| Public Reports has no administrative Editorial AI panels | PASS | `src/components/site/report-form.tsx` role/embedded-editor gate |
+| Unknown-versus-zero report values | PASS | Existing nullable display contract retained and covered by suite |
+| Mjengo Hub/Networks centered placement | PASS | `src/components/site/mjengo-previews.tsx` shared max-width container |
+| Responsive visual parity at 320–1440px | NOT VERIFIED | No browser/screenshot surface is available in this environment |
+| Authenticated editor, map and live production visual acceptance | NOT VERIFIED | Requires owner test account and browser/live review |
+
+Verification record for this candidate: focused hierarchy checks passed 29/29;
+full suite passed 476/476; security suite passed 14/14; production build and
+`git diff --check` passed. Browser screenshots and authenticated visual
+acceptance remain Pending Live Testing because browser automation reports no
+available apps or browsers. SB4 geography/transport and advertising dependencies
+remain under their existing task IDs.
 
 ## SB 2 — current lifecycle and owner acceptance matrix — 2026-10-29
 

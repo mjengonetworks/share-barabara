@@ -2,18 +2,20 @@
 
 - **TASK 70 / SB 2 PUBLIC EDITORIAL HIERARCHY — IMPLEMENTED / DEPLOYMENT AND
   OWNER ACCEPTANCE PENDING (2026-10-29).** The shared public release candidate
-  now provides balanced three-item editorial cards, Latest → Featured →
-  Trending → Browse by Category ordering, canonical Statistics navigation for
-  the 11 Recorded Road Accidents card, public Reports without administrative
-  Editorial AI panels, consistent report placeholders/Read more links, and
-  centred Mjengo Hub/Mjengo Networks previews. The candidate is not deployed.
+  now provides separate Latest, Featured and Trending three-card sections for
+  News, Reports and Alerts; three-story category columns with one lead and two
+  compact stories; canonical Statistics navigation for the 11 Recorded Road
+  Accidents card; public Reports without administrative Editorial AI panels;
+  consistent metadata/Read more links; and centred Mjengo Hub/Mjengo Networks
+  previews. The candidate is not deployed.
   Existing production baseline is application commit
   `96f1675f042e3d5a68bf48c70a408367bd998410`, Worker
   `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb`; no SQL or migrations changed.
-  Focused hierarchy checks pass 5/5. Full tests, security tests and build are
-  being rerun. Live screenshots and authenticated responsive acceptance remain
-  pending because no browser automation surface is available. Owner approval is
-  required before deployment; SB4 and advertising task records remain separate.
+  Focused hierarchy checks pass 29/29; full tests pass 476/476, security
+  14/14, and production build passes. Live screenshots and authenticated
+  responsive acceptance remain pending because no browser automation surface is
+  available. Owner approval is required before deployment; SB4 and advertising
+  task records remain separate.
 
 - **SB 2 OWNER LIVE ACCEPTANCE — PENDING LIVE TESTING / PENDING USER
   ACCEPTANCE (2026-10-29).** Lifecycle remains Implemented → Deployed → Live

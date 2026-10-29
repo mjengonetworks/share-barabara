@@ -124,7 +124,7 @@ export function AlertPreviewCard({ alert }: { alert: AlertPreview }) {
     <Link
       to="/alerts/$alertId"
       params={{ alertId: alert.id }}
-      className="group rounded-lg border border-border bg-card p-4 card-elevated transition-colors hover:border-accent"
+      className="group flex h-full flex-col rounded-lg border border-border bg-card p-4 card-elevated transition-colors hover:border-accent"
     >
       <div className="flex flex-wrap items-center gap-2">
         <TriangleAlert className="size-4 text-caution" aria-hidden="true" />
@@ -140,6 +140,9 @@ export function AlertPreviewCard({ alert }: { alert: AlertPreview }) {
         <MapPin className="size-4 shrink-0" aria-hidden="true" /> {alert.county}
         {alert.road ? ` · ${alert.road}` : ""}
       </p>
+      <span className="mt-auto pt-4 text-xs font-bold text-brand-blue underline underline-offset-4">
+        Read more
+      </span>
     </Link>
   );
 }

@@ -30,6 +30,7 @@ import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
 import { AlertForm } from "@/components/site/alert-form";
+import { AlertPreviewCard } from "@/components/site/discovery-sections";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { PublicPageHero } from "@/components/site/public-page-hero";
@@ -249,13 +250,15 @@ function AlertsPage() {
                   to="/alerts"
                   actionLabel="View all"
                 />
-                <div className="mt-5">
-                  <IncidentEntityGroups
-                    items={latest as PublicIncidentCard[]}
-                    kind="alert"
-                    getEntity={(item) => item.hazard_type ?? "Other alerts"}
-                    renderActions={alertActions}
-                  />
+                <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {latest.slice(0, 3).map((alert) => (
+                    <AlertPreviewCard key={alert.id} alert={alert as any} />
+                  ))}
+                </div>
+                <div className="mt-5 text-center">
+                  <Link to="/alerts" className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                    Read more
+                  </Link>
                 </div>
               </EditorialBand>
             ) : null}
@@ -263,19 +266,21 @@ function AlertsPage() {
               <BannerAd placement="alerts-list-interval-1" />
             </div>
             {trending.length > 0 ? (
-              <EditorialBand tone="pale">
+              <EditorialBand tone="plain">
                 <SectionHeader
                   eyebrow="Verified activity"
                   title="Most Viewed Alerts"
                   icon={<Flame className="size-5 text-destructive" />}
                 />
-                <div className="mt-5">
-                  <CompactIncidentColumns
-                    items={trending as PublicIncidentCard[]}
-                    kind="alert"
-                    titles={["Most opened", "Trending now", "More viewed"]}
-                    placement="alerts-trending"
-                  />
+                <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {trending.slice(0, 3).map((alert) => (
+                    <AlertPreviewCard key={alert.id} alert={alert as any} />
+                  ))}
+                </div>
+                <div className="mt-5 text-center">
+                  <Link to="/alerts" className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                    Read more
+                  </Link>
                 </div>
               </EditorialBand>
             ) : null}

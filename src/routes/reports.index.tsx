@@ -198,21 +198,22 @@ function ReportsPage() {
       <div className="mx-auto mt-8 max-w-[1500px] px-4 sm:px-6">
         <div className="min-w-0">
             {featured.length > 0 ? (
-              <EditorialBand tone="pale">
+              <EditorialBand tone="plain">
                 <SectionHeader
                   eyebrow="Verified high-severity incidents"
                   title="Featured Accident Reports"
                   to="/reports"
                   actionLabel="View all"
                 />
-                <div className="mt-5">
-                  <CompactIncidentColumns
-                    items={featured as PublicIncidentCard[]}
-                    kind="report"
-                    titles={["Priority incidents", "Verified reports", "Road context"]}
-                    placement="reports-featured"
-                    renderActions={reportActions}
-                  />
+                <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {featured.slice(0, 3).map((report) => (
+                    <ReportPreviewCard key={report.id} report={report} />
+                  ))}
+                </div>
+                <div className="mt-5 text-center">
+                  <Link to="/reports" className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                    Read more
+                  </Link>
                 </div>
               </EditorialBand>
             ) : null}
@@ -232,6 +233,11 @@ function ReportsPage() {
                     <ReportPreviewCard key={report.id} report={report} />
                   ))}
                 </div>
+                <div className="mt-5 text-center">
+                  <Link to="/reports" className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                    Read more
+                  </Link>
+                </div>
               </EditorialBand>
             ) : null}
 
@@ -241,19 +247,21 @@ function ReportsPage() {
               <BannerAd placement="reports-list-interval-1" />
             </div>
             {trending.length > 0 ? (
-              <EditorialBand tone="pale">
+              <EditorialBand tone="plain">
                 <SectionHeader
                   eyebrow="Verified activity"
                   title="Trending Reports"
                   icon={<Flame className="size-5 text-destructive" />}
                 />
-                <div className="mt-5">
-                  <CompactIncidentColumns
-                    items={trending as PublicIncidentCard[]}
-                    kind="report"
-                    titles={["Most opened", "Trending now", "More viewed"]}
-                    placement="reports-trending"
-                  />
+                <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {trending.slice(0, 3).map((report) => (
+                    <ReportPreviewCard key={report.id} report={report} />
+                  ))}
+                </div>
+                <div className="mt-5 text-center">
+                  <Link to="/reports" className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                    Read more
+                  </Link>
                 </div>
               </EditorialBand>
             ) : null}

@@ -120,11 +120,10 @@ test("editorial modules provide balanced unique lead-and-supporting card columns
   assert.match(news, /name: "latest",\s*limit: 12/);
 });
 
-test("alerts and reports listings use shared multi-column incident editorial sections", () => {
+test("alerts and reports listings use separate three-card editorial sections", () => {
   for (const route of [alerts, reports]) {
-    assert.match(route, /CompactIncidentColumns/);
-    // Listings now use the shared incident columns without a persistent form sidebar.
-    assert.match(route, /EditorialBand tone="pale"/);
+    assert.match(route, /slice\(0, 3\)\.map/);
+    assert.match(route, /grid gap-5 sm:grid-cols-2 lg:grid-cols-3/);
     assert.match(route, /EditorialBand tone="plain"/);
     assert.doesNotMatch(route, /<ul className="mt-6 space-y-6">/);
   }
@@ -136,8 +135,8 @@ test("alerts and reports listings use shared multi-column incident editorial sec
   assert.match(layout, /aspect-video/);
 });
 
-test("editorial preview cards omit dates while preserving allowed detail and feed timestamps", () => {
-  assert.doesNotMatch(layout, /article\.published_at[\s\S]{0,120}longDate/);
+test("editorial preview cards include publication metadata while preserving feed timestamps", () => {
+  assert.match(layout, /article\.published_at[\s\S]{0,120}longDate/);
   assert.match(layout, /kind === "alert"/);
   assert.doesNotMatch(discovery, /longDateWithDay\(article\.published_at\)/);
   assert.doesNotMatch(discovery, /longDate\(report\.occurred_at\)/);

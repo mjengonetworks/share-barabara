@@ -38,3 +38,22 @@ test("news hierarchy renders latest, featured and trending before categories", (
   assert.ok(latest >= 0 && featured >= 0 && trending >= 0 && categories >= 0);
   assert.ok(latest < featured && featured < trending && trending < categories);
 });
+
+test("incident listings use separate full-card latest, featured and trending rows", () => {
+  const reports = read("src/routes/reports.index.tsx");
+  const alerts = read("src/routes/alerts.index.tsx");
+  for (const source of [reports, alerts]) {
+    assert.match(source, /slice\(0, 3\)\.map/);
+    assert.match(source, /grid gap-5 sm:grid-cols-2 lg:grid-cols-3/);
+    assert.match(source, /Read more/);
+  }
+  assert.match(reports, /trending_reports/);
+  assert.match(alerts, /trending_alerts/);
+});
+
+test("News category columns contain one lead and two compact supporting stories", () => {
+  const source = read("src/components/site/public-layout.tsx");
+  assert.match(source, /const \[lead, \.\.\.supporting\] = articles\.slice\(0, 3\)/);
+  assert.match(source, /supporting\.slice\(0, 2\)/);
+  assert.match(source, /View more/);
+});
