@@ -2,7 +2,7 @@
 
 ## SB 2 — Alert-to-Accident-Report relationships
 
-Status: **implementation candidate / not deployed** (2026-10-29)
+Status: **application deployed / acceptance pending** (2026-10-29)
 
 Latest application-only compatibility review: the candidate now retries
 legacy `accident_reports` reads when `duplicate_of_report_id` is not present,
@@ -112,10 +112,14 @@ unfinished application changes are not merged here.
   The candidate contains that commit in its ancestry. Candidate review restored
   homepage recorded-accident metrics, report hash navigation, placement-aware
   ads, Partner With Us validation and Back to Top/quote behavior.
-- **Production deployment and production migration — PENDING:** application-only
-  deployment is technically eligible after final build and source
-  reconciliation, but has not been executed in this turn. No production
-  migration is approved or executed.
+- **Production application deployment — PASSED:** commit
+  `96f1675f042e3d5a68bf48c70a408367bd998410` was deployed to Worker
+  `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb` at 100% on 2026-10-29 12:02 UTC.
+  Public `/`, `/statistics`, `/reports`, `/alerts`, `/partner-with-us`,
+  `/feed` and `/news` returned HTTP 200. No migration or SQL was executed.
+- **Production migration — PENDING:** relationship, duplicate, canonical
+  statistics, geography and transport migrations remain unapplied and require
+  separate owner approval and disposable-database rehearsal.
 
 ## SB 2 — final verification update
 
@@ -131,3 +135,17 @@ unfinished application changes are not merged here.
   metadata remains `Unknown (version_upload)`, but the exact deployed commit is
   corroborated by the clean Instance 1 worktree, Git ancestry and deployment
   record. No matching commit message was used as proof.
+
+## SB 2 — deployment verification
+
+- **Worker allocation — PASSED:** `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb` is
+  confirmed at 100% traffic with production bindings and secrets names intact.
+- **Public runtime health — PASSED:** the deployed public routes returned HTTP
+  200. Live SSR markers include the homepage recorded-accident/statistics
+  surface and Partner With Us route.
+- **Relationship/statistics live acceptance — PENDING:** current database
+  schema and authenticated editorial sessions were not used; the relationship
+  panel remains migration-dependent and canonical RPCs remain fallback-safe.
+- **Browser/authenticated acceptance — PENDING:** no browser surface or
+  authenticated test account is available for editor confirmation, correction,
+  revocation, map filters or responsive visual review.
