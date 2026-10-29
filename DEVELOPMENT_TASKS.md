@@ -78,6 +78,11 @@ unfinished application changes are not merged here.
   execute duplicate merge, relationship correction and NULL casualty cases.
 - **Database migration approval and execution — PENDING:** owner approval and
   disposable rehearsal required; production SQL is prohibited in this task.
+- **Migration package hardening — PASSED / EXECUTION PENDING:** reviewed
+  rerun-safe policies, triggers, canonical view replacement and banner
+  constraint guards were added. The exact four-migration production approval
+  set and recovery procedure are in
+  [docs/sb2-production-migration-plan.md](docs/sb2-production-migration-plan.md).
 - **RLS and authenticated security verification — STATIC PASSED / DATABASE
   PENDING:** verify anonymous, ordinary authenticated and editor policies/RPC
   grants against PostgreSQL.

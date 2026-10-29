@@ -87,6 +87,7 @@ REVOKE ALL ON public.canonical_incident_transport_modes FROM PUBLIC, anon;
 GRANT SELECT ON public.canonical_incident_transport_modes TO authenticated;
 GRANT ALL ON public.canonical_incident_transport_modes TO service_role;
 
+DROP POLICY IF EXISTS canonical_incident_modes_editor_read ON public.canonical_incident_transport_modes;
 CREATE POLICY canonical_incident_modes_editor_read
   ON public.canonical_incident_transport_modes FOR SELECT TO authenticated
   USING (public.has_min_role(auth.uid(),'editor'));

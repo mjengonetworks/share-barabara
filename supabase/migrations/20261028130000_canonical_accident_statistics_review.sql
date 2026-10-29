@@ -29,7 +29,7 @@ BEGIN
   END IF;
 END $$;
 
-CREATE TABLE public.canonical_accident_incidents (
+CREATE TABLE IF NOT EXISTS public.canonical_accident_incidents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   canonical_report_id UUID NOT NULL REFERENCES public.accident_reports(id) ON DELETE RESTRICT,
   incident_status TEXT NOT NULL DEFAULT 'verified'
@@ -45,10 +45,10 @@ CREATE TABLE public.canonical_accident_incidents (
   CHECK ((statistics_eligible = false) OR incident_status IN ('verified','closed'))
 );
 
-CREATE UNIQUE INDEX canonical_incidents_report_uq
+CREATE UNIQUE INDEX IF NOT EXISTS canonical_incidents_report_uq
   ON public.canonical_accident_incidents(canonical_report_id)
   WHERE deleted_at IS NULL;
-CREATE INDEX canonical_incidents_statistics_idx
+CREATE INDEX IF NOT EXISTS canonical_incidents_statistics_idx
   ON public.canonical_accident_incidents(statistics_eligible,incident_status,created_at DESC)
   WHERE deleted_at IS NULL;
 
@@ -67,6 +67,7 @@ RETURNS TRIGGER LANGUAGE plpgsql SET search_path=public,pg_temp AS $$
 BEGIN NEW.updated_at=now(); RETURN NEW; END;
 $$;
 
+DROP TRIGGER IF EXISTS canonical_accident_incident_touch ON public.canonical_accident_incidents;
 CREATE TRIGGER canonical_accident_incident_touch
   BEFORE UPDATE ON public.canonical_accident_incidents
   FOR EACH ROW EXECUTE FUNCTION public.canonical_accident_touch();
@@ -88,6 +89,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS canonical_report_incident_sync ON public.accident_reports;
 CREATE TRIGGER canonical_report_incident_sync
   AFTER INSERT OR UPDATE OF status,duplicate_of_report_id,deleted_at ON public.accident_reports
   FOR EACH ROW EXECUTE FUNCTION public.canonical_sync_report_incident();
@@ -97,6 +99,7 @@ REVOKE ALL ON public.canonical_accident_incidents FROM PUBLIC,anon;
 GRANT SELECT ON public.canonical_accident_incidents TO authenticated;
 GRANT ALL ON public.canonical_accident_incidents TO service_role;
 
+DROP POLICY IF EXISTS canonical_incidents_editor_read ON public.canonical_accident_incidents;
 CREATE POLICY canonical_incidents_editor_read
   ON public.canonical_accident_incidents FOR SELECT TO authenticated
   USING (public.has_min_role(auth.uid(),'editor'));
@@ -104,7 +107,7 @@ CREATE POLICY canonical_incidents_editor_read
 -- One statistics row per approved, non-duplicate canonical Report. A single
 -- confirmed Alert is exposed only as linked context; Alerts never add a
 -- second accident row or casualty total.
-CREATE VIEW public.canonical_accident_statistics AS
+CREATE OR REPLACE VIEW public.canonical_accident_statistics AS
 SELECT
   i.id AS incident_id,r.occurred_at,r.county,r.road,r.road_id,r.severity,
   r.latitude,r.longitude,r.vehicles_involved,r.fatalities,

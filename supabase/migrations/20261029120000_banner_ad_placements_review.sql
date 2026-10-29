@@ -10,9 +10,18 @@ ALTER TABLE public.banner_ads
   ADD COLUMN IF NOT EXISTS ends_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS priority INTEGER NOT NULL DEFAULT 0;
 
-ALTER TABLE public.banner_ads
-  ADD CONSTRAINT banner_ads_valid_schedule
-  CHECK (ends_at IS NULL OR starts_at IS NULL OR ends_at >= starts_at);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public.banner_ads'::regclass
+      AND conname = 'banner_ads_valid_schedule'
+  ) THEN
+    ALTER TABLE public.banner_ads
+      ADD CONSTRAINT banner_ads_valid_schedule
+      CHECK (ends_at IS NULL OR starts_at IS NULL OR ends_at >= starts_at);
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS banner_ads_placement_priority_idx
   ON public.banner_ads (placement, priority DESC, created_at DESC);

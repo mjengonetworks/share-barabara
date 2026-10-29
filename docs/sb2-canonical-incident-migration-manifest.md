@@ -45,6 +45,14 @@ Status: review-only integration candidate. No SQL was executed.
 - Public RPCs must remain execute-only interfaces. Base canonical tables and
   editorial relationship tables must not receive public write grants.
 
+## Production approval boundary
+
+The exact production SQL approval set is documented in
+[docs/sb2-production-migration-plan.md](sb2-production-migration-plan.md):
+duplicate merge, duplicate suggestions, `incident_content_links`, then
+canonical accident statistics. The transport extension and SB4 geography are
+explicitly deferred pending SB4 identifier coordination.
+
 ## Required next database procedure
 
 Owner approval is required for a disposable PostgreSQL/Supabase environment.

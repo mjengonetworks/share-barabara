@@ -31,14 +31,16 @@ REVOKE ALL ON public.incident_duplicate_suggestions FROM PUBLIC, anon;
 GRANT SELECT, UPDATE ON public.incident_duplicate_suggestions TO authenticated;
 GRANT ALL ON public.incident_duplicate_suggestions TO service_role;
 
+DROP POLICY IF EXISTS "editors review incident duplicate suggestions" ON public.incident_duplicate_suggestions;
 CREATE POLICY "editors review incident duplicate suggestions"
   ON public.incident_duplicate_suggestions FOR SELECT TO authenticated
   USING (public.has_min_role(auth.uid(), 'editor'));
+DROP POLICY IF EXISTS "editors resolve incident duplicate suggestions" ON public.incident_duplicate_suggestions;
 CREATE POLICY "editors resolve incident duplicate suggestions"
   ON public.incident_duplicate_suggestions FOR UPDATE TO authenticated
   USING (public.has_min_role(auth.uid(), 'editor'))
   WITH CHECK (public.has_min_role(auth.uid(), 'editor') AND reviewed_by = auth.uid());
-
+DROP TRIGGER IF EXISTS incident_duplicate_suggestions_touch ON public.incident_duplicate_suggestions;
 CREATE TRIGGER incident_duplicate_suggestions_touch
   BEFORE UPDATE ON public.incident_duplicate_suggestions
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
