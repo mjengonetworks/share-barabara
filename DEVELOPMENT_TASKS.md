@@ -1,5 +1,25 @@
 # Development tasks
 
+## SB 2 — statistics integrity correction candidate — 2026-10-29
+
+- **Corrective migration — PREPARED / NOT EXECUTED:**
+  `20261029130000_published_accident_report_count_deleted_filter_review.sql`
+  uses `CREATE OR REPLACE FUNCTION` to retain the existing signature,
+  `SECURITY DEFINER`, `STABLE`, `search_path`, revoke and grants while adding
+  `deleted_at IS NULL` beside the existing approved and duplicate predicates.
+- **Regression coverage — PREPARED:**
+  `tests/published-accident-report-count.test.mjs` covers published,
+  unpublished, soft-deleted, duplicate and unknown-casualty records and checks
+  that the RPC eligibility set equals canonical eligibility. No production SQL
+  was executed for this candidate.
+- **Separate approval required:** production impact is limited to changing the
+  public report-count RPC from 12 to the 11 canonical eligible reports. The
+  already-applied four migrations must not be rerun.
+- **Candidate verification — PASSED:** focused correction tests passed 2/2;
+  full suite passed 469/469; security suite passed 14/14; production build
+  completed successfully with existing non-fatal bundler warnings; and
+  `git diff --check` passed. No database SQL was executed for this candidate.
+
 ## SB 2 — production backup gate recheck — 2026-10-29
 
 - **Provider backup investigation — COMPLETED / NO RECOVERY POINT:** the

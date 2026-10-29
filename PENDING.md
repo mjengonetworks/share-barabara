@@ -1,5 +1,17 @@
 # Pending
 
+- **SB 2 STATISTICS INTEGRITY CORRECTION — REVIEW REQUIRED / NOT EXECUTED
+  (2026-10-29).** Prepared migration
+  `20261029130000_published_accident_report_count_deleted_filter_review.sql`
+  preserves the existing `published_accident_report_count()` signature,
+  security-definer/search-path contract, duplicate exclusion and grants, while
+  adding `deleted_at IS NULL`. Regression tests cover published, unpublished,
+  soft-deleted, duplicate and unknown-casualty fixtures and compare the RPC
+  eligibility set with canonical statistics. The four prior migrations are not
+  rerun. Focused tests passed 2/2, full suite 469/469, security 14/14, build
+  and `git diff --check` passed. Separate owner approval is required before
+  applying this one SQL file.
+
 - **SB 2 PRODUCTION MIGRATIONS — EXECUTED / STATISTICS CORRECTION REQUIRED
   (2026-10-29).** Existing authenticated Supabase CLI authorization was used
   for Share Barabara only. A 589,228-byte custom-format public-schema backup
