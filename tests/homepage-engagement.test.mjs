@@ -31,6 +31,7 @@ test("global engagement controls and advertising fallback are scoped safely", as
   assert.match(ad, /Your Ad Here/);
   assert.match(ad, /Visit Advertiser/);
   assert.match(ad, /to="\/partner-with-us"/);
+  assert.match(ad, /selectEligibleBannerAds/);
 });
 
 test("advertising management retains admin-gated CRUD and adds edit support", async () => {

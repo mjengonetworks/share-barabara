@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Megaphone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { selectEligibleBannerAds } from "@/lib/banner-ads";
 
 function isPlacementSchemaMissing(error: { code?: string; message?: string }) {
   return (
@@ -42,28 +43,15 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
           .order("created_at", { ascending: false })
           .limit(10);
         if (legacy.error) throw legacy.error;
-        return legacy.data;
+        return selectEligibleBannerAds(legacy.data, placement);
       }
 
-      const now = Date.now();
-      return placementQuery.data
-        .filter((ad) => {
-          const startsAt = ad.starts_at ? Date.parse(ad.starts_at) : Number.NEGATIVE_INFINITY;
-          const endsAt = ad.ends_at ? Date.parse(ad.ends_at) : Number.POSITIVE_INFINITY;
-          return startsAt <= now && endsAt >= now;
-        })
-        .sort((a, b) => {
-          const aExact = a.placement === placement ? 1 : 0;
-          const bExact = b.placement === placement ? 1 : 0;
-          return bExact - aExact;
-        });
+      return selectEligibleBannerAds(placementQuery.data, placement);
     },
     staleTime: 60_000,
   });
 
-  const isSafeDestination = (url: string) => /^https?:\/\//i.test(url);
-  const eligibleAds = ads.filter((ad) => isSafeDestination(ad.link_url));
-  const ad = eligibleAds.length > 0 ? eligibleAds[0] : null;
+  const ad = ads[0] ?? null;
 
   if (ad) {
     return (

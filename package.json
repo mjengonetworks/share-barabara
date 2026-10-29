@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test:security": "node --test tests/ai-security.test.mjs",
+    "test:all": "node --experimental-strip-types --import ./tests/register-node-ts-alias.mjs --test",
     "test:feed-media:staging": "node scripts/verify-feed-media-staging.mjs",
     "format": "prettier --write ."
   },

@@ -1,5 +1,8 @@
 -- REVIEW CANDIDATE ONLY: do not apply without separate database approval.
 -- Extends the existing banner_ads table; it does not create a competing ad system.
+-- Rollback planning: first deploy code that no longer reads the new columns, then
+-- review a separate DROP migration. Do not remove these columns while placement-aware
+-- code is active, and do not delete existing advertisement rows during rollback.
 
 ALTER TABLE public.banner_ads
   ADD COLUMN IF NOT EXISTS placement TEXT NOT NULL DEFAULT 'site-default',

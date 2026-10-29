@@ -54,7 +54,7 @@ test("public newsletter stays gold while ecosystem cards use shared navy glass t
   assert.match(newsletter, /PublicNewsletterCard/);
   assert.match(newsletter, /from-amber-300/);
   assert.match(newsletterForm, /variant === "gold"/);
-  assert.match(newsletterForm, /bg-brand-navy text-white/);
+  assert.match(newsletterForm, /bg-brand-blue text-white hover:bg-brand-navy/);
   assert.match(ecosystem, /from-brand-navy via-brand-blue to-brand-navy/);
   assert.match(ecosystem, /backdrop-blur/);
   assert.match(ecosystem, /text-blue-100/);
