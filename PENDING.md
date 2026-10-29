@@ -1,6 +1,19 @@
 # Pending
 
-- **SB 2 MIGRATION PACKAGE — APPROVAL REQUIRED / NOT EXECUTED (2026-10-29).**
+- **SB 2 PRODUCTION BACKUP GATE — BLOCKED SAFELY (2026-10-29).** The
+  authorized Supabase CLI verified Share Barabara project
+  `yhqoggbntunxvlbcatwj` and returned `walg_enabled: true`,
+  `pitr_enabled: false`, with an empty physical-backup list. No provider
+  snapshot/PITR recovery point exists for this run. PostgreSQL 17 client
+  utilities (`pg_dump`, `pg_restore`, `psql`) are installed locally, but no
+  temporary database password or connection string is available; application
+  publishable keys are not valid dump credentials. No production SQL or dump
+  connection was attempted. The already-approved four-migration set remains
+  unapplied. Minimum prerequisite: an authorized temporary Share Barabara
+  database connection/password, then a nonempty custom-format dump validated
+  with `pg_restore --list`; do not use Mjengo Networks.
+
+- **SB 2 MIGRATION PACKAGE — APPROVED / NOT EXECUTED (2026-10-29).**
   The rerun-hardened migration candidates and exact production procedure are
   pushed on `integration/sb2-canonical-incident-release` at
   `63c84fb8939f72b03fdb156411b57429116cb022`. The requested production SQL

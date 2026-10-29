@@ -1,5 +1,22 @@
 # Development tasks
 
+## SB 2 — production backup gate recheck — 2026-10-29
+
+- **Provider backup investigation — COMPLETED / NO RECOVERY POINT:** the
+  authorized Supabase CLI queried project `yhqoggbntunxvlbcatwj` and returned
+  `walg_enabled: true`, `pitr_enabled: false`, and an empty `backups` list.
+  No provider-managed snapshot or PITR target is available for this execution.
+- **Docker-free client investigation — PARTIAL / CREDENTIAL REQUIRED:**
+  PostgreSQL 17 client utilities (`pg_dump`, `pg_restore`, `psql`) are already
+  installed locally; no PostgreSQL service was used. No temporary database
+  password or connection string is available in the environment, and no dump
+  connection was attempted. No credentials were logged.
+- **Migration execution — BLOCKED SAFELY:** the four already-approved
+  migrations remain unapplied and no production SQL has been executed. The
+  exact prerequisite is a temporary authorized Share Barabara database
+  connection/password, followed by a nonempty custom-format dump validated
+  with `pg_restore --list`.
+
 ## SB 2 — Alert-to-Accident-Report relationships
 
 Status: **application deployed / acceptance pending** (2026-10-29)
@@ -87,10 +104,11 @@ unfinished application changes are not merged here.
   `yhqoggbntunxvlbcatwj` and Share Barabara identity were verified; all four
   approved migration IDs are absent from remote history. The required backup
   attempt failed before dump execution because Supabase CLI requires Docker's
-  `dockerDesktopLinuxEngine`; `psql`/local PostgreSQL are also unavailable.
-  The resulting backup path is zero bytes and is not treated as a backup. No
-  production SQL was executed. Resume requires a valid provider snapshot or
-  working authorized `pg_dump`/PostgreSQL connection before rerunning preflight.
+  `dockerDesktopLinuxEngine`; the local PostgreSQL 17 client is available but
+  has no authorized database connection configured. The resulting backup path
+  is zero bytes and is not treated as a backup. No production SQL was
+  executed. Resume requires a valid provider snapshot or a temporary
+  authorized `pg_dump`/PostgreSQL connection before rerunning preflight.
 - **RLS and authenticated security verification — STATIC PASSED / DATABASE
   PENDING:** verify anonymous, ordinary authenticated and editor policies/RPC
   grants against PostgreSQL.

@@ -1,6 +1,6 @@
 # SB 2 production migration plan
 
-Status: **approval required; no production SQL executed**.
+Status: **approved set; execution blocked pending a validated recovery artifact; no production SQL executed**.
 
 ## Exact SB 2 approval set
 
@@ -37,7 +37,13 @@ RLS policies, grants, triggers, and function signatures for `alerts`,
 `accident_reports`, `auth.users`, `incident_duplicate_suggestions`, and the
 role helper. Confirm that no competing `canonical_accident_sources` table or
 `canonical_link_alert_to_report(uuid,uuid)` function exists. Take a provider
-backup/snapshot and export the relevant row counts and NULL casualty counts.
+backup/snapshot where available and export the relevant row counts and NULL
+casualty counts. The 2026-10-29 check for `yhqoggbntunxvlbcatwj` reported
+PITR disabled and no physical backups, so the fallback is a temporary
+authorized PostgreSQL connection using the installed PostgreSQL 17 client.
+Create a nonempty custom-format dump, validate it with `pg_restore --list`,
+and retain it outside Git before any write. Publishable API keys are not
+database credentials.
 
 ## Post-migration checks
 
