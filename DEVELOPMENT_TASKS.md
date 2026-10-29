@@ -20,6 +20,30 @@
   completed successfully with existing non-fatal bundler warnings; and
   `git diff --check` passed. No database SQL was executed for this candidate.
 
+## SB 2 — statistics integrity correction execution — 2026-10-29
+
+- **Production execution — PASSED:** after confirming the approved source
+  commit and recovery archive, the exact corrective migration was applied once
+  to Share Barabara project `yhqoggbntunxvlbcatwj`; the prior four migrations
+  were not rerun. Migration history was repaired only for version
+  `20261029130000`.
+- **Statistics verification — PASSED:** `published_accident_report_count()`
+  returns 11 as PostgreSQL and `anon`; `canonical_accident_statistics`
+  independently returns 11 rows and 11 distinct Reports; the same predicate
+  yields 11 eligible Reports. One soft-deleted approved Report, duplicates and
+  three unapproved Reports are excluded. One NULL fatalities and one NULL
+  casualties value remain in source data, and one NULL fatalities/injuries pair
+  remains in canonical output.
+- **Security verification — PASSED:** the function remains executable by
+  anon, authenticated and service_role; canonical public read remains
+  available; no table/RLS changes were made by the correction.
+- **Public acceptance:** the public RPC returned 11 under `anon`, and the
+  already-deployed Statistics route had passed HTTP smoke testing. Direct
+  public-domain probing is unavailable in this environment; authenticated
+  browser review remains pending.
+- **Remaining:** recovery restore rehearsal against a disposable database and
+  authenticated browser/user acceptance only. No redeployment was performed.
+
 ## SB 2 — production backup gate recheck — 2026-10-29
 
 - **Provider backup investigation — COMPLETED / NO RECOVERY POINT:** the
