@@ -4,16 +4,24 @@
 
 This update extends the existing Task 70 record; no duplicate task was created.
 
-- **P1 official statistics:** added the reviewed additive migration
-  `20261029150000_official_statistics_management_review.sql` and an authenticated
-  admin manager for source-backed official datasets. Metric type, unit, national
-  scope, reporting period, source URL, verification state, observations and
-  revision audit history are distinct from internal canonical incident counts.
-  Published observations remain immutable and corrections are revision-based.
-  The migration is prepared only; it was not applied and requires separate owner
-  approval. Homepage official metric cards fail closed to “pending verification”
-  when the provenance schema/observation is unavailable, so legacy `yearly_stats`
-  values are not presented as current 2026 official data.
+- **P1 full statistics administration:** extended the reviewed additive migration
+  `20261029150000_official_statistics_management_review.sql` across all existing
+  aggregate tables: yearly, monthly, county, victim, cause, vehicle,
+  time-of-day and road-class statistics. Existing rows remain in place and gain
+  publication status, source organisation/URL/document, reporting period,
+  verification date and append-only revision history. Admin Statistics now edits
+  any historical year, including the yearly table’s `year` primary key, while
+  internal canonical incident counts remain calculated and non-overridable.
+  The sourced official dataset manager supports draft/edit/publish/unpublish and
+  correction revisions. The migration is prepared only; it was not applied and
+  requires separate owner approval. Homepage official metric cards fail closed
+  to “pending verification” when the provenance schema/observation is
+  unavailable, so legacy `yearly_stats` values are not presented as current
+  2026 official data.
+- **Public year selection:** the Statistics year selector now drives the
+  selected-year headline cards, monthly/county/category data and selected-year
+  internal incident summaries/charts. Legacy public reads use publication-status
+  filtering when the migration is active and retry the legacy schema before it.
   Source review: the [KNBS Economic Survey 2026](https://www.knbs.or.ke/wp-content/uploads/2026/04/2026-Economic-Survey.pdf)
   supports 5,009 deaths, 11,648 serious injuries and 8,248 slight injuries for
   the provisional 2025 national series. The instructed NTSA 2026 figure was not
@@ -32,8 +40,8 @@ This update extends the existing Task 70 record; no duplicate task was created.
   public discovery loaders and rendered with the same aspect-ratio treatment as
   report previews; records without usable images retain a neutral fallback.
 
-Evidence: full suite `480/480`, security suite `14/14`, focused hierarchy and
-priority-correction tests `15/15`, production build passed, and `git diff --check`
+Evidence: full suite `482/482`, security suite `14/14`, focused hierarchy and
+priority-correction tests `17/17`, production build passed, and `git diff --check`
 passed. Browser/CUA
 reported no available apps or browsers, so responsive screenshots at 320, 375,
 390, 430, 768, 1024, 1280 and 1440px remain **NOT VERIFIED**. No deployment,

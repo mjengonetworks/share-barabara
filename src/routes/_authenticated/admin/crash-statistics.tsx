@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/admin/crash-statistics")({
   component: CrashStatisticsPage,
 });
 
-type ColumnDef = { key: string; label: string; type: "text" | "number"; step?: string };
+type ColumnDef = { key: string; label: string; type: "text" | "number" | "date"; step?: string };
 type TableName =
   | "yearly_stats"
   | "county_stats"
@@ -30,6 +30,7 @@ type TabDef = {
   queryKey: string;
   orderBy: string;
   columns: ColumnDef[];
+  primaryKey?: string;
 };
 
 const TABS: Record<string, TabDef> = {
@@ -37,6 +38,7 @@ const TABS: Record<string, TabDef> = {
     table: "yearly_stats",
     queryKey: "admin-yearly-stats",
     orderBy: "year",
+    primaryKey: "year",
     columns: [
       { key: "year", label: "Year", type: "number" },
       { key: "fatalities", label: "Fatalities", type: "number" },
@@ -133,9 +135,20 @@ function emptyRow(columns: ColumnDef[]): Record<string, string> {
   return row;
 }
 
-function StatsTableEditor({ table, queryKey, orderBy, columns }: TabDef) {
+const PROVENANCE_COLUMNS: ColumnDef[] = [
+  { key: "publication_status", label: "Publication", type: "text" },
+  { key: "source_organization", label: "Source organisation", type: "text" },
+  { key: "source_url", label: "Source URL", type: "text" },
+  { key: "source_document_url", label: "Source document", type: "text" },
+  { key: "reporting_period_start", label: "Period start", type: "date" },
+  { key: "reporting_period_end", label: "Period end", type: "date" },
+  { key: "verification_date", label: "Verified at", type: "date" },
+];
+
+function StatsTableEditor({ table, queryKey, orderBy, columns, primaryKey = "id" }: TabDef) {
   const queryClient = useQueryClient();
-  const [draft, setDraft] = useState<Record<string, string>>(emptyRow(columns));
+  const allColumns = [...columns, ...PROVENANCE_COLUMNS];
+  const [draft, setDraft] = useState<Record<string, string>>(emptyRow(allColumns));
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: [queryKey],
@@ -156,7 +169,7 @@ function StatsTableEditor({ table, queryKey, orderBy, columns }: TabDef) {
 
   const toPayload = (values: Record<string, string>) => {
     const payload: Record<string, string | number> = {};
-    for (const c of columns) {
+    for (const c of allColumns) {
       const v = values[c.key] ?? "";
       if (c.type === "number") {
         if (v.trim() === "") continue;
@@ -175,7 +188,7 @@ function StatsTableEditor({ table, queryKey, orderBy, columns }: TabDef) {
     },
     onSuccess: () => {
       toast.success("Row added");
-      setDraft(emptyRow(columns));
+      setDraft(emptyRow(allColumns));
       refresh();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -197,7 +210,7 @@ function StatsTableEditor({ table, queryKey, orderBy, columns }: TabDef) {
       const { error } = await supabase
         .from(table as never)
         .update(payload as never)
-        .eq("id", id);
+        .eq(primaryKey, id);
       if (error) throw error;
     },
     onSuccess: refresh,
@@ -222,11 +235,11 @@ function StatsTableEditor({ table, queryKey, orderBy, columns }: TabDef) {
   return (
     <div>
       <div className="mt-4 flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-3">
-        {columns.map((c) => (
+        {allColumns.map((c) => (
           <div key={c.key}>
             <label className="text-xs text-muted-foreground">{c.label}</label>
             <Input
-              type={c.type === "number" ? "number" : "text"}
+              type={c.type === "number" ? "number" : c.type === "date" ? "date" : "text"}
               step={c.step}
               value={draft[c.key] ?? ""}
               onChange={(e) => setDraft({ ...draft, [c.key]: e.target.value })}
@@ -244,7 +257,7 @@ function StatsTableEditor({ table, queryKey, orderBy, columns }: TabDef) {
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              {columns.map((c) => (
+              {allColumns.map((c) => (
                 <th key={c.key} className="whitespace-nowrap px-3 py-2 text-left font-semibold">
                   {c.label}
                 </th>
@@ -254,18 +267,18 @@ function StatsTableEditor({ table, queryKey, orderBy, columns }: TabDef) {
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((row) => (
-              <tr key={row["id"] as string}>
-                {columns.map((c) => (
+              <tr key={String(row[primaryKey])}>
+                {allColumns.map((c) => (
                   <td key={c.key} className="px-3 py-1.5">
                     <Input
-                      type={c.type === "number" ? "number" : "text"}
+                      type={c.type === "number" ? "number" : c.type === "date" ? "date" : "text"}
                       step={c.step}
                       defaultValue={String(row[c.key] ?? "")}
                       onBlur={(e) => {
                         const v = e.target.value.trim();
                         if (v !== String(row[c.key] ?? "")) {
                           update.mutate({
-                            id: row["id"] as string,
+                            id: String(row[primaryKey]),
                             key: c.key,
                             value: v,
                             type: c.type,
@@ -282,7 +295,7 @@ function StatsTableEditor({ table, queryKey, orderBy, columns }: TabDef) {
                     size="sm"
                     className="text-destructive"
                     disabled={remove.isPending}
-                    onClick={() => remove.mutate(row["id"] as string)}
+                    onClick={() => remove.mutate(String(row[primaryKey]))}
                   >
                     Remove
                   </Button>
@@ -308,16 +321,15 @@ function CrashStatisticsPage() {
       <h1 className="mt-1 text-[1.44375rem] font-extrabold">Crash statistics</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Feeds every chart on the public Statistics page. Alerts and accident reports already
-        populate their own live counts automatically — this is for the aggregate national/county
-        figures that don't come from user submissions. These legacy tables are separate from the
-        review-only provenance schema and must not be assumed to be official.
+        populate their own live counts automatically — this manages every aggregate national,
+        county, monthly and category series for any year. Internal report counts remain canonical
+        calculations and cannot be manually overridden here.
       </p>
       <p className="mt-3 max-w-3xl rounded-md border border-caution/40 bg-caution/10 p-3 text-sm text-muted-foreground">
-        These legacy tables do not currently store source URL, publication period, provisional
-        status, or verification date. Treat every existing row as legacy/unverified until its
-        provenance is manually recorded. Editors and administrators may maintain the tables;
-        ordinary contributors cannot. The Task 26 review migration adds the provenance and
-        human-review workflow without changing historical rows, but is not active yet.
+        Existing historical rows are preserved in place. After the reviewed migration is applied,
+        each row also has publication status, source URL/document, reporting period, verification
+        date and append-only correction history. Draft and archived rows stay out of public charts;
+        published figures are still editable only through this authorised admin surface.
       </p>
 
       <StatisticsProposalsPanel />

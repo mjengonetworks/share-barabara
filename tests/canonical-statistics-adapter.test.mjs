@@ -18,7 +18,7 @@ test("statistics adapter prefers canonical RPC and has a safe report-only fallba
 
 test("statistics route consumes the adapter and exposes transport-mode filtering", () => {
   assert.match(route, /loadLiveCanonicalIncidents/);
-  assert.match(route, /useLiveYearReports\(liveTransportMode\)/);
+  assert.match(route, /useLiveYearReports\(liveTransportMode, activeYear\)/);
   assert.match(route, /public canonical verified incidents|canonical verified incidents/);
   for (const mode of ["road", "rail", "aviation", "maritime", "inland_water", "other"]) {
     assert.match(route, new RegExp(`value=\\"${mode}\\"`));

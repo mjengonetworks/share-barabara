@@ -197,14 +197,15 @@ function usePartiesCasualtyCounts() {
  *  aggregated client-side, the live, community-fed counterpart to the
  *  admin-entered yearly_stats figures below. The canonical RPC is preferred
  *  once its migration is active; the adapter falls back to approved Reports. */
-function useLiveYearReports(transportMode: string) {
-  const currentYear = new Date().getFullYear();
+function useLiveYearReports(transportMode: string, targetYear: number) {
   return useQuery({
-    queryKey: ["live-canonical-incidents", currentYear, transportMode],
+    queryKey: ["live-canonical-incidents", targetYear, transportMode],
     queryFn: async () => {
-      const since = new Date(currentYear - 1, 0, 1).toISOString();
+      const since = new Date(targetYear - 1, 0, 1).toISOString();
+      const until = new Date(targetYear + 1, 0, 1).toISOString();
       return loadLiveCanonicalIncidents({
         from: since,
+        to: until,
         transportMode: transportMode === "all" ? null : transportMode,
       });
     },
@@ -282,10 +283,17 @@ function useStat<T>(table: string, order: string, asc = true) {
   return useQuery({
     queryKey: [table, order, asc],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from(table as never)
         .select("*")
+        .eq("publication_status", "published")
         .order(order, { ascending: asc });
+      let { data, error } = await query;
+      if (error && /publication_status|column .* does not exist|schema cache/i.test(error.message ?? "")) {
+        const legacy = await supabase.from(table as never).select("*").order(order, { ascending: asc });
+        data = legacy.data;
+        error = legacy.error;
+      }
       if (error) throw error;
       return (data ?? []) as T[];
     },
@@ -335,7 +343,7 @@ function usePublishedStatisticsProvenance() {
     queryKey: ["published-statistics-provenance"],
     queryFn: async () => {
       const { data, error } = await (supabase.from("statistics_datasets") as any)
-        .select("id,title,metric,source_organization,source_url,methodology,last_verified_at")
+        .select("id,title,metric,metric_type,source_organization,source_url,methodology,last_verified_at,reporting_period_start,reporting_period_end,statistics_observations(value,period_start,period_end,record_status,verification_status,unit)")
         .eq("publication_status", "published")
         .order("last_verified_at", { ascending: false })
         .limit(12);
@@ -347,10 +355,14 @@ function usePublishedStatisticsProvenance() {
         id: string;
         title: string;
         metric: string;
+        metric_type: string | null;
         source_organization: string;
         source_url: string | null;
         methodology: string | null;
         last_verified_at: string | null;
+        reporting_period_start: string | null;
+        reporting_period_end: string | null;
+        statistics_observations: Array<{ value: number; period_start: string; period_end: string; record_status: string; verification_status: string; unit: string }>;
       }>;
     },
     staleTime: 60_000,
@@ -369,6 +381,9 @@ function StatisticsPage() {
     crashes: number;
     registered_vehicles: number | null;
     deaths_per_100k: number | null;
+    source_organization?: string | null;
+    reporting_period_end?: string | null;
+    publication_status?: string | null;
   }>("yearly_stats", "year");
 
   const { data: counties = [] } = useStat<{
@@ -458,7 +473,7 @@ function StatisticsPage() {
   const [liveSeverity, setLiveSeverity] = useState("all");
   const [liveParty, setLiveParty] = useState("all");
   const [liveTransportMode, setLiveTransportMode] = useState("all");
-  const { data: liveReports = [] } = useLiveYearReports(liveTransportMode);
+  const { data: liveReports = [] } = useLiveYearReports(liveTransportMode, activeYear);
   const liveUsesCanonical = liveReports.some((row) => row.source === "canonical");
   const liveFiltered = liveCounty !== "all" || liveSeverity !== "all" || liveParty !== "all" || liveTransportMode !== "all";
 
@@ -467,16 +482,17 @@ function StatisticsPage() {
     (liveSeverity === "all" || r.severity === liveSeverity) &&
     (liveParty === "all" || r.parties_involved.includes(liveParty));
 
-  const jan1ThisYear = new Date(currentYear, 0, 1).getTime();
-  const dayOfYear = Math.floor((Date.now() - jan1ThisYear) / 86_400_000);
-  const jan1LastYear = new Date(currentYear - 1, 0, 1).getTime();
+  const jan1ThisYear = new Date(activeYear, 0, 1).getTime();
+  const isIncompleteYear = activeYear === currentYear;
+  const dayOfYear = isIncompleteYear ? Math.floor((Date.now() - jan1ThisYear) / 86_400_000) : 366;
+  const jan1LastYear = new Date(activeYear - 1, 0, 1).getTime();
 
   const thisYearReports = liveReports.filter(
-    (r) => new Date(r.occurred_at).getFullYear() === currentYear && matchesLiveFilters(r),
+    (r) => new Date(r.occurred_at).getFullYear() === activeYear && matchesLiveFilters(r),
   );
   const lastYearToDateReports = liveReports.filter((r) => {
     const occurred = new Date(r.occurred_at);
-    if (occurred.getFullYear() !== currentYear - 1) return false;
+    if (occurred.getFullYear() !== activeYear - 1) return false;
     const doy = Math.floor((occurred.getTime() - jan1LastYear) / 86_400_000);
     return doy <= dayOfYear && matchesLiveFilters(r);
   });
@@ -484,7 +500,7 @@ function StatisticsPage() {
   const thisYearSummary = summarizeIncidentRows(thisYearReports);
   const lastYearSummary = summarizeIncidentRows(lastYearToDateReports);
 
-  const liveMonthly = reportMonthBuckets(thisYearReports, currentYear).map((bucket, i) => ({
+  const liveMonthly = reportMonthBuckets(thisYearReports, activeYear).map((bucket, i) => ({
     label: MONTHS[i],
     accidents: bucket.reports,
     fatalities: bucket.fatalities.value,
@@ -499,6 +515,8 @@ function StatisticsPage() {
   const liveIncidentTypes = Object.entries(groupIncidentRows(thisYearSummary.rows, "incident_type"))
     .sort(([, a], [, b]) => b - a)
     .slice(0, 8);
+  const livePeriodLabel = isIncompleteYear ? `${activeYear} so far` : `${activeYear}`;
+  const liveComparisonLabel = isIncompleteYear ? "the same point" : "the previous year";
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-4 py-8 sm:px-6 sm:py-10">
@@ -511,6 +529,21 @@ function StatisticsPage() {
         Reports without confirmed casualty totals are excluded from numeric sums rather than counted
         as zero.
       </p>
+
+      <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3" aria-label="Statistics year selector">
+        <div>
+          <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Displayed reporting year</Label>
+          <p className="mt-1 text-sm text-muted-foreground">Year-dependent headline metrics, tables and charts use this selection.</p>
+        </div>
+        {availableYears.length > 0 ? (
+          <Select value={String(activeYear)} onValueChange={(v) => setStatYear(Number(v))}>
+            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {availableYears.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        ) : null}
+      </section>
 
       <section
         className="mt-6 rounded-lg border border-border bg-card p-5 card-elevated"
@@ -536,7 +569,7 @@ function StatisticsPage() {
               <article key={dataset.id} className="rounded border border-border p-3">
                 <p className="font-semibold">{dataset.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {dataset.metric} · {dataset.source_organization}
+                  {dataset.metric_type ?? dataset.metric} · {dataset.source_organization}
                   {dataset.last_verified_at
                     ? ` · verified ${new Date(dataset.last_verified_at).toLocaleDateString("en-KE", { timeZone: "Africa/Nairobi" })}`
                     : ""}
@@ -544,6 +577,12 @@ function StatisticsPage() {
                 {dataset.methodology ? (
                   <p className="mt-2 text-sm text-muted-foreground">{dataset.methodology}</p>
                 ) : null}
+                {dataset.statistics_observations?.filter((observation) => observation.record_status === "published").map((observation) => (
+                  <p key={`${dataset.id}-${observation.period_start}`} className="mt-2 text-sm font-semibold">
+                    {num(observation.value)} {observation.unit} · {observation.period_start} to {observation.period_end}
+                    {observation.verification_status === "provisional" ? " · provisional" : ""}
+                  </p>
+                ))}
                 {dataset.source_url ? (
                   <a
                     href={dataset.source_url}
@@ -668,7 +707,7 @@ function StatisticsPage() {
             Live · {liveUsesCanonical ? "canonical verified incidents" : "approved Share Barabara reports"}
           </p>
         </div>
-        <h2 className="mt-2 text-[1.7325rem] font-extrabold">{currentYear} so far</h2>
+        <h2 className="mt-2 text-[1.7325rem] font-extrabold">{livePeriodLabel}</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Share Barabara reported data only — not Kenya's official national road-safety total. The
           figures below use the canonical verified incident read model when available, otherwise
@@ -774,7 +813,7 @@ function StatisticsPage() {
               >
                 <p className={`font-display text-4xl font-extrabold ${s.tone}`}>{num(s.curr)}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {s.label} in {currentYear}
+                  {s.label} in {activeYear}
                   {liveFiltered ? " (filtered)" : ""}
                 </p>
                 {change !== null ? (
@@ -784,7 +823,7 @@ function StatisticsPage() {
                     }`}
                   >
                     {change > 0 ? "+" : ""}
-                    {change}% vs the same point in {currentYear - 1}
+                    {change}% vs {liveComparisonLabel} in {activeYear - 1}
                   </p>
                 ) : null}
               </div>
@@ -975,23 +1014,6 @@ function StatisticsPage() {
             </p>
             <h2 className="mt-2 text-[1.7325rem] font-extrabold">Kenya road crash statistics</h2>
           </div>
-          {availableYears.length > 0 ? (
-            <div>
-              <Label className="text-xs text-muted-foreground">Year</Label>
-              <Select value={String(activeYear)} onValueChange={(v) => setStatYear(Number(v))}>
-                <SelectTrigger className="w-28">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map((y) => (
-                    <SelectItem key={y} value={String(y)}>
-                      {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : null}
         </div>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           These are legacy stored aggregate records with no source provenance in the repository.
@@ -1043,6 +1065,10 @@ function StatisticsPage() {
             >
               <p className={`font-display text-3xl font-extrabold ${s.tone}`}>{s.value}</p>
               <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {latest.source_organization ? `Source: ${latest.source_organization}` : "Source not recorded"}
+                {latest.reporting_period_end ? ` · as of ${latest.reporting_period_end}` : ""}
+              </p>
             </div>
           ))}
         </div>
