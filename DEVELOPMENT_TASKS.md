@@ -17,6 +17,31 @@
   connection/password, followed by a nonempty custom-format dump validated
   with `pg_restore --list`.
 
+## SB 2 — approved production migration execution — 2026-10-29
+
+- **Recovery artifact — PASSED:** the existing authenticated Supabase CLI
+  session generated a temporary Share Barabara PostgreSQL login. A
+  public-schema custom-format archive was created outside Git at
+  `E:\sb2-production-backup-20261029-cli-postgres.dump`; it is 589,228 bytes,
+  has 910 TOC entries, and `pg_restore --list` passed. No credential was
+  persisted or committed. A live restore rehearsal was not run because no
+  separate disposable database is authorized; the archive is structurally
+  recoverable and must be retained for recovery.
+- **Production migrations — EXECUTED:** exactly the four approved files were
+  applied in order: duplicate merge, duplicate suggestions,
+  `incident_content_links`, then canonical accident statistics. Supabase
+  migration history was repaired to mark exactly those four versions applied.
+  No SB4, transport, advertising or alert-lifecycle migration was applied.
+- **Database verification — PASSED WITH ONE CORRECTION BLOCKER:** reports and
+  alerts remain 15 and 14; canonical incidents are 11, one per distinct
+  canonical report; one NULL fatalities and one NULL casualties value remain;
+  RLS is enabled on all four new tables; anonymous/authenticated table
+  inserts are denied; editor relationship RPC grants exist. However,
+  `published_accident_report_count()` returns 12 because its approved-report
+  predicate does not exclude one soft-deleted approved report; canonical
+  statistics correctly return 11. A separate reviewed corrective SQL change
+  is required before declaring statistics integrity complete.
+
 ## SB 2 — Alert-to-Accident-Report relationships
 
 Status: **application deployed / acceptance pending** (2026-10-29)

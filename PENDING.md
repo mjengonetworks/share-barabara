@@ -1,5 +1,18 @@
 # Pending
 
+- **SB 2 PRODUCTION MIGRATIONS — EXECUTED / STATISTICS CORRECTION REQUIRED
+  (2026-10-29).** Existing authenticated Supabase CLI authorization was used
+  for Share Barabara only. A 589,228-byte custom-format public-schema backup
+  passed `pg_restore --list`. Exactly the approved migrations
+  `20261005120000`, `20261006110000`, `20261029100000` and `20261028130000`
+  were applied in order, and their migration history entries were repaired.
+  Verification preserved 15 reports, 14 alerts, 11 canonical eligible rows,
+  one NULL fatalities value and one NULL casualties value; RLS and write
+  denial checks passed. A defect remains: `published_accident_report_count()`
+  returns 12 because it omits `deleted_at IS NULL`, while canonical statistics
+  return 11. Do not declare statistics acceptance complete or apply further
+  SQL until a separately reviewed corrective function change is approved.
+
 - **SB 2 PRODUCTION BACKUP GATE — BLOCKED SAFELY (2026-10-29).** The
   authorized Supabase CLI verified Share Barabara project
   `yhqoggbntunxvlbcatwj` and returned `walg_enabled: true`,
@@ -13,7 +26,7 @@
   database connection/password, then a nonempty custom-format dump validated
   with `pg_restore --list`; do not use Mjengo Networks.
 
-- **SB 2 MIGRATION PACKAGE — APPROVED / NOT EXECUTED (2026-10-29).**
+- **SB 2 MIGRATION PACKAGE — APPROVED / EXECUTED; SEE CORRECTION BLOCKER ABOVE (2026-10-29).**
   The rerun-hardened migration candidates and exact production procedure are
   pushed on `integration/sb2-canonical-incident-release` at
   `63c84fb8939f72b03fdb156411b57429116cb022`. The requested production SQL

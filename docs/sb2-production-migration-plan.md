@@ -1,6 +1,6 @@
 # SB 2 production migration plan
 
-Status: **approved set; execution blocked pending a validated recovery artifact; no production SQL executed**.
+Status: **approved set executed; one statistics correction is pending separate review**.
 
 ## Exact SB 2 approval set
 
