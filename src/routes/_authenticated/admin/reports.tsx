@@ -70,6 +70,7 @@ type ReportDraft = {
   latitude: number | null;
   longitude: number | null;
   severity: string;
+  featured: boolean;
   vehicles_involved: number | null;
   casualties: number | null;
   fatalities: number | null;
@@ -298,6 +299,7 @@ function ReportsQueuePage() {
             latitude: r.latitude,
             longitude: r.longitude,
             severity: r.severity,
+            featured: Boolean((r as { featured?: boolean | null }).featured),
             vehicles_involved: r.vehicles_involved,
             casualties: r.casualties,
             fatalities: r.fatalities,
@@ -458,6 +460,10 @@ function ReportsQueuePage() {
                           </SelectContent>
                         </Select>
                       </div>
+                      <label className="flex items-center gap-2 self-end rounded border border-dashed border-border bg-muted/30 p-3 text-sm">
+                        <Checkbox checked={d.featured} onCheckedChange={(value) => set({ featured: value === true })} />
+                        <span><strong>Featured Report</strong><span className="ml-1 text-xs text-muted-foreground">editor-selected public coverage</span></span>
+                      </label>
                       <div className="sm:col-span-2 rounded border border-dashed border-border bg-muted/30 p-3">
                         <Label>Point location (optional)</Label>
                         <LocationButton idPrefix={`report-${r.id}-location`} latitude={d.latitude} longitude={d.longitude} onLocate={(latitude, longitude) => set({ latitude, longitude })} />

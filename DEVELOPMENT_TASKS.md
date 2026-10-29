@@ -1,5 +1,43 @@
 # Development tasks
 
+## Task 70 / SB 2 — Reports, Alerts and view-count correction — IMPLEMENTED / DEPLOYMENT PENDING — 2026-10-29
+
+This extends the existing Task 70 record; no duplicate task was created.
+
+- Reports and Alerts now have distinct Latest, Featured and Trending / Most
+  Viewed sections. Featured content reads an explicit editorial `featured`
+  selection instead of deriving Featured from severity or silently substituting
+  Latest content.
+- When at least two eligible selections exist, the public submission form shares
+  one balanced desktop three-column row with two Featured cards; mobile stacks
+  the same cards without horizontal overflow. Public spacing was tightened at
+  the Reports, Alerts and News page shells without changing the established
+  brand system or content contracts.
+- Admin Reports exposes a Featured Report toggle in the existing editorial
+  editor. Admin Alerts exposes the same role-gated selection from the existing
+  actions menu. The additive migration below is required before those writes
+  can operate in production.
+- News, Reports and Alerts now use shared session-scoped view recording. A
+  reader returning to the same detail page in one browser session is not counted
+  repeatedly; existing event histories and genuine popularity ranking are not
+  reset or fabricated. Production audit confirmed existing persistence: 1,153
+  news events, 81 report events and 104 alert events.
+
+Reviewed migration candidate: `20261029170000_public_incident_featured_selection_review.sql`.
+It adds nullable-safe boolean selection fields with false defaults and partial
+indexes only; it does not delete, rewrite or publish existing records. It has
+not been executed and requires separate migration approval.
+
+Evidence: focused correction tests `16/16`, full suite `486/486`, security
+suite `14/14`, production build and `git diff --check` passed. The verified
+production baseline remains application commit
+`2694f5cb2d0b09f4e9b311e7755f5a42ec6456cb` on Worker
+`778300c3-f7c8-499f-823b-735c239145f9` at 100%; no deployment was performed.
+Browser visual verification is **NOT VERIFIED**: CUA returned no available apps
+or browsers, and no local Chrome, Edge, Firefox, Playwright or Puppeteer surface
+was available. Owner screenshots at 320, 375, 390, 430, 768, 1024, 1280 and
+1440px remain pending.
+
 ## Task 70 / SB 2 — priority statistics and public design correction — DEPLOYED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This update extends the existing Task 70 record; no duplicate task was created.

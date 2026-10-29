@@ -4,23 +4,24 @@ import test from "node:test";
 
 const source = (file) => readFile(file, "utf8");
 
-test("report submission is a post-group card rather than a persistent sidebar", async () => {
+test("report submission shares a compact three-column row with selected featured reports", async () => {
   const [reports, form] = await Promise.all([
     source("src/routes/reports.index.tsx"),
     source("src/components/site/report-form.tsx"),
   ]);
   assert.doesNotMatch(reports, /lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/);
   assert.match(reports, /reportSubmissionCard/);
-  assert.match(reports, /featured\.length > 0 \? <div className="mt-5 grid gap-5 lg:grid-cols-3">/);
+  assert.match(reports, /featured\.length >= 2[\s\S]*lg:grid-cols-3[\s\S]*reportSubmissionCard/);
+  assert.match(reports, /title="Featured Accident Reports"/);
   assert.match(form, /Additional details \(optional\)/);
 });
 
-test("hazard submission is a post-critical-group card without a persistent sidebar", async () => {
+test("hazard submission shares a compact three-column row with selected featured alerts", async () => {
   const alerts = await source("src/routes/alerts.index.tsx");
   assert.doesNotMatch(alerts, /lg:grid-cols-\[minmax\(0,1fr\)_minmax\(280px,30%\)\]/);
   assert.match(alerts, /hazardSubmissionCard/);
-  assert.match(alerts, /titles=\{\["Critical now", "High priority", "Act before travel"\]\}/);
-  assert.match(alerts, /<div className="mt-5 grid min-w-0 gap-5 md:grid-cols-2 lg:grid-cols-3">/);
+  assert.match(alerts, /featured\.length >= 2[\s\S]*lg:grid-cols-3[\s\S]*hazardSubmissionCard/);
+  assert.match(alerts, /title="Featured Alerts"/);
   assert.match(alerts, /id="alert-form"/);
 });
 
@@ -33,8 +34,8 @@ test("category grouping and incident grouping remain separate from urgent collec
   assert.match(news, /groupLatestByEntity/);
   assert.match(alerts, /IncidentEntityGroups/);
   assert.match(reports, /IncidentEntityGroups/);
-  assert.match(alerts, /CompactIncidentColumns/);
-  assert.match(reports, /CompactIncidentColumns/);
+  assert.match(alerts, /title="Latest Alerts"/);
+  assert.match(reports, /title="Latest Accident Reports"/);
 });
 
 test("incident images fail closed to compact intentional fallbacks", async () => {

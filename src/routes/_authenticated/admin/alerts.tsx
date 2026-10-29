@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ExternalLink, Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Eye, MoreVertical, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,6 +120,19 @@ function AlertsAdminPage() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const setFeaturedMutation = useMutation({
+    mutationFn: async ({ id, featured }: { id: string; featured: boolean }) => {
+      const { error } = await supabase.from("alerts").update({ featured } as never).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Featured selection updated");
+      queryClient.invalidateQueries({ queryKey: ["admin-alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["alerts"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -333,6 +346,9 @@ function AlertsAdminPage() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-2 size-4" /> Edit alert</a></DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setFeaturedMutation.mutate({ id: a.id, featured: !Boolean((a as { featured?: boolean | null }).featured) })}>
+                        <Sparkles className="mr-2 size-4" /> {Boolean((a as { featured?: boolean | null }).featured) ? "Remove from Featured" : "Set as Featured"}
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         onClick={() => remove.mutate(a.id)}

@@ -30,6 +30,7 @@ import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
 import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
+import { recordPublicView } from "@/lib/view-tracking";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   loader: async ({ params }) => {
@@ -96,7 +97,7 @@ function AlertDetail() {
   useEffect(() => {
     if (!alert || recordedFor.current === alert.id) return;
     recordedFor.current = alert.id;
-    void supabase.from("alert_views").insert({ alert_id: alert.id }).then();
+    void recordPublicView("alert_views", "alert_id", alert.id);
   }, [alert]);
 
   const people = alert ? [alert.user_id] : [];

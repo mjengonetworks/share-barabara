@@ -127,7 +127,7 @@ test("alerts and reports listings use separate three-card editorial sections", (
     assert.match(route, /EditorialBand tone="plain"/);
     assert.doesNotMatch(route, /<ul className="mt-6 space-y-6">/);
   }
-  assert.match(alerts, /Important \/ Critical Alerts/);
+  assert.match(alerts, /Featured Alerts/);
   assert.match(alerts, /Latest Alerts/);
   assert.match(reports, /Featured Accident Reports/);
   assert.match(reports, /Latest Accident Reports/);

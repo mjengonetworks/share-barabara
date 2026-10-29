@@ -33,6 +33,7 @@ import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { ReportPreviewCard } from "@/components/site/discovery-sections";
 import { socialHead } from "@/lib/seo";
 import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
+import { recordPublicView } from "@/lib/view-tracking";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -120,7 +121,7 @@ function ReportDetail() {
   useEffect(() => {
     if (!report || recordedFor.current === report.id) return;
     recordedFor.current = report.id;
-    void supabase.from("accident_report_views").insert({ report_id: report.id }).then();
+    void recordPublicView("accident_report_views", "report_id", report.id);
   }, [report]);
 
   const people = report ? ([report.user_id, report.reviewed_by].filter(Boolean) as string[]) : [];

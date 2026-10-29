@@ -29,6 +29,7 @@ import {
 } from "@/components/site/public-ui";
 import { socialHead } from "@/lib/seo";
 import { selectRankedUnique } from "@/lib/trending";
+import { recordPublicView } from "@/lib/view-tracking";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -171,7 +172,7 @@ function NewsDetail() {
   useEffect(() => {
     if (!article || article.status !== "published" || recordedFor.current === article.id) return;
     recordedFor.current = article.id;
-    void supabase.from("news_views").insert({ news_id: article.id }).then();
+    void recordPublicView("news_views", "news_id", article.id);
   }, [article]);
 
   const { data: related = [] } = useQuery({

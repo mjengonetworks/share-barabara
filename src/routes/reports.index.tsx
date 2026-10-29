@@ -35,7 +35,6 @@ import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
 import { descendantsOf, incidentLabel } from "@/lib/incident-taxonomy";
 import { isAdInterval } from "@/lib/ad-placement";
 import {
-  CompactIncidentColumns,
   IncidentEntityGroups,
   EditorialBand,
   SectionHeader,
@@ -127,7 +126,9 @@ function ReportsPage() {
     );
   });
   const latest = reports.slice(0, 12);
-  const featured = reports.filter((r) => /critical|high/i.test(r.severity ?? "")).slice(0, 12);
+  const featured = reports
+    .filter((r) => Boolean((r as { featured?: boolean | null }).featured))
+    .slice(0, 12);
 
   useEffect(() => {
     if (typeof window === "undefined" || window.location.hash !== "#report-form") return;
@@ -187,7 +188,7 @@ function ReportsPage() {
   );
 
   return (
-    <div className="w-full py-8 sm:py-10">
+    <div className="w-full py-4 sm:py-6">
       <PublicPageHero
         eyebrow="Community reporting"
         title="Crash and incident reports"
@@ -195,31 +196,8 @@ function ReportsPage() {
         primaryCta={{ label: "Submit a report", to: "/reports#report-form" }}
       />
 
-      <div className="mx-auto mt-8 max-w-[1500px] px-4 sm:px-6">
+      <div className="mx-auto mt-5 max-w-[1500px] px-4 sm:px-6">
         <div className="min-w-0">
-            {featured.length > 0 ? (
-              <EditorialBand tone="plain">
-                <SectionHeader
-                  eyebrow="Verified high-severity incidents"
-                  title="Featured Accident Reports"
-                  to="/reports"
-                  actionLabel="View all"
-                />
-                <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {featured.slice(0, 3).map((report) => (
-                    <ReportPreviewCard key={report.id} report={report} />
-                  ))}
-                </div>
-                <div className="mt-5 text-center">
-                  <Link to="/reports" className="text-sm font-bold text-brand-blue underline underline-offset-4">
-                    Read more
-                  </Link>
-                </div>
-              </EditorialBand>
-            ) : null}
-
-            {featured.length > 0 ? <div className="mt-5 grid gap-5 lg:grid-cols-3">{reportSubmissionCard}</div> : null}
-
             {latest.length > 0 ? (
               <EditorialBand tone="plain">
                 <SectionHeader
@@ -241,17 +219,43 @@ function ReportsPage() {
               </EditorialBand>
             ) : null}
 
-            {!featured.length && latest.length > 0 ? <div className="mt-5 grid gap-5 lg:grid-cols-3">{reportSubmissionCard}</div> : null}
-            {!featured.length && !latest.length && !isLoading ? <div className="mt-5 grid gap-5 lg:grid-cols-3">{reportSubmissionCard}</div> : null}
-            <div className="mt-6">
-              <BannerAd placement="reports-list-interval-1" />
-            </div>
+            <EditorialBand tone="pale">
+              <SectionHeader
+                eyebrow="Editor-selected public coverage"
+                title="Featured Accident Reports"
+                to="/reports"
+                actionLabel="View all"
+              />
+              {featured.length ? (
+                <>
+                  <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {featured.slice(0, 3).map((report) => <ReportPreviewCard key={report.id} report={report} />)}
+                  </div>
+                  <div className="mt-4 text-center"><Link to="/reports" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more</Link></div>
+                </>
+              ) : (
+                <p className="mt-4 rounded border border-dashed border-border p-4 text-sm text-muted-foreground">Editors have not selected Featured Reports yet.</p>
+              )}
+            </EditorialBand>
+
+            {featured.length >= 2 ? (
+              <div className="mt-5 grid min-w-0 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {reportSubmissionCard}
+                {featured.slice(0, 2).map((report) => <ReportPreviewCard key={`submission-${report.id}`} report={report} />)}
+              </div>
+            ) : (
+              <div className="mt-5 max-w-xl">{reportSubmissionCard}</div>
+            )}
+
+            <div className="mt-5"><BannerAd placement="reports-list-interval-1" /></div>
             {trending.length > 0 ? (
               <EditorialBand tone="plain">
                 <SectionHeader
-                  eyebrow="Verified activity"
-                  title="Trending Reports"
+                  eyebrow="Ranked by recorded views"
+                  title="Trending / Most Viewed Reports"
                   icon={<Flame className="size-5 text-destructive" />}
+                  to="/reports"
+                  actionLabel="View all"
                 />
                 <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {trending.slice(0, 3).map((report) => (

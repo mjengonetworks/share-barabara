@@ -36,7 +36,6 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import heroRoad from "@/assets/hero-road.jpg";
 import {
-  CompactIncidentColumns,
   IncidentEntityGroups,
   EditorialBand,
   SectionHeader,
@@ -138,7 +137,9 @@ function AlertsPage() {
       (!selectedHazards || selectedHazards.has(a.hazard_type)),
   );
   const latest = alerts.slice(0, 12);
-  const important = alerts.filter((a) => /critical|high/i.test(a.severity ?? "")).slice(0, 12);
+  const featured = alerts
+    .filter((a) => Boolean((a as { featured?: boolean | null }).featured))
+    .slice(0, 12);
 
   const { data: trending = [] } = useQuery({
     queryKey: ["alerts-trending"],
@@ -198,7 +199,7 @@ function AlertsPage() {
   );
 
   return (
-    <div className="w-full py-8 sm:py-10">
+    <div className="w-full py-4 sm:py-6">
       <PublicPageHero
         eyebrow="Community road watch"
         title="Road hazard alerts"
@@ -207,41 +208,8 @@ function AlertsPage() {
         primaryCta={{ label: "Submit an alert", to: "/alerts#alert-form" }}
       />
 
-      <div className="mx-auto mt-8 max-w-[1500px] px-4 sm:px-6">
+      <div className="mx-auto mt-5 max-w-[1500px] px-4 sm:px-6">
         <div className="min-w-0">
-            {important.length > 0 ? (
-              <EditorialBand tone="pale">
-                <SectionHeader
-                  eyebrow="Urgent road watch"
-                  title="Important / Critical Alerts"
-                  to="/alerts"
-                  actionLabel="View all"
-                />
-                <div className="mt-5">
-                  <CompactIncidentColumns
-                    items={important as PublicIncidentCard[]}
-                    kind="alert"
-                    titles={["Critical now", "High priority", "Act before travel"]}
-                    placement="alerts-important"
-                    renderActions={alertActions}
-                  />
-                </div>
-              </EditorialBand>
-            ) : null}
-
-            <div className="mt-5 grid min-w-0 gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {hazardSubmissionCard}
-            </div>
-
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4">
-              <p className="text-sm text-muted-foreground">
-                Seen a road, bridge or drainage problem that isn't an immediate hazard?
-              </p>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/infrastructure-issues">Report an infrastructure issue</Link>
-              </Button>
-            </div>
-
             {latest.length > 0 ? (
               <EditorialBand tone="plain">
                 <SectionHeader
@@ -262,14 +230,39 @@ function AlertsPage() {
                 </div>
               </EditorialBand>
             ) : null}
-            <div className="mt-6">
-              <BannerAd placement="alerts-list-interval-1" />
-            </div>
+
+            <EditorialBand tone="pale">
+              <SectionHeader
+                eyebrow="Editor-selected public road watch"
+                title="Featured Alerts"
+                to="/alerts"
+                actionLabel="View all"
+              />
+              {featured.length ? (
+                <>
+                  <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {featured.slice(0, 3).map((alert) => <AlertPreviewCard key={alert.id} alert={alert as any} />)}
+                  </div>
+                  <div className="mt-4 text-center"><Link to="/alerts" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more</Link></div>
+                </>
+              ) : (
+                <p className="mt-4 rounded border border-dashed border-border p-4 text-sm text-muted-foreground">Editors have not selected Featured Alerts yet.</p>
+              )}
+            </EditorialBand>
+
+            {featured.length >= 2 ? (
+              <div className="mt-5 grid min-w-0 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {hazardSubmissionCard}
+                {featured.slice(0, 2).map((alert) => <AlertPreviewCard key={`submission-${alert.id}`} alert={alert as any} />)}
+              </div>
+            ) : <div className="mt-5 max-w-xl">{hazardSubmissionCard}</div>}
+
+            <div className="mt-5"><BannerAd placement="alerts-list-interval-1" /></div>
             {trending.length > 0 ? (
               <EditorialBand tone="plain">
                 <SectionHeader
-                  eyebrow="Verified activity"
-                  title="Most Viewed Alerts"
+                  eyebrow="Ranked by recorded views"
+                  title="Trending / Most Viewed Alerts"
                   icon={<Flame className="size-5 text-destructive" />}
                 />
                 <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

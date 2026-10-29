@@ -1,5 +1,22 @@
 # Pending
 
+- **TASK 70 / SB 2 REPORTS, ALERTS AND VIEW-COUNT CORRECTION — IMPLEMENTED /
+  DEPLOYMENT AND VISUAL ACCEPTANCE PENDING (2026-10-29).** Reports and Alerts
+  now use separate Latest, Featured and Trending / Most Viewed sections. Featured
+  is an explicit editorial selection, not a severity or newest-content fallback.
+  Admin Report editing and Alert actions expose role-gated Featured selection;
+  public submission forms share a three-column desktop row with two selected
+  Featured cards when available. News, Reports and Alerts use session-scoped
+  view-event deduplication while preserving existing histories and ranking data.
+  Candidate migration
+  `20261029170000_public_incident_featured_selection_review.sql` is additive and
+  remains unapplied pending separate approval. Full suite `486/486`, security
+  `14/14`, focused correction tests `16/16`, build and diff checks pass. Latest
+  production remains Worker `778300c3-f7c8-499f-823b-735c239145f9` from
+  application commit `2694f5cb2d0b09f4e9b311e7755f5a42ec6456cb`; no deployment
+  was performed. CUA returned no browser surfaces and no local browser runner is
+  installed, so visual screenshots and owner acceptance remain pending.
+
 - **TASK 70 / SB 2 PRIORITY CORRECTION — DEPLOYED / LIVE TESTING AND OWNER
   ACCEPTANCE PENDING (2026-10-29).** Official national statistics now have a
   reviewed admin/provenance path separate from internal canonical incidents;
