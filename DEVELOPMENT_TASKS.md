@@ -2,9 +2,10 @@
 
 ## Homepage, statistics, navigation, engagement and advertising workstream
 
-Status: implementation and automated verification complete; deployment approval pending on `feat/homepage-stats-engagement-ads`.
+Status: deployed on 29 October 2026; implementation and automated verification complete, with live testing, user acceptance and migration approval still pending.
 
 Baseline: `b8487ffc5f63326a98729839d7e0b103044466e8` (the deployed footer release).
+Active production Worker: `c193a8dd-725d-403e-9334-0446d1c86236`.
 
 ### Completed before this workstream
 
@@ -65,3 +66,79 @@ Baseline: `b8487ffc5f63326a98729839d7e0b103044466e8` (the deployed footer releas
 - Live browser verification passed for homepage responsive widths 320, 375, 390, 430, 440, 768, 1024, 1280 and 1440px, with no horizontal overflow or page errors.
 - Live report hash navigation mounted and scrolled to `#report-form`; Partner With Us loaded and rejected invalid required fields.
 - The advertising placement migration remains unapplied and was not part of this deployment.
+
+## Pending Live Testing / User Acceptance
+
+These items remain intentionally open after deployment. Deployment does not mark the workstream fully complete.
+
+### SB1-HPA-01 — Report submission and navigation
+
+Status: **Pending Live Testing**
+
+- Tested and passed: automated return-target contracts; candidate browser verification of `/reports#report-form`, conditional form mounting after data load, hash scrolling, responsive layout and unauthenticated navigation.
+- Still unverified: authenticated live form opening, submission, validation, persistence, server errors, success feedback and post-submission routing/refresh behavior.
+- Dependency: owner-provided authorized test account or safe staging environment; do not create an actual public report without explicit test authorization.
+- Acceptance criteria: an authorized user reaches the mounted form from the footer/hash route, submits an approved test payload, sees correct validation and success/error feedback, persistence is confirmed, and no unauthorized path can submit or expose data.
+
+### SB1-HPA-02 — Partner With Us enquiry flow
+
+Status: **Pending Live Testing**
+
+- Tested and passed: source-level validation and existing `partner_enquiries` persistence contract; candidate/live browser rendering; invalid required fields are rejected; no real production enquiry was created.
+- Still unverified: valid live submission, database persistence, administrator visibility, confirmation behavior, duplicate handling and production error feedback.
+- Dependency: authorized test account or an owner-approved disposable test procedure that avoids unwanted production records.
+- Acceptance criteria: a valid enquiry is safely accepted or clearly rejected, persistence and admin visibility are confirmed, validation errors are actionable, confirmation is accurate, and test data is removed or retained only under owner direction.
+
+### SB1-HPA-03 — Advertising administration
+
+Status: **Pending Live Testing**
+
+- Tested and passed: admin route contracts, edit controls, placement/date/priority fields, admin gating tests and safe URL-selection tests.
+- Still unverified: authenticated administrator creation, editing, activation/deactivation, scheduling, priority changes, preview behavior and unsafe URL rejection against the live application.
+- Dependency: authorized administrator test access; the public site must not be granted inventory-management permissions.
+- Acceptance criteria: only authorized administrators can manage ads; placement, lifecycle, priority and safe destination rules persist correctly; inactive, expired and unsafe records cannot serve publicly.
+
+### SB1-HPA-04 — Advertising migration review and approval
+
+Status: **Pending Owner Approval**
+
+- Tested and passed: additive migration inspection, compatibility fallback, default preservation for existing rows, public active-window policy design and editor RLS review.
+- Still unverified: owner approval, controlled execution, live schema inspection, rollback rehearsal and post-migration data verification.
+- Dependency: separate owner approval for `supabase/migrations/20261029120000_banner_ad_placements_review.sql`; migration is **not applied**.
+- Acceptance criteria: migration is reviewed for RLS, permissions, indexes, constraints, existing-ad compatibility and rollback; execution is separately authorized and logged; no production SQL runs before approval.
+
+### SB1-HPA-05 — Live advertising behavior
+
+Status: **Pending Live Testing**
+
+- Tested and passed: automated placement selection, priority ordering, active/inactive filtering, start/end-date filtering, unsafe URL exclusion and legacy-schema fallback; live assigned advertisements and Partner With Us links were observed.
+- Still unverified: complete live matrix across named placements, legacy advertisements, date boundaries, expired ads, priority ties and empty-slot fallback after real admin data changes.
+- Dependency: authorized admin access and, for new placement/date fields, approved execution of the advertising migration.
+- Acceptance criteria: the correct active ad serves in each placement; priority and date windows are deterministic; expired/inactive/unsafe ads never serve; empty placements show `Your Ad Here` and link to `/partner-with-us`; legacy ads continue working before migration.
+
+### SB1-HPA-06 — Accident statistics integrity
+
+Status: **Pending User Acceptance**
+
+- Tested and passed: approved-report filtering, duplicate exclusion contracts, unknown casualty preservation, honest unavailable states and non-fabrication regressions.
+- Still unverified: owner/user acceptance of the deployed count and presentation against current approved-report data, including duplicate incidents and unknown casualty examples.
+- Dependency: SB 2 canonical incident identity/statistics infrastructure and an owner-approved review of representative live records.
+- Acceptance criteria: homepage and Statistics values count unique approved incidents, exclude drafts/rejected records and duplicate reports, never treat unknown casualties as zero, and clearly distinguish platform-recorded data from national totals.
+
+### SB1-HPA-07 — Live authenticated security
+
+Status: **Pending Live Testing**
+
+- Tested and passed: automated RBAC/RLS/security contracts, signed-out return-target validation, server-side role checks and fail-closed public data rules.
+- Still unverified: live authorized and unauthorized account behavior for report submission, Partner enquiries, advertising administration and related persistence paths.
+- Dependency: authorized accounts representing signed-out, ordinary signed-in and administrator roles, or a safe staging environment.
+- Acceptance criteria: unauthorized users are rejected, ordinary users cannot manage ads or access private records, authorized actions persist only permitted data, RLS remains enforced, and no sensitive error details or cross-user data are exposed.
+
+### SB1-HPA-08 — Final visual acceptance
+
+Status: **Pending User Acceptance**
+
+- Tested and passed: Chrome responsive checks at 320, 375, 390, 430, 440, 768, 1024, 1280 and 1440px; no horizontal overflow; homepage, footer, report hash navigation and Partner With Us layouts rendered without page errors.
+- Still unverified: owner review of the deployed homepage hierarchy, accident statistics, advertisements, report navigation and Partner With Us presentation on representative desktop and mobile devices.
+- Dependency: owner review of the live production URL; authenticated visual states may require test access.
+- Acceptance criteria: owner confirms the deployed layouts are visually acceptable, controls remain readable and accessible, no clipping/overlap occurs, and the homepage, reports, ads and Partner With Us sections preserve the intended Share Barabara design.
