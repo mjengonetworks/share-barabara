@@ -590,3 +590,19 @@ Page-level composite exclusion keys now remove the current record, earlier relat
 
 Focused tests passed `21/21`; full suite passed `385/388`, with the three unchanged Editorial AI provider/source tests still failing under the repository's direct Node runner because of extensionless/`@/integrations` module resolution. Security tests passed `14/14`; production build and `git diff --check` passed. Public smoke routes `/`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/statistics` and `/feed` returned HTTP 200. Browser visual verification remains pending because CUA initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`; HTTP smoke checks do not establish rendered visual acceptance. Live provider testing was not performed.
 
+## SB 2 deployment gate — 2026-10-29
+
+- Candidate `integration/sb2-canonical-incident-release` remains not deployed.
+- Active production Worker rechecked: `c193a8dd-725d-403e-9334-0446d1c86236`,
+  100% traffic. Wrangler reports `Unknown (deployment)` / `Unknown
+  (version_upload)` and provides no Git SHA, tag or message.
+- Application-only compatibility is code-verified: Statistics and the admin
+  relationship panel retry legacy `accident_reports` reads when
+  `duplicate_of_report_id` is absent. This does not replace live PostgreSQL
+  acceptance.
+- Full suite 462/462, security 14/14, production build and `git diff --check`
+  pass. No production SQL or migration was executed.
+- Deployment remains pending a verifiable production source/export so newer
+  deployed changes cannot be overwritten. Browser/authenticated acceptance,
+  disposable database/RLS testing, SB4 geography integration, migration
+  approval and final user acceptance also remain open.

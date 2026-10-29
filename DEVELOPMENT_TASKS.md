@@ -4,6 +4,12 @@
 
 Status: **implementation candidate / not deployed** (2026-10-29)
 
+Latest application-only compatibility review: the candidate now retries
+legacy `accident_reports` reads when `duplicate_of_report_id` is not present,
+so the Statistics page and editorial relationship panel do not require the
+unapplied duplicate/relationship migrations merely to render. This is a
+code-level compatibility result, not live database acceptance.
+
 Implemented on `fix/editorial-ai-source-fidelity`:
 
 - additive `incident_content_links` model for editor-confirmed Alert → approved
@@ -99,4 +105,23 @@ unfinished application changes are not merged here.
   unverified in a real browser.
 - **Production deployment and production migration — PENDING:** Worker
   `c193a8dd-725d-403e-9334-0446d1c86236` is live, but its Git source is
-  unavailable. Separate owner approval remains required.
+  unavailable (`wrangler versions view` reports `Unknown (version_upload)`),
+  so the candidate cannot yet be proven to preserve newer deployed source
+  changes. The approved application-only deployment is gated on a verifiable
+  production source/export or an owner-approved deployment baseline. No
+  production migration is approved or executed.
+
+## SB 2 — final verification update
+
+- **Full code suite — PASSED:** 462/462 via `npm test`.
+- **Security suite — PASSED:** 14/14 via `npm run test:security`.
+- **Production build — PASSED:** `npm run build` completed, including client,
+  SSR and Cloudflare Nitro output. Existing bundler warnings are non-fatal.
+- **Formatting check — PASSED:** `git diff --check`.
+- **Application-only schema compatibility — CODE PASSED / LIVE PENDING:**
+  pre-migration reads have legacy retries; no SQL was executed and no claim is
+  made about the actual production catalog.
+- **Worker/source reconciliation — BLOCKED:** active Worker is c193a8dd at
+  100%, but Cloudflare exposes no Git provenance. This prevents a safe
+  no-overwrite deployment decision until the deployed source is exported or
+  otherwise verified.

@@ -77,6 +77,11 @@ const PIE_COLORS = [
   "var(--border)",
 ];
 
+function isMissingDuplicateColumn(error: unknown) {
+  const message = String((error as { message?: string } | null)?.message ?? error ?? "");
+  return /duplicate_of_report_id|column .* does not exist|schema cache/i.test(message);
+}
+
 function useLiveCount(key: string, table: string, filter?: [string, string]) {
   return useQuery({
     queryKey: ["live-count", key],
@@ -96,12 +101,19 @@ function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
     queryFn: async () => {
       let query = supabase.from(table).select(`${column}, duplicate_of_report_id`);
       if (table === "accident_reports") query = query.eq("status", "approved");
-      const { data, error } = await query;
+      let { data, error } = await query;
+      let hasDuplicateColumn = true;
+      if (error && table === "accident_reports" && isMissingDuplicateColumn(error)) {
+        const legacy = await supabase.from(table).select(column).eq("status", "approved");
+        data = legacy.data;
+        error = legacy.error;
+        hasDuplicateColumn = false;
+      }
       if (error) throw error;
       const rows = (data ?? []) as unknown as Record<string, string>[];
       const counts: Record<string, number> = {};
       for (const row of rows) {
-        if (table === "accident_reports" && row.duplicate_of_report_id) continue;
+        if (hasDuplicateColumn && table === "accident_reports" && row.duplicate_of_report_id) continue;
         const rawKey = row[column];
         const key =
           rawKey === undefined || rawKey === null || String(rawKey).trim() === ""
@@ -122,10 +134,16 @@ function usePublishedReportCount() {
       if (!error) return Number(data ?? 0);
       // Compatibility fallback until the additive relationship/statistics
       // migration is approved and available in the connected database.
-      const { data: rows, error: fallbackError } = await supabase
+      let { data: rows, error: fallbackError } = await supabase
         .from("accident_reports")
         .select("id, duplicate_of_report_id")
         .eq("status", "approved");
+      if (fallbackError && isMissingDuplicateColumn(fallbackError)) {
+        const legacy = await supabase.from("accident_reports").select("id").eq("status", "approved");
+        rows = legacy.data;
+        fallbackError = legacy.error;
+        if (!fallbackError) return rows?.length ?? 0;
+      }
       if (fallbackError) throw error;
       return (rows ?? []).filter((row) => !row.duplicate_of_report_id).length;
     },
@@ -143,15 +161,22 @@ function usePartiesCasualtyCounts() {
   return useQuery({
     queryKey: ["parties-casualty-counts"],
     queryFn: async () => {
-      const { data: reports, error } = await supabase
+      let { data: reports, error } = await supabase
         .from("accident_reports")
         .select("casualty_breakdown, duplicate_of_report_id")
         .eq("status", "approved");
+      let hasDuplicateColumn = true;
+      if (error && isMissingDuplicateColumn(error)) {
+        const legacy = await supabase.from("accident_reports").select("casualty_breakdown").eq("status", "approved");
+        reports = legacy.data;
+        error = legacy.error;
+        hasDuplicateColumn = false;
+      }
       if (error) throw error;
       const counts: Record<string, number> = {};
       const unknown: Record<string, boolean> = {};
       for (const row of reports ?? []) {
-        if (row.duplicate_of_report_id) continue;
+        if (hasDuplicateColumn && row.duplicate_of_report_id) continue;
         const breakdown = row.casualty_breakdown as CasualtyBreakdownRow;
         for (const [party, c] of Object.entries(breakdown ?? {})) {
           for (const value of [c.dead, c.injured]) {
@@ -193,11 +218,18 @@ function useTopRoads(limit = 8) {
   return useQuery({
     queryKey: ["top-roads", limit],
     queryFn: async () => {
-      const { data: reports, error } = await supabase
+      let { data: reports, error } = await supabase
         .from("accident_reports")
         .select("road_id, fatalities, casualties, duplicate_of_report_id")
         .eq("status", "approved")
         .not("road_id", "is", null);
+      let hasDuplicateColumn = true;
+      if (error && isMissingDuplicateColumn(error)) {
+        const legacy = await supabase.from("accident_reports").select("road_id, fatalities, casualties").eq("status", "approved").not("road_id", "is", null);
+        reports = legacy.data;
+        error = legacy.error;
+        hasDuplicateColumn = false;
+      }
       if (error) throw error;
       const totals = new Map<
         string,
@@ -210,7 +242,7 @@ function useTopRoads(limit = 8) {
         }
       >();
       for (const r of reports ?? []) {
-        if (r.duplicate_of_report_id) continue;
+        if (hasDuplicateColumn && r.duplicate_of_report_id) continue;
         if (!r.road_id) continue;
         const entry = totals.get(r.road_id) ?? {
           fatalities: 0,

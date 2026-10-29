@@ -21,6 +21,11 @@ type LinkRow = { id: string; content_id: string; canonical_report_id: string; re
 
 const relationKey = ["admin-incident-relationships"];
 
+function isMissingDuplicateColumn(error: unknown) {
+  const message = String((error as { message?: string } | null)?.message ?? error ?? "");
+  return /duplicate_of_report_id|column .* does not exist|schema cache/i.test(message);
+}
+
 function isAlertReportSuggestion(item: IncidentSuggestion) {
   return (
     (item.candidate_type === "alert" && item.target_type === "report") ||
@@ -52,7 +57,12 @@ export function IncidentRelationshipPanel() {
   const reports = useQuery({
     queryKey: [...relationKey, "reports"],
     queryFn: async () => {
-      const { data, error } = await (supabase.from("accident_reports") as any).select("id,title,county,road,status,occurred_at,duplicate_of_report_id").eq("status", "approved").is("duplicate_of_report_id", null).order("occurred_at", { ascending: false }).limit(250);
+      let { data, error } = await (supabase.from("accident_reports") as any).select("id,title,county,road,status,occurred_at,duplicate_of_report_id").eq("status", "approved").is("duplicate_of_report_id", null).order("occurred_at", { ascending: false }).limit(250);
+      if (error && isMissingDuplicateColumn(error)) {
+        const legacy = await (supabase.from("accident_reports") as any).select("id,title,county,road,status,occurred_at").eq("status", "approved").order("occurred_at", { ascending: false }).limit(250);
+        data = legacy.data;
+        error = legacy.error;
+      }
       if (error) throw error;
       return (data ?? []) as ReportRow[];
     },
