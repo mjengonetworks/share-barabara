@@ -25,6 +25,7 @@ import { GlobalEditorialPreview } from "@/components/site/global-editorial-previ
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
 import { AlertPreviewCard } from "@/components/site/discovery-sections";
+import { RelatedContent } from "@/components/site/related-content";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-layout";
@@ -303,6 +304,7 @@ function AlertDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
+      <RelatedContent contentType="alert" contentId={alert.id} />
       <GlobalEditorialPreview
         destination="alerts"
         excludeId={alert.id}

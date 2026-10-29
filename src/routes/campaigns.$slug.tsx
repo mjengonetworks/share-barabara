@@ -12,6 +12,7 @@ import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
 import { CampaignPreviewCard } from "@/components/site/discovery-sections";
+import { RelatedContent } from "@/components/site/related-content";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
@@ -194,6 +195,7 @@ function CampaignDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
+      <RelatedContent contentType="campaign" contentId={campaign.id} />
       <GlobalEditorialPreview
         destination="campaigns"
         excludeId={campaign.id}

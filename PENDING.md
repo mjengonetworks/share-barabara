@@ -790,3 +790,12 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
   deployed changes cannot be overwritten. Browser/authenticated acceptance,
   disposable database/RLS testing, SB4 geography integration, migration
   approval and final user acceptance also remain open.
+
+## SB 2 — editorial workflow completion candidate (2026-10-30)
+
+- **Task 70 / generic relationships — IMPLEMENTED, MIGRATION PENDING:** reviewed additive migration `20261030180000_editorial_content_relationships_review.sql` is prepared but not executed. It preserves `incident_content_links` as the sole Alert↔approved Accident Report authority and records generic relationship create/remove history.
+- **CMS relationship pickers — IMPLEMENTED, AUTHENTICATED LIVE TEST PENDING:** shared editors for Article, Report, Alert, Campaign and Infrastructure Issue now expose Related Content controls. Feed Post endpoint support exists in the migration/RPC contract; no separate Feed editor route was added because the current Feed moderation workflow is not a full editorial record editor.
+- **AI source-to-destination conversions — IMPLEMENTED DRAFT REVIEW, DATABASE/LIVE PROVIDER ACCEPTANCE PENDING:** Grok conversion proposals are destination-scoped, field-reviewable, provenance-captured and draft-only. No automatic publication is allowed. Disposable PostgreSQL testing must verify final destination-schema creation/linking before production use.
+- **Public related rendering — IMPLEMENTED, BROWSER ACCEPTANCE PENDING:** supported public detail routes mount permission-filtered Related Content output; unpublished, deleted and restricted endpoints are fail-closed by the RPC contract.
+- **Automated verification — PASSED:** full tests 494/494, security 14/14, TypeScript check, production build and diff check. This does not establish PostgreSQL RLS, migration execution, authenticated editor behavior or visual browser acceptance.
+- **Next required evidence:** isolated restored-backup migration rehearsal including rollback/recovery, RLS/permission and bidirectional-link tests; authorized editor test account; owner review of the exact migration; then separate production migration/deployment approval. No production SQL or deployment was performed for this candidate.

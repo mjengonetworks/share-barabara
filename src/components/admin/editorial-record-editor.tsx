@@ -23,6 +23,7 @@ import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { findExistingRoad } from "@/lib/roads";
 import { submitAccidentReport } from "@/lib/report.functions";
 import { IncidentRelationshipPanel } from "@/components/site/incident-relationship-panel";
+import { CrossContentEditor } from "@/components/site/cross-content-editor";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -252,6 +253,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       </section>
       <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
       {isEditing && (type === "report" || type === "alert") ? <IncidentRelationshipPanel /> : null}
+      {isEditing ? <CrossContentEditor sourceType={type} sourceId={id!} sourceRecord={recordQuery.data ?? {}} /> : null}
       <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => save.mutate("draft")} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Save changes" : "Save draft"}</Button>{canReview ? <Button type="button" onClick={() => save.mutate("approved")} disabled={save.isPending}>{isEditing ? "Save & publish" : "Publish report"}</Button> : null}</div></section>
     </div>
   </div>;

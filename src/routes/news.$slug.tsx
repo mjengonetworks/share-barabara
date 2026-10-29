@@ -19,6 +19,7 @@ import { ArticleShareToolbar } from "@/components/site/article-share-toolbar";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { renderRichText, splitRichTextBlocks } from "@/lib/richtext";
 import { ArticleSidebar } from "@/components/site/article-detail-sidebar";
+import { RelatedContent } from "@/components/site/related-content";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary, ReadAlso } from "@/components/site/editorial-summary";
@@ -464,6 +465,7 @@ function NewsDetail() {
           contextualAlerts={contextualAlerts}
         />
       </div>
+      <RelatedContent contentType="article" contentId={article.id} />
       <GlobalEditorialPreview
         destination="news"
         excludeId={article.id}

@@ -31,6 +31,7 @@ import { isAdInterval } from "@/lib/ad-placement";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { ReportPreviewCard } from "@/components/site/discovery-sections";
+import { RelatedContent } from "@/components/site/related-content";
 import { socialHead } from "@/lib/seo";
 import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 import { recordPublicView } from "@/lib/view-tracking";
@@ -445,6 +446,7 @@ function ReportDetail() {
           ) : null}
         </EditorialSidebar>
       </div>
+      <RelatedContent contentType="report" contentId={report.id} />
       <GlobalEditorialPreview
         destination="reports"
         excludeId={report.id}
