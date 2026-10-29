@@ -1,6 +1,6 @@
 # Development tasks
 
-## Task 70 / SB 2 — platform-wide public editorial hierarchy correction — IMPLEMENTED / DEPLOYMENT PENDING — 2026-10-29
+## Task 70 / SB 2 — platform-wide public editorial hierarchy correction — DEPLOYED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This is the consolidated follow-up to the existing Global Editorial Layout
 Corrections and SB 2 owner-acceptance records; no duplicate task was created.
@@ -32,11 +32,11 @@ Acceptance criteria remain open until evidence is collected:
   reporting, filters, statistics, maps and nullable casualty semantics;
 - owner review confirms Latest/Featured/Trending/category ordering, report and
   alert navigation, verified map/filter behavior, and mobile/desktop layout;
-- production deployment and owner acceptance are still pending. Current
-  production baseline remains application commit
-  `96f1675f042e3d5a68bf48c70a408367bd998410` on Worker
-  `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb`; no SQL or migration changes are in
-  this candidate.
+- production deployment is complete from application commit
+  `f0a26f87610e62eac6c2e73d4e8ab5255ea68fca` on Worker
+  `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf` at 100%. The previous Worker was
+  `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb`; no SQL or migration changes were
+  made.
 
 Audit matrix for this corrected candidate:
 
@@ -61,6 +61,15 @@ full suite passed 476/476; security suite passed 14/14; production build and
 acceptance remain Pending Live Testing because browser automation reports no
 available apps or browsers. SB4 geography/transport and advertising dependencies
 remain under their existing task IDs.
+
+Deployment evidence: Wrangler reported current version
+`ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf`, production custom domain enabled and
+the scheduled trigger retained. Public HTTP smoke checks returned 200 for `/`,
+`/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns` and
+`/infrastructure-issues`. Homepage SSR contains `/statistics`; Reports SSR
+contains no public Editorial AI marker. Featured/Most Viewed sections are
+content-dependent in the live response and were not treated as visually
+accepted without browser review.
 
 ## SB 2 — current lifecycle and owner acceptance matrix — 2026-10-29
 

@@ -1,21 +1,24 @@
 # Pending
 
-- **TASK 70 / SB 2 PUBLIC EDITORIAL HIERARCHY — IMPLEMENTED / DEPLOYMENT AND
-  OWNER ACCEPTANCE PENDING (2026-10-29).** The shared public release candidate
+- **TASK 70 / SB 2 PUBLIC EDITORIAL HIERARCHY — DEPLOYED / OWNER ACCEPTANCE
+  PENDING (2026-10-29).** The shared public release
   now provides separate Latest, Featured and Trending three-card sections for
   News, Reports and Alerts; three-story category columns with one lead and two
   compact stories; canonical Statistics navigation for the 11 Recorded Road
   Accidents card; public Reports without administrative Editorial AI panels;
   consistent metadata/Read more links; and centred Mjengo Hub/Mjengo Networks
-  previews. The candidate is not deployed.
-  Existing production baseline is application commit
-  `96f1675f042e3d5a68bf48c70a408367bd998410`, Worker
-  `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb`; no SQL or migrations changed.
+  previews. Deployed application commit is
+  `f0a26f87610e62eac6c2e73d4e8ab5255ea68fca` on Worker
+  `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf` at 100%; previous Worker was
+  `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb`. No SQL or migrations changed.
   Focused hierarchy checks pass 29/29; full tests pass 476/476, security
   14/14, and production build passes. Live screenshots and authenticated
   responsive acceptance remain pending because no browser automation surface is
   available. Owner approval is required before deployment; SB4 and advertising
-  task records remain separate.
+  task records remain separate. Public HTTP smoke checks returned 200 for the
+  homepage, News, Reports, Alerts, Statistics, Campaigns and Infrastructure
+  Issues. Homepage SSR includes the Statistics destination and public Reports
+  has no Editorial AI marker. Browser screenshots remain unverified.
 
 - **SB 2 OWNER LIVE ACCEPTANCE — PENDING LIVE TESTING / PENDING USER
   ACCEPTANCE (2026-10-29).** Lifecycle remains Implemented → Deployed → Live
