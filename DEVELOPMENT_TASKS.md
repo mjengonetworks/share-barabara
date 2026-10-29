@@ -83,6 +83,14 @@ unfinished application changes are not merged here.
   constraint guards were added. The exact four-migration production approval
   set and recovery procedure are in
   [docs/sb2-production-migration-plan.md](docs/sb2-production-migration-plan.md).
+- **Production migration preflight — STOPPED SAFELY:** project ref
+  `yhqoggbntunxvlbcatwj` and Share Barabara identity were verified; all four
+  approved migration IDs are absent from remote history. The required backup
+  attempt failed before dump execution because Supabase CLI requires Docker's
+  `dockerDesktopLinuxEngine`; `psql`/local PostgreSQL are also unavailable.
+  The resulting backup path is zero bytes and is not treated as a backup. No
+  production SQL was executed. Resume requires a valid provider snapshot or
+  working authorized `pg_dump`/PostgreSQL connection before rerunning preflight.
 - **RLS and authenticated security verification — STATIC PASSED / DATABASE
   PENDING:** verify anonymous, ordinary authenticated and editor policies/RPC
   grants against PostgreSQL.
