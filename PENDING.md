@@ -1,5 +1,20 @@
 # Pending
 
+- **SB 2 OWNER LIVE ACCEPTANCE — PENDING LIVE TESTING / PENDING USER
+  ACCEPTANCE (2026-10-29).** Lifecycle remains Implemented → Deployed → Live
+  Tested → User Accepted → Closed. Owner must test: published accident count
+  11 and NULL casualty handling; Report visibility and duplicate exclusion;
+  editor confirmation, correction, revocation, audit history and linked-record
+  navigation; editor-only permissions and unauthorized-write denial; verified
+  accident map coordinates and date/country/admin-area/transport/corridor/type/
+  severity filters; and mobile/desktop responsive behavior. No browser result is
+  being marked passed without evidence. The implementation is deployed on
+  Worker `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb` from application commit
+  `96f1675f042e3d5a68bf48c70a408367bd998410`; all five SB2 migration versions
+  are applied, including `20261029130000`. Tests are 469/469 and security is
+  14/14. SB4 and advertising dependencies remain under their existing task
+  IDs.
+
 - **SB 2 FINAL ACCEPTANCE — RECOVERY PASSED / AUTHENTICATED BROWSER BLOCKED
   (2026-10-29).** A public+auth custom-format backup was restored successfully
   into a disposable local PostgreSQL 17 cluster with isolated Supabase role
@@ -22,18 +37,17 @@
   casualties remain NULL, and RPC/RLS checks passed. No redeployment occurred.
   Only authenticated browser acceptance remains pending.
 
-- **SB 2 PRODUCTION MIGRATIONS — EXECUTED / STATISTICS CORRECTION REQUIRED
-  (2026-10-29).** Existing authenticated Supabase CLI authorization was used
+- **SB 2 PRODUCTION MIGRATIONS — HISTORICAL EXECUTION RECORD / SUPERSEDED BY
+  VERIFIED CORRECTION ABOVE (2026-10-29).** Existing authenticated Supabase CLI authorization was used
   for Share Barabara only. A 589,228-byte custom-format public-schema backup
   passed `pg_restore --list`. Exactly the approved migrations
   `20261005120000`, `20261006110000`, `20261029100000` and `20261028130000`
   were applied in order, and their migration history entries were repaired.
   Verification preserved 15 reports, 14 alerts, 11 canonical eligible rows,
   one NULL fatalities value and one NULL casualties value; RLS and write
-  denial checks passed. A defect remains: `published_accident_report_count()`
-  returns 12 because it omits `deleted_at IS NULL`, while canonical statistics
-  return 11. Do not declare statistics acceptance complete or apply further
-  SQL until a separately reviewed corrective function change is approved.
+  denial checks passed. The later separately approved corrective migration
+  fixed the deleted-report discrepancy; see the verified correction entry
+  above. No further SQL is pending for this migration set.
 
 - **SB 2 PRODUCTION BACKUP GATE — BLOCKED SAFELY (2026-10-29).** The
   authorized Supabase CLI verified Share Barabara project

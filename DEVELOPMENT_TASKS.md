@@ -1,5 +1,41 @@
 # Development tasks
 
+## SB 2 — current lifecycle and owner acceptance matrix — 2026-10-29
+
+Lifecycle: **Implemented → Deployed → Live Tested → User Accepted → Closed**.
+The implementation, deployment and database verification stages are complete;
+the following owner acceptance items remain explicitly **Pending Live Testing /
+Pending User Acceptance** and are not closed:
+
+- Published accident statistics must show 11 eligible Reports; casualty totals
+  must preserve unknown/NULL fatalities and injuries rather than displaying
+  zero.
+- Accident Reports must be visible according to publication rules; soft-deleted,
+  duplicate and unapproved Reports must be excluded from counts and canonical
+  views.
+- An authorized editor must confirm a suggested Alert→Report relationship,
+  correct the linked Report, revoke it, inspect append-only audit history and
+  navigate between linked records.
+- An editor-only workflow must permit relationship review while anonymous and
+  ordinary authenticated users cannot confirm, correct, revoke or write links.
+- The accident map must show verified coordinates only and owner testing must
+  cover date, country, administrative area, transport mode, corridor, incident
+  type and severity filters.
+- Linked Alert/Report navigation must preserve canonical incident identity and
+  avoid duplicate incident creation.
+- Responsive owner review must cover mobile and desktop Statistics, map,
+  Reports, Alerts and relationship-review surfaces.
+
+Current deployed baseline: application commit
+`96f1675f042e3d5a68bf48c70a408367bd998410`, Worker
+`62c8fedb-494c-4e3f-bf4e-5b2efb2815cb` at 100%. Production migration history
+contains the five SB2 versions `20261005120000`, `20261006110000`,
+`20261029100000`, `20261028130000` and `20261029130000`; no SB4 or advertising
+migration is included. Application tests are 469/469, security tests 14/14,
+statistics reconciliation is 11, and isolated PostgreSQL restore rehearsal is
+passed. SB4 geography/transport and advertising dependencies remain under
+their existing task records and are not closed by SB2.
+
 ## SB 2 — final acceptance attempt — 2026-10-29
 
 - **Disposable recovery rehearsal — PASSED:** the existing authorized CLI
@@ -63,8 +99,8 @@
   already-deployed Statistics route had passed HTTP smoke testing. Direct
   public-domain probing is unavailable in this environment; authenticated
   browser review remains pending.
-- **Remaining:** recovery restore rehearsal against a disposable database and
-  authenticated browser/user acceptance only. No redeployment was performed.
+- **Remaining:** authenticated browser/user acceptance only; the disposable
+  recovery restore rehearsal is now passed. No redeployment was performed.
 
 ## SB 2 — production backup gate recheck — 2026-10-29
 
