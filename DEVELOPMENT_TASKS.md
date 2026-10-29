@@ -1,6 +1,6 @@
 # Development tasks
 
-## Task 70 / SB 2 — priority statistics and public design correction — IMPLEMENTED / DEPLOYMENT PENDING — 2026-10-29
+## Task 70 / SB 2 — priority statistics and public design correction — DEPLOYED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This update extends the existing Task 70 record; no duplicate task was created.
 
@@ -13,8 +13,8 @@ This update extends the existing Task 70 record; no duplicate task was created.
   any historical year, including the yearly table’s `year` primary key, while
   internal canonical incident counts remain calculated and non-overridable.
   The sourced official dataset manager supports draft/edit/publish/unpublish and
-  correction revisions. The migration is prepared only; it was not applied and
-  requires separate owner approval. Homepage official metric cards fail closed
+  correction revisions. The migration was approved and applied once after a
+  fresh verified backup and production preflight. Homepage official metric cards fail closed
   to “pending verification” when the provenance schema/observation is
   unavailable, so legacy `yearly_stats` values are not presented as current
   2026 official data.
@@ -42,12 +42,28 @@ This update extends the existing Task 70 record; no duplicate task was created.
 
 Evidence: full suite `482/482`, security suite `14/14`, focused hierarchy and
 priority-correction tests `17/17`, production build passed, and `git diff --check`
-passed. Browser/CUA
-reported no available apps or browsers, so responsive screenshots at 320, 375,
-390, 430, 768, 1024, 1280 and 1440px remain **NOT VERIFIED**. No deployment,
-SQL execution or migration application was performed. Latest verified production
-baseline remains application commit `f0a26f87610e62eac6c2e73d4e8ab5255ea68fca`
-on Worker `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf` at 100%.
+passed. Approved application commit `2694f5cb2d0b09f4e9b311e7755f5a42ec6456cb`
+is live on Worker `778300c3-f7c8-499f-823b-735c239145f9` at 100%; previous
+Worker `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf`. Browser/CUA reported no available
+apps or browsers, so responsive screenshots at 320, 375, 390, 430, 768, 1024,
+1280 and 1440px remain **NOT VERIFIED**.
+
+Production evidence: fresh Docker-free custom-format backup
+`E:\sb2-production-backup-20261029-final.dump` was non-empty (`755087` bytes)
+and passed `pg_restore --list`. Preflight confirmed project
+`yhqoggbntunxvlbcatwj`, migration absence, existing schema/RLS and canonical
+dependencies. The approved migration was applied once after application
+deployment; migration history now records `20261029150000` as applied.
+Post-migration checks preserved all eight datasets: yearly `7 / 30182 / 51384 /
+101226`, monthly `12 / 4531 / 14990`, county `10 / 2838 / 9395`, victim `6 /
+4531`, cause `8 / 4531`, vehicle `7 / 4531 / 15290`, time-of-day `6 / 4531`,
+road-class `5 / 4531 / 15290`. The yearly `year` key remained intact, all
+legacy rows are published, revision RLS/policies/triggers exist, anonymous
+administrator checks are denied, and canonical/published report counts both
+return `11`. Production smoke routes returned HTTP 200 for the public routes;
+homepage SSR includes the Statistics destination and public Reports has no
+Editorial AI marker. Authenticated admin and responsive visual acceptance
+remain pending owner verification.
 
 Migration rehearsal evidence: the validated isolated backup was inspected and
 restored into a fresh local PostgreSQL 17 cluster containing only temporary
@@ -59,7 +75,8 @@ county `10 / 2838 / 9395`, victim `6 / 4531`, cause `8 / 4531`, vehicle
 primary key remained intact; all seven historical yearly rows defaulted to
 `published`; audit RLS was enabled; nine revision triggers/policies were
 created; and anonymous reads excluded an explicitly archived row. The temporary
-cluster was stopped and removed. No production SQL ran.
+cluster was stopped and removed; the separate production execution followed
+only after owner approval and the fresh backup gate.
 
 ## Task 70 / SB 2 — platform-wide public editorial hierarchy correction — DEPLOYED / LIVE ACCEPTANCE PENDING — 2026-10-29
 

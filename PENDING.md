@@ -1,12 +1,12 @@
 # Pending
 
-- **TASK 70 / SB 2 PRIORITY CORRECTION — IMPLEMENTED / DEPLOYMENT AND OWNER
+- **TASK 70 / SB 2 PRIORITY CORRECTION — DEPLOYED / LIVE TESTING AND OWNER
   ACCEPTANCE PENDING (2026-10-29).** Official national statistics now have a
   reviewed admin/provenance path separate from internal canonical incidents;
   homepage cards will not expose legacy unverified 2025 aggregates as current
   2026 official numbers. The candidate migration
-  `20261029150000_official_statistics_management_review.sql` is not applied and
-  needs separate approval. It now covers every existing aggregate statistics
+  `20261029150000_official_statistics_management_review.sql` was approved and
+  applied once after a fresh verified backup. It covers every existing aggregate statistics
   table and historical year with provenance/publication metadata and revision
   audit history; Admin Statistics exposes those fields and preserves calculated
   internal incident counts. The public year selector drives year-dependent
@@ -15,13 +15,19 @@
   month, year), global/article previews use lead-plus-two-compact stories, and
   Alert featured images flow through public loaders when present. Full tests
   `482/482`, security `14/14`, focused priority/hierarchy tests `17/17`, build
-  and diff checks pass. No SQL or deployment was performed. Browser visual evidence is pending
-  because no browser surface is available. Reconcile before deployment with
-  production Worker `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf` and commit
-  `f0a26f87610e62eac6c2e73d4e8ab5255ea68fca`; owner must review responsive
-  screenshots and approve the migration separately.
+  and diff checks pass. Approved application commit
+  `2694f5cb2d0b09f4e9b311e7755f5a42ec6456cb` is live on Worker
+  `778300c3-f7c8-499f-823b-735c239145f9` at 100%; previous Worker was
+  `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf`. Fresh Docker-free backup
+  `E:\sb2-production-backup-20261029-final.dump` is `755087` bytes and passed
+  `pg_restore --list`. Production checks preserved all eight dataset totals,
+  the yearly `year` key, published historical rows, revision RLS/policies/
+  triggers and unknown-value semantics; canonical and published report counts
+  independently return `11`. Browser visual evidence is pending because no
+  browser surface is available. Authenticated admin editing, publishing and
+  owner responsive acceptance remain pending.
 
-- **TASK 70 / SB 2 STATISTICS MIGRATION SAFETY — REVIEWED / PRODUCTION APPROVAL
+- **TASK 70 / SB 2 STATISTICS MIGRATION SAFETY — DEPLOYED / LIVE ACCEPTANCE
   PENDING (2026-10-29).** Isolated PostgreSQL 17 rehearsal restored the
   validated backup’s eight statistics datasets and applied the candidate
   migration locally. Counts and numeric aggregates matched before and after;
@@ -30,9 +36,12 @@
   an archived row. The migration now enforces append-only revision history and
   the admin editor unpublishes rows rather than deleting them once metadata is
   active. The deployed application remains compatible before migration through
-  legacy read fallbacks; safest release order is application candidate first,
-  approved migration second, then admin/public verification. Production SQL,
-  deployment and owner acceptance remain pending.
+  legacy read fallbacks; safest release order was application candidate first,
+  approved migration second, then admin/public verification. The approved
+  migration was applied once in production after the fresh backup and preflight;
+  the Supabase migration ledger records `20261029150000` as applied. HTTP smoke
+  checks passed, while authenticated admin and browser visual acceptance remain
+  pending.
 
 - **TASK 70 / SB 2 PUBLIC EDITORIAL HIERARCHY — DEPLOYED / OWNER ACCEPTANCE
   PENDING (2026-10-29).** The shared public release
