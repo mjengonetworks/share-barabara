@@ -517,6 +517,7 @@ function StatisticsPage() {
     .slice(0, 8);
   const livePeriodLabel = isIncompleteYear ? `${activeYear} so far` : `${activeYear}`;
   const liveComparisonLabel = isIncompleteYear ? "the same point" : "the previous year";
+  const selectedYearLabel = activeYear === currentYear ? `${activeYear} year to date` : String(activeYear);
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-4 py-8 sm:px-6 sm:py-10">
@@ -1028,7 +1029,7 @@ function StatisticsPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
-              label: `Deaths in ${latest.year}`,
+              label: `Deaths in ${selectedYearLabel}`,
               value: num(latest.fatalities),
               tone: "text-destructive",
             },
@@ -1068,6 +1069,7 @@ function StatisticsPage() {
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {latest.source_organization ? `Source: ${latest.source_organization}` : "Source not recorded"}
                 {latest.reporting_period_end ? ` · as of ${latest.reporting_period_end}` : ""}
+                {activeYear === currentYear ? " · year to date, not a final annual total" : ""}
               </p>
             </div>
           ))}
