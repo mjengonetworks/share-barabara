@@ -1,7 +1,7 @@
 # Pending
 
 - **TASK 70 / SB 2 REPORTS, ALERTS AND VIEW-COUNT CORRECTION — DEPLOYED /
-  MIGRATION AND VISUAL ACCEPTANCE PENDING (2026-10-29).** Reports and Alerts
+  DATABASE VERIFIED / VISUAL ACCEPTANCE PENDING (2026-10-29).** Reports and Alerts
   now use separate Latest, Featured and Trending / Most Viewed sections. Featured
   is an explicit editorial selection, not a severity or newest-content fallback.
   Admin Report editing and Alert actions expose role-gated Featured selection;
@@ -10,16 +10,21 @@
   view-event deduplication while preserving existing histories and ranking data.
   Candidate migration
   `20261029170000_public_incident_featured_selection_review.sql` is additive and
-  remains unapplied pending fresh-backup preflight. Full suite `486/486`, security
+  was applied once after fresh-backup preflight. Full suite `486/486`, security
   `14/14`, focused correction tests `16/16`, build and diff checks pass. Latest
   production is Worker `d8ce8556-73ee-44cd-be4d-8cbf93a9c902` from application
   commit `747b44820098b9d4351022ddd9086ede4179faea`; previous Worker was
   `778300c3-f7c8-499f-823b-735c239145f9`. Public smoke routes returned HTTP
-  200. The authenticated CLI confirmed project `yhqoggbntunxvlbcatwj`, but
-  cannot create the required fresh backup without a database password or
-  equivalent connection. Rehearsal against the verified backup preserved 15 Reports
-  and 14 Alerts, defaulted all new fields to false, created the two partial
-  indexes and preserved RLS in a disposable PostgreSQL 17 cluster. CUA returned
+  200. Project `yhqoggbntunxvlbcatwj` was confirmed. Fresh scoped backup
+  `E:\sb2-production-backup-20261030-featured-scope.dump` is 58,573 bytes with
+  SHA-256 `4A646A6EA955116C6CEB988380AED191C9A54090AC99881B4ED0C01B96D30449`;
+  `pg_restore --list` passed with 117 entries. Pre/post counts remained 15
+  Reports and 14 Alerts; ledger version `20261029170000` is applied, defaults
+  are false, both indexes exist, RLS remains enabled, anonymous writes were
+  denied and transaction-scoped editor writes rolled back. Rehearsal against
+  the verified backup preserved 15 Reports and 14 Alerts, defaulted all new
+  fields to false, created the two partial indexes and preserved RLS in a
+  disposable PostgreSQL 17 cluster. CUA returned
   no browser surfaces and no local browser runner is installed, so visual
   screenshots and owner acceptance remain pending.
 

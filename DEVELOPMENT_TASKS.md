@@ -1,6 +1,6 @@
 # Development tasks
 
-## Task 70 / SB 2 — Reports, Alerts and view-count correction — DEPLOYED / LIVE ACCEPTANCE PENDING — 2026-10-29
+## Task 70 / SB 2 — Reports, Alerts and view-count correction — DEPLOYED / DATABASE VERIFIED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This extends the existing Task 70 record; no duplicate task was created.
 
@@ -23,13 +23,18 @@ This extends the existing Task 70 record; no duplicate task was created.
   reset or fabricated. Production audit confirmed existing persistence: 1,153
   news events, 81 report events and 104 alert events.
 
-Reviewed migration candidate: `20261029170000_public_incident_featured_selection_review.sql`.
-It adds nullable-safe boolean selection fields with false defaults and partial
-indexes only; it does not delete, rewrite or publish existing records. It has
-not been executed: the approved application deployed successfully, but the
-required fresh production backup is blocked because the authenticated
-Supabase CLI session has no database password or equivalent dump connection.
-Rehearsal against
+Reviewed migration `20261029170000_public_incident_featured_selection_review.sql`
+was executed once after project, backup and schema preflight. It adds non-null
+boolean selection fields with false defaults and partial indexes only; it did
+not delete, rewrite or publish existing records. Fresh scoped backup:
+`E:\sb2-production-backup-20261030-featured-scope.dump`, 58,573 bytes,
+SHA-256 `4A646A6EA955116C6CEB988380AED191C9A54090AC99881B4ED0C01B96D30449`,
+`pg_restore --list` passed with 117 entries. Pre/post counts were Reports
+15 total / 12 live and Alerts 14 total / 14 live. The migration ledger records
+version `20261029170000`; both featured columns are `NOT NULL DEFAULT false`,
+both partial indexes exist, and RLS remains enabled. Anonymous update probes
+were denied; a transaction-scoped moderator/admin policy probe updated one row
+of each type and rolled back. Rehearsal against
 the verified `755087`-byte custom-format backup in a fresh disposable
 PostgreSQL 17 cluster preserved 15 Reports and 14 Alerts; all rows received
 `featured=false`, both partial indexes were created, and RLS remained enabled.
@@ -42,8 +47,8 @@ commit `747b44820098b9d4351022ddd9086ede4179faea` is deployed on Worker
 `778300c3-f7c8-499f-823b-735c239145f9`. Public smoke checks returned HTTP 200
 for `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns` and
 `/infrastructure-issues`. The Share Barabara project was confirmed as
-`yhqoggbntunxvlbcatwj`; migration execution remains blocked pending the fresh
-backup connection.
+`yhqoggbntunxvlbcatwj` before execution. Public `/reports` and `/alerts`
+returned HTTP 200 after migration.
 Browser visual verification is **NOT VERIFIED**: CUA returned no available apps
 or browsers, and no local Chrome, Edge, Firefox, Playwright or Puppeteer surface
 was available. Owner screenshots at 320, 375, 390, 430, 768, 1024, 1280 and
