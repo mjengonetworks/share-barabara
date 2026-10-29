@@ -1,6 +1,6 @@
 # Development tasks
 
-## Task 70 / SB 2 — Reports, Alerts and view-count correction — IMPLEMENTED / DEPLOYMENT PENDING — 2026-10-29
+## Task 70 / SB 2 — Reports, Alerts and view-count correction — DEPLOYED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This extends the existing Task 70 record; no duplicate task was created.
 
@@ -26,17 +26,24 @@ This extends the existing Task 70 record; no duplicate task was created.
 Reviewed migration candidate: `20261029170000_public_incident_featured_selection_review.sql`.
 It adds nullable-safe boolean selection fields with false defaults and partial
 indexes only; it does not delete, rewrite or publish existing records. It has
-not been executed and requires separate migration approval. Rehearsal against
+not been executed: the approved application deployed successfully, but the
+required fresh production backup is blocked because the authenticated
+Supabase CLI session has no database password or equivalent dump connection.
+Rehearsal against
 the verified `755087`-byte custom-format backup in a fresh disposable
 PostgreSQL 17 cluster preserved 15 Reports and 14 Alerts; all rows received
 `featured=false`, both partial indexes were created, and RLS remained enabled.
 The disposable cluster was stopped and removed.
 
 Evidence: focused correction tests `16/16`, full suite `486/486`, security
-suite `14/14`, production build and `git diff --check` passed. The verified
-production baseline remains application commit
-`2694f5cb2d0b09f4e9b311e7755f5a42ec6456cb` on Worker
-  `778300c3-f7c8-499f-823b-735c239145f9` at 100%; no deployment was performed.
+suite `14/14`, production build and `git diff --check` passed. Application
+commit `747b44820098b9d4351022ddd9086ede4179faea` is deployed on Worker
+`d8ce8556-73ee-44cd-be4d-8cbf93a9c902` at 100%; previous Worker was
+`778300c3-f7c8-499f-823b-735c239145f9`. Public smoke checks returned HTTP 200
+for `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns` and
+`/infrastructure-issues`. The Share Barabara project was confirmed as
+`yhqoggbntunxvlbcatwj`; migration execution remains blocked pending the fresh
+backup connection.
 Browser visual verification is **NOT VERIFIED**: CUA returned no available apps
 or browsers, and no local Chrome, Edge, Firefox, Playwright or Puppeteer surface
 was available. Owner screenshots at 320, 375, 390, 430, 768, 1024, 1280 and

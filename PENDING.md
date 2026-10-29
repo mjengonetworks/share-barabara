@@ -1,7 +1,7 @@
 # Pending
 
-- **TASK 70 / SB 2 REPORTS, ALERTS AND VIEW-COUNT CORRECTION — IMPLEMENTED /
-  DEPLOYMENT AND VISUAL ACCEPTANCE PENDING (2026-10-29).** Reports and Alerts
+- **TASK 70 / SB 2 REPORTS, ALERTS AND VIEW-COUNT CORRECTION — DEPLOYED /
+  MIGRATION AND VISUAL ACCEPTANCE PENDING (2026-10-29).** Reports and Alerts
   now use separate Latest, Featured and Trending / Most Viewed sections. Featured
   is an explicit editorial selection, not a severity or newest-content fallback.
   Admin Report editing and Alert actions expose role-gated Featured selection;
@@ -10,11 +10,14 @@
   view-event deduplication while preserving existing histories and ranking data.
   Candidate migration
   `20261029170000_public_incident_featured_selection_review.sql` is additive and
-  remains unapplied pending separate approval. Full suite `486/486`, security
+  remains unapplied pending fresh-backup preflight. Full suite `486/486`, security
   `14/14`, focused correction tests `16/16`, build and diff checks pass. Latest
-  production remains Worker `778300c3-f7c8-499f-823b-735c239145f9` from
-  application commit `2694f5cb2d0b09f4e9b311e7755f5a42ec6456cb`; no deployment
-  was performed. Rehearsal against the verified backup preserved 15 Reports
+  production is Worker `d8ce8556-73ee-44cd-be4d-8cbf93a9c902` from application
+  commit `747b44820098b9d4351022ddd9086ede4179faea`; previous Worker was
+  `778300c3-f7c8-499f-823b-735c239145f9`. Public smoke routes returned HTTP
+  200. The authenticated CLI confirmed project `yhqoggbntunxvlbcatwj`, but
+  cannot create the required fresh backup without a database password or
+  equivalent connection. Rehearsal against the verified backup preserved 15 Reports
   and 14 Alerts, defaulted all new fields to false, created the two partial
   indexes and preserved RLS in a disposable PostgreSQL 17 cluster. CUA returned
   no browser surfaces and no local browser runner is installed, so visual
