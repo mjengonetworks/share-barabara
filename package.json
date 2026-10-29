@@ -12,6 +12,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "test": "node --experimental-strip-types --experimental-loader ./tests/node-test-loader.mjs --test tests/*.test.mjs",
     "test:security": "node --test tests/ai-security.test.mjs",
     "test:feed-media:staging": "node scripts/verify-feed-media-staging.mjs",
     "format": "prettier --write ."

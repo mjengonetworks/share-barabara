@@ -78,3 +78,25 @@ unfinished application changes are not merged here.
   `transport_entities`; no implicit text-to-ID backfill is allowed.
 - **Final responsive and user acceptance — PENDING:** authenticated browser,
   mobile and desktop review of relationship, statistics and map workflows.
+
+## SB 2 — current verification record
+
+- **Code and static integration — PASSED:** relationship/statistics/map/security
+  focused checks 37/37; full repository suite 462/462 using the repository
+  Node TypeScript/alias/Markdown test loader at `tests/node-test-loader.mjs`;
+  production build passed; `git diff --check` passed.
+- **Editorial AI module-resolution failures — RESOLVED:** the test command now
+  handles TypeScript, `@/*` aliases, extensionless imports and Vite Markdown
+  `?raw` imports without changing runtime application code.
+- **Disposable database discovery — BLOCKED / SETUP REQUIRED:** the CLI lists
+  a separate `Mjengo Networks` project, but it is not identified as disposable
+  and was not accessed. The exact required credentials and procedure are in
+  [docs/sb2-isolated-database-testing.md](docs/sb2-isolated-database-testing.md).
+- **Live RLS, migration rollback and concurrent-link testing — PENDING:**
+  requires the owner-designated disposable database.
+- **Browser acceptance — PENDING:** no browser surface is available; public and
+  authenticated relationship, statistics, filter and map workflows remain
+  unverified in a real browser.
+- **Production deployment and production migration — PENDING:** Worker
+  `c193a8dd-725d-403e-9334-0446d1c86236` is live, but its Git source is
+  unavailable. Separate owner approval remains required.
