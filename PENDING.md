@@ -14,8 +14,11 @@
   `14/14`, focused correction tests `16/16`, build and diff checks pass. Latest
   production remains Worker `778300c3-f7c8-499f-823b-735c239145f9` from
   application commit `2694f5cb2d0b09f4e9b311e7755f5a42ec6456cb`; no deployment
-  was performed. CUA returned no browser surfaces and no local browser runner is
-  installed, so visual screenshots and owner acceptance remain pending.
+  was performed. Rehearsal against the verified backup preserved 15 Reports
+  and 14 Alerts, defaulted all new fields to false, created the two partial
+  indexes and preserved RLS in a disposable PostgreSQL 17 cluster. CUA returned
+  no browser surfaces and no local browser runner is installed, so visual
+  screenshots and owner acceptance remain pending.
 
 - **TASK 70 / SB 2 PRIORITY CORRECTION — DEPLOYED / LIVE TESTING AND OWNER
   ACCEPTANCE PENDING (2026-10-29).** Official national statistics now have a

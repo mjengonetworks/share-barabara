@@ -205,6 +205,7 @@ function AlertsPage() {
         title="Road hazard alerts"
         description="Current hazards, closures and disruptions reported by road users across Kenya. Check what is ahead and share what you see on your route."
         image={heroRoad}
+        compact
         primaryCta={{ label: "Submit an alert", to: "/alerts#alert-form" }}
       />
 

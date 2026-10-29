@@ -193,6 +193,7 @@ function ReportsPage() {
         eyebrow="Community reporting"
         title="Crash and incident reports"
         description="Browse approved road-safety reports from the community, or contribute useful information about an incident you know."
+        compact
         primaryCta={{ label: "Submit a report", to: "/reports#report-form" }}
       />
 

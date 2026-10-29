@@ -26,13 +26,17 @@ This extends the existing Task 70 record; no duplicate task was created.
 Reviewed migration candidate: `20261029170000_public_incident_featured_selection_review.sql`.
 It adds nullable-safe boolean selection fields with false defaults and partial
 indexes only; it does not delete, rewrite or publish existing records. It has
-not been executed and requires separate migration approval.
+not been executed and requires separate migration approval. Rehearsal against
+the verified `755087`-byte custom-format backup in a fresh disposable
+PostgreSQL 17 cluster preserved 15 Reports and 14 Alerts; all rows received
+`featured=false`, both partial indexes were created, and RLS remained enabled.
+The disposable cluster was stopped and removed.
 
 Evidence: focused correction tests `16/16`, full suite `486/486`, security
 suite `14/14`, production build and `git diff --check` passed. The verified
 production baseline remains application commit
 `2694f5cb2d0b09f4e9b311e7755f5a42ec6456cb` on Worker
-`778300c3-f7c8-499f-823b-735c239145f9` at 100%; no deployment was performed.
+  `778300c3-f7c8-499f-823b-735c239145f9` at 100%; no deployment was performed.
 Browser visual verification is **NOT VERIFIED**: CUA returned no available apps
 or browsers, and no local Chrome, Edge, Firefox, Playwright or Puppeteer surface
 was available. Owner screenshots at 320, 375, 390, 430, 768, 1024, 1280 and
