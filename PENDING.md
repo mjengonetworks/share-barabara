@@ -21,6 +21,19 @@
   `f0a26f87610e62eac6c2e73d4e8ab5255ea68fca`; owner must review responsive
   screenshots and approve the migration separately.
 
+- **TASK 70 / SB 2 STATISTICS MIGRATION SAFETY — REVIEWED / PRODUCTION APPROVAL
+  PENDING (2026-10-29).** Isolated PostgreSQL 17 rehearsal restored the
+  validated backup’s eight statistics datasets and applied the candidate
+  migration locally. Counts and numeric aggregates matched before and after;
+  the yearly `year` primary key remained intact; existing rows defaulted to
+  `published`; revision RLS/triggers were created; and anonymous reads excluded
+  an archived row. The migration now enforces append-only revision history and
+  the admin editor unpublishes rows rather than deleting them once metadata is
+  active. The deployed application remains compatible before migration through
+  legacy read fallbacks; safest release order is application candidate first,
+  approved migration second, then admin/public verification. Production SQL,
+  deployment and owner acceptance remain pending.
+
 - **TASK 70 / SB 2 PUBLIC EDITORIAL HIERARCHY — DEPLOYED / OWNER ACCEPTANCE
   PENDING (2026-10-29).** The shared public release
   now provides separate Latest, Featured and Trending three-card sections for

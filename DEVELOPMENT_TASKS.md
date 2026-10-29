@@ -49,6 +49,18 @@ SQL execution or migration application was performed. Latest verified production
 baseline remains application commit `f0a26f87610e62eac6c2e73d4e8ab5255ea68fca`
 on Worker `ad7dabfc-5f9a-4bcc-bd5e-3c6ca3ca8cbf` at 100%.
 
+Migration rehearsal evidence: the validated isolated backup was inspected and
+restored into a fresh local PostgreSQL 17 cluster containing only temporary
+schema/role stubs and the eight statistics tables. Pre/post checks matched
+exactly: yearly `7 / 30182 / 51384 / 101226`, monthly `12 / 4531 / 14990`,
+county `10 / 2838 / 9395`, victim `6 / 4531`, cause `8 / 4531`, vehicle
+`7 / 4531 / 15290`, time-of-day `6 / 4531`, and road-class `5 / 4531 / 15290`
+(row count / fatalities / applicable secondary totals). The yearly `year`
+primary key remained intact; all seven historical yearly rows defaulted to
+`published`; audit RLS was enabled; nine revision triggers/policies were
+created; and anonymous reads excluded an explicitly archived row. The temporary
+cluster was stopped and removed. No production SQL ran.
+
 ## Task 70 / SB 2 — platform-wide public editorial hierarchy correction — DEPLOYED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This is the consolidated follow-up to the existing Global Editorial Layout

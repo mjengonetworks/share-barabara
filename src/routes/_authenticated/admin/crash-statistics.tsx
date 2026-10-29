@@ -147,7 +147,15 @@ const PROVENANCE_COLUMNS: ColumnDef[] = [
 
 function StatsTableEditor({ table, queryKey, orderBy, columns, primaryKey = "id" }: TabDef) {
   const queryClient = useQueryClient();
-  const allColumns = [...columns, ...PROVENANCE_COLUMNS];
+  const { data: metadataReady = false } = useQuery({
+    queryKey: ["statistics-metadata-ready"],
+    queryFn: async () => {
+      const { error } = await supabase.from("yearly_stats" as never).select("publication_status").limit(1);
+      return !error;
+    },
+    staleTime: 300_000,
+  });
+  const allColumns = metadataReady ? [...columns, ...PROVENANCE_COLUMNS] : columns;
   const [draft, setDraft] = useState<Record<string, string>>(emptyRow(allColumns));
 
   const { data: rows = [], isLoading } = useQuery({
@@ -231,6 +239,14 @@ function StatsTableEditor({ table, queryKey, orderBy, columns, primaryKey = "id"
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const archive = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from(table as never).update({ publication_status: "archived" } as never).eq(primaryKey, id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Statistics row unpublished"); refresh(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div>
@@ -294,10 +310,10 @@ function StatsTableEditor({ table, queryKey, orderBy, columns, primaryKey = "id"
                     variant="ghost"
                     size="sm"
                     className="text-destructive"
-                    disabled={remove.isPending}
-                    onClick={() => remove.mutate(String(row[primaryKey]))}
+                    disabled={remove.isPending || archive.isPending}
+                    onClick={() => metadataReady ? archive.mutate(String(row[primaryKey])) : remove.mutate(String(row[primaryKey]))}
                   >
-                    Remove
+                    {metadataReady ? "Unpublish" : "Remove"}
                   </Button>
                 </td>
               </tr>

@@ -64,6 +64,18 @@ CREATE POLICY legacy_statistics_revisions_editor_read
 GRANT SELECT ON public.legacy_statistics_revisions TO authenticated;
 GRANT ALL ON public.legacy_statistics_revisions TO service_role;
 
+CREATE OR REPLACE FUNCTION public.prevent_statistics_revision_mutation()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  RAISE EXCEPTION 'Statistics revision history is append-only';
+END;
+$$;
+
+DROP TRIGGER IF EXISTS legacy_statistics_revisions_append_only ON public.legacy_statistics_revisions;
+CREATE TRIGGER legacy_statistics_revisions_append_only
+  BEFORE UPDATE OR DELETE ON public.legacy_statistics_revisions
+  FOR EACH ROW EXECUTE FUNCTION public.prevent_statistics_revision_mutation();
+
 CREATE OR REPLACE FUNCTION public.record_legacy_statistics_revision()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE row_key TEXT;
@@ -164,6 +176,11 @@ DROP POLICY IF EXISTS statistics_dataset_revisions_editor_read ON public.statist
 CREATE POLICY statistics_dataset_revisions_editor_read
   ON public.statistics_dataset_revisions FOR SELECT TO authenticated
   USING (public.has_min_role(auth.uid(), 'editor'));
+
+DROP TRIGGER IF EXISTS statistics_dataset_revisions_append_only ON public.statistics_dataset_revisions;
+CREATE TRIGGER statistics_dataset_revisions_append_only
+  BEFORE UPDATE OR DELETE ON public.statistics_dataset_revisions
+  FOR EACH ROW EXECUTE FUNCTION public.prevent_statistics_revision_mutation();
 
 REVOKE INSERT, UPDATE, DELETE ON public.statistics_datasets, public.statistics_observations FROM authenticated;
 -- Published statistics observations are immutable; corrections use a new
