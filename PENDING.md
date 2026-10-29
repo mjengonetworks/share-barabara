@@ -1,5 +1,17 @@
 # Pending
 
+- **SB 2 MIGRATION PACKAGE — APPROVAL REQUIRED / NOT EXECUTED (2026-10-29).**
+  The rerun-hardened migration candidates and exact production procedure are
+  pushed on `integration/sb2-canonical-incident-release` at
+  `63c84fb8939f72b03fdb156411b57429116cb022`. The requested production SQL
+  approval set is, in order: `20261005120000_accident_duplicate_merge_review.sql`,
+  `20261006110000_incident_duplicate_suggestions_review.sql`,
+  `20261029100000_incident_content_links_review.sql`, then
+  `20261028130000_canonical_accident_statistics_review.sql`. The transport
+  extension and SB4 geography migration are deferred pending SB4 identifier
+  coordination. No disposable database is available; Mjengo Networks is not
+  used. No production SQL has been executed.
+
 - **SB 2 CANONICAL INCIDENT / RELATIONSHIP / STATISTICS INTEGRATION — APPLICATION DEPLOYED / ACCEPTANCE PENDING.** Branch `integration/sb2-canonical-incident-release` deployed commit `96f1675f042e3d5a68bf48c70a408367bd998410` to Worker `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb` at 100% on 2026-10-29. The release preserves the editor-authoritative `incident_content_links` model and canonical statistics/map adapter, with legacy-schema fallbacks. Public `/`, `/statistics`, `/reports`, `/alerts`, `/partner-with-us`, `/feed` and `/news` returned HTTP 200. No SQL or migration was executed. Database/RLS acceptance, authenticated relationship review, browser acceptance, SB4 geography acceptance and final user acceptance remain pending.
 - **SB 2 ISOLATED DATABASE TESTING — SETUP REQUIRED.** The authenticated CLI found the linked production project `Share Barabara` (`yhqoggbntunxvlbcatwj`) and a separate `Mjengo Networks` project (`skgtsdyxobyjtzrklyzi`). The latter is not designated disposable, so no SQL was executed. See `docs/sb2-isolated-database-testing.md` for the minimum non-production project and temporary credential requirements.
 
