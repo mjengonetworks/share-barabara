@@ -56,3 +56,12 @@ Baseline: `b8487ffc5f63326a98729839d7e0b103044466e8` (the deployed footer releas
 - Candidate Chrome acceptance: all required widths rendered without overflow; `/reports#report-form` mounted and scrolled to the form after data load; reduced-motion mode was exercised; Partner With Us native validation rejected empty required fields; report-route hydration warnings were fixed by keeping action links outside incident-card links.
 - Candidate preview root causes: Vite preview expects incompatible `dist/server/server.js`; Nitro preview rejects the generated Wrangler config's nested `env.staging`; the Vite dev server is the functional candidate browser harness and its client entry hydrated successfully.
 - No database migration was executed. The placement migration remains review-only.
+
+### Deployment record
+
+- Approved and deployed application commit: `2025e9ccf340f0db0b6126919620df13b12edf82`.
+- Cloudflare production Worker: `c193a8dd-725d-403e-9334-0446d1c86236`, created `2026-10-29T10:04:31.505Z`, receiving 100% traffic on `sharebarabara.co.ke`.
+- Deployment used the built Cloudflare artifact after removing only the invalid generated `env.staging` block from the ignored artifact config; tracked production configuration was not changed.
+- Live browser verification passed for homepage responsive widths 320, 375, 390, 430, 440, 768, 1024, 1280 and 1440px, with no horizontal overflow or page errors.
+- Live report hash navigation mounted and scrolled to `#report-form`; Partner With Us loaded and rejected invalid required fields.
+- The advertising placement migration remains unapplied and was not part of this deployment.
