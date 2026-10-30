@@ -866,3 +866,5 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **SB 2 final terminology/date correction — CODE VERIFIED / DEPLOYMENT PENDING:** visible UI uses Fatalities/Fatality instead of Deaths/Death, while database/API keys remain unchanged. Report detail distinguishes publication date from the editable `occurred_at` accident date and places the accident date directly below the author; missing values are not fabricated.
 - **Checks:** focused `17/17`, full `504/504`, security `14/14`, production build and diff check passed. No SQL or deployment performed.
 - **Still pending:** live production reconciliation before deployment, browser/responsive screenshots, authenticated CMS save/reload verification and owner approval.
+- **Planned — ShareBarabara.com Internationalisation:** future country selector and country-scoped platform browsing remain backlog-only. Kenya is intentionally not clickable, and no placeholder countries or country-switching logic were added.
+- **Homepage hero copy — IMPLEMENTED / DEPLOYMENT PENDING:** exact text `Reported directly by road users` is present; browser desktop/mobile visual acceptance remains pending.

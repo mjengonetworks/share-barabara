@@ -139,3 +139,11 @@ test("public and admin fatality terminology is standardized without changing dat
   assert.match(report, /report\.fatalities/);
   assert.match(report, /Accident date: \{longDate\(report\.occurred_at\)\}/);
 });
+
+test("homepage hero uses the approved road-user wording without adding country-selection UI", async () => {
+  const homepage = await read("src/routes/index.tsx");
+  assert.match(homepage, /Reported directly by road users/);
+  assert.doesNotMatch(homepage, /Reported by the people who use these roads every day/);
+  assert.match(homepage, /Share Barabara Kenya/);
+  assert.doesNotMatch(homepage, /country selector|supported countries|country switcher/i);
+});
