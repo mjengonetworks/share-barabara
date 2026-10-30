@@ -595,6 +595,13 @@ unfinished application changes are not merged here.
 - **Verification — PASSED:** focused correction tests 22/22; full suite 500/500; security suite 14/14; production build passed; `git diff --check` passed. TypeScript diagnostics: 826 candidate vs 827 at the pre-change documentation commit; remaining diagnostics are pre-existing generated-schema/index-signature debt.
 - **Release status:** application deployment is not approved for this candidate. Do not execute `20261030190000_report_alert_summaries_review.sql` without separate migration approval and a fresh verified backup. Responsive screenshots, authenticated CMS workflows and owner visual acceptance remain open.
 
+## SB 2 — final correction audit (2026-10-30)
+
+- **Code audit — PASSED:** shared `EditorialBand`, discovery, sidebar and ecosystem-preview spacing is compacted centrally; Report/Alert detail routes place location before media and dates below headlines; Article-aligned headline sizing, redundant directory buttons, Report plain body, Alert accent body and distinct Alert summary are present.
+- **Schema compatibility — PASSED WITH GATE:** `20261030190000_report_alert_summaries_review.sql` is additive and nullable. Report/Alert editors feature-detect the `summary` column and disable only summary persistence on the old schema, while other fields remain safe to save. Migration rehearsal could not be rerun in this environment because `psql`, `pg_dump`, `pg_restore` and a disposable backup are unavailable; prior PostgreSQL 17.11 rehearsal remains historical evidence, not new verification.
+- **Functional code evidence — PASSED:** numeric zero/qualified unknown highlights, searchable category selection, record-scoped AI reset/stale-response protection, collapse/reopen controls, old-schema summary guard and exact homepage metadata are covered by the 6/6 audit tests. Authenticated persistence and provider-backed workflows remain unverified.
+- **Release status:** no deployment or SQL execution was performed. Browser screenshots, authenticated CMS/provider acceptance and owner approval remain open.
+
 ## SB 2 — disposable PostgreSQL rehearsal update (2026-10-30)
 
 - **Migration rehearsal — PASSED:** PostgreSQL 17.11 disposable cluster at `127.0.0.1:55432`, database `sb2_rehearsal`, isolated from the running local service and production. Restored `E:\sb2-production-backup-20261029-final.dump` (SHA-256 `1A364DE9682614B3D8EFA06DB013A40F12D3DE120E12360F31BB0674C2D9BE67`; `pg_restore --list` showed 1205 TOC entries). Restore emitted one expected `public`-schema-exists message; all backup objects/data restored. Baseline rows: 97 Articles, 15 Reports, 14 Alerts, 1 Campaign, 0 Infrastructure Issues, 1 Feed Post, 0 incident links.

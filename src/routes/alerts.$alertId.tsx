@@ -180,7 +180,7 @@ function AlertDetail() {
             {alert.status === "resolved" ? <span className="text-sm text-muted-foreground">Resolved</span> : null}
           </div>
 
-          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+          <h1 className="mt-1.5 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {alert.title}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">Published: {longDate(alert.created_at)}</p>
@@ -226,7 +226,7 @@ function AlertDetail() {
             </div>
           ) : null}
 
-          {(alert as typeof alert & { summary?: string | null }).summary ? <EditorialSummary className="mt-5">{renderRichText((alert as typeof alert & { summary?: string | null }).summary!)}</EditorialSummary> : null}
+          {(alert as typeof alert & { summary?: string | null }).summary ? <div className="mt-5 rounded-lg border-l-4 border-brand-blue bg-muted/30 px-4 py-3 text-base leading-7 text-foreground/90 sm:px-5 sm:py-4"><p className="mb-1 text-xs font-bold uppercase tracking-widest text-brand-blue">Alert summary</p>{renderRichText((alert as typeof alert & { summary?: string | null }).summary!)}</div> : null}
           <div className="mt-5"><EditorialSummary>{renderRichText(alert.description)}</EditorialSummary></div>
 
           <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />

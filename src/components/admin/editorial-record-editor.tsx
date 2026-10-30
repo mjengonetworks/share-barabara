@@ -76,6 +76,15 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       return data as RecordValue;
     },
   });
+  const summarySchemaQuery = useQuery({
+    queryKey: ["editorial-summary-schema", type],
+    enabled: type === "report" || type === "alert",
+    queryFn: async () => {
+      const { error } = await (supabase.from(config.table) as any).select("summary").limit(1);
+      return !error;
+    },
+  });
+  const summarySupported = type !== "report" && type !== "alert" ? true : summarySchemaQuery.data === true;
 
   useEffect(() => {
     if (recordQuery.data) setForm(initialForm(type, recordQuery.data));
@@ -115,7 +124,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         };
       } else if (type === "report") {
         payload = {
-          title: form.title, summary: form["summary"].trim() || null, description: form.body, county: form.county, road: form.road,
+          title: form.title, ...(summarySupported ? { summary: form["summary"].trim() || null } : {}), description: form.body, county: form.county, road: form.road,
           incident_type: form.incident_type || null, severity: form.severity,
           occurred_at: form.occurred_at, latitude: form.latitude, longitude: form.longitude,
           vehicles_involved: form.vehicles_involved, casualties: form.casualties, fatalities: form.fatalities,
@@ -128,7 +137,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         };
       } else if (type === "alert") {
         payload = {
-          title: form.title, summary: form["summary"].trim() || null, description: form.description, county: form.county, road: form.road,
+          title: form.title, ...(summarySupported ? { summary: form["summary"].trim() || null } : {}), description: form.description, county: form.county, road: form.road,
           hazard_type: form.hazard_type, severity: form.severity,
           featured: form.featured,
           image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
@@ -159,7 +168,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         const road_id = await findExistingRoad(form.road);
         await submitAccidentReport({ data: {
           title: form.title,
-          summary: form["summary"].trim() || null,
+          ...(summarySupported ? { summary: form["summary"].trim() || null } : {}),
           description: form.body,
           county: form.county,
           road: form.road,
@@ -233,7 +242,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       ) : null}
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2"><Label htmlFor="editor-title">Title</Label><Input id="editor-title" value={form.title} onChange={(e) => set("title", e.target.value)} /></div>
-        {type === "article" || type === "infrastructure" || type === "report" || type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-summary">Editorial summary</Label><Textarea id="editor-summary" maxLength={240} placeholder="Concise factual summary (normally 20 words or fewer)" value={form["summary"]} onChange={(e) => set("summary", e.target.value)} /></div> : null}
+        {type === "article" || type === "infrastructure" || type === "report" || type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-summary">Editorial summary</Label>{type === "report" || type === "alert" ? <p className="mb-1 text-xs text-muted-foreground">{summarySupported ? "Saved independently from the full content." : "Summary storage activates after the reviewed summary migration is applied; other fields remain safe to save."}</p> : null}<Textarea id="editor-summary" disabled={!summarySupported} maxLength={240} placeholder="Concise factual summary (normally 20 words or fewer)" value={form["summary"]} onChange={(e) => set("summary", e.target.value)} /></div> : null}
         {type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-description">Advisory content</Label><RichTextEditor id="editor-description" value={form.description} onChange={(value) => set("description", value)} /></div> : <div className="sm:col-span-2"><Label htmlFor="editor-body">Full content</Label><RichTextEditor id="editor-body" value={form.body} onChange={(value) => set("body", value)} /></div>}
         {type === "article" ? <><div><Label>Category</Label><Input value={form.category} onChange={(e) => set("category", e.target.value)} /></div><div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div></> : null}
         {type === "alert" || type === "report" ? <><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road / location</Label><Input value={form.road} onChange={(e) => set("road", e.target.value)} /></div><div><Label>Severity</Label><Input value={form.severity} onChange={(e) => set("severity", e.target.value)} /></div></> : null}

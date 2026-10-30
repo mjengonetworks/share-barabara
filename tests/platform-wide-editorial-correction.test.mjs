@@ -20,9 +20,12 @@ test("Report and Alert detail metadata follows the shared article hierarchy", as
   const alert = await read("src/routes/alerts.$alertId.tsx");
   assert.doesNotMatch(report, />All reports</);
   assert.match(report, /Incident date:/);
+  assert.match(report, /text-\[24\.7px\]/);
   assert.match(report, /report-summary/);
   assert.match(report, /bg-white text-foreground/);
   assert.match(alert, /Published:/);
+  assert.match(alert, /Alert summary/);
+  assert.match(alert, /border-l-4 border-brand-blue/);
   assert.match(alert, /summary\?: string \| null/);
 });
 
@@ -32,7 +35,10 @@ test("Report and Alert summaries have an additive reviewed schema and CMS fields
   assert.match(migration, /accident_reports[\s\S]*ADD COLUMN IF NOT EXISTS summary TEXT/);
   assert.match(migration, /alerts[\s\S]*ADD COLUMN IF NOT EXISTS summary TEXT/);
   assert.match(editor, /Editorial summary/);
-  assert.match(editor, /summary: form(?:\.summary|\["summary"\])\.trim\(\) \|\| null/);
+  assert.match(editor, /form\["summary"\]\.trim\(\) \|\| null/);
+  assert.match(editor, /summarySchemaQuery/);
+  assert.match(editor, /summarySupported/);
+  assert.match(editor, /disabled=\{!summarySupported\}/);
 });
 
 test("Article categories remain multi-select and are searchable", async () => {

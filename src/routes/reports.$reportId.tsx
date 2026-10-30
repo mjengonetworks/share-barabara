@@ -236,7 +236,7 @@ function ReportDetail() {
               {report.rejection_reason}
             </p>
           ) : null}
-          <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+          <h1 className="mt-1.5 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {report.title}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">Incident date: {longDate(report.occurred_at)}</p>

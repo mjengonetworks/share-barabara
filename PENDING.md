@@ -846,3 +846,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Homepage SEO metadata — IMPLEMENTED:** approved homepage title and Open Graph title are present in the root metadata.
 - **Automated verification — PASSED:** focused 22/22, full 500/500, security 14/14, production build passed, diff check passed. TypeScript candidate 826 diagnostics vs 827 pre-change; known repository typing debt remains.
 - **Release gate:** no deployment or SQL execution has been performed for this candidate. Required next evidence is responsive screenshots, authenticated CMS acceptance, and owner approval for application deployment plus the summary migration.
+
+## SB 2 — final correction audit (2026-10-30)
+
+- **Implemented:** shared spacing correction, Report/Alert hierarchy and typography, location/date order, removal of redundant directory buttons, separate summaries, numeric casualty highlights, searchable Article categories, AI lifecycle reset/collapse, and homepage metadata.
+- **Migration pending:** `20261030190000_report_alert_summaries_review.sql` remains review-only. It is additive/nullable. The application now feature-detects the summary column and safely omits summary writes until the migration exists.
+- **Database rehearsal pending in this environment:** PostgreSQL client binaries and the disposable backup are unavailable, so no new PostgreSQL-backed rehearsal was claimed. Minimum prerequisite: PostgreSQL 17 client tools plus the verified non-production custom-format backup, or an isolated PostgreSQL 17 database fixture. The application is safe during the old-schema interval because summary writes are feature-detected and disabled until the column exists.
+- **Live acceptance pending:** authenticated Article/Report/Alert summary and category persistence, Featured/Related Content workflows, Grok provider acceptance, responsive screenshots at 320–1440px, and owner acceptance.
