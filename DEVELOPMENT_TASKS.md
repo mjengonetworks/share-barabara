@@ -774,3 +774,10 @@ unfinished application changes are not merged here.
 - **Database verification:** read-only linked query verification confirmed road_registry_history and editorial_feed_entries, all expected Road Registry columns, News/Infrastructure road_id columns, Release B indexes, RLS enabled on roads/history/Feed entries, final road policies, absence of roads_insert_authenticated, and all five Feed triggers.
 - **Preservation counts:** Roads 14, News 97, Reports 18, Alerts 14, Infrastructure Issues 0, Campaigns 1 and community Feed posts 1.
 - **Application state:** application deployment has not occurred. Latest live Worker/source reconciliation, application deployment approval, smoke tests and live UI/authenticated acceptance remain pending.
+
+## SB 2 — application deployment prepared (2026-10-31)
+
+- **Live Worker reconciliation:** read-only Wrangler deployment history shows Worker 73b4a858-a4a7-4d6c-a745-281914b4f2a3 at 100% as the latest deployment; no newer Worker deployment was found.
+- **Application artifact:** verified application source remains e314441fd85e67cc993177918f762c2e3150f48f. Changes after that artifact are migration hardening, tests and release documentation only.
+- **Configuration to preserve:** production route sharebarabara.co.ke, production vars/secrets, rate limiter AI_RATE_LIMITER, cron */1 * * * *, custom domain and existing bindings.
+- **Deployment gate:** application deployment is prepared but not executed. Separate owner application approval remains required; post-deploy smoke tests and browser/authenticated acceptance are still open.

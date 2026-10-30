@@ -997,3 +997,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Schema/RLS:** Road Registry and Feed bridge objects, expected columns/indexes, RLS and final road policies verified read-only. All five editorial Feed triggers are present; permissive road INSERT policy is absent.
 - **Preserved:** Roads 14, News 97, Reports 18, Alerts 14, Infrastructure Issues 0, Campaigns 1, community Feed posts 1.
 - **Still pending:** reconcile latest live Worker/source, obtain separate application deployment approval, deploy the verified application artifact, run smoke tests and complete owner browser/authenticated UI acceptance. No application deployment occurred.
+
+## SB 2 — application deployment readiness (2026-10-31)
+
+- **Latest live Worker:** 73b4a858-a4a7-4d6c-a745-281914b4f2a3 at 100%; no newer deployment found in Wrangler history.
+- **Prepared artifact:** e314441fd85e67cc993177918f762c2e3150f48f; later branch changes are SQL hardening/tests/docs and do not change the application artifact.
+- **Preserve:** sharebarabara.co.ke custom route, production configuration/secrets, AI rate limiter, existing cron and bindings.
+- **Pending:** separate application deployment approval, deployment, smoke tests, browser screenshots, authenticated CMS checks and owner UI acceptance.
