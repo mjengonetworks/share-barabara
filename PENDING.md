@@ -989,3 +989,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Approved script checksum verified:** E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC.
 - **Manual execution path:** C:\Users\phabi\share-barabara-integration-sb2\docs\release-b\release-b-atomic-sql-editor.sql.
 - **Not executed here:** browser SQL Editor automation was unavailable. Post-migration verification is in docs/release-b/post-migration-verification-queries.sql. Application deployment and live UI acceptance remain pending.
+
+## SB 2 — production database release verified (2026-10-31)
+
+- **Migration:** owner-reported SQL Editor execution succeeded; no rows were returned and the atomic batch was not rerun.
+- **Ledger:** supported Supabase CLI repair marked 20261030200000, 20261030210000 and 20261030220000 applied; follow-up linked migration listing confirms all three remote versions.
+- **Schema/RLS:** Road Registry and Feed bridge objects, expected columns/indexes, RLS and final road policies verified read-only. All five editorial Feed triggers are present; permissive road INSERT policy is absent.
+- **Preserved:** Roads 14, News 97, Reports 18, Alerts 14, Infrastructure Issues 0, Campaigns 1, community Feed posts 1.
+- **Still pending:** reconcile latest live Worker/source, obtain separate application deployment approval, deploy the verified application artifact, run smoke tests and complete owner browser/authenticated UI acceptance. No application deployment occurred.

@@ -766,3 +766,11 @@ unfinished application changes are not merged here.
 - **Checksum verified locally:** the approved atomic SQL Editor artifact is docs/release-b/release-b-atomic-sql-editor.sql with SHA-256 E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC.
 - **Execution status:** not executed by Codex because SQL Editor browser automation is unavailable. The owner-approved manual file path is C:\Users\phabi\share-barabara-integration-sb2\docs\release-b\release-b-atomic-sql-editor.sql.
 - **Postflight:** read-only checks are in docs/release-b/post-migration-verification-queries.sql. Application deployment remains blocked until the owner returns successful post-migration results and gives separate application approval.
+
+## SB 2 — production SQL completed and verified (2026-10-31)
+
+- **Owner execution:** the owner executed the checksum-verified atomic SQL Editor artifact as one batch in Share Barabara production. No migration was rerun by Codex.
+- **Ledger reconciliation:** authenticated linked Supabase CLI confirmed project ref yhqoggbntunxvlbcatwj; supabase migration repair --linked 20261030200000 20261030210000 20261030220000 --status applied succeeded. A follow-up migration list shows all three versions remote/applied.
+- **Database verification:** read-only linked query verification confirmed road_registry_history and editorial_feed_entries, all expected Road Registry columns, News/Infrastructure road_id columns, Release B indexes, RLS enabled on roads/history/Feed entries, final road policies, absence of roads_insert_authenticated, and all five Feed triggers.
+- **Preservation counts:** Roads 14, News 97, Reports 18, Alerts 14, Infrastructure Issues 0, Campaigns 1 and community Feed posts 1.
+- **Application state:** application deployment has not occurred. Latest live Worker/source reconciliation, application deployment approval, smoke tests and live UI/authenticated acceptance remain pending.
