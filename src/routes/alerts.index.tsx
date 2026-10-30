@@ -327,8 +327,8 @@ function AlertsPage() {
 
             <div id="all-alerts" className="mt-4 scroll-mt-24">
               <SectionHeader
-                eyebrow="Published alert records"
-                title="Alerts by Severity, County and Road"
+                eyebrow="Browse all eligible alerts"
+                title="Browse All Hazard Alerts"
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-3">

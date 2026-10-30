@@ -371,24 +371,73 @@ function NewsIndex() {
             <TrendingNewsView articles={loaderData.trending} range={range} category={category} />
           </EditorialBand>
         ) : category ? (
-          <EditorialBand className="mt-4 py-5 sm:py-7" tone="plain">
-            <SectionHeader
-              eyebrow="Newsroom category"
-              title={category}
-              to="/news"
-              actionLabel="All articles"
-            />
-            {filteredLoading ? (
-              <p className="mt-6 text-muted-foreground">Loading published articles…</p>
-            ) : null}
-            {!filteredLoading && !filtered.length ? (
-              <EmptyState label="No published articles in this category yet." />
-            ) : (
-              <div className="mt-6">
-                <ArticleGridWithAds articles={filtered} placement="news-category" />
+          <div className="mt-4 space-y-0">
+            <EditorialBand className="py-5 sm:py-7" tone="plain">
+              <SectionHeader
+                eyebrow="Newsroom category"
+                title={`${category} — Latest News`}
+                description="The newest eligible articles in this category, followed by selected and view-ranked coverage."
+                to="/news"
+                actionLabel="Browse all news"
+              />
+              {filteredLoading ? <p className="mt-6 text-muted-foreground">Loading published articles…</p> : null}
+              {!filteredLoading && !filtered.length ? (
+                <EmptyState label="No published articles in this category yet." />
+              ) : (
+                <div className="mt-6">
+                  <ArticleGridWithAds articles={filtered.slice(0, 3)} placement="news-category-latest" />
+                  <div className="mt-5 text-center">
+                    <Link to="/news" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more</Link>
+                  </div>
+                </div>
+              )}
+            </EditorialBand>
+            <EditorialBand className="py-5 sm:py-7" tone="pale">
+              <SectionHeader eyebrow="Editor-selected coverage" title={`${category} — Featured`} to="/news" actionLabel="Browse all news" />
+              {loaderData.featured.filter((article) => article.category === category || article.categories?.includes(category)).length ? (
+                <div className="mt-5">
+                  <ArticleGridWithAds
+                    articles={loaderData.featured.filter((article) => article.category === category || article.categories?.includes(category)).slice(0, 3)}
+                    placement="news-category-featured"
+                  />
+                </div>
+              ) : <EmptyState label="No Featured Articles have been selected in this category yet." />}
+              <div className="mt-5 text-center">
+                <Link to="/news" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more</Link>
               </div>
-            )}
-          </EditorialBand>
+            </EditorialBand>
+            <EditorialBand className="py-5 sm:py-7" tone="plain">
+              <SectionHeader eyebrow="Ranked by recorded views" title={`${category} — Trending`} to="/news" actionLabel="Browse all news" />
+              <TrendingNewsView
+                articles={loaderData.trending.filter((article) => article.category === category || article.categories?.includes(category)).slice(0, 30)}
+                range={range}
+                category={category}
+              />
+            </EditorialBand>
+            {relatedReports.length ? (
+              <EditorialBand className="py-5 sm:py-7" tone="plain">
+                <SectionHeader eyebrow="Related road context" title="Related Accident Reports" to="/reports" actionLabel="View reports" />
+                <div className="mt-6 grid gap-5 md:grid-cols-3">{relatedReports.map((report) => <ReportPreviewCard key={report.id} report={report} />)}</div>
+              </EditorialBand>
+            ) : null}
+            {relatedAlerts.length ? (
+              <EditorialBand className="py-5 sm:py-7" tone="pale">
+                <SectionHeader eyebrow="Related live context" title="Relevant Alerts" to="/alerts" actionLabel="View alerts" />
+                <div className="mt-6 grid gap-5 md:grid-cols-3">{relatedAlerts.map((alert) => <AlertPreviewCard key={alert.id} alert={alert} />)}</div>
+              </EditorialBand>
+            ) : null}
+            <EditorialDiscoveryRail exclude="news" />
+            <EditorialBand className="py-5 sm:py-7" tone="plain">
+              <SectionHeader eyebrow="Explore related topics" title="Browse All by Category" description="Explore other published newsroom categories without losing the current context." />
+              <div className="mt-6"><CategoryEntityGrid articles={all} /></div>
+            </EditorialBand>
+            <EditorialBand className="py-5 sm:py-7" tone="plain">
+              <SectionHeader eyebrow="Full category directory" title={`Browse All ${category} News`} to="/news" actionLabel="All articles" />
+              <div className="mt-6">
+                {!filteredLoading && filtered.length ? <ArticleGridWithAds articles={filtered} placement="news-category-browse-all" /> : <EmptyState label="No additional published articles match this category." />}
+              </div>
+            </EditorialBand>
+          </div>
         ) : (
           <div className="mt-4 space-y-0">
             <EditorialBand className="py-5 sm:py-7" tone="plain">
@@ -444,19 +493,6 @@ function NewsIndex() {
                 </div>
               </EditorialBand>
             ) : null}
-            <EditorialBand className="py-5 sm:py-7" tone="plain">
-              <SectionHeader
-                eyebrow="Browse the newsroom"
-                title="Browse by Category"
-                description="Explore published reporting by the topics that shape safer journeys."
-              />
-              <div className="mt-6">
-                {allLoading ? (
-                  <p className="text-muted-foreground">Loading published categories…</p>
-                ) : null}
-                {!allLoading ? <CategoryEntityGrid articles={all} /> : null}
-              </div>
-            </EditorialBand>
             {relatedReports.length ? (
               <EditorialBand className="py-5 sm:py-7" tone="plain">
                 <SectionHeader
@@ -492,6 +528,18 @@ function NewsIndex() {
                 </div>
               </EditorialBand>
             ) : null}
+            <EditorialDiscoveryRail exclude="news" />
+            <EditorialBand className="py-5 sm:py-7" tone="plain">
+              <SectionHeader
+                eyebrow="Browse all eligible newsroom records"
+                title="Browse by Category"
+                description="Explore published reporting by the topics that shape safer journeys."
+              />
+              <div className="mt-6">
+                {allLoading ? <p className="text-muted-foreground">Loading published categories…</p> : null}
+                {!allLoading ? <CategoryEntityGrid articles={all} /> : null}
+              </div>
+            </EditorialBand>
           </div>
         )}
         <GlobalEditorialPreview
@@ -501,7 +549,6 @@ function NewsIndex() {
             sort === "trending" ? loaderData.trending.map((item) => `news:${item.id}`) : []
           }
         />
-        <EditorialDiscoveryRail exclude="news" />
         <MjengoPreviews context="articles" />
       </div>
     </div>

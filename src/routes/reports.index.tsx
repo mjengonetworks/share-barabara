@@ -318,8 +318,8 @@ function ReportsPage() {
 
             <div id="all-reports" className="mt-4 scroll-mt-24">
               <SectionHeader
-                eyebrow="Approved public records"
-                title="Reports by County, Road and Incident Type"
+                eyebrow="Browse all eligible reports"
+                title="Browse All Accident Reports"
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-3">

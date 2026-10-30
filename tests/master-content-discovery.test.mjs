@@ -56,6 +56,35 @@ test("public discovery preserves eligibility boundaries and distinct hierarchy",
   assert.match(alerts, /\.or\("status\.is\.null,status\.in\.\(active,in_progress,resolved,under_resolution\)"\)/);
 });
 
+test("news category discovery keeps the complete editorial order and browse-all stage", async () => {
+  const news = await read("src/routes/news.index.tsx");
+  for (const label of ["Latest News", "Featured", "Trending", "Related Accident Reports", "Relevant Alerts", "EditorialDiscoveryRail", "Browse All by Category", "Browse All"]) {
+    assert.ok(news.includes(label), `missing discovery stage: ${label}`);
+  }
+  const categoryBranch = news.slice(news.indexOf(") : category ? ("));
+  const order = [
+    "Latest",
+    "Featured",
+    "Trending",
+    "relatedReports.length",
+    "relatedAlerts.length",
+    "<EditorialDiscoveryRail",
+    "Browse All by Category",
+    "Browse All ${category} News",
+  ].map((marker) => categoryBranch.indexOf(marker));
+  assert.ok(order.every((index) => index >= 0), "category discovery stages must be present");
+  for (let i = 1; i < order.length; i += 1) assert.ok(order[i - 1] < order[i], "category discovery order changed");
+});
+
+test("reports and alerts expose Browse All after their shared discovery rails", async () => {
+  const [reports, alerts] = await Promise.all([read("src/routes/reports.index.tsx"), read("src/routes/alerts.index.tsx")]);
+  for (const source of [reports, alerts]) {
+    assert.match(source, /Browse all eligible/);
+    assert.match(source, /Browse All/);
+    assert.ok(source.indexOf("<EditorialDiscoveryRail") < source.indexOf("Browse All"));
+  }
+});
+
 test("detail order keeps location before headline and media fluid", async () => {
   const [report, alert] = await Promise.all([
     read("src/routes/reports.$reportId.tsx"),
