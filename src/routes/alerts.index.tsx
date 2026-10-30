@@ -275,25 +275,25 @@ function AlertsPage() {
             ) : <div className="mt-5 max-w-xl">{hazardSubmissionCard}</div>}
 
             <div className="mt-5"><BannerAd placement="alerts-list-interval-1" /></div>
-            {rankedTrending.length > 0 ? (
-              <EditorialBand tone="plain">
-                <SectionHeader
-                  eyebrow="Ranked by recorded views"
-                  title="Trending / Most Viewed Alerts"
-                  icon={<Flame className="size-5 text-destructive" />}
-                />
+            <EditorialBand tone="plain">
+              <SectionHeader
+                eyebrow="Ranked by recorded views"
+                title="Trending / Most Viewed Alerts"
+                icon={<Flame className="size-5 text-destructive" />}
+              />
+              {rankedTrending.length > 0 ? (
                 <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {rankedTrending.slice(0, 3).map((alert) => (
                     <AlertPreviewCard key={alert.id} alert={alert as any} />
                   ))}
                 </div>
-                <div className="mt-5 text-center">
-                  <Link to="/alerts" className="text-sm font-bold text-brand-blue underline underline-offset-4">
-                    Read more
-                  </Link>
-                </div>
-              </EditorialBand>
-            ) : null}
+              ) : (
+                <p className="mt-4 rounded border border-dashed border-border p-4 text-sm text-muted-foreground">No view-ranked Alerts are available for the current filters yet.</p>
+              )}
+              <div className="mt-5 text-center">
+                <Link to="/alerts" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more</Link>
+              </div>
+            </EditorialBand>
 
             <GlobalEditorialPreview destination="alerts" topic={hazard !== "all" ? hazard : null} />
             <EditorialDiscoveryRail exclude="alerts" />

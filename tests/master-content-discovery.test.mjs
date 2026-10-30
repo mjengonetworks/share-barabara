@@ -51,6 +51,7 @@ test("public discovery preserves eligibility boundaries and distinct hierarchy",
     assert.match(source, /GlobalEditorialPreview/);
     assert.match(source, /EditorialDiscoveryRail/);
     assert.match(source, /IncidentEntityGroups/);
+    assert.doesNotMatch(source, /\{rankedTrending\.length > 0 \? \(\s*<EditorialBand/);
   }
   assert.match(reports, /\.eq\("status", "approved"\)/);
   assert.match(alerts, /\.or\("status\.is\.null,status\.in\.\(active,in_progress,resolved,under_resolution\)"\)/);

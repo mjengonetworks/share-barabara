@@ -878,6 +878,7 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 ## SB 2 — discovery navigation and UI correction (2026-10-30)
 
 - Follow-up candidate `ab0f88b` adds the missing complete Article-category discovery experience and corrects the News stage order: Latest → Featured → Trending → related Share Barabara content → related categories → Browse All. Reports and Alerts now explicitly label their full eligible directories as Browse All while continuing to reuse the Articles directory primitives. No SQL or migration is required.
+- Live SSR verification found and corrected one final omission: Reports and Alerts now retain a labelled Trending / Most Viewed section with a compact empty state when no ranked results exist.
 
 - Implemented locally; deployment pending. Canonical county, road, incident, severity and hazard links now use URL-backed Reports/Alerts filters, with active-filter-aware editorial sections and shared News directory primitives.
 - Browser visual acceptance remains pending at 320, 375, 390, 430, 440, 768, 1024, 1280 and 1440px; authenticated CMS workflows remain pending.

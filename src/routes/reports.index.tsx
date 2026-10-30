@@ -264,27 +264,27 @@ function ReportsPage() {
             )}
 
             <div className="mt-5"><BannerAd placement="reports-list-interval-1" /></div>
-            {rankedTrending.length > 0 ? (
-              <EditorialBand tone="plain">
-                <SectionHeader
-                  eyebrow="Ranked by recorded views"
-                  title="Trending / Most Viewed Reports"
-                  icon={<Flame className="size-5 text-destructive" />}
-                  to="/reports"
-                  actionLabel="View all"
-                />
+            <EditorialBand tone="plain">
+              <SectionHeader
+                eyebrow="Ranked by recorded views"
+                title="Trending / Most Viewed Reports"
+                icon={<Flame className="size-5 text-destructive" />}
+                to="/reports"
+                actionLabel="View all"
+              />
+              {rankedTrending.length > 0 ? (
                 <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {rankedTrending.slice(0, 3).map((report) => (
                     <ReportPreviewCard key={report.id} report={report} />
                   ))}
                 </div>
-                <div className="mt-5 text-center">
-                  <Link to="/reports" className="text-sm font-bold text-brand-blue underline underline-offset-4">
-                    Read more
-                  </Link>
-                </div>
-              </EditorialBand>
-            ) : null}
+              ) : (
+                <p className="mt-4 rounded border border-dashed border-border p-4 text-sm text-muted-foreground">No view-ranked Reports are available for the current filters yet.</p>
+              )}
+              <div className="mt-5 text-center">
+                <Link to="/reports" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more</Link>
+              </div>
+            </EditorialBand>
 
             <GlobalEditorialPreview destination="reports" topic={incident !== "all" ? incident : null} />
             <EditorialDiscoveryRail exclude="reports" />
