@@ -142,8 +142,25 @@ test("public and admin fatality terminology is standardized without changing dat
 
 test("homepage hero uses the approved road-user wording without adding country-selection UI", async () => {
   const homepage = await read("src/routes/index.tsx");
-  assert.match(homepage, /Reported directly by road users/);
+  assert.match(homepage, /Share Barabara brings together live hazard alerts, crash data and road safety news from[\s\S]*?Kenya and beyond\. Reported directly by road users/);
   assert.doesNotMatch(homepage, /Reported by the people who use these roads every day/);
   assert.match(homepage, /Share Barabara Kenya/);
   assert.doesNotMatch(homepage, /country selector|supported countries|country switcher/i);
+});
+
+test("homepage hero preserves the complete approved structure and actions", async () => {
+  const homepage = await read("src/routes/index.tsx");
+  const hero = homepage.slice(homepage.indexOf("Share Barabara Kenya"), homepage.indexOf("<SearchBar"));
+  for (const expected of [
+    "Share Barabara Kenya",
+    "Every journey home should end at home.",
+    "Share Barabara brings together live hazard alerts, crash data and road safety news",
+    "Kenya and beyond.",
+    "Reported directly by road users",
+  ]) assert.match(hero, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(homepage, /<SearchBar className="mt-6 max-w-md"\s*\/>/);
+  assert.match(homepage, /<Link to="\/alerts">[\s\S]*?See live alerts/);
+  assert.match(homepage, /<Link to="\/statistics">View the statistics<\/Link>/);
+  assert.match(homepage, /Mjengo Hub/);
+  assert.match(homepage, /Mjengo Networks/);
 });

@@ -872,3 +872,5 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Live smoke:** all required public routes returned HTTP 200; homepage contains the exact hero wording `Reported directly by road users`.
 - **Database:** no new migration required or executed. Existing production schema supports the implemented features.
 - **Pending owner acceptance:** authenticated CMS checks, responsive screenshots at required widths, visual acceptance and final owner sign-off.
+- **Urgent homepage hero restoration — IMPLEMENTED / CORRECTIVE DEPLOYMENT PENDING:** restored all pre-`6337e22f` hero content and actions while retaining only the approved wording replacement. Full-hero regression test now protects the structure. No deployment or SQL execution performed.
+- **Checks:** focused `12/12`, full `506/506`, security `14/14`, production build and diff check passed. Responsive browser acceptance remains pending.

@@ -197,7 +197,8 @@ function Index() {
             Every journey home should end at home.
           </h1>
           <p className="mt-4 max-w-xl text-[12.6px] text-muted-foreground lg:max-w-3xl">
-            Reported directly by road users
+            Share Barabara brings together live hazard alerts, crash data and road safety news from
+            Kenya and beyond. Reported directly by road users
           </p>
           <SearchBar className="mt-6 max-w-md" />
           <div className="mt-6 flex flex-wrap gap-3">
