@@ -1012,3 +1012,9 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Verification:** full 524/524, security 14/14, build passed, diff check passed. HTTP 200 live smoke checks passed for `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed`; homepage hero and core SSR markers were confirmed.
 - **Database:** Release B migrations remain applied and verified; no SQL was rerun during deployment.
 - **Pending owner acceptance:** no browser screenshots or responsive evidence at 320/375/390/430/768/1024/1440px; no browser console/network inspection; no authenticated CMS or live editorial publishing acceptance. Community-versus-editorial Feed separation is database-verified but not authenticated/browser-verified. Status: Implemented → Deployed → Live Tested; not User Accepted / Closed.
+
+## SB 2 — live UI acceptance blocked by browser tooling (2026-10-31)
+
+- CUA browser initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`.
+- Therefore screenshots and visual assertions for all required viewport widths, console/network checks, authenticated CMS workflows and non-destructive Feed lifecycle checks remain Pending. No production changes were made.
+- Release B remains **Deployed — Pending User Acceptance**, not Closed. Owner must complete browser and authenticated acceptance before closure.

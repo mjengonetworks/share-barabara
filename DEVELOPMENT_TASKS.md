@@ -790,3 +790,9 @@ unfinished application changes are not merged here.
 - **Checks:** full suite 524/524, security suite 14/14, production build passed, `git diff --check` passed. No application-source changes exist after e314441; later commits are migrations, tests and documentation.
 - **Live smoke:** HTTP 200 for `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed`. Homepage SSR contains the approved hero sentence and `Share Barabara Kenya`; core News, Road Profile and Feed markers were confirmed.
 - **Acceptance state:** Implemented → Deployed → Live Tested. Browser screenshots, responsive visual inspection, browser-console inspection, authenticated CMS workflows, live publishing checks and owner UI acceptance remain Pending because browser automation/authenticated sessions were unavailable. Not User Accepted or Closed.
+
+## SB 2 — post-deployment live UI acceptance (2026-10-31)
+
+- **Browser status:** Pending. CUA browser initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)` before a browser surface could be opened.
+- **Not claimed:** no screenshots, responsive checks at 320/375/390/412/430/440/768/1024/1280/1440px, browser console/network inspection, authenticated CMS verification or safe editorial Feed-publishing workflow test.
+- **Owner acceptance:** remains open for homepage, News, Reports, Alerts, Statistics, Infrastructure Issues, Campaigns, Road Registry/road profiles, Media & Feed, detail pages, sidebars, maps, advertising and horizontal-overflow review. Keep status Deployed — Pending User Acceptance; do not close.
