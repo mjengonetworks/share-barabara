@@ -760,3 +760,9 @@ unfinished application changes are not merged here.
 - **Atomic artifact confirmed:** docs/release-b/release-b-atomic-sql-editor.sql SHA-256 is E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC.
 - **Application preparation:** remote integration branch is current at 172140b. A non-mutating Wrangler deployment-list check could not identify production because wrangler.jsonc has only a staging environment; live Worker reconciliation must be completed from the approved production deployment record before deployment.
 - **Release gate:** no production SQL or deployment is authorized/performed here. Await owner compatibility results, fresh backup evidence and staged SQL approval; then reconcile the live Worker, deploy the verified application artifact, and perform live checks.
+
+## SB 2 — production SQL execution handoff (2026-10-30)
+
+- **Checksum verified locally:** the approved atomic SQL Editor artifact is docs/release-b/release-b-atomic-sql-editor.sql with SHA-256 E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC.
+- **Execution status:** not executed by Codex because SQL Editor browser automation is unavailable. The owner-approved manual file path is C:\Users\phabi\share-barabara-integration-sb2\docs\release-b\release-b-atomic-sql-editor.sql.
+- **Postflight:** read-only checks are in docs/release-b/post-migration-verification-queries.sql. Application deployment remains blocked until the owner returns successful post-migration results and gives separate application approval.

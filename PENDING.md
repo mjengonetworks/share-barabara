@@ -983,3 +983,9 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Artifact:** atomic SQL Editor script checksum E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC; no production SQL has been run.
 - **Deployment gate:** branch remote is current at 172140b. Wrangler could not inspect production because wrangler.jsonc has no production environment; live Worker/source reconciliation remains required immediately before deployment.
 - **Owner acceptance remains open:** UI screenshots, responsive layouts, Road Registry, Feed, maps, sidebars, advertising, authenticated CMS and live production behavior must remain Pending until owner review.
+
+## SB 2 — production SQL handoff (2026-10-30)
+
+- **Approved script checksum verified:** E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC.
+- **Manual execution path:** C:\Users\phabi\share-barabara-integration-sb2\docs\release-b\release-b-atomic-sql-editor.sql.
+- **Not executed here:** browser SQL Editor automation was unavailable. Post-migration verification is in docs/release-b/post-migration-verification-queries.sql. Application deployment and live UI acceptance remain pending.
