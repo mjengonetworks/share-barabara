@@ -814,3 +814,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **TypeScript baseline — VERIFIED:** baseline and candidate each report 827 `tsc` diagnostics; no candidate increase was observed. This remains a pre-existing repository typing blocker, not a new release regression.
 - **Final checks — PASSED:** focused 4/4, full 494/494, security 14/14, production build and diff check passed.
 - **Release readiness:** migration bytes were rehearsed on isolated PostgreSQL 17.11 and do not require unrelated pending migrations. Production backup, preflight, deployment, migration execution and post-migration verification remain approval-gated.
+
+## SB 2 — authorised application deployment / database gate (2026-10-30)
+
+- **Application — DEPLOYED:** approved commit `f9390d9e04d430ccc2f581fe17fdc843c346ca6c` is live on Worker `9af742b4-e35c-45d9-8c68-0a9a3a7c9c3e` at 100%; previous Worker was `d8ce8556-73ee-44cd-be4d-8cbf93a9c902`. Public smoke routes returned HTTP 200.
+- **Database migration — PENDING / BLOCKED BY BACKUP ACCESS:** the approved migration was not executed. No fresh complete Share Barabara production backup or authorised PostgreSQL connection was available. Historical backups were not reused as the conditional fresh backup.
+- **Required next action:** obtain temporary authorised PostgreSQL backup/catalog access for project `yhqoggbntunxvlbcatwj`; verify backup size, SHA-256 and `pg_restore --list`; then complete schema/ledger/RLS preflight and execute only `20261030180000_editorial_content_relationships_review.sql`.
+- **Still pending:** authenticated CMS relationship/featured-control testing, Grok provider acceptance, responsive visual screenshots and owner user acceptance. No workstream is Closed until these have evidence.
