@@ -927,3 +927,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Identity evidence:** `supabase/.temp/linked-project.json` identifies `yhqoggbntunxvlbcatwj` as Share Barabara. The repository config’s different project ID is stale and must not be used.
 - **Smallest required action:** restore the approved Supabase database-access session or provide a temporary read-only PostgreSQL connection through the secure secret mechanism. It must support schema inspection and a full custom-format backup; no write access is required for this stage.
 - **No claims made:** no fresh production backup, schema comparison, production SQL or Release B deployment has been performed. The partial Ngong Road OSM artifact remains review-only.
+
+## SB 2 — RLS correction required before approval (2026-10-30)
+
+- **Confirmed incompatibility:** the original Road Registry migration preserves production’s permissive `roads_insert_authenticated WITH CHECK (true)` policy. It does not satisfy the required canonical-road write boundary.
+- **Correction:** review-only `20261030220000_canonical_road_registry_rls_hardening_review.sql` (SHA-256 `15FB70DBCCC2921F469165B0BA0DE87999A6036226B24F2702B2F414BAA2E799`) must run after the Road Registry migration and before application activation.
+- **Rehearsal:** isolated PostgreSQL RLS probes passed for denied unauthorised insert, permitted editor insert, active public reads and hidden merged-road reads. No production execution occurred.
+- **Compatibility note:** Report/Alert road foreign keys remain compatible; the reviewed Road Registry migration deliberately removes the global unique-name constraint while retaining unique slugs. This needs explicit migration approval because it changes the existing production constraint.
+- **Release status:** Implemented / Pending Migration Approval. Production schema comparison and fresh backup remain required; no deployment or SQL execution is authorized by this finding alone.
