@@ -17,6 +17,13 @@ ALTER TABLE public.roads
   ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL;
 
+ALTER TABLE public.news
+  ADD COLUMN IF NOT EXISTS road_id UUID REFERENCES public.roads(id) ON DELETE SET NULL;
+ALTER TABLE public.infrastructure_issues
+  ADD COLUMN IF NOT EXISTS road_id UUID REFERENCES public.roads(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS news_road_id_idx ON public.news (road_id);
+CREATE INDEX IF NOT EXISTS infrastructure_issues_road_id_idx ON public.infrastructure_issues (road_id);
+
 ALTER TABLE public.roads
   DROP CONSTRAINT IF EXISTS roads_geometry_confidence_check,
   ADD CONSTRAINT roads_geometry_confidence_check
@@ -79,6 +86,52 @@ DROP TRIGGER IF EXISTS roads_registry_history_trigger ON public.roads;
 CREATE TRIGGER roads_registry_history_trigger
   AFTER INSERT OR UPDATE ON public.roads
   FOR EACH ROW EXECUTE FUNCTION public.record_road_registry_change();
+
+-- A reviewed merge moves references to the canonical target in one transaction,
+-- preserves the source row for auditability, and never fabricates a replacement
+-- road.  Only administrators may invoke it.
+CREATE OR REPLACE FUNCTION public.merge_road_registry_records(
+  source_road_id UUID,
+  target_road_id UUID,
+  merge_reason TEXT
+)
+RETURNS public.roads
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  source_row public.roads;
+  target_row public.roads;
+BEGIN
+  IF NOT public.has_min_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Administrator role required';
+  END IF;
+  IF source_road_id IS NULL OR target_road_id IS NULL OR source_road_id = target_road_id THEN
+    RAISE EXCEPTION 'Source and target roads must be distinct';
+  END IF;
+  SELECT * INTO source_row FROM public.roads WHERE id = source_road_id FOR UPDATE;
+  SELECT * INTO target_row FROM public.roads WHERE id = target_road_id FOR UPDATE;
+  IF source_row.id IS NULL OR target_row.id IS NULL THEN
+    RAISE EXCEPTION 'Both roads must exist';
+  END IF;
+  UPDATE public.accident_reports SET road_id = target_road_id WHERE road_id = source_road_id;
+  UPDATE public.alerts SET road_id = target_road_id WHERE road_id = source_road_id;
+  UPDATE public.news SET road_id = target_road_id WHERE road_id = source_road_id;
+  UPDATE public.infrastructure_issues SET road_id = target_road_id WHERE road_id = source_road_id;
+  UPDATE public.roads
+    SET registry_status = 'merged', merged_into_id = target_road_id,
+        updated_at = now(), updated_by = auth.uid()
+    WHERE id = source_road_id;
+  INSERT INTO public.road_registry_history (road_id, action, before_state, after_state, changed_by)
+  VALUES (source_road_id, 'merged', to_jsonb(source_row),
+          jsonb_build_object('merged_into_id', target_road_id, 'reason', merge_reason), auth.uid());
+  RETURN target_row;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.merge_road_registry_records(UUID, UUID, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.merge_road_registry_records(UUID, UUID, TEXT) TO authenticated;
 
 -- Public consumers may resolve verified active roads, but writes remain under
 -- the existing editor policy and must be extended with an audited admin UI.

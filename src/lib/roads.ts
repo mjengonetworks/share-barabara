@@ -1,5 +1,32 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export type RoadCandidate = {
+  id: string;
+  name: string;
+  slug: string;
+  county?: string | null;
+  country_code?: string | null;
+  aliases?: string[] | null;
+};
+
+export async function findRoadCandidates(name: string, county?: string | null): Promise<RoadCandidate[]> {
+  const trimmed = name.trim();
+  if (!trimmed) return [];
+  const { data } = await (supabase
+    .from("roads")
+    .select("*")
+    .ilike("name", `%${trimmed}%`)
+    .limit(25) as any);
+  const normalized = trimmed.toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return ((data ?? []) as RoadCandidate[])
+    .filter((candidate) => !county || !candidate.county || candidate.county.toLocaleLowerCase() === county.toLocaleLowerCase())
+    .sort((a, b) => {
+      const aExact = [a.name, ...(a.aliases ?? [])].some((value) => value.toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === normalized);
+      const bExact = [b.name, ...(b.aliases ?? [])].some((value) => value.toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === normalized);
+      return Number(bExact) - Number(aExact) || a.name.localeCompare(b.name);
+    });
+}
+
 /** Finds an existing canonical road by name. Free-text road descriptions stay
  * on the content row; contributor input must not silently create taxonomy-like
  * road records or broaden Task 27 road subscriptions. */
@@ -7,25 +34,10 @@ export async function findExistingRoad(name: string): Promise<string | null> {
   const trimmed = name.trim();
   if (!trimmed) return null;
 
-  const { data: existing } = await supabase
-    .from("roads")
-    .select("id")
-    .ilike("name", trimmed)
-    .maybeSingle();
-  if (existing) return existing.id;
-
-  // Alias-aware resolution is additive: old production schemas simply return
-  // no alias rows, while the reviewed Road Registry can resolve known
-  // spellings without creating a duplicate road record.
-  const { data: candidates } = await (supabase
-    .from("roads")
-    .select("*")
-    .ilike("name", `%${trimmed}%`)
-    .limit(25) as any);
+  const candidates = await findRoadCandidates(trimmed);
   const normalized = trimmed.toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-  const match = (candidates ?? []).find((candidate: { id: string; name: string; aliases?: string[] | null }) => {
-    const names = [candidate.name, ...(Array.isArray(candidate.aliases) ? candidate.aliases : [])];
-    return names.some((value) => value.toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === normalized);
-  });
+  const exact = candidates.filter((candidate) => [candidate.name, ...(candidate.aliases ?? [])]
+    .some((value) => value.toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === normalized));
+  const match = exact.length === 1 ? exact[0] : null;
   return match?.id ?? null;
 }

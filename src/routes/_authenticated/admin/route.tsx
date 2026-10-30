@@ -24,6 +24,7 @@ import {
   TriangleAlert,
   Users,
   Video,
+  Map,
 } from "lucide-react";
 import { ROLE_RANK, useRoles } from "@/hooks/useRoles";
 import {
@@ -124,6 +125,7 @@ const SECTIONS: NavSection[] = [
       { to: "/admin/incident-sources", label: "Incident Sources", icon: RadioTower, minRank: ROLE_RANK.editor },
       { to: "/admin/crash-statistics", label: "Crash Statistics", icon: BarChart3, minRank: ROLE_RANK.moderator },
       { to: "/admin/categories", label: "Taxonomy", icon: LayoutGrid, minRank: ROLE_RANK.editor },
+      { to: "/admin/roads", label: "Road Registry", icon: Map, minRank: ROLE_RANK.editor },
     ],
   },
   {

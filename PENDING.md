@@ -896,3 +896,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Still pending:** browser screenshots, live `banner_ads` response verification, automatic publication of source content into Feed, verified Ngong Road geometry/map acceptance, admin Road Registry CRUD/merge review, authenticated CMS checks and owner approval for each release.
 - **Release A deployed:** artifact `5d3eeae` is live on Worker `73b4a858-a4a7-4d6c-a745-281914b4f2a3` at 100%; previous Worker was `a978e7f0-4fe6-4258-8ed0-79d4fa71eced`. Public route/SSR smoke passed. Responsive screenshots, visual media/spacing checks, live banner request capture and authenticated acceptance remain pending.
 - **Release B pending:** no Road Registry SQL, geometry backfill, admin registry operation or automatic editorial-to-Feed synchronization was deployed.
+
+## SB 2 — Release B continuation (2026-10-30)
+
+- **Implemented locally:** authenticated Road Registry management at `/admin/roads`, alias-aware canonical lookup, reviewed GeoJSON editing, road-profile geometry/marker-safe rendering and transactional administrator-only merge design.
+- **Migration approval required:** `20261030200000_canonical_road_registry_review.sql` remains unexecuted and requires PostgreSQL 17 rehearsal, RLS/backup review, verified Ngong Road geometry data and separate owner approval.
+- **Feed migration approval required:** `20261030210000_editorial_feed_sources_review.sql` remains unexecuted. It is additive and idempotent, but must be rehearsed before enabling automatic source-to-Feed publication.
+- **Not verified:** no disposable PostgreSQL environment or client binaries were available for this run; no provider-backed Grok/Groq road-match test, browser screenshots, live banner response capture, authenticated Road Registry CRUD/merge test or verified Ngong Road geometry was performed.
+- **Release status:** application code is not deployed. Production Worker `73b4a858-a4a7-4d6c-a745-281914b4f2a3` and all Release A functionality remain unchanged. Required next step is isolated migration rehearsal and owner approval for the two review migrations; do not execute production SQL or deploy Release B before that gate.

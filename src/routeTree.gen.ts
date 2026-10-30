@@ -72,6 +72,7 @@ import { Route as AuthenticatedAdminQuoteRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminRecycleBinRouteImport } from './routes/_authenticated/admin/recycle-bin'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin/requests'
+import { Route as AuthenticatedAdminRoadsRouteImport } from './routes/_authenticated/admin/roads'
 import { Route as AuthenticatedAdminSocialLinksRouteImport } from './routes/_authenticated/admin/social-links'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVideosRouteImport } from './routes/_authenticated/admin/videos'
@@ -419,6 +420,11 @@ const AuthenticatedAdminRequestsRoute =
     path: '/requests',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminRoadsRoute = AuthenticatedAdminRoadsRouteImport.update({
+  id: '/roads',
+  path: '/roads',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminSocialLinksRoute =
   AuthenticatedAdminSocialLinksRouteImport.update({
     id: '/social-links',
@@ -535,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/admin/recycle-bin': typeof AuthenticatedAdminRecycleBinRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRouteWithChildren
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
+  '/admin/roads': typeof AuthenticatedAdminRoadsRoute
   '/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/videos': typeof AuthenticatedAdminVideosRoute
@@ -607,6 +614,7 @@ export interface FileRoutesByTo {
   '/admin/recycle-bin': typeof AuthenticatedAdminRecycleBinRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRouteWithChildren
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
+  '/admin/roads': typeof AuthenticatedAdminRoadsRoute
   '/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/videos': typeof AuthenticatedAdminVideosRoute
@@ -682,6 +690,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/recycle-bin': typeof AuthenticatedAdminRecycleBinRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRouteWithChildren
   '/_authenticated/admin/requests': typeof AuthenticatedAdminRequestsRoute
+  '/_authenticated/admin/roads': typeof AuthenticatedAdminRoadsRoute
   '/_authenticated/admin/social-links': typeof AuthenticatedAdminSocialLinksRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/videos': typeof AuthenticatedAdminVideosRoute
@@ -757,6 +766,7 @@ export interface FileRouteTypes {
     | '/admin/recycle-bin'
     | '/admin/reports'
     | '/admin/requests'
+    | '/admin/roads'
     | '/admin/social-links'
     | '/admin/users'
     | '/admin/videos'
@@ -829,6 +839,7 @@ export interface FileRouteTypes {
     | '/admin/recycle-bin'
     | '/admin/reports'
     | '/admin/requests'
+    | '/admin/roads'
     | '/admin/social-links'
     | '/admin/users'
     | '/admin/videos'
@@ -903,6 +914,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/recycle-bin'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/requests'
+    | '/_authenticated/admin/roads'
     | '/_authenticated/admin/social-links'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/videos'
@@ -1394,6 +1406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRequestsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/roads': {
+      id: '/_authenticated/admin/roads'
+      path: '/roads'
+      fullPath: '/admin/roads'
+      preLoaderRoute: typeof AuthenticatedAdminRoadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/social-links': {
       id: '/_authenticated/admin/social-links'
       path: '/social-links'
@@ -1562,6 +1581,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminRecycleBinRoute: typeof AuthenticatedAdminRecycleBinRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRouteWithChildren
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
+  AuthenticatedAdminRoadsRoute: typeof AuthenticatedAdminRoadsRoute
   AuthenticatedAdminSocialLinksRoute: typeof AuthenticatedAdminSocialLinksRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVideosRoute: typeof AuthenticatedAdminVideosRoute
@@ -1601,6 +1621,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminRecycleBinRoute: AuthenticatedAdminRecycleBinRoute,
     AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRouteWithChildren,
     AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
+    AuthenticatedAdminRoadsRoute: AuthenticatedAdminRoadsRoute,
     AuthenticatedAdminSocialLinksRoute: AuthenticatedAdminSocialLinksRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminVideosRoute: AuthenticatedAdminVideosRoute,
