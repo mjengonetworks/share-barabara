@@ -73,7 +73,10 @@ BEGIN
     eligible := COALESCE(row->>'status' = 'approved', false) AND row->>'deleted_at' IS NULL;
     href_value := '/infrastructure-issues/' || v_source_id::TEXT;
   ELSIF v_source_type = 'campaign' THEN
-    eligible := row->>'deleted_at' IS NULL;
+    -- Campaigns use the existing report_published flag as their public
+    -- publication boundary; a non-deleted draft must not enter the public
+    -- editorial Feed.
+    eligible := COALESCE(row->>'report_published' = 'true', false) AND row->>'deleted_at' IS NULL;
     href_value := '/campaigns/' || COALESCE(row->>'slug', v_source_id::TEXT);
   END IF;
 

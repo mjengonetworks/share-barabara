@@ -22,6 +22,7 @@ test("automatic Feed bridge is idempotent and preserves community posts", async 
   assert.match(sql, /editorial_feed_entries/);
   assert.match(sql, /UNIQUE \(source_type, source_id\)/);
   assert.match(sql, /ON CONFLICT \(source_type, source_id\) DO UPDATE/);
+  assert.match(sql, /report_published/);
   assert.match(sql, /feed_posts/);
   assert.match(sql, /source_id::TEXT/);
   assert.doesNotMatch(sql, /TRUNCATE|DROP TABLE/i);
