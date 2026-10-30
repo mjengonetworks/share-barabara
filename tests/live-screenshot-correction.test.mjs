@@ -33,10 +33,28 @@ test("incident sidebars use compact Article-style rows and roads use canonical p
 
 test("banner placement failures fall back without retry storms", async () => {
   const banner = await read("src/components/site/banner-ad.tsx");
-  assert.match(banner, /PGRST100/);
+  assert.match(banner, /select\("\*"\)/);
+  assert.doesNotMatch(banner, /\.in\("placement"/);
+  assert.doesNotMatch(banner, /\.order\("priority"/);
   assert.match(banner, /retry: false/);
   assert.match(banner, /refetchOnWindowFocus: false/);
-  assert.match(banner, /selectEligibleBannerAds\(legacy\.data, placement\)/);
+  assert.match(banner, /selectEligibleBannerAds\(placementSafeQuery\.data, placement\)/);
+});
+
+test("public incident sidebars read latest eligible canonical Feed posts", async () => {
+  const sidebar = await read("src/components/site/editorial-sidebar.tsx");
+  assert.match(sidebar, /from\("feed_posts"\)/);
+  assert.match(sidebar, /status.*published/);
+  assert.match(sidebar, /moderation_status.*approved/);
+  assert.match(sidebar, /Latest Media &amp; Feed/);
+});
+
+test("road matching never creates a record and supports reviewed aliases", async () => {
+  const roads = await read("src/lib/roads.ts");
+  assert.match(roads, /select\("\*"\)/);
+  assert.match(roads, /aliases/);
+  assert.match(roads, /return match\?\.id/);
+  assert.doesNotMatch(roads, /\.insert\(/);
 });
 
 test("Road Registry migration is additive and review-only", async () => {

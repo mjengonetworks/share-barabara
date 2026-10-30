@@ -4,10 +4,6 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { selectEligibleBannerAds } from "@/lib/banner-ads";
 
-function isPlacementSchemaMissing(error: { code?: string; message?: string }) {
-  return error.code === "42703" || error.code === "PGRST100" || error.code === "PGRST204" || /column .*placement|column .*starts_at|column .*ends_at|column .*priority|unexpected.*filter|failed to parse.*filter/i.test(error.message ?? "");
-}
-
 /**
  * Every page carries at least one of these. With no active sponsor ad it
  * falls back to a house placeholder promoting Partner With Us, rather than
@@ -17,21 +13,18 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
   const { data: ads = [] } = useQuery({
     queryKey: ["banner-ads", placement],
     queryFn: async () => {
-      const placementQuery = await supabase
+      // Query only columns and ordering guaranteed by the original table.
+      // New placement/schedule fields are selected by `*` when present and
+      // filtered client-side, so an older production schema never receives an
+      // invalid PostgREST filter that produces the repeated 400s.
+      const placementSafeQuery = await supabase
         .from("banner_ads")
         .select("*")
         .eq("active", true)
-        .in("placement", [placement, "site-default"])
-        .order("priority", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(10);
-      if (placementQuery.error) {
-        if (!isPlacementSchemaMissing(placementQuery.error)) throw placementQuery.error;
-        const legacy = await supabase.from("banner_ads").select("*").eq("active", true).order("created_at", { ascending: false }).limit(10);
-        if (legacy.error) throw legacy.error;
-        return selectEligibleBannerAds(legacy.data, placement);
-      }
-      return selectEligibleBannerAds(placementQuery.data, placement);
+      if (placementSafeQuery.error) throw placementSafeQuery.error;
+      return selectEligibleBannerAds(placementSafeQuery.data, placement);
     },
     retry: false,
     refetchOnWindowFocus: false,
