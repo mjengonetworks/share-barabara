@@ -920,3 +920,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Authenticated DB probe — PASSED:** non-production admin-role test account verified alias/geometry persistence and Report/Alert canonical road-ID assignment with rollback. Browser CMS and AI matching acceptance remain pending.
 - **Production schema compatibility — BLOCKED:** current production schema/migration history could not be compared because no usable authenticated Supabase CLI/database connection is available in this environment. Minimum prerequisite is a secure read-only production connection for schema/migration inspection and a fresh full custom-format backup immediately before SQL execution.
 - **Exact release order:** backup and schema comparison → apply Road Registry migration → apply Feed migration → deploy Release B application → verify routes, Feed, RLS and authenticated CMS. Rollback is asymmetric: Worker rollback is application-only; SQL recovery requires the validated database recovery path.
+
+## SB 2 — production database access blocker (2026-10-30)
+
+- **Blocked prerequisite:** current production schema, migration ledger, RLS and post-backup changes cannot be verified because no authenticated Supabase CLI/database connection is available locally.
+- **Identity evidence:** `supabase/.temp/linked-project.json` identifies `yhqoggbntunxvlbcatwj` as Share Barabara. The repository config’s different project ID is stale and must not be used.
+- **Smallest required action:** restore the approved Supabase database-access session or provide a temporary read-only PostgreSQL connection through the secure secret mechanism. It must support schema inspection and a full custom-format backup; no write access is required for this stage.
+- **No claims made:** no fresh production backup, schema comparison, production SQL or Release B deployment has been performed. The partial Ngong Road OSM artifact remains review-only.
