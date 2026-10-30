@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "osm_way_id": 33136417,
+        "name": "Ngong Road",
+        "ref": "UCB4;Nairobi",
+        "highway": "secondary",
+        "source": "OpenStreetMap",
+        "source_url": "https://www.openstreetmap.org/way/33136417"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[36.760456, -1.2993053], [36.7598764, -1.2995217], [36.75952, -1.2996756]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "osm_way_id": 4723377,
+        "name": "Ngong Road",
+        "ref": "UCB3",
+        "highway": "secondary",
+        "source": "OpenStreetMap",
+        "source_url": "https://www.openstreetmap.org/way/4723377"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[36.7821796, -1.299927], [36.7817257, -1.2999498], [36.7813334, -1.2999726], [36.7806359, -1.3000252], [36.7804617, -1.3000383]]
+      }
+    }
+  ]
+}
