@@ -976,3 +976,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Final policy state:** roads_insert_editor, roads_update_editor and roads_public_read_eligible only; roads_insert_authenticated absent. RLS enabled on roads, road_registry_history and editorial_feed_entries. Five Feed triggers present.
 - **Rollback and rerun:** injected failure rolled back and removed its probe table; exact corrected artifact reran successfully without duplicate-object failures.
 - **Still pending:** production schema/ledger read-only comparison, fresh verified production backup, production SQL execution, supported migration-ledger reconciliation, application deployment and live/authenticated/browser acceptance. No production SQL or deployment occurred.
+
+## SB 2 — final owner preflight package (2026-10-30)
+
+- **Ready for owner execution:** grouped read-only compatibility SQL, Dashboard backup checklist and supported ledger-reconciliation procedure are committed under docs/release-b.
+- **Artifact:** atomic SQL Editor script checksum E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC; no production SQL has been run.
+- **Deployment gate:** branch remote is current at 172140b. Wrangler could not inspect production because wrangler.jsonc has no production environment; live Worker/source reconciliation remains required immediately before deployment.
+- **Owner acceptance remains open:** UI screenshots, responsive layouts, Road Registry, Feed, maps, sidebars, advertising, authenticated CMS and live production behavior must remain Pending until owner review.

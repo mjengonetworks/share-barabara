@@ -753,3 +753,10 @@ unfinished application changes are not merged here.
 - **Rollback probe — PASSED:** a copy of the exact artifact with an injected division-by-zero before COMMIT exited nonzero and rolled back the probe table; the probe table was confirmed absent.
 - **Rerun/idempotency — PASSED:** the exact corrected artifact was executed a second time with ON_ERROR_STOP=1 and committed without duplicate-object or policy failures.
 - **Release state:** corrected SQL is rehearsed in isolation only. Production backup, production preflight, owner SQL approval/execution and application deployment remain outstanding.
+
+## SB 2 — owner SQL Editor release preparation (2026-10-30)
+
+- **Preflight package ready:** grouped read-only compatibility queries are in docs/release-b/production-compatibility-queries.sql; Dashboard backup verification is in docs/release-b/supabase-dashboard-backup-checklist.md; ledger handling is in docs/release-b/migration-ledger-reconciliation.md.
+- **Atomic artifact confirmed:** docs/release-b/release-b-atomic-sql-editor.sql SHA-256 is E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC.
+- **Application preparation:** remote integration branch is current at 172140b. A non-mutating Wrangler deployment-list check could not identify production because wrangler.jsonc has only a staging environment; live Worker reconciliation must be completed from the approved production deployment record before deployment.
+- **Release gate:** no production SQL or deployment is authorized/performed here. Await owner compatibility results, fresh backup evidence and staged SQL approval; then reconcile the live Worker, deploy the verified application artifact, and perform live checks.
