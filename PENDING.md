@@ -951,3 +951,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - Create a fresh full custom-format backup immediately before SQL execution; verify nonzero size, SHA-256 and `pg_restore --list`.
 - Approve the exact three-file single-transaction sequence and the application artifact `e314441fd85e67cc993177918f762c2e3150f48f` separately.
 - Keep the partial Ngong Road geometry artifact unpublished; full geometry verification remains separate and does not block the core infrastructure approval if the application handles missing geometry safely.
+
+## SB 2 — owner-executed atomic SQL Editor package (2026-10-30)
+
+- **Prepared:** docs/release-b/release-b-atomic-sql-editor.sql combines the exact reviewed migrations 20261030200000, 20261030210000 and 20261030220000 in the required order. It is a review-only SQL Editor artifact, not a migration-ledger file; the three original files and their checksums are unchanged.
+- **Combined checksum:** 05B075F826F6CF25DC980FA5A1D7928E948E1A442FF285FFC694AC122C0F11FD. Original checksums remain Road 2CC9F073...204BC, Feed 8BCF36D9...B4241, RLS A92CEAB0...1481F9CA as recorded above.
+- **Owner preflight inputs:** read-only SQL is in docs/release-b/production-compatibility-queries.sql; the Supabase Dashboard backup verification checklist is in docs/release-b/supabase-dashboard-backup-checklist.md. No direct PostgreSQL connection is required from Codex.
+- **Execution rule:** after the owner confirms the project, schema/ledger, fresh full backup and pg_restore --list/restore evidence, run the combined script as one SQL Editor batch. Do not split it, run unrelated migrations or rerun after an error without inspecting transaction state.
+- **Not claimed:** no production SQL, production backup, deployment or live verification has occurred in this step. Application deployment remains pending the owner's SQL confirmation; subsequent live checks and any owner visual/authenticated acceptance remain open.
