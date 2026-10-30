@@ -8,9 +8,8 @@ import {
   useProfileNames,
   useProfileUsernames,
   useProfileAvatars,
-  useProfileBylines,
 } from "@/lib/profiles";
-import { useRoleLabels, bylineLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
+import { useRoleLabels, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { UserLink } from "@/components/site/user-link";
 import { UserAvatar } from "@/components/site/user-avatar";
 import { CommentSection } from "@/components/site/comment-section";
@@ -167,7 +166,6 @@ function NewsDetail() {
   const { data: authorUsernames = {} } = useProfileUsernames(authorIds);
   const { data: authorAvatars = {} } = useProfileAvatars(authorIds);
   const { data: authorRoles = {} } = useRoleLabels(authorIds);
-  const { data: authorBylines = {} } = useProfileBylines(authorIds);
 
   const recordedFor = useRef<string | null>(null);
   useEffect(() => {
@@ -413,9 +411,6 @@ function NewsDetail() {
                     staff={roleRank(authorRoles[article.author_id] ?? []) >= ROLE_RANK.moderator}
                     className="text-foreground"
                   />
-                </p>
-                <p className="mt-0.5 inline-block rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                  {bylineLabel(authorRoles[article.author_id], authorBylines[article.author_id])}
                 </p>
               </div>
             </div>

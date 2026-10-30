@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, MapPin, TriangleAlert, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,10 +47,12 @@ import {
 } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/alerts/")({
-  validateSearch: (search: Record<string, unknown>): { county?: string; hazard?: string } => {
+  validateSearch: (search: Record<string, unknown>): { county?: string; road?: string; hazard?: string; status?: string } => {
     const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
     const hazard = typeof search["hazard"] === "string" ? (search["hazard"] as string) : undefined;
-    return { ...(county ? { county } : {}), ...(hazard ? { hazard } : {}) };
+    const road = typeof search["road"] === "string" ? (search["road"] as string) : undefined;
+    const status = typeof search["status"] === "string" ? (search["status"] as string) : undefined;
+    return { ...(county ? { county } : {}), ...(road ? { road } : {}), ...(hazard ? { hazard } : {}), ...(status ? { status } : {}) };
   },
   head: () => ({
     meta: [
@@ -101,11 +103,20 @@ function AlertMiniCard({ alert }: { alert: AlertCard }) {
 function AlertsPage() {
   const { user } = useAuth();
   const searchParams = Route.useSearch();
+  const navigate = useNavigate({ from: "/alerts/" }) as unknown as (options: { search: unknown }) => Promise<void>;
   const [county, setCounty] = useState(searchParams.county ?? "all");
+  const [road, setRoad] = useState(searchParams.road ?? "all");
   const [hazard, setHazard] = useState(searchParams.hazard ?? "all");
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState(searchParams.status ?? "all");
   const [openId, setOpenId] = useState<string | null>(null);
   const { data: hazardTypes = [] } = useIncidentTaxonomy();
+
+  useEffect(() => {
+    setCounty(searchParams.county ?? "all");
+    setRoad(searchParams.road ?? "all");
+    setHazard(searchParams.hazard ?? "all");
+    setStatus(searchParams.status ?? "all");
+  }, [searchParams.county, searchParams.road, searchParams.hazard, searchParams.status]);
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ["alerts"],
@@ -113,6 +124,7 @@ function AlertsPage() {
       const { data, error } = await supabase
         .from("alerts")
         .select("*")
+        .or("status.is.null,status.in.(active,in_progress,resolved,under_resolution)")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -133,11 +145,12 @@ function AlertsPage() {
   const visible = alerts.filter(
     (a) =>
       (county === "all" || a.county === county) &&
+      (road === "all" || a.road_id === road) &&
       (status === "all" || a.status === status) &&
       (!selectedHazards || selectedHazards.has(a.hazard_type)),
   );
-  const latest = alerts.slice(0, 12);
-  const featured = alerts
+  const latest = visible.slice(0, 12);
+  const featured = visible
     .filter((a) => Boolean((a as { featured?: boolean | null }).featured))
     .slice(0, 12);
 
@@ -152,6 +165,9 @@ function AlertsPage() {
       return data;
     },
   });
+  const trendingIds = new Set((trending as Array<{ id: string }>).map((item) => item.id));
+  const rankedTrending = visible.filter((alert) => trendingIds.has(alert.id)).slice(0, 12);
+  const hasDiscoveryFilter = county !== "all" || road !== "all" || hazard !== "all";
 
   const alertActions = (item: PublicIncidentCard) => (
     <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -202,8 +218,8 @@ function AlertsPage() {
     <div className="w-full py-4 sm:py-6">
       <PublicPageHero
         eyebrow="Community road watch"
-        title="Road hazard alerts"
-        description="Current hazards, closures and disruptions reported by road users across Kenya. Check what is ahead and share what you see on your route."
+        title={hasDiscoveryFilter ? "Filtered road hazard alerts" : "Road hazard alerts"}
+        description={hasDiscoveryFilter ? "Browse the eligible hazard alerts matching the selected county, road and hazard filters." : "Current hazards, closures and disruptions reported by road users across Kenya. Check what is ahead and share what you see on your route."}
         image={heroRoad}
         compact
         primaryCta={{ label: "Submit an alert", to: "/alerts#alert-form" }}
@@ -259,7 +275,7 @@ function AlertsPage() {
             ) : <div className="mt-5 max-w-xl">{hazardSubmissionCard}</div>}
 
             <div className="mt-5"><BannerAd placement="alerts-list-interval-1" /></div>
-            {trending.length > 0 ? (
+            {rankedTrending.length > 0 ? (
               <EditorialBand tone="plain">
                 <SectionHeader
                   eyebrow="Ranked by recorded views"
@@ -267,7 +283,7 @@ function AlertsPage() {
                   icon={<Flame className="size-5 text-destructive" />}
                 />
                 <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {trending.slice(0, 3).map((alert) => (
+                  {rankedTrending.slice(0, 3).map((alert) => (
                     <AlertPreviewCard key={alert.id} alert={alert as any} />
                   ))}
                 </div>
@@ -279,11 +295,14 @@ function AlertsPage() {
               </EditorialBand>
             ) : null}
 
+            <GlobalEditorialPreview destination="alerts" topic={hazard !== "all" ? hazard : null} />
+            <EditorialDiscoveryRail exclude="alerts" />
+
             <EditorialBand tone="plain" className="mt-4">
               <h2 className="text-lg font-bold text-muted-foreground">Browse by type</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
-                  onClick={() => setHazard("all")}
+                  onClick={() => { setHazard("all"); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, hazard: undefined }) }); }}
                   className={
                     hazard === "all" ? publicCategoryNavigationSelectedClass : publicCategoryNavigationClass
                   }
@@ -293,7 +312,7 @@ function AlertsPage() {
                 {hazardTypes.map((h) => (
                   <button
                     key={h.value}
-                    onClick={() => setHazard(h.value)}
+                      onClick={() => { setHazard(h.value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, hazard: h.value }) }); }}
                     className={
                       hazard === h.value
                         ? publicCategoryNavigationSelectedClass
@@ -313,7 +332,7 @@ function AlertsPage() {
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
-              <Select value={county} onValueChange={setCounty}>
+              <Select value={county} onValueChange={(value) => { setCounty(value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, county: value === "all" ? undefined : value }) }); }}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
@@ -326,7 +345,16 @@ function AlertsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={status} onValueChange={setStatus}>
+              <Select value={road} onValueChange={(value) => { setRoad(value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, road: value === "all" ? undefined : value }) }); }}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="Road" /></SelectTrigger>
+                <SelectContent className="max-h-64">
+                  <SelectItem value="all">All roads</SelectItem>
+                  {Object.entries(roadMap).map(([id, item]) => (
+                    <SelectItem key={id} value={id}>{item.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={status} onValueChange={(value) => { setStatus(value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, status: value === "all" ? undefined : value }) }); }}>
                 <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All statuses</SelectItem>
@@ -335,6 +363,7 @@ function AlertsPage() {
                   <SelectItem value="resolved">Resolved</SelectItem>
                 </SelectContent>
               </Select>
+              {hasDiscoveryFilter || status !== "all" ? <Button variant="ghost" size="sm" onClick={() => { setCounty("all"); setRoad("all"); setHazard("all"); setStatus("all"); void navigate({ search: {} }); }}>Clear all filters</Button> : null}
             </div>
 
             {isLoading ? <p className="mt-8 text-muted-foreground">Loading alerts…</p> : null}
@@ -355,8 +384,6 @@ function AlertsPage() {
         </div>
       </div>
 
-      <GlobalEditorialPreview destination="alerts" topic={hazard !== "all" ? hazard : null} />
-      <EditorialDiscoveryRail exclude="alerts" />
       <TopContributingProfiles />
       <MjengoPreviews context="alerts" />
     </div>

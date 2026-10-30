@@ -195,7 +195,7 @@ function IssueDetail() {
               <img
                 src={issue.image_url}
                 alt={issue.title}
-                className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
+                className="block h-auto max-h-[70vh] max-w-full w-full rounded-xl border border-border bg-muted/20 object-contain"
               />
               <EditorialMediaMeta caption={issue.image_caption} credit={issue.image_credit} />
             </figure>

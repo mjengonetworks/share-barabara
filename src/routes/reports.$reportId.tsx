@@ -1,10 +1,10 @@
 import { Fragment, useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Flame, MapPin, ShieldCheck } from "lucide-react";
+import { Flame, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useProfileNames, useProfileAvatars, useProfileBylines } from "@/lib/profiles";
-import { useRoleLabels, bylineLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
+import { useProfileNames, useProfileAvatars } from "@/lib/profiles";
+import { useRoleLabels, roleRank, ROLE_RANK } from "@/hooks/useRoles";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
@@ -32,7 +32,7 @@ import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
 import { ReportPreviewCard } from "@/components/site/discovery-sections";
 import { RelatedContent } from "@/components/site/related-content";
 import { socialHead } from "@/lib/seo";
-import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
+import { publicEditorialCategoryBadgeClass } from "@/components/site/public-ui";
 import { recordPublicView } from "@/lib/view-tracking";
 import { fatalityLabel } from "@/lib/report-metrics";
 
@@ -55,7 +55,7 @@ export const Route = createFileRoute("/reports/$reportId")({
       title,
       description,
       pathname: `/reports/${loaderData?.id ?? ""}`,
-      imageUrl: loaderData?.image_url,
+      imageUrl: loaderData?.image_url ?? null,
     });
     return {
       ...head,
@@ -135,7 +135,6 @@ function ReportDetail() {
   const { data: verified = {} } = useSubscriptionStatuses(people);
   const { data: pages = {} } = usePagesByIds(report ? [report.page_id] : []);
   const { data: roleMap = {} } = useRoleLabels(people);
-  const { data: bylineMap = {} } = useProfileBylines(people);
   const { data: roadMap = {} } = useRoadsByIds(report ? [report.road_id] : []);
   const { scores, vote } = useVotes("report", report ? [report.id] : []);
 
@@ -202,6 +201,7 @@ function ReportDetail() {
   }
 
   const linkedRoad = roadMap[report.road_id ?? ""];
+  const reportIncidentType = (report as typeof report & { incident_type?: string | null }).incident_type;
   const publicationDate = report.created_at;
 
   return (
@@ -217,10 +217,20 @@ function ReportDetail() {
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-brand-blue">Accident Report</span>
-            <PublicEditorialCategoryBadge>
-              {report.incident_type || "Accident report"}
-            </PublicEditorialCategoryBadge>
-            <SeverityBadge value={report.severity} />
+            <Link
+              to="/reports"
+              search={{ incident: reportIncidentType ?? undefined } as never}
+              className={publicEditorialCategoryBadgeClass}
+            >
+              {reportIncidentType || "Accident report"}
+            </Link>
+            <Link
+              to="/reports"
+              search={{ severity: report.severity ?? undefined } as never}
+              className="inline-flex items-center rounded border border-destructive/30 px-0.5 py-0.5 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <SeverityBadge value={report.severity} />
+            </Link>
             {report.status !== "approved" ? (
               <span
                 className={`rounded px-2 py-0.5 text-xs font-semibold capitalize ${
@@ -239,14 +249,17 @@ function ReportDetail() {
               {report.rejection_reason}
             </p>
           ) : null}
-          <h1 className="mt-1.5 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+          <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="size-4" />
+            <Link to="/reports" search={{ county: report.county } as never} className="underline underline-offset-2 hover:text-brand-blue">
+              {report.county}
+            </Link>
+            {report.road ? <> {" · "}{linkedRoad ? <Link to="/reports" search={{ county: report.county, road: report.road_id ?? undefined } as never} className="underline underline-offset-2 hover:text-brand-blue">{report.road}</Link> : report.road}</> : null}
+          </p>
+          <h1 className="mt-2 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {report.title}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">Publication date: {longDate(publicationDate)}</p>
-          <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-4" /> {report.county}
-            {report.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{report.road}</Link> : report.road}</> : null}
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{longDate(publicationDate)}</p>
           <div className="mt-3">
             <ShareButtons title={report.title} />
           </div>
@@ -255,7 +268,7 @@ function ReportDetail() {
               <img
                 src={report.image_url}
                 alt={report.image_alt || report.title}
-                className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
+                className="block h-auto max-h-[70vh] max-w-full w-full rounded-xl border border-border bg-muted/20 object-contain"
               />
               <EditorialMediaMeta caption={report.image_caption} credit={report.image_credit} />
             </figure>
@@ -294,19 +307,6 @@ function ReportDetail() {
                   </>
                 ) : null}
               </p>
-              <div className="mt-0.5 flex flex-wrap gap-1">
-                {!report.is_anonymous ? (
-                  <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                    {bylineLabel(roleMap[report.user_id], bylineMap[report.user_id])}
-                  </span>
-                ) : null}
-                {report.reviewed_by ? (
-                  <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                    <ShieldCheck className="size-3 text-accent" />
-                    {bylineLabel(roleMap[report.reviewed_by], bylineMap[report.reviewed_by])}
-                  </span>
-                ) : null}
-              </div>
             </div>
           </div>
 
@@ -435,7 +435,7 @@ function ReportDetail() {
       <GlobalEditorialPreview
         destination="reports"
         excludeId={report.id}
-        topic={report.incident_type}
+        topic={reportIncidentType ?? null}
         excludeKeys={[
           ...related.slice(0, 3).map((item) => `reports:${item.id}`),
           ...latest.slice(0, 3).map((item) => `reports:${item.id}`),

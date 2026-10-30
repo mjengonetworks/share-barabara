@@ -31,7 +31,7 @@ import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-layout";
 import { socialHead } from "@/lib/seo";
-import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
+import { publicEditorialCategoryBadgeClass } from "@/components/site/public-ui";
 import { recordPublicView } from "@/lib/view-tracking";
 
 export const Route = createFileRoute("/alerts/$alertId")({
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/alerts/$alertId")({
       description:
         loaderData?.description || "Read the full hazard alert and join the community discussion.",
       pathname: `/alerts/${loaderData?.id ?? ""}`,
-      imageUrl: loaderData?.image_url,
+        imageUrl: loaderData?.image_url ?? null,
     }),
   component: AlertDetail,
 });
@@ -159,6 +159,7 @@ function AlertDetail() {
   }
 
   const linkedRoad = roadMap[alert.road_id ?? ""];
+  const alertMedia = alert as typeof alert & { image_alt?: string | null; image_caption?: string | null; image_credit?: string | null };
   const publicStatus = alert.status === "under_resolution" || alert.status === "in_progress"
     ? "In Progress"
     : alert.status === "active"
@@ -186,23 +187,27 @@ function AlertDetail() {
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-brand-blue">Alert / Hazard</span>
             <TriangleAlert className="size-4 text-caution" />
-            <SeverityBadge value={alert.severity} />
-            <PublicEditorialCategoryBadge>
+            <Link to="/alerts" search={{ hazard: alert.hazard_type ?? undefined } as never} className="inline-flex items-center rounded border border-destructive/30 px-0.5 py-0.5 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <SeverityBadge value={alert.severity} />
+            </Link>
+            <Link to="/alerts" search={{ hazard: alert.hazard_type ?? undefined } as never} className={publicEditorialCategoryBadgeClass}>
               {hazardTypes.find((h) => h.value === alert.hazard_type)?.label ?? alert.hazard_type}
-            </PublicEditorialCategoryBadge>
+            </Link>
           </div>
 
-          <h1 className="mt-1.5 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
+          <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="size-4" />
+            <Link to="/alerts" search={{ county: alert.county } as never} className="underline underline-offset-2 hover:text-brand-blue">{alert.county}</Link>
+            {alert.road ? <> {" · "}{linkedRoad ? <Link to="/alerts" search={{ county: alert.county, road: alert.road_id ?? undefined } as never} className="underline underline-offset-2 hover:text-brand-blue">{alert.road}</Link> : alert.road}</> : null}
+          </p>
+
+          <h1 className="mt-2 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {alert.title}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span>{longDate(alert.created_at)}</span>
             {publicStatus ? <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${statusClass}`}>{publicStatus}</span> : null}
           </div>
-          <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-4" /> {alert.county}
-            {alert.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{alert.road}</Link> : alert.road}</> : null}
-          </p>
           <div className="mt-3">
             <ShareButtons title={alert.title} />
           </div>
@@ -211,10 +216,10 @@ function AlertDetail() {
             <figure className="mt-4">
               <img
                 src={alert.image_url}
-                alt={alert.image_alt || alert.title}
-                className="max-h-[70vh] w-full rounded-xl border border-border bg-muted/20 object-contain"
+                alt={alertMedia.image_alt || alert.title}
+                className="block h-auto max-h-[70vh] max-w-full w-full rounded-xl border border-border bg-muted/20 object-contain"
               />
-              <EditorialMediaMeta caption={alert.image_caption} credit={alert.image_credit} />
+              <EditorialMediaMeta {...(alertMedia.image_caption ? { caption: alertMedia.image_caption } : {})} {...(alertMedia.image_credit ? { credit: alertMedia.image_credit } : {})} />
             </figure>
           ) : null}
 

@@ -46,7 +46,7 @@ type AlertPreview = {
   hazard_type: string;
   incident_type?: string | null;
   severity: string;
-  created_at: string;
+  created_at?: string;
   image_url?: string | null;
 };
 
@@ -57,9 +57,9 @@ type ReportPreview = {
   county: string;
   road: string | null;
   severity: string;
-  occurred_at: string;
+  occurred_at?: string;
   image_url: string | null;
-  vehicles_involved: number | null;
+  vehicles_involved?: number | null;
   casualties: number | null;
   fatalities: number | null;
   incident_type?: string | null;
@@ -122,51 +122,40 @@ export function ArticlePreviewCard({ article }: { article: ArticlePreview }) {
 
 export function AlertPreviewCard({ alert }: { alert: AlertPreview }) {
   return (
-    <Link
-      to="/alerts/$alertId"
-      params={{ alertId: alert.id }}
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
-    >
+    <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent">
       {alert.image_url ? (
-        <img src={alert.image_url} alt={alert.title} loading="lazy" className="aspect-video w-full object-cover" />
+        <Link to="/alerts/$alertId" params={{ alertId: alert.id }} aria-label={alert.title}>
+          <img src={alert.image_url} alt={alert.title} loading="lazy" className="aspect-video w-full object-cover" />
+        </Link>
       ) : null}
       <div className="flex flex-1 flex-col p-4">
       <div className="flex flex-wrap items-center gap-2">
         <TriangleAlert className="size-4 text-caution" aria-hidden="true" />
-        <SeverityBadge value={alert.severity} />
-        <span className="text-xs text-muted-foreground">
+        <Link to="/alerts" search={{ hazard: alert.hazard_type }} className="rounded border border-border px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide hover:underline">
+          <SeverityBadge value={alert.severity} />
+        </Link>
+        <Link to="/alerts" search={{ hazard: alert.hazard_type }} className="text-xs text-muted-foreground hover:text-brand-blue hover:underline">
           {alert.hazard_type.replaceAll("_", " ")}
-        </span>
+        </Link>
       </div>
-      <h3 className="mt-3 line-clamp-2 font-bold leading-snug text-brand-blue group-hover:underline">
-        {alert.title}
-      </h3>
+      <h3 className="mt-3 line-clamp-2 font-bold leading-snug text-brand-blue group-hover:underline"><Link to="/alerts/$alertId" params={{ alertId: alert.id }}>{alert.title}</Link></h3>
       <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
         <MapPin className="size-4 shrink-0" aria-hidden="true" /> {alert.county}
         {alert.road ? ` · ${alert.road}` : ""}
       </p>
-      <span className="mt-auto pt-4 text-xs font-bold text-brand-blue underline underline-offset-4">
-        Read more
-      </span>
+      <Link to="/alerts/$alertId" params={{ alertId: alert.id }} className="mt-auto pt-4 text-xs font-bold text-brand-blue underline underline-offset-4">Read more</Link>
       </div>
-    </Link>
+    </article>
   );
 }
 
 export function ReportPreviewCard({ report }: { report: ReportPreview }) {
   return (
-    <Link
-      to="/reports/$reportId"
-      params={{ reportId: report.id }}
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent"
-    >
+    <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card card-elevated transition-colors hover:border-accent">
       {report.image_url ? (
-        <img
-          src={report.image_url}
-          alt={report.title}
-          loading="lazy"
-          className="aspect-video w-full object-cover"
-        />
+        <Link to="/reports/$reportId" params={{ reportId: report.id }} aria-label={report.title}>
+          <img src={report.image_url} alt={report.title} loading="lazy" className="aspect-video w-full object-cover" />
+        </Link>
       ) : (
         <div className="flex aspect-video w-full items-center justify-center bg-primary/5 text-sm text-muted-foreground">
           Accident report
@@ -174,11 +163,12 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
       )}
       <div className="flex flex-1 flex-col p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <SeverityBadge value={report.severity} />
+          <Link to="/reports" search={{ severity: report.severity }} className="rounded border border-border px-1.5 py-0.5 hover:underline">
+            <SeverityBadge value={report.severity} />
+          </Link>
+          {report.incident_type ? <Link to="/reports" search={{ incident: report.incident_type }} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-brand-blue hover:underline">{report.incident_type}</Link> : null}
         </div>
-        <h3 className="mt-3 line-clamp-2 font-bold leading-snug group-hover:underline">
-          {report.title}
-        </h3>
+        <h3 className="mt-3 line-clamp-2 font-bold leading-snug group-hover:underline"><Link to="/reports/$reportId" params={{ reportId: report.id }}>{report.title}</Link></h3>
         <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
           <MapPin className="size-4 shrink-0" aria-hidden="true" /> {report.county}
           {report.road ? ` · ${report.road}` : ""}
@@ -187,11 +177,9 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
           <span>{displayReportCount(report.casualties)} injured</span>
           <span>{displayReportCount(report.fatalities)} {fatalityLabel(report.fatalities)}</span>
         </div>
-        <span className="mt-auto pt-4 text-xs font-bold text-brand-blue underline underline-offset-4">
-          Read more
-        </span>
+        <Link to="/reports/$reportId" params={{ reportId: report.id }} className="mt-auto pt-4 text-xs font-bold text-brand-blue underline underline-offset-4">Read more</Link>
       </div>
-    </Link>
+    </article>
   );
 }
 
@@ -392,7 +380,7 @@ export function DiscoverySections({
       const { data, error } = await supabase
         .from("accident_reports")
         .select(
-          "id, title, description, county, road, severity, incident_type, occurred_at, image_url, vehicles_involved, casualties, fatalities",
+          "id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities",
         )
         .eq("status", "approved")
         .order("occurred_at", { ascending: false })

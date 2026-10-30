@@ -19,7 +19,7 @@ test("Report and Alert detail metadata follows the shared article hierarchy", as
   const report = await read("src/routes/reports.$reportId.tsx");
   const alert = await read("src/routes/alerts.$alertId.tsx");
   assert.doesNotMatch(report, />All reports</);
-  assert.match(report, /Publication date:/);
+  assert.doesNotMatch(report, /Publication date:/);
   assert.match(report, /text-\[24\.7px\]/);
   assert.match(report, /report-summary/);
   assert.match(report, /bg-white text-foreground/);
@@ -36,21 +36,29 @@ test("Report and Alert detail metadata follows the shared article hierarchy", as
   assert.match(alert, /Alert summary/);
   assert.match(alert, /border-l-4 border-brand-blue/);
   assert.match(alert, /summary\?: string \| null/);
+  assert.match(report, /search=\{\{ county: report\.county \}\s+as never\}/);
+  assert.match(report, /search=\{\{ county: report\.county, road: report\.road_id/);
+  assert.match(alert, /search=\{\{ county: alert\.county \}\s+as never\}/);
+  assert.match(alert, /search=\{\{ county: alert\.county, road: alert\.road_id/);
 });
 
 test("Report and Alert public detail pages preserve the approved media and metadata order", async () => {
   const report = await read("src/routes/reports.$reportId.tsx");
   const alert = await read("src/routes/alerts.$alertId.tsx");
   assert.match(report, /Accident Report/);
-  assert.match(report, /Publication date:/);
+  assert.doesNotMatch(report, /Publication date:/);
   const reportView = report.slice(report.indexOf('<article'));
   const alertView = alert.slice(alert.indexOf('<article'));
-  assert.ok(reportView.indexOf("Publication date:") < reportView.indexOf("ShareButtons"));
-  assert.ok(reportView.indexOf("Publication date:") < reportView.indexOf("Accident date:"));
+  assert.ok(reportView.indexOf("<MapPin") < reportView.indexOf("<h1"));
+  assert.ok(reportView.indexOf("<h1") < reportView.indexOf("longDate(publicationDate)"));
+  assert.ok(reportView.indexOf("longDate(publicationDate)") < reportView.indexOf("ShareButtons"));
+  assert.ok(reportView.indexOf("longDate(publicationDate)") < reportView.indexOf("Accident date:"));
   assert.ok(reportView.indexOf("ShareButtons") < reportView.indexOf("<figure"));
   assert.ok(reportView.indexOf("<figure") < reportView.indexOf('By{" "}'));
-  assert.ok(alertView.indexOf("publicStatus") < alertView.indexOf("<MapPin"));
-  assert.ok(alertView.indexOf("<MapPin") < alertView.indexOf("ShareButtons"));
+  assert.ok(alertView.indexOf("Alert / Hazard") < alertView.indexOf("<MapPin"));
+  assert.ok(alertView.indexOf("<MapPin") < alertView.indexOf("<h1"));
+  assert.ok(alertView.indexOf("<h1") < alertView.indexOf("longDate(alert.created_at)"));
+  assert.ok(alertView.indexOf("longDate(alert.created_at)") < alertView.indexOf("ShareButtons"));
   assert.ok(alertView.indexOf("ShareButtons") < alertView.indexOf("<figure"));
   assert.ok(alertView.indexOf("<figure") < alertView.indexOf("UserAvatar"));
 });

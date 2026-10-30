@@ -874,3 +874,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Pending owner acceptance:** authenticated CMS checks, responsive screenshots at required widths, visual acceptance and final owner sign-off.
 - **Urgent homepage hero restoration — IMPLEMENTED / CORRECTIVE DEPLOYMENT PENDING:** restored all pre-`6337e22f` hero content and actions while retaining only the approved wording replacement. Full-hero regression test now protects the structure. No deployment or SQL execution performed.
 - **Checks:** focused `12/12`, full `506/506`, security `14/14`, production build and diff check passed. Responsive browser acceptance remains pending.
+
+## SB 2 — discovery navigation and UI correction (2026-10-30)
+
+- Implemented locally; deployment pending. Canonical county, road, incident, severity and hazard links now use URL-backed Reports/Alerts filters, with active-filter-aware editorial sections and shared News directory primitives.
+- Browser visual acceptance remains pending at 320, 375, 390, 430, 440, 768, 1024, 1280 and 1440px; authenticated CMS workflows remain pending.
+- No migration added or executed.
+- Focused discovery/editorial checks `16/16`; full suite `510/510`; security suite `14/14`; production build and `git diff --check` passed; TypeScript reports `813` existing diagnostics versus historical baseline `827`, with no changed-file diagnostics.

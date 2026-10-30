@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,14 +48,16 @@ import {
 export const Route = createFileRoute("/reports/")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { county?: string; severity?: string; incident?: string } => {
+  ): { county?: string; road?: string; severity?: string; incident?: string } => {
     const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
     const severity =
       typeof search["severity"] === "string" ? (search["severity"] as string) : undefined;
+    const road = typeof search["road"] === "string" ? (search["road"] as string) : undefined;
     const incident =
       typeof search["incident"] === "string" ? (search["incident"] as string) : undefined;
     return {
       ...(county ? { county } : {}),
+      ...(road ? { road } : {}),
       ...(severity ? { severity } : {}),
       ...(incident ? { incident } : {}),
     };
@@ -81,12 +83,21 @@ export const Route = createFileRoute("/reports/")({
 function ReportsPage() {
   const { user } = useAuth();
   const searchParams = Route.useSearch();
+  const navigate = useNavigate({ from: "/reports/" }) as unknown as (options: { search: unknown }) => Promise<void>;
   const [county, setCounty] = useState(searchParams.county ?? "all");
+  const [road, setRoad] = useState(searchParams.road ?? "all");
   const [severity, setSeverity] = useState(searchParams.severity ?? "all");
   const [incident, setIncident] = useState(searchParams.incident ?? "all");
   const [search, setSearch] = useState("");
   const { data: severities = [] } = useReportSeverities();
   const { data: incidentTypes = [] } = useIncidentTaxonomy();
+
+  useEffect(() => {
+    setCounty(searchParams.county ?? "all");
+    setRoad(searchParams.road ?? "all");
+    setSeverity(searchParams.severity ?? "all");
+    setIncident(searchParams.incident ?? "all");
+  }, [searchParams.county, searchParams.road, searchParams.severity, searchParams.incident]);
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports"],
@@ -116,6 +127,7 @@ function ReportsPage() {
     const incidentValues = incident === "all" ? null : descendantsOf(incidentTypes, incident);
     return (
       (county === "all" || r.county === county) &&
+      (road === "all" || r.road_id === road) &&
       (severity === "all" || r.severity === severity) &&
       (!incidentValues ||
         incidentValues.has((r as { incident_type?: string | null }).incident_type ?? "")) &&
@@ -125,8 +137,8 @@ function ReportsPage() {
         (r.road ?? "").toLowerCase().includes(q))
     );
   });
-  const latest = reports.slice(0, 12);
-  const featured = reports
+  const latest = visible.slice(0, 12);
+  const featured = visible
     .filter((r) => Boolean((r as { featured?: boolean | null }).featured))
     .slice(0, 12);
 
@@ -149,6 +161,9 @@ function ReportsPage() {
       return data;
     },
   });
+  const trendingIds = new Set((trending as Array<{ id: string }>).map((item) => item.id));
+  const rankedTrending = visible.filter((report) => trendingIds.has(report.id)).slice(0, 12);
+  const hasDiscoveryFilter = county !== "all" || road !== "all" || severity !== "all" || incident !== "all";
 
   const reportActions = (item: PublicIncidentCard) => (
     <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -191,8 +206,8 @@ function ReportsPage() {
     <div className="w-full py-4 sm:py-6">
       <PublicPageHero
         eyebrow="Community reporting"
-        title="Crash and incident reports"
-        description="Browse approved road-safety reports from the community, or contribute useful information about an incident you know."
+        title={hasDiscoveryFilter ? "Filtered accident reports" : "Crash and incident reports"}
+        description={hasDiscoveryFilter ? "Browse the eligible accident reports matching the selected county, road, incident type and severity filters." : "Browse approved road-safety reports from the community, or contribute useful information about an incident you know."}
         compact
         primaryCta={{ label: "Submit a report", to: "/reports#report-form" }}
       />
@@ -249,7 +264,7 @@ function ReportsPage() {
             )}
 
             <div className="mt-5"><BannerAd placement="reports-list-interval-1" /></div>
-            {trending.length > 0 ? (
+            {rankedTrending.length > 0 ? (
               <EditorialBand tone="plain">
                 <SectionHeader
                   eyebrow="Ranked by recorded views"
@@ -259,7 +274,7 @@ function ReportsPage() {
                   actionLabel="View all"
                 />
                 <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {trending.slice(0, 3).map((report) => (
+                  {rankedTrending.slice(0, 3).map((report) => (
                     <ReportPreviewCard key={report.id} report={report} />
                   ))}
                 </div>
@@ -271,11 +286,14 @@ function ReportsPage() {
               </EditorialBand>
             ) : null}
 
+            <GlobalEditorialPreview destination="reports" topic={incident !== "all" ? incident : null} />
+            <EditorialDiscoveryRail exclude="reports" />
+
             <EditorialBand tone="plain" className="mt-4">
               <h2 className="text-lg font-bold text-muted-foreground">Browse by severity</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
-                  onClick={() => setSeverity("all")}
+                  onClick={() => { setSeverity("all"); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, severity: undefined }) }); }}
                   className={
                     severity === "all" ? publicCategoryNavigationSelectedClass : publicCategoryNavigationClass
                   }
@@ -285,7 +303,7 @@ function ReportsPage() {
                 {severities.map((s) => (
                   <button
                     key={s.value}
-                    onClick={() => setSeverity(s.value)}
+                    onClick={() => { setSeverity(s.value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, severity: s.value }) }); }}
                     className={
                       severity === s.value
                         ? publicCategoryNavigationSelectedClass
@@ -305,7 +323,7 @@ function ReportsPage() {
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
-              <Select value={county} onValueChange={setCounty}>
+              <Select value={county} onValueChange={(value) => { setCounty(value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, county: value === "all" ? undefined : value }) }); }}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
@@ -318,7 +336,16 @@ function ReportsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={incident} onValueChange={setIncident}>
+              <Select value={road} onValueChange={(value) => { setRoad(value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, road: value === "all" ? undefined : value }) }); }}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="Road" /></SelectTrigger>
+                <SelectContent className="max-h-64">
+                  <SelectItem value="all">All roads</SelectItem>
+                  {Object.entries(roadMap).map(([id, item]) => (
+                    <SelectItem key={id} value={id}>{item.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={incident} onValueChange={(value) => { setIncident(value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, incident: value === "all" ? undefined : value }) }); }}>
                 <SelectTrigger className="w-56">
                   <SelectValue placeholder="Incident type" />
                 </SelectTrigger>
@@ -340,6 +367,7 @@ function ReportsPage() {
                 placeholder="Search title, road or description…"
                 className="w-64"
               />
+              {hasDiscoveryFilter ? <Button variant="ghost" size="sm" onClick={() => { setCounty("all"); setRoad("all"); setSeverity("all"); setIncident("all"); void navigate({ search: {} }); }}>Clear all filters</Button> : null}
             </div>
 
             {isLoading ? <p className="mt-8 text-muted-foreground">Loading reports…</p> : null}
@@ -359,8 +387,6 @@ function ReportsPage() {
             </div>
         </div>
       </div>
-      <GlobalEditorialPreview destination="reports" topic={incident !== "all" ? incident : null} />
-      <EditorialDiscoveryRail exclude="reports" />
       <MjengoPreviews context="reports" />
     </div>
   );
