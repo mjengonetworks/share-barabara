@@ -49,11 +49,10 @@ test("public incident sidebars read latest eligible canonical Feed posts", async
   assert.match(sidebar, /Latest Media &amp; Feed/);
 });
 
-test("road matching never creates a record and supports reviewed aliases", async () => {
+test("road matching never creates a record before Road Registry activation", async () => {
   const roads = await read("src/lib/roads.ts");
-  assert.match(roads, /select\("\*"\)/);
-  assert.match(roads, /aliases/);
-  assert.match(roads, /return match\?\.id/);
+  assert.match(roads, /from\("roads"\)/);
+  assert.match(roads, /return existing\?\.id/);
   assert.doesNotMatch(roads, /\.insert\(/);
 });
 
