@@ -64,6 +64,24 @@ test("Alert lifecycle status keeps null unselected and maps legacy values", asyn
   assert.match(editor, /status: form\.alert_status \|\| null/);
 });
 
+test("public editorial detail surfaces keep attribution compact and do not render profile biographies", async () => {
+  const files = [
+    "src/routes/news.$slug.tsx",
+    "src/routes/reports.$reportId.tsx",
+    "src/routes/alerts.$alertId.tsx",
+    "src/routes/infrastructure-issues.$issueId.tsx",
+    "src/routes/videos.tsx",
+  ];
+  const sources = await Promise.all(files.map(read));
+  for (const source of sources) {
+    assert.doesNotMatch(source, /profile\.bio|biography/);
+    assert.doesNotMatch(source, /Reported by|Submitted by/);
+  }
+  assert.match(sources[0], /UserAvatar/);
+  assert.match(sources[1], /UserAvatar/);
+  assert.match(sources[2], /UserAvatar/);
+});
+
 test("Report and Alert summaries have an additive reviewed schema and CMS fields", async () => {
   const migration = await read("supabase/migrations/20261030190000_report_alert_summaries_review.sql");
   const editor = await read("src/components/admin/editorial-record-editor.tsx");
