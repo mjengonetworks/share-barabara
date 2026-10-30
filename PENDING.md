@@ -935,3 +935,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Rehearsal:** isolated PostgreSQL RLS probes passed for denied unauthorised insert, permitted editor insert, active public reads and hidden merged-road reads. No production execution occurred.
 - **Compatibility note:** Report/Alert road foreign keys remain compatible; the reviewed Road Registry migration deliberately removes the global unique-name constraint while retaining unique slugs. This needs explicit migration approval because it changes the existing production constraint.
 - **Release status:** Implemented / Pending Migration Approval. Production schema comparison and fresh backup remain required; no deployment or SQL execution is authorized by this finding alone.
+
+## SB 2 — final road identity gate (2026-10-30)
+
+- **Canonical identity:** name is a lookup attribute, not the identity key. Stable UUIDs and unique slugs remain; country/context, aliases, external geography IDs and verified geometry distinguish same-named roads. Ambiguous alias/name matches fail closed.
+- **Application correction:** alias-aware, county-aware matching is implemented; AI and CMS flows reuse an existing unique match and do not silently insert or choose ambiguous roads.
+- **Three-migration order:** `20261030200000` → `20261030210000` → `20261030220000`. A single-transaction rehearsal passed and final RLS policies were verified. Final hardening checksum: `A92CEAB020FD6E0B60FCB711CB988832B7F78836E93CDA017510DCA5884819CA`.
+- **Production controls:** apply the three files as one controlled transaction after backup/schema preflight. Do not expose the interim permissive insert policy between migrations. Worker rollback does not reverse these SQL changes.
+- **Still blocked:** fresh production backup, actual production schema/ledger comparison and separate owner approval. Partial Ngong Road geometry remains review-only.
