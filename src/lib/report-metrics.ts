@@ -7,11 +7,11 @@ export function parseNullableCount(raw: string): NullableReportCount {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
-export function displayReportCount(value: NullableReportCount): string {
+export function displayReportCount(value: NullableReportCount | undefined): string {
   return value === null ? "Not confirmed" : String(value);
 }
 
-export function fatalityLabel(value: NullableReportCount): string {
+export function fatalityLabel(value: NullableReportCount | undefined): string {
   return value === 1 ? "fatality" : "fatalities";
 }
 

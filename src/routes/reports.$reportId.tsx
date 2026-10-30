@@ -202,7 +202,7 @@ function ReportDetail() {
   }
 
   const linkedRoad = roadMap[report.road_id ?? ""];
-  const publicationDate = report.published_at ?? report.created_at;
+  const publicationDate = report.created_at;
 
   return (
     <>
