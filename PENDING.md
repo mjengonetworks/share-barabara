@@ -894,3 +894,5 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - Lifecycle remains Implemented → Deployed → Live Tested → User Accepted → Closed.
 - **Release separation:** Release A contains the safe banner request correction and canonical Feed sidebar query. Release B contains the unexecuted Road Registry migration and dependent canonical-ID/geometry/admin work.
 - **Still pending:** browser screenshots, live `banner_ads` response verification, automatic publication of source content into Feed, verified Ngong Road geometry/map acceptance, admin Road Registry CRUD/merge review, authenticated CMS checks and owner approval for each release.
+- **Release A deployed:** artifact `5d3eeae` is live on Worker `73b4a858-a4a7-4d6c-a745-281914b4f2a3` at 100%; previous Worker was `a978e7f0-4fe6-4258-8ed0-79d4fa71eced`. Public route/SSR smoke passed. Responsive screenshots, visual media/spacing checks, live banner request capture and authenticated acceptance remain pending.
+- **Release B pending:** no Road Registry SQL, geometry backfill, admin registry operation or automatic editorial-to-Feed synchronization was deployed.
