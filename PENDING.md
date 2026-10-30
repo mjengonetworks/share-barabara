@@ -868,3 +868,7 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Still pending:** live production reconciliation before deployment, browser/responsive screenshots, authenticated CMS save/reload verification and owner approval.
 - **Planned — ShareBarabara.com Internationalisation:** future country selector and country-scoped platform browsing remain backlog-only. Kenya is intentionally not clickable, and no placeholder countries or country-switching logic were added.
 - **Homepage hero copy — IMPLEMENTED / DEPLOYMENT PENDING:** exact text `Reported directly by road users` is present; browser desktop/mobile visual acceptance remains pending.
+- **SB 2 application release — DEPLOYED:** `6337e22f1fba18a6d08adfd4f386e8986a34fda1` is live on Worker `066aec1f-c440-41e1-b91d-4438e296e62c` at 100%; previous Worker `03424776-a7f3-42fa-b479-8807d6a71270`.
+- **Live smoke:** all required public routes returned HTTP 200; homepage contains the exact hero wording `Reported directly by road users`.
+- **Database:** no new migration required or executed. Existing production schema supports the implemented features.
+- **Pending owner acceptance:** authenticated CMS checks, responsive screenshots at required widths, visual acceptance and final owner sign-off.
