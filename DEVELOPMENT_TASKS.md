@@ -452,8 +452,10 @@ unfinished application changes are not merged here.
   filters, and coordinate-less exclusion in the rendered map consumer.
 - **Duplicate and casualty integrity — STATIC PASSED / DATABASE PENDING:**
   execute duplicate merge, relationship correction and NULL casualty cases.
-- **Database migration approval and execution — PENDING:** owner approval and
-  disposable rehearsal required; production SQL is prohibited in this task.
+- **Database migration approval and execution — DEPLOYED:** owner-approved
+  `20261030180000_editorial_content_relationships_review.sql` was executed once
+  after fresh backup and preflight; see the production database release record
+  below. No further migration is required for this task.
 - **Migration package hardening — PASSED / EXECUTION PENDING:** reviewed
   rerun-safe policies, triggers, canonical view replacement and banner
   constraint guards were added. The exact four-migration production approval
@@ -542,7 +544,7 @@ unfinished application changes are not merged here.
 
 ## SB 2 — editorial workflow completion candidate (2026-10-30)
 
-- **Task 70 / editorial relationship extension — IMPLEMENTED / DATABASE ACCEPTANCE PENDING:** added reviewed migration `20261030180000_editorial_content_relationships_review.sql`. It extends the reusable relationship model to Article, Report, Alert, Campaign, Infrastructure Issue and Feed Post endpoints, adds soft-delete and append-only relationship history, validates endpoints and editor permissions, and explicitly rejects generic Alert↔Report links so `incident_content_links` remains authoritative. No production SQL was executed.
+- **Task 70 / editorial relationship extension — DEPLOYED / LIVE ACCEPTANCE PENDING:** reviewed migration `20261030180000_editorial_content_relationships_review.sql` is applied in production. It extends the reusable relationship model to Article, Report, Alert, Campaign, Infrastructure Issue and Feed Post endpoints, adds soft-delete and append-only relationship history, validates endpoints and editor permissions, and explicitly rejects generic Alert↔Report links so `incident_content_links` remains authoritative.
 - **CMS Related Content — IMPLEMENTED / AUTHENTICATED ACCEPTANCE PENDING:** the shared editor now mounts bidirectional search, link, unlink and reloadable relationship controls for Article, Report, Alert, Campaign and Infrastructure Issue editors. Feed Post linking is supported at the database/RPC layer but has no separate Feed authoring editor in the current CMS surface.
 - **AI conversion review — IMPLEMENTED / LIVE PROVIDER ACCEPTANCE PENDING:** existing Grok conversion actions use destination-specific targets, field-by-field accept/reject review, saved unpublished proposals, duplicate guards and provenance fields. The disposable PostgreSQL rehearsal verified real destination-row creation and automatic bidirectional provenance linking for all six supported directions.
 - **Public related content — IMPLEMENTED / LIVE ACCEPTANCE PENDING:** News, Reports, Alerts, Campaigns and Infrastructure detail routes consume the permission/public-eligibility filtered related-content RPC and preserve existing editorial discovery modules.
@@ -562,8 +564,16 @@ unfinished application changes are not merged here.
 
 - **Application deployment — PASSED:** approved commit `f9390d9e04d430ccc2f581fe17fdc843c346ca6c` deployed through the production Nitro/Wrangler procedure. The generated production config required the documented deployment-only removal of the rejected `staging` environment block; source `wrangler.jsonc` was not changed. New Worker `9af742b4-e35c-45d9-8c68-0a9a3a7c9c3e` is listed at 100% for `sharebarabara.co.ke`, with the existing `*/1 * * * *` trigger, ASSETS binding, rate limiter and production variables preserved. Previous Worker: `d8ce8556-73ee-44cd-be4d-8cbf93a9c902`.
 - **Public smoke tests — PASSED:** `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns` and `/infrastructure-issues` returned HTTP 200 after deployment. Live `/news` SSR contains Latest News, Featured Articles and Trending News markers. Browser screenshots and authenticated CMS acceptance remain pending.
-- **Production database migration — BLOCKED SAFELY:** no fresh backup or SQL preflight was possible because this environment has no Supabase CLI, no authorised PostgreSQL connection variables/credentials and no provider backup access. Historical dumps remain preserved but are not treated as the required fresh pre-migration backup. No production SQL was executed.
-- **Exact prerequisite:** provide an authorised, temporary PostgreSQL connection method for project `yhqoggbntunxvlbcatwj` (or provider-managed backup access sufficient to create and verify a complete custom-format dump). The connection must permit backup and catalog/migration-ledger inspection; credentials must remain outside logs and commits. Then create a fresh backup, verify `pg_restore --list` and SHA-256, run preflight, and execute only `20261030180000_editorial_content_relationships_review.sql`.
+- **Production database migration — RESOLVED:** the prior backup-access blocker was cleared using the authenticated Supabase CLI session and PostgreSQL 17 client; the fresh backup, preflight, execution and verification are recorded in the production database release section below.
+
+## SB 2 — production database release (2026-10-30)
+
+- **Database access — PASSED:** the established `npx supabase` authenticated session minted a temporary Share Barabara project login. The installed PostgreSQL 17 client was used directly; Docker was not used. Project identity was verified as `yhqoggbntunxvlbcatwj` / Share Barabara, PostgreSQL 17.6.
+- **Fresh recovery backup — PASSED:** `E:\sb2-production-backup-20261030-112227-editorial-public-auth.dump`, 796,864 bytes, SHA-256 `F4B229E8E706CF9AE2A5BB0150FB44E9689A760E234F865CB69E68A3F479E4B1`, `pg_restore --list` 1,272 entries. Scope includes `public` and `auth`, including migration-affected content, relationship-relevant rows and auth users. A clean isolated PostgreSQL 17.11 restore reproduced 97 Articles, 18 Reports, 14 Alerts, 1 Campaign, 1 Feed Post and 26 auth users; only expected existing-schema notices for `public` and `auth` occurred.
+- **Preflight — PASSED:** exact local migration SHA-256 `8805B7B7B48A9A98A3E2494C923857402F5DD9C9775C50822C67D6D300E2B094`; `20261030170000` was already applied; `20261030180000` was absent before execution. Required content tables, `deleted_at` columns, role helpers, `incident_content_links`, Feed dependencies and RLS were present. No competing generic relationship objects existed.
+- **Approved migration — PASSED:** only `20261030180000_editorial_content_relationships_review.sql` was executed once with `ON_ERROR_STOP=1`, then its exact version was recorded in Supabase migration history. New generic tables, functions, indexes and RLS policies exist.
+- **Post-migration integrity — PASSED:** counts remain 97 Articles, 18 Reports, 14 Alerts, 1 Campaign, 0 Infrastructure Issues, 1 Feed Post, 0 canonical incident links and 0 relationship-history rows. Anonymous direct relationship writes were denied; public related-content RPC read remained available. Existing canonical Alert-to-Report authority was not modified.
+- **Remaining live acceptance:** authenticated Featured/Related Content editor persistence, live Grok provider acceptance, public related-content confirmation, responsive browser screenshots and owner user acceptance remain pending. No generated production test content was created.
 
 ## SB 2 — disposable PostgreSQL rehearsal update (2026-10-30)
 

@@ -793,7 +793,7 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 
 ## SB 2 — editorial workflow completion candidate (2026-10-30)
 
-- **Task 70 / generic relationships — IMPLEMENTED, MIGRATION PENDING:** reviewed additive migration `20261030180000_editorial_content_relationships_review.sql` is prepared but not executed. It preserves `incident_content_links` as the sole Alert↔approved Accident Report authority and records generic relationship create/remove history.
+- **Task 70 / generic relationships — DEPLOYED, LIVE ACCEPTANCE PENDING:** reviewed additive migration `20261030180000_editorial_content_relationships_review.sql` is applied. It preserves `incident_content_links` as the sole Alert↔approved Accident Report authority and records generic relationship create/remove history.
 - **CMS relationship pickers — IMPLEMENTED, AUTHENTICATED LIVE TEST PENDING:** shared editors for Article, Report, Alert, Campaign and Infrastructure Issue now expose Related Content controls. Feed Post endpoint support exists in the migration/RPC contract; no separate Feed editor route was added because the current Feed moderation workflow is not a full editorial record editor.
 - **AI source-to-destination conversions — IMPLEMENTED / LIVE PROVIDER ACCEPTANCE PENDING:** Grok conversion proposals are destination-scoped, field-reviewable, provenance-captured and draft-only. Disposable PostgreSQL testing verified final destination-schema creation, automatic bidirectional provenance linking and no automatic publication for all six directions.
 - **Public related rendering — IMPLEMENTED, BROWSER ACCEPTANCE PENDING:** supported public detail routes mount permission-filtered Related Content output; unpublished, deleted and restricted endpoints are fail-closed by the RPC contract.
@@ -818,6 +818,12 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 ## SB 2 — authorised application deployment / database gate (2026-10-30)
 
 - **Application — DEPLOYED:** approved commit `f9390d9e04d430ccc2f581fe17fdc843c346ca6c` is live on Worker `9af742b4-e35c-45d9-8c68-0a9a3a7c9c3e` at 100%; previous Worker was `d8ce8556-73ee-44cd-be4d-8cbf93a9c902`. Public smoke routes returned HTTP 200.
-- **Database migration — PENDING / BLOCKED BY BACKUP ACCESS:** the approved migration was not executed. No fresh complete Share Barabara production backup or authorised PostgreSQL connection was available. Historical backups were not reused as the conditional fresh backup.
-- **Required next action:** obtain temporary authorised PostgreSQL backup/catalog access for project `yhqoggbntunxvlbcatwj`; verify backup size, SHA-256 and `pg_restore --list`; then complete schema/ledger/RLS preflight and execute only `20261030180000_editorial_content_relationships_review.sql`.
+- **Database migration — DEPLOYED:** the approved migration was executed once after fresh Share Barabara backup, schema/ledger/RLS preflight and isolated restore verification. Evidence is recorded in the production database release section below.
 - **Still pending:** authenticated CMS relationship/featured-control testing, Grok provider acceptance, responsive visual screenshots and owner user acceptance. No workstream is Closed until these have evidence.
+
+## SB 2 — production database release (2026-10-30)
+
+- **Migration — DEPLOYED:** `20261030180000_editorial_content_relationships_review.sql` executed once against verified Share Barabara project `yhqoggbntunxvlbcatwj`; Supabase migration history records `20261030180000` as applied.
+- **Backup — VERIFIED:** `E:\sb2-production-backup-20261030-112227-editorial-public-auth.dump`, 796,864 bytes, SHA-256 `F4B229E8E706CF9AE2A5BB0150FB44E9689A760E234F865CB69E68A3F479E4B1`, 1,272 TOC entries. Isolated restore reproduced 97/18/14/1/1 content counts and 26 auth users.
+- **Post-migration verification — PASSED:** generic relationship tables/functions/indexes/RLS exist; anonymous direct writes were denied; public read RPC remained available; existing Reports, Alerts, Feed and canonical incident-link counts were preserved.
+- **Pending live acceptance:** authenticated editor Featured/Related Content persistence, six live CMS conversion workflows, Grok provider acceptance, responsive browser checks, public linked-content review and owner acceptance. Do not close the workstream until evidence is recorded.
