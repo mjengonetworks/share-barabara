@@ -575,6 +575,14 @@ unfinished application changes are not merged here.
 - **Post-migration integrity — PASSED:** counts remain 97 Articles, 18 Reports, 14 Alerts, 1 Campaign, 0 Infrastructure Issues, 1 Feed Post, 0 canonical incident links and 0 relationship-history rows. Anonymous direct relationship writes were denied; public related-content RPC read remained available. Existing canonical Alert-to-Report authority was not modified.
 - **Remaining live acceptance:** authenticated Featured/Related Content editor persistence, live Grok provider acceptance, public related-content confirmation, responsive browser screenshots and owner user acceptance remain pending. No generated production test content was created.
 
+## SB 2 — final live acceptance attempt (2026-10-30)
+
+- **Public HTTP smoke — PASSED:** the live production routes `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns` and `/infrastructure-issues` returned HTTP 200. Server-rendered markers confirmed `Latest News`, `Featured Articles` and `Trending News` on `/news`, and `Featured Reports` / `Featured Alerts` on the respective listing routes.
+- **Authenticated Featured controls — PENDING:** no browser or authorised CMS session was available; Article, Report and Alert save/refresh/reversal persistence was not performed.
+- **Related Content — PENDING:** no browser or authorised editor session was available; bidirectional picker, removal, reload and Alert-to-Report correction workflows were not performed live.
+- **Grok conversion — PENDING:** no browser/provider-backed session was available; no production test records were created.
+- **Responsive visual acceptance — PENDING:** the computer-use inventory returned no browser surfaces and the in-app browser was unavailable. No screenshots were captured at 320, 375, 390, 430, 768, 1024, 1280 or 1440px. Owner must perform visual acceptance on the live routes.
+
 ## SB 2 — disposable PostgreSQL rehearsal update (2026-10-30)
 
 - **Migration rehearsal — PASSED:** PostgreSQL 17.11 disposable cluster at `127.0.0.1:55432`, database `sb2_rehearsal`, isolated from the running local service and production. Restored `E:\sb2-production-backup-20261029-final.dump` (SHA-256 `1A364DE9682614B3D8EFA06DB013A40F12D3DE120E12360F31BB0674C2D9BE67`; `pg_restore --list` showed 1205 TOC entries). Restore emitted one expected `public`-schema-exists message; all backup objects/data restored. Baseline rows: 97 Articles, 15 Reports, 14 Alerts, 1 Campaign, 0 Infrastructure Issues, 1 Feed Post, 0 incident links.

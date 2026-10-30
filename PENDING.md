@@ -827,3 +827,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Backup — VERIFIED:** `E:\sb2-production-backup-20261030-112227-editorial-public-auth.dump`, 796,864 bytes, SHA-256 `F4B229E8E706CF9AE2A5BB0150FB44E9689A760E234F865CB69E68A3F479E4B1`, 1,272 TOC entries. Isolated restore reproduced 97/18/14/1/1 content counts and 26 auth users.
 - **Post-migration verification — PASSED:** generic relationship tables/functions/indexes/RLS exist; anonymous direct writes were denied; public read RPC remained available; existing Reports, Alerts, Feed and canonical incident-link counts were preserved.
 - **Pending live acceptance:** authenticated editor Featured/Related Content persistence, six live CMS conversion workflows, Grok provider acceptance, responsive browser checks, public linked-content review and owner acceptance. Do not close the workstream until evidence is recorded.
+
+## SB 2 — final live acceptance attempt (2026-10-30)
+
+- **Public HTTP smoke — PASSED:** `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns` and `/infrastructure-issues` returned HTTP 200. `/news` server-rendered the Latest, Featured and Trending markers; Reports and Alerts server-rendered their Featured markers.
+- **Authenticated CMS workflows — PENDING:** browser surfaces and an authorised CMS session were unavailable, so Featured Article/Report/Alert persistence, Related Content bidirectional editing, removal/reload and Alert-to-Report correction were not tested.
+- **Grok conversion — PENDING:** live provider-backed six-direction acceptance was not performed; no production test content was created.
+- **Responsive visual checks — PENDING:** no browser surface was available and no screenshots were captured at the required widths. Owner live acceptance remains required.
