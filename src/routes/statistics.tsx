@@ -793,7 +793,7 @@ function StatisticsPage() {
                 tone: "text-foreground",
               },
               {
-                label: "Known deaths",
+                label: "Known fatalities",
                 curr: thisYearSummary.confirmedFatalities,
                 prior: lastYearSummary.confirmedFatalities,
                 tone: "text-destructive",
@@ -848,7 +848,7 @@ function StatisticsPage() {
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-              Deaths &amp; injuries by month
+              Fatalities &amp; injuries by month
             </h3>
             <div className="mt-3 h-64 rounded-lg border border-border bg-card p-4">
               <ResponsiveContainer width="100%" height="100%">
@@ -860,7 +860,7 @@ function StatisticsPage() {
                   <Legend />
                   <Bar
                     dataKey="fatalities"
-                    name="Deaths"
+                    name="Fatalities"
                     fill="var(--destructive)"
                     radius={[4, 4, 0, 0]}
                   />
@@ -992,7 +992,7 @@ function StatisticsPage() {
                     <strong>
                       {r.fatalitiesUnknown ? "Not confirmed" : displayReportCount(r.fatalities)}
                     </strong>{" "}
-                    deaths
+                    fatalities
                   </span>
                   <span className="text-caution">
                     <strong>
@@ -1029,7 +1029,7 @@ function StatisticsPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
-              label: `Deaths in ${selectedYearLabel}`,
+              label: `Fatalities in ${selectedYearLabel}`,
               value: num(latest.fatalities),
               tone: "text-destructive",
             },
@@ -1040,7 +1040,7 @@ function StatisticsPage() {
             },
             { label: "Recorded crashes", value: num(latest.crashes), tone: "text-foreground" },
             {
-              label: "Deaths per 100,000 people",
+              label: "Fatalities per 100,000 people",
               value: latest.deaths_per_100k ?? "N/A",
               tone: "text-foreground",
             },
@@ -1080,7 +1080,7 @@ function StatisticsPage() {
         <BannerAd />
       </div>
 
-      <ChartCard title="Deaths and injuries by year">
+      <ChartCard title="Fatalities and injuries by year">
         <LineChart data={yearly}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis dataKey="year" stroke="var(--muted-foreground)" fontSize={12} />
@@ -1115,8 +1115,8 @@ function StatisticsPage() {
       </ChartCard>
 
       <ChartCard
-        title="Motorisation vs death rate"
-        subtitle="Registered vehicles against deaths per 100,000 people."
+        title="Motorisation vs fatality rate"
+        subtitle="Registered vehicles against fatalities per 100,000 people."
       >
         <AreaChart data={yearly}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -1143,7 +1143,7 @@ function StatisticsPage() {
             yAxisId="right"
             type="monotone"
             dataKey="deaths_per_100k"
-            name="Deaths per 100k"
+            name="Fatalities per 100k"
             stroke="var(--destructive)"
             fill="var(--destructive)"
             fillOpacity={0.2}
@@ -1152,9 +1152,9 @@ function StatisticsPage() {
       </ChartCard>
 
       <section className="mt-10">
-        <h2 className="text-[1.155rem] font-bold">Deaths by month</h2>
+        <h2 className="text-[1.155rem] font-bold">Fatalities by month</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Seasonality of road deaths in {activeYear}.
+          Seasonality of road fatalities in {activeYear}.
         </p>
         <div className="mt-4 h-80 rounded-lg border border-border bg-card p-4">
           {monthlyForYear.length > 0 ? (
@@ -1208,7 +1208,7 @@ function StatisticsPage() {
         </div>
 
         <div>
-          <h2 className="text-[1.155rem] font-bold">Deaths by vehicle type</h2>
+        <h2 className="text-[1.155rem] font-bold">Fatalities by vehicle type</h2>
           <div className="mt-4 h-96 rounded-lg border border-border bg-card p-4">
             {vehiclesForYear.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -1276,7 +1276,7 @@ function StatisticsPage() {
         </div>
 
         <div>
-          <h2 className="text-[1.155rem] font-bold">Deaths by road class</h2>
+        <h2 className="text-[1.155rem] font-bold">Fatalities by road class</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Trunk highways carry the heaviest toll per kilometre.
           </p>
@@ -1311,7 +1311,7 @@ function StatisticsPage() {
 
       <section className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>
-          <h2 className="text-[1.155rem] font-bold">Counties with the most deaths</h2>
+        <h2 className="text-[1.155rem] font-bold">Counties with the most fatalities</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Click a bar to see reports for that county.
           </p>
@@ -1373,7 +1373,7 @@ function StatisticsPage() {
           </ul>
           <p className="mt-6 text-sm text-muted-foreground">
             Vulnerable road users (pedestrians, motorcyclists and their pillion passengers) make up
-            the large majority of deaths. Speed management, helmets, footpaths and lighting are the
+            the large majority of fatalities. Speed management, helmets, footpaths and lighting are the
             interventions that shift these numbers.
           </p>
         </div>
