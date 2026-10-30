@@ -431,7 +431,7 @@ export function EditorialBand({
   return (
     <section
       className={cn(
-        "-mx-4 px-4 py-6 sm:-mx-8 sm:px-8 sm:py-8",
+        "-mx-4 px-4 py-4 sm:-mx-8 sm:px-8 sm:py-5",
         tone === "pale" ? "bg-primary/[0.045]" : "bg-background",
         className,
       )}

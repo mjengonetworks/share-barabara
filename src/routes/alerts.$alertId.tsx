@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useProfileNames } from "@/lib/profiles";
+import { useProfileNames, useProfileAvatars } from "@/lib/profiles";
 import { useSubscriptionStatuses } from "@/hooks/useSubscriptionStatuses";
 import { usePagesByIds } from "@/hooks/usePagesByIds";
 import { useRoadsByIds } from "@/hooks/useRoadsByIds";
@@ -15,6 +15,7 @@ import { renderRichText } from "@/lib/richtext";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { VoteButtons } from "@/components/site/vote-buttons";
 import { UserLink } from "@/components/site/user-link";
+import { UserAvatar } from "@/components/site/user-avatar";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/alerts/$alertId")({
       .from("alerts")
       .select("*")
       .eq("id", params.alertId)
-      .in("status", ["active", "in_progress", "resolved"])
+      .or("status.is.null,status.in.(active,in_progress,resolved,under_resolution)")
       .maybeSingle();
     return data;
   },
@@ -86,7 +87,7 @@ function AlertDetail() {
         .from("alerts")
         .select("*")
         .eq("id", alertId)
-        .in("status", ["active", "in_progress", "resolved"])
+        .or("status.is.null,status.in.(active,in_progress,resolved,under_resolution)")
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -103,6 +104,7 @@ function AlertDetail() {
 
   const people = alert ? [alert.user_id] : [];
   const { data: names = {} } = useProfileNames(people);
+  const { data: avatars = {} } = useProfileAvatars(people);
   const { data: verified = {} } = useSubscriptionStatuses(people);
   const { data: pages = {} } = usePagesByIds(alert ? [alert.page_id] : []);
   const { data: roadMap = {} } = useRoadsByIds(alert ? [alert.road_id] : []);
@@ -157,6 +159,18 @@ function AlertDetail() {
   }
 
   const linkedRoad = roadMap[alert.road_id ?? ""];
+  const publicStatus = alert.status === "under_resolution" || alert.status === "in_progress"
+    ? "In Progress"
+    : alert.status === "active"
+      ? "Active"
+      : alert.status === "resolved"
+        ? "Resolved"
+        : null;
+  const statusClass = alert.status === "active"
+    ? "border-destructive/30 bg-destructive/10 text-destructive"
+    : alert.status === "resolved"
+      ? "border-emerald-300/60 bg-emerald-50 text-emerald-700"
+      : "border-caution/40 bg-caution/10 text-caution";
 
   return (
     <>
@@ -176,34 +190,22 @@ function AlertDetail() {
             <PublicEditorialCategoryBadge>
               {hazardTypes.find((h) => h.value === alert.hazard_type)?.label ?? alert.hazard_type}
             </PublicEditorialCategoryBadge>
-            {alert.status === "in_progress" ? <span className="text-sm text-muted-foreground">In Progress</span> : null}
-            {alert.status === "resolved" ? <span className="text-sm text-muted-foreground">Resolved</span> : null}
           </div>
 
           <h1 className="mt-1.5 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {alert.title}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">Published: {longDate(alert.created_at)}</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Reported by{" "}
-            <UserLink
-              userId={alert.user_id}
-              name={names[alert.user_id]}
-              anonymous={alert.is_anonymous}
-              verified={
-                alert.page_id ? !!pages[alert.page_id]?.verified : !!verified[alert.user_id]
-              }
-              pageSlug={alert.page_id ? pages[alert.page_id]?.slug : undefined}
-              pageName={alert.page_id ? pages[alert.page_id]?.name : undefined}
-            />
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span>{longDate(alert.created_at)}</span>
+            {publicStatus ? <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${statusClass}`}>{publicStatus}</span> : null}
+          </div>
+          <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="size-4" /> {alert.county}
+            {alert.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{alert.road}</Link> : alert.road}</> : null}
           </p>
           <div className="mt-3">
             <ShareButtons title={alert.title} />
           </div>
-          <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-4" /> {alert.county}
-            {alert.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{alert.road}</Link> : alert.road}</> : null}
-          </p>
 
           {alert.image_url ? (
             <figure className="mt-4">
@@ -215,6 +217,21 @@ function AlertDetail() {
               <EditorialMediaMeta caption={alert.image_caption} credit={alert.image_credit} />
             </figure>
           ) : null}
+
+          <div className="mt-3 flex items-center gap-2">
+            {!alert.is_anonymous ? <UserAvatar url={avatars[alert.user_id]} name={names[alert.user_id]} className="size-9" /> : null}
+            <p className="text-sm text-muted-foreground">
+              By{" "}
+              <UserLink
+                userId={alert.user_id}
+                name={names[alert.user_id]}
+                anonymous={alert.is_anonymous}
+                verified={alert.page_id ? !!pages[alert.page_id]?.verified : !!verified[alert.user_id]}
+                pageSlug={alert.page_id ? pages[alert.page_id]?.slug : undefined}
+                pageName={alert.page_id ? pages[alert.page_id]?.name : undefined}
+              />
+            </p>
+          </div>
 
           {alert.parties_involved.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">

@@ -92,7 +92,7 @@ function VideoGrid({ videos, names }: { videos: VideoCard[]; names: Record<strin
               <p className="mt-1 text-sm text-muted-foreground">{v.description}</p>
             ) : null}
             <p className="mt-2 text-xs text-muted-foreground">
-              Submitted by{" "}
+              By{" "}
               <UserLink userId={v.user_id} name={v.user_id ? names[v.user_id] : undefined} />
             </p>
           </article>

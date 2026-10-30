@@ -10,7 +10,7 @@ test("platform spacing uses compact shared bands and discovery gaps", async () =
     read("src/components/site/discovery-sections.tsx"),
     read("src/components/site/mjengo-previews.tsx"),
   ]);
-  assert.match(layout, /px-4 py-6 sm:-mx-8 sm:px-8 sm:py-8/);
+  assert.match(layout, /px-4 py-4 sm:-mx-8 sm:px-8 sm:py-5/);
   assert.match(discovery, /mt-6 space-y-6/);
   assert.match(mjengo, /mt-6 border-t border-border pt-6/);
 });
@@ -23,10 +23,45 @@ test("Report and Alert detail metadata follows the shared article hierarchy", as
   assert.match(report, /text-\[24\.7px\]/);
   assert.match(report, /report-summary/);
   assert.match(report, /bg-white text-foreground/);
-  assert.match(alert, /Published:/);
+  assert.doesNotMatch(alert, /Published:/);
+  assert.match(alert, /Alert \/ Hazard/);
+  assert.match(alert, /longDate\(alert\.created_at\)[\s\S]*?publicStatus/);
+  assert.match(alert, /By\{" "\}/);
+  const alertView = alert.slice(alert.indexOf('<article'));
+  assert.ok(alertView.indexOf("ShareButtons") < alertView.indexOf("UserAvatar"));
+  assert.ok(alertView.indexOf("UserAvatar") < alertView.indexOf("Alert summary"));
+  assert.match(alert, /under_resolution/);
+  assert.match(alert, /In Progress/);
+  assert.match(alert, /publicStatus/);
   assert.match(alert, /Alert summary/);
   assert.match(alert, /border-l-4 border-brand-blue/);
   assert.match(alert, /summary\?: string \| null/);
+});
+
+test("Report and Alert public detail pages preserve the approved media and metadata order", async () => {
+  const report = await read("src/routes/reports.$reportId.tsx");
+  const alert = await read("src/routes/alerts.$alertId.tsx");
+  assert.match(report, /Accident Report/);
+  assert.match(report, /Incident date:/);
+  const reportView = report.slice(report.indexOf('<article'));
+  const alertView = alert.slice(alert.indexOf('<article'));
+  assert.ok(reportView.indexOf("Incident date:") < reportView.indexOf("ShareButtons"));
+  assert.ok(reportView.indexOf("ShareButtons") < reportView.indexOf("<figure"));
+  assert.ok(reportView.indexOf("<figure") < reportView.indexOf('By{" "}'));
+  assert.ok(alertView.indexOf("publicStatus") < alertView.indexOf("<MapPin"));
+  assert.ok(alertView.indexOf("<MapPin") < alertView.indexOf("ShareButtons"));
+  assert.ok(alertView.indexOf("ShareButtons") < alertView.indexOf("<figure"));
+  assert.ok(alertView.indexOf("<figure") < alertView.indexOf("UserAvatar"));
+});
+
+test("Alert lifecycle status keeps null unselected and maps legacy values", async () => {
+  const route = await read("src/routes/alerts.$alertId.tsx");
+  const editor = await read("src/components/admin/editorial-record-editor.tsx");
+  assert.match(route, /alert\.status === "under_resolution" \|\| alert\.status === "in_progress"/);
+  assert.match(route, /: null;/);
+  assert.match(editor, /No status selected/);
+  assert.match(editor, /value === "none" \? "" : value/);
+  assert.match(editor, /status: form\.alert_status \|\| null/);
 });
 
 test("Report and Alert summaries have an additive reviewed schema and CMS fields", async () => {

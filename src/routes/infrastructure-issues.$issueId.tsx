@@ -178,7 +178,7 @@ function IssueDetail() {
             {issue.county ? ` · ${issue.county}` : ""}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Reported by{" "}
+            By{" "}
             <UserLink
               userId={issue.user_id}
               name={names[issue.user_id]}

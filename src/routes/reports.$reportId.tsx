@@ -214,6 +214,7 @@ function ReportDetail() {
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-[0.12em] text-brand-blue">Accident Report</span>
             <PublicEditorialCategoryBadge>
               {report.incident_type || "Accident report"}
             </PublicEditorialCategoryBadge>
@@ -240,13 +241,13 @@ function ReportDetail() {
             {report.title}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">Incident date: {longDate(report.occurred_at)}</p>
-          <div className="mt-3">
-            <ShareButtons title={report.title} />
-          </div>
           <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {report.county}
             {report.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{report.road}</Link> : report.road}</> : null}
           </p>
+          <div className="mt-3">
+            <ShareButtons title={report.title} />
+          </div>
           {report.image_url ? (
             <figure className="mt-4">
               <img
@@ -267,7 +268,7 @@ function ReportDetail() {
             ) : null}
             <div>
               <p className="text-sm text-muted-foreground">
-                Reported by{" "}
+                By{" "}
                 <UserLink
                   userId={report.user_id}
                   name={names[report.user_id]}
