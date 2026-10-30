@@ -471,7 +471,7 @@ function ReportsQueuePage() {
                       <div className="grid grid-cols-3 gap-2">
                         <NullableNumberField id={`v-${r.id}`} label="Vehicles" value={d.vehicles_involved} onChange={(value) => set({ vehicles_involved: value })} />
                         <NullableNumberField id={`i-${r.id}`} label="Injured" value={d.casualties} onChange={(value) => set({ casualties: value })} />
-                        <NullableNumberField id={`f-${r.id}`} label="Deaths" value={d.fatalities} onChange={(value) => set({ fatalities: value })} />
+                        <NullableNumberField id={`f-${r.id}`} label="Fatalities" value={d.fatalities} onChange={(value) => set({ fatalities: value })} />
                       </div>
                     </div>
                     <div>

@@ -11,6 +11,10 @@ export function displayReportCount(value: NullableReportCount): string {
   return value === null ? "Not confirmed" : String(value);
 }
 
+export function fatalityLabel(value: NullableReportCount): string {
+  return value === 1 ? "fatality" : "fatalities";
+}
+
 export function knownReportSum(values: NullableReportCount[]) {
   return values.reduce(
     (result, value) =>

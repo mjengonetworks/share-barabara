@@ -4,7 +4,7 @@ import { CarFront, MapPin, TriangleAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { timeAgo } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
-import { displayReportCount, knownReportSum } from "@/lib/report-metrics";
+import { displayReportCount, fatalityLabel, knownReportSum } from "@/lib/report-metrics";
 
 export const Route = createFileRoute("/roads/$slug")({
   head: () => ({
@@ -106,7 +106,7 @@ function RoadProfilePage() {
         </div>
         <div className="rounded-lg border border-border bg-card p-5 card-elevated">
           <p className="font-display text-3xl font-extrabold text-destructive">{totalDeaths.hasUnknown ? "Not confirmed" : totalDeaths.value}</p>
-          <p className="mt-1 text-sm text-muted-foreground">Deaths reported</p>
+          <p className="mt-1 text-sm text-muted-foreground">Fatalities reported</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-5 card-elevated">
           <p className="font-display text-3xl font-extrabold text-caution">{totalInjured.hasUnknown ? "Not confirmed" : totalInjured.value}</p>
@@ -164,7 +164,7 @@ function RoadProfilePage() {
                   </Link>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {displayReportCount(r.fatalities)} deaths, {displayReportCount(r.casualties)} injured
+                  {displayReportCount(r.fatalities)} {fatalityLabel(r.fatalities)}, {displayReportCount(r.casualties)} injured
                 </p>
               </li>
             ))}

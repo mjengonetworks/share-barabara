@@ -216,7 +216,7 @@ function Index() {
               <Stat value={recordedAccidentsError ? "—" : recordedAccidents === undefined ? "…" : num(recordedAccidents)} label="recorded road accidents" danger />
               <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Approved, deduplicated road reports</span>
             </Link>
-            <OfficialMetricCard metric={officialMetric("deaths")} fallback="Official deaths pending verification" />
+            <OfficialMetricCard metric={officialMetric("deaths")} fallback="Official fatalities pending verification" />
             <OfficialMetricCard metric={officialMetric("serious_injuries")} fallback="Official serious injuries pending verification" />
           </div>
         </div>

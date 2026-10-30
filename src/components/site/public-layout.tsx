@@ -5,7 +5,7 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { longDateWithDay } from "@/lib/format";
 import { SeverityBadge } from "@/components/site/severity-badge";
-import { displayReportCount } from "@/lib/report-metrics";
+import { displayReportCount, fatalityLabel } from "@/lib/report-metrics";
 import { groupLatestByEntity } from "@/lib/category-entity";
 
 export type PublicArticleCard = {
@@ -654,7 +654,7 @@ export function IncidentEntityGrid({
         </div>
         <h4 className="mt-2 text-base font-bold leading-snug text-foreground group-hover:underline">{lead.title}</h4>
         <p className="mt-1 text-xs text-muted-foreground">{[lead.county, lead.road, lead.status].filter(Boolean).join(" · ") || "Location not provided"}</p>
-        {kind === "report" ? <p className="mt-2 text-xs text-muted-foreground"><strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles · <strong>{displayReportCount(lead.casualties)}</strong> injured · <strong>{displayReportCount(lead.fatalities)}</strong> deaths</p> : null}
+        {kind === "report" ? <p className="mt-2 text-xs text-muted-foreground"><strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles · <strong>{displayReportCount(lead.casualties)}</strong> injured · <strong>{displayReportCount(lead.fatalities)}</strong> {fatalityLabel(lead.fatalities)}</p> : null}
         {renderActions ? <div className="mt-3">{renderActions(lead)}</div> : null}
       </Link>
       {supporting.length ? <div className="mt-3 border-t border-border/70">{supporting.slice(0, 2).map((item) => <IncidentRow key={item.id} item={item} kind={kind} actions={renderActions} />)}</div> : null}
@@ -730,7 +730,7 @@ export function CompactIncidentColumns({
                         <span className="text-[11px] text-muted-foreground">{kind === "alert" ? longDateWithDay(item.occurred_at ?? item.created_at ?? "") : [item.county, item.road].filter(Boolean).join(" · ")}</span>
                       </div>
                       <h4 className="mt-1 line-clamp-3 text-sm font-bold leading-snug text-foreground group-hover:underline">{item.title}</h4>
-                      {kind === "report" ? <p className="mt-1 text-[11px] text-muted-foreground"><strong>{displayReportCount(item.casualties)}</strong> injured · <strong>{displayReportCount(item.fatalities)}</strong> deaths</p> : null}
+                      {kind === "report" ? <p className="mt-1 text-[11px] text-muted-foreground"><strong>{displayReportCount(item.casualties)}</strong> injured · <strong>{displayReportCount(item.fatalities)}</strong> {fatalityLabel(item.fatalities)}</p> : null}
                       {renderActions ? <div className="mt-2">{renderActions(item)}</div> : null}
                     </Link>
                   );
@@ -746,7 +746,7 @@ export function CompactIncidentColumns({
                   </div>
                   <h4 className="mt-2 line-clamp-3 text-base font-bold leading-tight text-foreground group-hover:underline">{lead.title}</h4>
                   <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{[lead.county, lead.road, lead.status].filter(Boolean).join(" · ") || "Location not provided"}</p>
-                  {kind === "report" ? <p className="mt-2 text-xs text-muted-foreground"><strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles · <strong>{displayReportCount(lead.casualties)}</strong> injured · <strong>{displayReportCount(lead.fatalities)}</strong> deaths</p> : null}
+                  {kind === "report" ? <p className="mt-2 text-xs text-muted-foreground"><strong>{displayReportCount(lead.vehicles_involved)}</strong> vehicles · <strong>{displayReportCount(lead.casualties)}</strong> injured · <strong>{displayReportCount(lead.fatalities)}</strong> {fatalityLabel(lead.fatalities)}</p> : null}
                   {renderActions ? <div className="mt-3">{renderActions(lead)}</div> : null}
                 </Link>
                 {supporting.length ? <div className="mt-3 border-t border-border/70">{supporting.slice(0, 2).map((item) => <IncidentRow key={item.id} item={item} kind={kind} actions={renderActions} />)}</div> : null}

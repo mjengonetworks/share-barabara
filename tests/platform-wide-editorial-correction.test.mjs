@@ -19,7 +19,7 @@ test("Report and Alert detail metadata follows the shared article hierarchy", as
   const report = await read("src/routes/reports.$reportId.tsx");
   const alert = await read("src/routes/alerts.$alertId.tsx");
   assert.doesNotMatch(report, />All reports</);
-  assert.match(report, /Incident date:/);
+  assert.match(report, /Publication date:/);
   assert.match(report, /text-\[24\.7px\]/);
   assert.match(report, /report-summary/);
   assert.match(report, /bg-white text-foreground/);
@@ -42,10 +42,11 @@ test("Report and Alert public detail pages preserve the approved media and metad
   const report = await read("src/routes/reports.$reportId.tsx");
   const alert = await read("src/routes/alerts.$alertId.tsx");
   assert.match(report, /Accident Report/);
-  assert.match(report, /Incident date:/);
+  assert.match(report, /Publication date:/);
   const reportView = report.slice(report.indexOf('<article'));
   const alertView = alert.slice(alert.indexOf('<article'));
-  assert.ok(reportView.indexOf("Incident date:") < reportView.indexOf("ShareButtons"));
+  assert.ok(reportView.indexOf("Publication date:") < reportView.indexOf("ShareButtons"));
+  assert.ok(reportView.indexOf("Publication date:") < reportView.indexOf("Accident date:"));
   assert.ok(reportView.indexOf("ShareButtons") < reportView.indexOf("<figure"));
   assert.ok(reportView.indexOf("<figure") < reportView.indexOf('By{" "}'));
   assert.ok(alertView.indexOf("publicStatus") < alertView.indexOf("<MapPin"));
@@ -115,4 +116,26 @@ test("homepage metadata uses the approved platform title", async () => {
   const homepage = await read("src/routes/index.tsx");
   assert.match(source, /Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns/);
   assert.match(homepage, /Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns/);
+});
+
+test("public and admin fatality terminology is standardized without changing data keys", async () => {
+  const files = [
+    "src/routes/reports.$reportId.tsx",
+    "src/routes/statistics.tsx",
+    "src/routes/roads.$slug.tsx",
+    "src/routes/index.tsx",
+    "src/routes/_authenticated/admin/reports.tsx",
+    "src/routes/_authenticated/admin/crash-statistics.tsx",
+    "src/components/site/discovery-sections.tsx",
+    "src/components/site/public-layout.tsx",
+    "src/components/site/official-statistics-manager.tsx",
+  ];
+  const sources = await Promise.all(files.map(read));
+  for (const source of sources) assert.doesNotMatch(source, /\bDeaths?\b/);
+  const metrics = await read("src/lib/report-metrics.ts");
+  assert.match(metrics, /fatalityLabel/);
+  assert.match(metrics, /value === 1 \? "fatality" : "fatalities"/);
+  const report = await read("src/routes/reports.$reportId.tsx");
+  assert.match(report, /report\.fatalities/);
+  assert.match(report, /Accident date: \{longDate\(report\.occurred_at\)\}/);
 });

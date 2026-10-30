@@ -46,7 +46,7 @@ const TABS: Record<string, TabDef> = {
       { key: "slight_injuries", label: "Slight injuries", type: "number" },
       { key: "crashes", label: "Crashes", type: "number" },
       { key: "registered_vehicles", label: "Registered vehicles", type: "number" },
-      { key: "deaths_per_100k", label: "Deaths / 100k", type: "number", step: "0.1" },
+      { key: "deaths_per_100k", label: "Fatalities / 100k", type: "number", step: "0.1" },
     ],
   },
   monthly: {

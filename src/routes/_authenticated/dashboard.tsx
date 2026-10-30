@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { archiveAIChat, getAIChat, listAIChats, renameAIChat } from "@/lib/ai/public.functions";
-import { displayReportCount } from "@/lib/report-metrics";
+import { displayReportCount, fatalityLabel } from "@/lib/report-metrics";
 import { SavedAIChat } from "@/components/site/share-barabara-ai";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -369,7 +369,7 @@ function DashboardPage() {
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {r.county}
-                  {r.road ? ` · ${r.road}` : ""} · {displayReportCount(r.fatalities)} deaths, {displayReportCount(r.casualties)} injured
+                    {r.road ? ` · ${r.road}` : ""} · {displayReportCount(r.fatalities)} {fatalityLabel(r.fatalities)}, {displayReportCount(r.casualties)} injured
                 </p>
               </li>
             ))}

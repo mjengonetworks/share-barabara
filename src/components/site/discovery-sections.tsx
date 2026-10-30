@@ -13,7 +13,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useHazardTypes, useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
-import { displayReportCount } from "@/lib/report-metrics";
+import { displayReportCount, fatalityLabel } from "@/lib/report-metrics";
 import { BannerAd } from "@/components/site/banner-ad";
 
 type Focus = "article" | "alert" | "report";
@@ -185,7 +185,7 @@ export function ReportPreviewCard({ report }: { report: ReportPreview }) {
         </p>
         <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{displayReportCount(report.casualties)} injured</span>
-          <span>{displayReportCount(report.fatalities)} deaths</span>
+          <span>{displayReportCount(report.fatalities)} {fatalityLabel(report.fatalities)}</span>
         </div>
         <span className="mt-auto pt-4 text-xs font-bold text-brand-blue underline underline-offset-4">
           Read more

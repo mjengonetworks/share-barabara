@@ -34,6 +34,7 @@ import { RelatedContent } from "@/components/site/related-content";
 import { socialHead } from "@/lib/seo";
 import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
 import { recordPublicView } from "@/lib/view-tracking";
+import { fatalityLabel } from "@/lib/report-metrics";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -201,6 +202,7 @@ function ReportDetail() {
   }
 
   const linkedRoad = roadMap[report.road_id ?? ""];
+  const publicationDate = report.published_at ?? report.created_at;
 
   return (
     <>
@@ -240,7 +242,7 @@ function ReportDetail() {
           <h1 className="mt-1.5 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {report.title}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">Incident date: {longDate(report.occurred_at)}</p>
+          <p className="mt-2 text-sm text-muted-foreground">Publication date: {longDate(publicationDate)}</p>
           <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" /> {report.county}
             {report.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{report.road}</Link> : report.road}</> : null}
@@ -308,8 +310,10 @@ function ReportDetail() {
             </div>
           </div>
 
+          {report.occurred_at ? <p className="mt-2 text-sm text-muted-foreground">Accident date: {longDate(report.occurred_at)}</p> : null}
+
           <div className="mt-5 grid grid-cols-3 gap-3 sm:gap-4">
-            {(() => { const vehicles = highlightCount(report.vehicles_involved, "Vehicles involved"); const injured = highlightCount(report.casualties, "Injured"); const deaths = highlightCount(report.fatalities, "Deaths"); return <>
+            {(() => { const vehicles = highlightCount(report.vehicles_involved, "Vehicles involved"); const injured = highlightCount(report.casualties, "Injured"); const fatalities = highlightCount(report.fatalities, fatalityLabel(report.fatalities)); return <>
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
               <p className="font-display text-2xl font-extrabold" aria-label={vehicles.label}>{vehicles.value}</p>
               <p className="mt-1 text-xs text-muted-foreground">{vehicles.label}</p>
@@ -319,8 +323,8 @@ function ReportDetail() {
               <p className="mt-1 text-xs text-muted-foreground">{injured.label}</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
-              <p className="font-display text-2xl font-extrabold text-destructive" aria-label={deaths.label}>{deaths.value}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{deaths.label}</p>
+              <p className="font-display text-2xl font-extrabold text-destructive" aria-label={fatalities.label}>{fatalities.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{fatalities.label}</p>
             </div>
             </>; })()}
           </div>
