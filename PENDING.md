@@ -967,3 +967,12 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Migration ledger:** the SQL Editor script does not fabricate ledger rows. See docs/release-b/migration-ledger-reconciliation.md for supported post-success reconciliation.
 - **Checksums:** Road 6A2C7CBD68803E161E42FCD113C098B2E46DC17A6DD6238B656777298DF9D1B2; Feed BBD41F4C260D9AC7472F1B2C5C329705B35885C7D3C3C5FFAFE87D4D374AD7E6; RLS 3C7BE9C6DCD6AAACA55436812462B47E92C78497CAA31BB225C9897BB12C9702; combined artifact E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC.
 - **Remaining blocker:** corrected combined bytes have not yet been executed against isolated PostgreSQL because the local psql client is unavailable and Docker Desktop is not running. No production SQL/deployment occurred. Rehearsal and owner approval remain required.
+
+## SB 2 — corrected atomic SQL rehearsal (2026-10-30)
+
+- **PASSED:** exact combined artifact E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC executed on isolated PostgreSQL 17.11 database rehearsal_b at 127.0.0.1:55434 with ON_ERROR_STOP=1 and committed.
+- **Preserved:** Roads 14, Reports 15, Alerts 14 and community Feed posts 1. No probe records remained after transaction rollback.
+- **PASSED:** all five Feed source lifecycles, update idempotency, unpublished/deleted visibility, republish restoration, road merge reference redirection, canonical-statistics road derivation, append-only merge history and ordinary authenticated road-write denial.
+- **Final policy state:** roads_insert_editor, roads_update_editor and roads_public_read_eligible only; roads_insert_authenticated absent. RLS enabled on roads, road_registry_history and editorial_feed_entries. Five Feed triggers present.
+- **Rollback and rerun:** injected failure rolled back and removed its probe table; exact corrected artifact reran successfully without duplicate-object failures.
+- **Still pending:** production schema/ledger read-only comparison, fresh verified production backup, production SQL execution, supported migration-ledger reconciliation, application deployment and live/authenticated/browser acceptance. No production SQL or deployment occurred.
