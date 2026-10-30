@@ -56,6 +56,44 @@ WHERE conrelid IN (
 )
 ORDER BY table_name, conname;
 
+-- 4b. Every current direct road_id reference. The canonical accident
+-- statistics object is normally a view over accident_reports; if it is a
+-- table/materialized view with its own road_id, stop and review merge support.
+SELECT
+  tc.table_schema,
+  tc.table_name,
+  kcu.column_name,
+  ccu.table_schema AS referenced_schema,
+  ccu.table_name AS referenced_table,
+  ccu.column_name AS referenced_column,
+  rc.delete_rule
+FROM information_schema.table_constraints tc
+JOIN information_schema.key_column_usage kcu
+  ON kcu.constraint_name = tc.constraint_name
+ AND kcu.constraint_schema = tc.constraint_schema
+JOIN information_schema.constraint_column_usage ccu
+  ON ccu.constraint_name = tc.constraint_name
+ AND ccu.constraint_schema = tc.constraint_schema
+JOIN information_schema.referential_constraints rc
+  ON rc.constraint_name = tc.constraint_name
+ AND rc.constraint_schema = tc.constraint_schema
+WHERE tc.constraint_type = 'FOREIGN KEY'
+  AND ccu.table_schema = 'public'
+  AND ccu.table_name = 'roads'
+ORDER BY tc.table_schema, tc.table_name, kcu.column_name;
+
+SELECT n.nspname AS schema_name, c.relname AS relation_name, c.relkind,
+       EXISTS (
+         SELECT 1 FROM information_schema.columns col
+         WHERE col.table_schema = n.nspname
+           AND col.table_name = c.relname
+           AND col.column_name = 'road_id'
+       ) AS has_road_id
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public'
+  AND c.relname = 'canonical_accident_statistics';
+
 -- 5. Existing indexes and uniqueness relevant to Release B.
 SELECT schemaname, tablename, indexname, indexdef
 FROM pg_indexes

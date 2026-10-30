@@ -959,3 +959,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Owner preflight inputs:** read-only SQL is in docs/release-b/production-compatibility-queries.sql; the Supabase Dashboard backup verification checklist is in docs/release-b/supabase-dashboard-backup-checklist.md. No direct PostgreSQL connection is required from Codex.
 - **Execution rule:** after the owner confirms the project, schema/ledger, fresh full backup and pg_restore --list/restore evidence, run the combined script as one SQL Editor batch. Do not split it, run unrelated migrations or rerun after an error without inspecting transaction state.
 - **Not claimed:** no production SQL, production backup, deployment or live verification has occurred in this step. Application deployment remains pending the owner's SQL confirmation; subsequent live checks and any owner visual/authenticated acceptance remain open.
+
+## SB 2 — corrected atomic SQL Editor package (2026-10-30)
+
+- **Corrected:** explicit NEW/OLD trigger branches; merge audit includes canonical statistics handling; duplicate RLS drop removed; five Feed triggers and final road-policy postconditions strengthened.
+- **Feed eligibility:** corrected against the repository's established public status semantics: Articles published, Reports approved, Infrastructure Issues approved, Alerts NULL/active/in_progress/under_resolution/resolved with deletion exclusion, and Campaigns undeleted plus current/future campaign or report_published.
+- **Migration ledger:** the SQL Editor script does not fabricate ledger rows. See docs/release-b/migration-ledger-reconciliation.md for supported post-success reconciliation.
+- **Checksums:** Road 6A2C7CBD68803E161E42FCD113C098B2E46DC17A6DD6238B656777298DF9D1B2; Feed BBD41F4C260D9AC7472F1B2C5C329705B35885C7D3C3C5FFAFE87D4D374AD7E6; RLS 3C7BE9C6DCD6AAACA55436812462B47E92C78497CAA31BB225C9897BB12C9702; combined artifact E4D11CE95CBFB9CCB084A78423BD66E0DC01234105F61FD33B5CC1ED69DB55EC.
+- **Remaining blocker:** corrected combined bytes have not yet been executed against isolated PostgreSQL because the local psql client is unavailable and Docker Desktop is not running. No production SQL/deployment occurred. Rehearsal and owner approval remain required.

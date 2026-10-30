@@ -14,6 +14,10 @@ test("Road Registry review migration is additive and protects canonical merges",
   assert.match(sql, /has_min_role\(auth\.uid\(\), 'admin'\)/);
   assert.match(sql, /UPDATE public\.accident_reports SET road_id/);
   assert.match(sql, /UPDATE public\.infrastructure_issues SET road_id/);
+  assert.match(sql, /canonical_accident_statistics/);
+  assert.match(sql, /TG_OP = 'INSERT'/);
+  assert.match(sql, /TG_OP = 'UPDATE'/);
+  assert.match(sql, /TG_OP = 'DELETE'/);
   assert.doesNotMatch(sql, /DROP TABLE\s+public\.roads/i);
 });
 
@@ -37,6 +41,7 @@ test("Road Registry RLS hardening removes unrestricted authenticated inserts", a
   assert.match(sql, /merged_into_id IS NULL/);
   assert.match(sql, /merge_road_registry_records/);
   assert.doesNotMatch(sql, /WITH CHECK \(true\)/i);
+  assert.equal((sql.match(/DROP POLICY IF EXISTS roads_update_editor/g) ?? []).length, 1);
 });
 
 test("automatic Feed bridge is idempotent and preserves community posts", async () => {
@@ -47,7 +52,28 @@ test("automatic Feed bridge is idempotent and preserves community posts", async 
   assert.match(sql, /report_published/);
   assert.match(sql, /feed_posts/);
   assert.match(sql, /source_id::TEXT/);
+  assert.match(sql, /TG_OP = 'INSERT'/);
+  assert.match(sql, /TG_OP = 'UPDATE'/);
+  assert.match(sql, /TG_OP = 'DELETE'/);
+  assert.match(sql, /editorial_feed_infrastructure_sync/);
+  assert.match(sql, /end_date.*CURRENT_DATE/s);
   assert.doesNotMatch(sql, /TRUNCATE|DROP TABLE/i);
+});
+
+test("atomic SQL Editor artifact preserves all three migrations and final postconditions", async () => {
+  const sql = await read("docs/release-b/release-b-atomic-sql-editor.sql");
+  assert.match(sql, /BEGIN;/);
+  assert.match(sql, /COMMIT;/);
+  assert.match(sql, /does not write supabase_migrations.schema_migrations/);
+  for (const trigger of [
+    "editorial_feed_article_sync",
+    "editorial_feed_report_sync",
+    "editorial_feed_alert_sync",
+    "editorial_feed_infrastructure_sync",
+    "editorial_feed_campaign_sync",
+  ]) assert.match(sql, new RegExp(trigger));
+  assert.match(sql, /roads_insert_authenticated remains/);
+  assert.match(sql, /unexpected roads policy remains/);
 });
 
 test("Road Registry admin route is present and role-gated", async () => {

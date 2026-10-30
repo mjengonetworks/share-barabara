@@ -36,7 +36,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_source_id UUID := COALESCE(NEW.id, OLD.id);
+  v_source_id UUID;
   v_source_type TEXT := TG_ARGV[0];
   row JSONB;
   eligible BOOLEAN := false;
@@ -47,13 +47,20 @@ DECLARE
   published_value TIMESTAMPTZ;
 BEGIN
   IF TG_OP = 'DELETE' THEN
+    v_source_id := OLD.id;
     UPDATE public.editorial_feed_entries AS entry SET active = false, updated_at = now()
     WHERE entry.source_type = v_source_type
       AND entry.source_id = v_source_id;
     RETURN OLD;
+  ELSIF TG_OP = 'INSERT' THEN
+    v_source_id := NEW.id;
+    row := to_jsonb(NEW);
+  ELSIF TG_OP = 'UPDATE' THEN
+    v_source_id := NEW.id;
+    row := to_jsonb(NEW);
+  ELSE
+    RAISE EXCEPTION 'Unsupported editorial Feed trigger operation: %', TG_OP;
   END IF;
-
-  row := to_jsonb(NEW);
 
   title_value := NULLIF(btrim(COALESCE(row->>'title', '')), '');
   excerpt_value := COALESCE(NULLIF(row->>'summary', ''), NULLIF(row->>'description', ''), NULLIF(row->>'body', ''));
@@ -73,10 +80,14 @@ BEGIN
     eligible := COALESCE(row->>'status' = 'approved', false) AND row->>'deleted_at' IS NULL;
     href_value := '/infrastructure-issues/' || v_source_id::TEXT;
   ELSIF v_source_type = 'campaign' THEN
-    -- Campaigns use the existing report_published flag as their public
-    -- publication boundary; a non-deleted draft must not enter the public
-    -- editorial Feed.
-    eligible := COALESCE(row->>'report_published' = 'true', false) AND row->>'deleted_at' IS NULL;
+    -- Campaigns have no status column. Match the existing public eligibility
+    -- boundary: an undeleted campaign is public while current/future, or when
+    -- its separately authored report is explicitly published.
+    eligible := row->>'deleted_at' IS NULL
+      AND (
+        COALESCE((row->>'end_date')::DATE >= CURRENT_DATE, false)
+        OR COALESCE(row->>'report_published' = 'true', false)
+      );
     href_value := '/campaigns/' || COALESCE(row->>'slug', v_source_id::TEXT);
   END IF;
 

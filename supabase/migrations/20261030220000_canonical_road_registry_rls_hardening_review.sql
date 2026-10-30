@@ -13,7 +13,6 @@ CREATE POLICY roads_insert_editor ON public.roads
 -- Retain the existing editor update boundary explicitly. There is deliberately
 -- no DELETE policy: canonical roads are retired or merged, never client-deleted.
 DROP POLICY IF EXISTS roads_update_editor ON public.roads;
-DROP POLICY IF EXISTS roads_update_editor ON public.roads;
 CREATE POLICY roads_update_editor ON public.roads
   FOR UPDATE TO authenticated
   USING (public.has_min_role(auth.uid(), 'editor'))

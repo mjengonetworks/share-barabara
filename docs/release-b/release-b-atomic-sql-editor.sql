@@ -1,16 +1,12 @@
 -- REVIEW-ONLY SQL EDITOR RELEASE ARTIFACT: Share Barabara Release B
--- This is a manually reviewed composition of the three original migration files.
+-- Rebuilt from the final reviewed migration files.
 -- It is NOT a Supabase migration filename and must not be applied by migration tooling.
 -- Execute the complete file as one SQL Editor batch only, after owner approval,
 -- fresh backup and production preflight.
 --
--- Original migration SHA-256 checksums (unchanged):
--- 20261030200000_canonical_road_registry_review.sql
---   2CC9F07353A8CB65E855DCB6C7032BDCDE29636EA5B4F4A597A746E4E74204BC
--- 20261030210000_editorial_feed_sources_review.sql
---   8BCF36D9CA0D83360F226BC5C68EDCA12A2CC47B884B9E0E2ACD00A17FFB4241
--- 20261030220000_canonical_road_registry_rls_hardening_review.sql
---   A92CEAB020FD6E0B60FCB711CB988832B7F78836E93CDA017510DCA5884819CA
+-- This script deliberately does not write supabase_migrations.schema_migrations.
+-- SQL Editor execution is reconciled separately; see
+-- docs/release-b/migration-ledger-reconciliation.md.
 --
 -- PostgreSQL transaction semantics provide atomicity: any statement error
 -- aborts this transaction; SQL Editor must submit the file without splitting.
@@ -91,15 +87,21 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.road_registry_history (road_id, action, before_state, after_state, changed_by)
-  VALUES (
-    COALESCE(NEW.id, OLD.id),
-    CASE WHEN TG_OP = 'INSERT' THEN 'created' ELSE 'updated' END,
-    CASE WHEN TG_OP IN ('UPDATE','DELETE') THEN to_jsonb(OLD) ELSE NULL END,
-    CASE WHEN TG_OP IN ('INSERT','UPDATE') THEN to_jsonb(NEW) ELSE NULL END,
-    auth.uid()
-  );
-  RETURN COALESCE(NEW, OLD);
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO public.road_registry_history (road_id, action, before_state, after_state, changed_by)
+    VALUES (NEW.id, 'created', NULL, to_jsonb(NEW), auth.uid());
+    RETURN NEW;
+  ELSIF TG_OP = 'UPDATE' THEN
+    INSERT INTO public.road_registry_history (road_id, action, before_state, after_state, changed_by)
+    VALUES (NEW.id, 'updated', to_jsonb(OLD), to_jsonb(NEW), auth.uid());
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    -- The current roads trigger is INSERT/UPDATE only and client DELETE is
+    -- prohibited. Keep the function safe if a future audited DELETE trigger
+    -- invokes it: never dereference NEW during DELETE.
+    RETURN OLD;
+  END IF;
+  RAISE EXCEPTION 'Unsupported road registry trigger operation: %', TG_OP;
 END;
 $$;
 
@@ -136,6 +138,29 @@ BEGIN
   IF source_row.id IS NULL OR target_row.id IS NULL THEN
     RAISE EXCEPTION 'Both roads must exist';
   END IF;
+
+  -- canonical_accident_statistics is a view over accident_reports, so its
+  -- road_id follows the redirected Report row and requires no separate write.
+  -- If a deployment has materialised this relation as a table, update its
+  -- direct road reference as part of the same merge; any other direct road
+  -- foreign keys must be reviewed before this migration is approved.
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN information_schema.columns col
+      ON col.table_schema = n.nspname
+     AND col.table_name = c.relname
+     AND col.column_name = 'road_id'
+    WHERE n.nspname = 'public'
+      AND c.relname = 'canonical_accident_statistics'
+      AND c.relkind IN ('r','p')
+  ) THEN
+    UPDATE public.canonical_accident_statistics
+    SET road_id = target_road_id
+    WHERE road_id = source_road_id;
+  END IF;
+
   UPDATE public.accident_reports SET road_id = target_road_id WHERE road_id = source_road_id;
   UPDATE public.alerts SET road_id = target_road_id WHERE road_id = source_road_id;
   UPDATE public.news SET road_id = target_road_id WHERE road_id = source_road_id;
@@ -200,7 +225,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_source_id UUID := COALESCE(NEW.id, OLD.id);
+  v_source_id UUID;
   v_source_type TEXT := TG_ARGV[0];
   row JSONB;
   eligible BOOLEAN := false;
@@ -211,13 +236,20 @@ DECLARE
   published_value TIMESTAMPTZ;
 BEGIN
   IF TG_OP = 'DELETE' THEN
+    v_source_id := OLD.id;
     UPDATE public.editorial_feed_entries AS entry SET active = false, updated_at = now()
     WHERE entry.source_type = v_source_type
       AND entry.source_id = v_source_id;
     RETURN OLD;
+  ELSIF TG_OP = 'INSERT' THEN
+    v_source_id := NEW.id;
+    row := to_jsonb(NEW);
+  ELSIF TG_OP = 'UPDATE' THEN
+    v_source_id := NEW.id;
+    row := to_jsonb(NEW);
+  ELSE
+    RAISE EXCEPTION 'Unsupported editorial Feed trigger operation: %', TG_OP;
   END IF;
-
-  row := to_jsonb(NEW);
 
   title_value := NULLIF(btrim(COALESCE(row->>'title', '')), '');
   excerpt_value := COALESCE(NULLIF(row->>'summary', ''), NULLIF(row->>'description', ''), NULLIF(row->>'body', ''));
@@ -237,10 +269,14 @@ BEGIN
     eligible := COALESCE(row->>'status' = 'approved', false) AND row->>'deleted_at' IS NULL;
     href_value := '/infrastructure-issues/' || v_source_id::TEXT;
   ELSIF v_source_type = 'campaign' THEN
-    -- Campaigns use the existing report_published flag as their public
-    -- publication boundary; a non-deleted draft must not enter the public
-    -- editorial Feed.
-    eligible := COALESCE(row->>'report_published' = 'true', false) AND row->>'deleted_at' IS NULL;
+    -- Campaigns have no status column. Match the existing public eligibility
+    -- boundary: an undeleted campaign is public while current/future, or when
+    -- its separately authored report is explicitly published.
+    eligible := row->>'deleted_at' IS NULL
+      AND (
+        COALESCE((row->>'end_date')::DATE >= CURRENT_DATE, false)
+        OR COALESCE(row->>'report_published' = 'true', false)
+      );
     href_value := '/campaigns/' || COALESCE(row->>'slug', v_source_id::TEXT);
   END IF;
 
@@ -299,7 +335,6 @@ CREATE POLICY roads_insert_editor ON public.roads
 -- Retain the existing editor update boundary explicitly. There is deliberately
 -- no DELETE policy: canonical roads are retired or merged, never client-deleted.
 DROP POLICY IF EXISTS roads_update_editor ON public.roads;
-DROP POLICY IF EXISTS roads_update_editor ON public.roads;
 CREATE POLICY roads_update_editor ON public.roads
   FOR UPDATE TO authenticated
   USING (public.has_min_role(auth.uid(), 'editor'))
@@ -324,9 +359,11 @@ COMMENT ON POLICY roads_update_editor ON public.roads IS
 
 -- ===== END ORIGINAL MIGRATION 20261030220000 =====
 
--- Release B postconditions: fail the transaction if the reviewed objects
--- were not created or the final road write boundary is not hardened.
+-- Release B postconditions: fail the transaction if the reviewed objects,
+-- all five Feed triggers, or final road write boundary are not present.
 DO $$
+DECLARE
+  expected RECORD;
 BEGIN
   IF to_regclass('public.road_registry_history') IS NULL THEN
     RAISE EXCEPTION 'Release B postcondition failed: road_registry_history missing';
@@ -334,12 +371,39 @@ BEGIN
   IF to_regclass('public.editorial_feed_entries') IS NULL THEN
     RAISE EXCEPTION 'Release B postcondition failed: editorial_feed_entries missing';
   END IF;
+  FOR expected IN
+    SELECT * FROM (VALUES
+      ('editorial_feed_article_sync', 'public.news'::regclass),
+      ('editorial_feed_report_sync', 'public.accident_reports'::regclass),
+      ('editorial_feed_alert_sync', 'public.alerts'::regclass),
+      ('editorial_feed_infrastructure_sync', 'public.infrastructure_issues'::regclass),
+      ('editorial_feed_campaign_sync', 'public.campaigns'::regclass)
+    ) AS trigger_expectation(trigger_name, relation_name)
+  LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_trigger
+      WHERE tgname = expected.trigger_name
+        AND tgrelid = expected.relation_name
+        AND NOT tgisinternal
+    ) THEN
+      RAISE EXCEPTION 'Release B postcondition failed: trigger % missing on %',
+        expected.trigger_name, expected.relation_name;
+    END IF;
+  END LOOP;
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
     WHERE schemaname = 'public' AND tablename = 'roads'
       AND policyname = 'roads_insert_editor'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'roads'
+      AND policyname = 'roads_update_editor'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'roads'
+      AND policyname = 'roads_public_read_eligible'
   ) THEN
-    RAISE EXCEPTION 'Release B postcondition failed: roads_insert_editor missing';
+    RAISE EXCEPTION 'Release B postcondition failed: expected final road RLS policies missing';
   END IF;
   IF EXISTS (
     SELECT 1 FROM pg_policies
@@ -348,20 +412,21 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Release B postcondition failed: permissive roads_insert_authenticated remains';
   END IF;
-  IF NOT EXISTS (
+  IF EXISTS (
     SELECT 1 FROM pg_policies
     WHERE schemaname = 'public' AND tablename = 'roads'
-      AND policyname = 'roads_public_read_eligible'
+      AND policyname NOT IN ('roads_insert_editor','roads_update_editor','roads_public_read_eligible')
   ) THEN
-    RAISE EXCEPTION 'Release B postcondition failed: public roads read policy missing';
+    RAISE EXCEPTION 'Release B postcondition failed: unexpected roads policy remains';
   END IF;
   IF NOT EXISTS (
-    SELECT 1 FROM pg_trigger
-    WHERE tgname = 'editorial_feed_article_sync'
-      AND tgrelid = 'public.news'::regclass
-      AND NOT tgisinternal
+    SELECT 1 FROM pg_class
+    WHERE oid = 'public.road_registry_history'::regclass AND relrowsecurity
+  ) OR NOT EXISTS (
+    SELECT 1 FROM pg_class
+    WHERE oid = 'public.editorial_feed_entries'::regclass AND relrowsecurity
   ) THEN
-    RAISE EXCEPTION 'Release B postcondition failed: article Feed trigger missing';
+    RAISE EXCEPTION 'Release B postcondition failed: RLS is not enabled on new tables';
   END IF;
 END $$;
 

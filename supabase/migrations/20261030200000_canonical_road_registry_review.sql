@@ -70,15 +70,21 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.road_registry_history (road_id, action, before_state, after_state, changed_by)
-  VALUES (
-    COALESCE(NEW.id, OLD.id),
-    CASE WHEN TG_OP = 'INSERT' THEN 'created' ELSE 'updated' END,
-    CASE WHEN TG_OP IN ('UPDATE','DELETE') THEN to_jsonb(OLD) ELSE NULL END,
-    CASE WHEN TG_OP IN ('INSERT','UPDATE') THEN to_jsonb(NEW) ELSE NULL END,
-    auth.uid()
-  );
-  RETURN COALESCE(NEW, OLD);
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO public.road_registry_history (road_id, action, before_state, after_state, changed_by)
+    VALUES (NEW.id, 'created', NULL, to_jsonb(NEW), auth.uid());
+    RETURN NEW;
+  ELSIF TG_OP = 'UPDATE' THEN
+    INSERT INTO public.road_registry_history (road_id, action, before_state, after_state, changed_by)
+    VALUES (NEW.id, 'updated', to_jsonb(OLD), to_jsonb(NEW), auth.uid());
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    -- The current roads trigger is INSERT/UPDATE only and client DELETE is
+    -- prohibited. Keep the function safe if a future audited DELETE trigger
+    -- invokes it: never dereference NEW during DELETE.
+    RETURN OLD;
+  END IF;
+  RAISE EXCEPTION 'Unsupported road registry trigger operation: %', TG_OP;
 END;
 $$;
 
@@ -115,6 +121,29 @@ BEGIN
   IF source_row.id IS NULL OR target_row.id IS NULL THEN
     RAISE EXCEPTION 'Both roads must exist';
   END IF;
+
+  -- canonical_accident_statistics is a view over accident_reports, so its
+  -- road_id follows the redirected Report row and requires no separate write.
+  -- If a deployment has materialised this relation as a table, update its
+  -- direct road reference as part of the same merge; any other direct road
+  -- foreign keys must be reviewed before this migration is approved.
+  IF EXISTS (
+    SELECT 1
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN information_schema.columns col
+      ON col.table_schema = n.nspname
+     AND col.table_name = c.relname
+     AND col.column_name = 'road_id'
+    WHERE n.nspname = 'public'
+      AND c.relname = 'canonical_accident_statistics'
+      AND c.relkind IN ('r','p')
+  ) THEN
+    UPDATE public.canonical_accident_statistics
+    SET road_id = target_road_id
+    WHERE road_id = source_road_id;
+  END IF;
+
   UPDATE public.accident_reports SET road_id = target_road_id WHERE road_id = source_road_id;
   UPDATE public.alerts SET road_id = target_road_id WHERE road_id = source_road_id;
   UPDATE public.news SET road_id = target_road_id WHERE road_id = source_road_id;
