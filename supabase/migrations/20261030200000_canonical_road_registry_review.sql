@@ -51,10 +51,34 @@ DROP POLICY IF EXISTS road_registry_history_read_editor ON public.road_registry_
 CREATE POLICY road_registry_history_read_editor ON public.road_registry_history
   FOR SELECT TO authenticated USING (public.has_min_role(auth.uid(), 'editor'));
 DROP POLICY IF EXISTS road_registry_history_insert_editor ON public.road_registry_history;
-CREATE POLICY road_registry_history_insert_editor ON public.road_registry_history
-  FOR INSERT TO authenticated WITH CHECK (public.has_min_role(auth.uid(), 'editor'));
-GRANT SELECT, INSERT ON public.road_registry_history TO authenticated;
+-- History is written by the roads trigger, not by client-supplied JSON.
+-- There are deliberately no authenticated UPDATE/DELETE policies.
+REVOKE INSERT, UPDATE, DELETE ON public.road_registry_history FROM authenticated;
 GRANT ALL ON public.road_registry_history TO service_role;
+
+CREATE OR REPLACE FUNCTION public.record_road_registry_change()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.road_registry_history (road_id, action, before_state, after_state, changed_by)
+  VALUES (
+    COALESCE(NEW.id, OLD.id),
+    CASE WHEN TG_OP = 'INSERT' THEN 'created' ELSE 'updated' END,
+    CASE WHEN TG_OP IN ('UPDATE','DELETE') THEN to_jsonb(OLD) ELSE NULL END,
+    CASE WHEN TG_OP IN ('INSERT','UPDATE') THEN to_jsonb(NEW) ELSE NULL END,
+    auth.uid()
+  );
+  RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+DROP TRIGGER IF EXISTS roads_registry_history_trigger ON public.roads;
+CREATE TRIGGER roads_registry_history_trigger
+  AFTER INSERT OR UPDATE ON public.roads
+  FOR EACH ROW EXECUTE FUNCTION public.record_road_registry_change();
 
 -- Public consumers may resolve verified active roads, but writes remain under
 -- the existing editor policy and must be extended with an audited admin UI.
