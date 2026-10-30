@@ -153,7 +153,7 @@ test("editorial preview cards include publication metadata while preserving feed
 test("post-release editorial controls preserve compact public navigation and Google destinations", () => {
   const header = read("src/components/site/site-header.tsx");
   const share = read("src/components/site/article-share-toolbar.tsx");
-  assert.match(header, /border-accent bg-accent text-brand-navy/);
+  assert.match(header, /border-amber-400 bg-amber-300 text-brand-navy/);
   assert.match(header, /item\.to === "\/feed"/);
   assert.match(header, /max-w-\[1600px\]/);
   assert.match(share, /share-toolbar-actions grid w-full max-w-full min-w-0/);

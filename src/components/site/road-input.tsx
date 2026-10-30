@@ -6,11 +6,13 @@ import { Label } from "@/components/ui/label";
 export function RoadInput({
   value,
   onChange,
+  onSelect,
   id = "road",
   label = "Road or landmark",
 }: {
   value: string;
   onChange: (v: string) => void;
+  onSelect?: (road: { id: string; name: string; slug: string; county?: string | null }) => void;
   id?: string;
   label?: string;
 }) {
@@ -42,10 +44,11 @@ export function RoadInput({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   onChange(s.name);
+                  onSelect?.(s);
                   setOpen(false);
                 }}
               >
-                {s.name}
+                <span>{s.name}</span>{s.county ? <span className="ml-2 text-xs text-muted-foreground">{s.county}</span> : null}
               </button>
             </li>
           ))}

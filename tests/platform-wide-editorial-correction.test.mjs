@@ -37,9 +37,9 @@ test("Report and Alert detail metadata follows the shared article hierarchy", as
   assert.match(alert, /border-l-4 border-brand-blue/);
   assert.match(alert, /summary\?: string \| null/);
   assert.match(report, /search=\{\{ county: report\.county \}\s+as never\}/);
-  assert.match(report, /search=\{\{ county: report\.county, road: report\.road_id/);
+  assert.match(report, /to="\/roads\/\$slug" params=\{\{ slug: linkedRoad\.slug \}\}/);
   assert.match(alert, /search=\{\{ county: alert\.county \}\s+as never\}/);
-  assert.match(alert, /search=\{\{ county: alert\.county, road: alert\.road_id/);
+  assert.match(alert, /to="\/roads\/\$slug" params=\{\{ slug: linkedRoad\.slug \}\}/);
 });
 
 test("Report and Alert public detail pages preserve the approved media and metadata order", async () => {

@@ -885,3 +885,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - Browser visual acceptance remains pending at 320, 375, 390, 430, 440, 768, 1024, 1280 and 1440px; authenticated CMS workflows remain pending.
 - No migration added or executed.
 - Focused discovery/editorial checks `16/16`; full suite `510/510`; security suite `14/14`; production build and `git diff --check` passed; TypeScript reports `813` existing diagnostics versus historical baseline `827`, with no changed-file diagnostics.
+
+## SB 2 — screenshot correction / Road Registry gate (2026-10-30)
+
+- Implemented locally, not deployed: intrinsic Report/Alert media, scene headings, centered author alignment, compact Article-style sidebars, canonical road-profile links, reduced metadata gap and lighter Media & Feed button.
+- Prepared but not approved: `20261030200000_canonical_road_registry_review.sql`; no production SQL or data backfill was executed. PostgreSQL rehearsal, RLS/merge recovery review and owner approval are required.
+- Pending live evidence: banner-ads 400 response capture, screenshots at 320/375/390/412/430/440/768/1024/1280/1440px, Reports/Alerts-vs-News directory arrow parity, canonical Ngong Road selection/geometry map, admin Road Registry operations, Feed publication/sidebar verification, authenticated CMS checks and owner deployment approval.
+- Lifecycle remains Implemented → Deployed → Live Tested → User Accepted → Closed.

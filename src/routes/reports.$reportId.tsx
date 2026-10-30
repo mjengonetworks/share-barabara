@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, MapPin } from "lucide-react";
@@ -26,15 +26,14 @@ import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { AdRichText } from "@/components/site/ad-interleave";
-import { isAdInterval } from "@/lib/ad-placement";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
 import { PublicBreadcrumbStrip } from "@/components/site/public-layout";
-import { ReportPreviewCard } from "@/components/site/discovery-sections";
 import { RelatedContent } from "@/components/site/related-content";
 import { socialHead } from "@/lib/seo";
 import { publicEditorialCategoryBadgeClass } from "@/components/site/public-ui";
 import { recordPublicView } from "@/lib/view-tracking";
 import { fatalityLabel } from "@/lib/report-metrics";
+import { CompactEditorialList } from "@/components/site/compact-editorial-list";
 
 export const Route = createFileRoute("/reports/$reportId")({
   loader: async ({ params }) => {
@@ -88,18 +87,13 @@ function highlightCount(value: number | null | undefined, label: string) {
 
 function ReportList({ reports }: { reports: RelatedReport[] }) {
   return (
-    <div className="mt-4 space-y-4">
-      {reports.map((r, index) => (
-        <Fragment key={r.id}>
-          {isAdInterval(index + 1) ? (
-            <div>
-              <BannerAd placement={`report-sidebar-interval-${(index + 1) / 4}`} />
-            </div>
-          ) : null}
-          <ReportPreviewCard report={r} />
-        </Fragment>
-      ))}
-    </div>
+    <CompactEditorialList items={reports.map((r) => ({
+      id: r.id,
+      title: r.title,
+      imageUrl: r.image_url,
+      href: `/reports/${r.id}`,
+      meta: [r.county, r.road].filter(Boolean).join(" · "),
+    }))} />
   );
 }
 
@@ -249,12 +243,12 @@ function ReportDetail() {
               {report.rejection_reason}
             </p>
           ) : null}
-          <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+          <p className="mt-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" />
             <Link to="/reports" search={{ county: report.county } as never} className="underline underline-offset-2 hover:text-brand-blue">
               {report.county}
             </Link>
-            {report.road ? <> {" · "}{linkedRoad ? <Link to="/reports" search={{ county: report.county, road: report.road_id ?? undefined } as never} className="underline underline-offset-2 hover:text-brand-blue">{report.road}</Link> : report.road}</> : null}
+            {report.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline underline-offset-2 hover:text-brand-blue">{report.road}</Link> : report.road}</> : null}
           </p>
           <h1 className="mt-2 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {report.title}
@@ -268,17 +262,17 @@ function ReportDetail() {
               <img
                 src={report.image_url}
                 alt={report.image_alt || report.title}
-                className="block h-auto max-h-[70vh] max-w-full w-full rounded-xl border border-border bg-muted/20 object-contain"
+                className="block h-auto max-w-full rounded-xl border border-border object-contain"
               />
               <EditorialMediaMeta caption={report.image_caption} credit={report.image_credit} />
             </figure>
           ) : null}
-          <div className="mt-2 flex items-start gap-3">
+          <div className="mt-2 flex items-center gap-3">
             {!report.is_anonymous ? (
               <UserAvatar
                 url={avatars[report.user_id]}
                 name={names[report.user_id]}
-                className="mt-0.5 size-10"
+                className="size-10"
               />
             ) : null}
             <div>

@@ -49,13 +49,14 @@ test("detail routes share editorial shell, sidebar and discovery parity", async 
   assert.match(campaign, /image_caption|image_credit/);
 });
 
-test("report and alert detail recommendations use editorial preview cards", async () => {
+test("report and alert detail recommendations use compact editorial sidebar rows", async () => {
   const report = await source("src/routes/reports.$reportId.tsx");
   const alert = await source("src/routes/alerts.$alertId.tsx");
-  assert.match(report, /ReportPreviewCard/);
-  assert.match(report, /image_url, casualties, fatalities/);
-  assert.match(alert, /AlertPreviewCard/);
-  assert.match(alert, /description, county, road, hazard_type, severity/);
+  const compact = await source("src/components/site/compact-editorial-list.tsx");
+  assert.match(report, /CompactEditorialList/);
+  assert.match(alert, /CompactEditorialList/);
+  assert.match(compact, /size-16/);
+  assert.match(compact, /line-clamp-3/);
 });
 
 test("listing hierarchy retains three columns with three records per logical group", async () => {

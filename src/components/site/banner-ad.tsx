@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { selectEligibleBannerAds } from "@/lib/banner-ads";
 
 function isPlacementSchemaMissing(error: { code?: string; message?: string }) {
-  return error.code === "42703" || error.code === "PGRST204" || /column .*placement|column .*starts_at|column .*ends_at|column .*priority/i.test(error.message ?? "");
+  return error.code === "42703" || error.code === "PGRST100" || error.code === "PGRST204" || /column .*placement|column .*starts_at|column .*ends_at|column .*priority|unexpected.*filter|failed to parse.*filter/i.test(error.message ?? "");
 }
 
 /**
@@ -33,6 +33,8 @@ export function BannerAd({ className = "", placement = "site-default" }: { class
       }
       return selectEligibleBannerAds(placementQuery.data, placement);
     },
+    retry: false,
+    refetchOnWindowFocus: false,
     staleTime: 60_000,
   });
 

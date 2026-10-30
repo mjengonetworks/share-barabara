@@ -25,7 +25,6 @@ import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
-import { AlertPreviewCard } from "@/components/site/discovery-sections";
 import { RelatedContent } from "@/components/site/related-content";
 import { EditorialUpdates } from "@/components/site/editorial-updates";
 import { EditorialSidebar } from "@/components/site/editorial-sidebar";
@@ -33,6 +32,7 @@ import { PublicBreadcrumbStrip, SidebarModule } from "@/components/site/public-l
 import { socialHead } from "@/lib/seo";
 import { publicEditorialCategoryBadgeClass } from "@/components/site/public-ui";
 import { recordPublicView } from "@/lib/view-tracking";
+import { CompactEditorialList } from "@/components/site/compact-editorial-list";
 
 export const Route = createFileRoute("/alerts/$alertId")({
   loader: async ({ params }) => {
@@ -63,15 +63,18 @@ type RelatedAlert = {
   road: string | null;
   hazard_type: string;
   severity: string;
+  image_url: string | null;
 };
 
 function AlertList({ alerts }: { alerts: RelatedAlert[] }) {
   return (
-    <div className="mt-4 space-y-4">
-      {alerts.map((a) => (
-        <AlertPreviewCard key={a.id} alert={a} />
-      ))}
-    </div>
+    <CompactEditorialList items={alerts.map((a) => ({
+      id: a.id,
+      title: a.title,
+      imageUrl: a.image_url,
+      href: `/alerts/${a.id}`,
+      meta: [a.county, a.road].filter(Boolean).join(" · "),
+    }))} />
   );
 }
 
@@ -116,7 +119,7 @@ function AlertDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("id, title, description, county, road, hazard_type, severity")
+        .select("id, title, description, county, road, hazard_type, severity, image_url")
         .eq("county", alert!.county)
         .in("status", ["active", "in_progress", "resolved"])
         .neq("id", alert!.id)
@@ -133,7 +136,7 @@ function AlertDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("alerts")
-        .select("id, title, description, county, road, hazard_type, severity")
+        .select("id, title, description, county, road, hazard_type, severity, image_url")
         .neq("id", alert!.id)
         .order("created_at", { ascending: false })
         .limit(5 + related.length);
@@ -195,10 +198,10 @@ function AlertDetail() {
             </Link>
           </div>
 
-          <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+          <p className="mt-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" />
             <Link to="/alerts" search={{ county: alert.county } as never} className="underline underline-offset-2 hover:text-brand-blue">{alert.county}</Link>
-            {alert.road ? <> {" · "}{linkedRoad ? <Link to="/alerts" search={{ county: alert.county, road: alert.road_id ?? undefined } as never} className="underline underline-offset-2 hover:text-brand-blue">{alert.road}</Link> : alert.road}</> : null}
+            {alert.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline underline-offset-2 hover:text-brand-blue">{alert.road}</Link> : alert.road}</> : null}
           </p>
 
           <h1 className="mt-2 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
@@ -217,7 +220,7 @@ function AlertDetail() {
               <img
                 src={alert.image_url}
                 alt={alertMedia.image_alt || alert.title}
-                className="block h-auto max-h-[70vh] max-w-full w-full rounded-xl border border-border bg-muted/20 object-contain"
+                className="block h-auto max-w-full rounded-xl border border-border object-contain"
               />
               <EditorialMediaMeta {...(alertMedia.image_caption ? { caption: alertMedia.image_caption } : {})} {...(alertMedia.image_credit ? { credit: alertMedia.image_credit } : {})} />
             </figure>

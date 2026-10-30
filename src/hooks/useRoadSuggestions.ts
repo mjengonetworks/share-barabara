@@ -8,7 +8,7 @@ export function useRoadSuggestions(query: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("roads")
-        .select("id, name, slug")
+        .select("id, name, slug, county")
         .ilike("name", `%${query.trim()}%`)
         .order("name")
         .limit(8);

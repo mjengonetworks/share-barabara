@@ -29,11 +29,11 @@ test("detail metadata exposes canonical county, road, incident and classificatio
     read("src/components/site/discovery-sections.tsx"),
   ]);
   assert.match(report, /search=\{\{ county: report\.county \}\s+as never\}/);
-  assert.match(report, /search=\{\{ county: report\.county, road: report\.road_id/);
+  assert.match(report, /to="\/roads\/\$slug" params=\{\{ slug: linkedRoad\.slug \}\}/);
   assert.match(report, /search=\{\{ incident: reportIncidentType/);
   assert.match(report, /search=\{\{ severity: report\.severity/);
   assert.match(alert, /search=\{\{ county: alert\.county \}\s+as never\}/);
-  assert.match(alert, /search=\{\{ county: alert\.county, road: alert\.road_id/);
+  assert.match(alert, /to="\/roads\/\$slug" params=\{\{ slug: linkedRoad\.slug \}\}/);
   assert.match(alert, /search=\{\{ hazard: alert\.hazard_type/);
   assert.match(cards, /search=\{\{ incident: report\.incident_type \}\}/);
   assert.match(cards, /search=\{\{ hazard: alert\.hazard_type \}\}/);
@@ -94,7 +94,7 @@ test("detail order keeps location before headline and media fluid", async () => 
   for (const source of [report, alert]) {
     const view = source.slice(source.indexOf("<article"));
     assert.ok(view.indexOf("<MapPin") < view.indexOf("<h1"));
-    assert.match(source, /block h-auto max-h-\[70vh\] max-w-full w-full/);
+    assert.match(source, /block h-auto max-w-full rounded-xl/);
     assert.doesNotMatch(source, /Publication date:/);
   }
 });
