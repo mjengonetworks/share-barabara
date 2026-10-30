@@ -52,6 +52,7 @@ BEGIN
       'validate_editorial_relationship_reference','editorial_register_related_draft',
       'editorial_assign_tag','editorial_remove_tag','editorial_link_content',
       'editorial_unlink_content','editorial_update_related_draft',
+      'editorial_create_related_draft_record',
       'editorial_finalize_related_draft','editorial_public_related_content',
       'editorial_search_tags'
     )
@@ -107,9 +108,9 @@ CREATE INDEX editorial_content_tags_content_idx ON public.editorial_content_tags
 
 CREATE TABLE public.editorial_content_relationships (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure','feed_post')),
   source_id UUID NOT NULL,
-  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure')),
+  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure','feed_post')),
   target_id UUID NOT NULL,
   relationship_type TEXT NOT NULL CHECK (relationship_type IN ('related','derived_from','follows_up','covers')),
   created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
@@ -148,9 +149,9 @@ CREATE UNIQUE INDEX editorial_relationships_active_uq ON public.editorial_conten
 
 CREATE TABLE public.editorial_related_drafts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure','feed_post')),
   source_id UUID NOT NULL,
-  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure')),
+  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure','feed_post')),
   target_id UUID,
   status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','saved','abandoned','expired')),
   provider TEXT CHECK (provider IS NULL OR provider IN ('groq','grok')),
@@ -173,9 +174,9 @@ CREATE INDEX editorial_related_drafts_source_idx ON public.editorial_related_dra
 CREATE TABLE public.editorial_generation_events (
   request_id UUID PRIMARY KEY,
   actor_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
-  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure')),
+  source_type TEXT NOT NULL CHECK (source_type IN ('article','report','alert','campaign','infrastructure','feed_post')),
   source_id UUID NOT NULL,
-  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure')),
+  target_type TEXT NOT NULL CHECK (target_type IN ('article','report','alert','campaign','infrastructure','feed_post')),
   provider TEXT NOT NULL CHECK (provider IN ('groq','grok')),
   prompt_version TEXT NOT NULL,
   source_snapshot_hash TEXT NOT NULL,
@@ -244,8 +245,9 @@ CREATE OR REPLACE FUNCTION public.validate_editorial_relationship_reference()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 BEGIN
   IF NOT public.editorial_content_exists(NEW.source_type,NEW.source_id) OR NOT public.editorial_content_exists(NEW.target_type,NEW.target_id) THEN RAISE EXCEPTION 'unknown editorial relationship endpoint' USING ERRCODE='23503'; END IF;
-  IF ((NEW.source_type='alert' AND NEW.target_type='report') OR (NEW.source_type='report' AND NEW.target_type='alert')) THEN
-    RAISE EXCEPTION 'Alert to Accident Report links must use incident_content_links';
+  IF ((NEW.source_type='alert' AND NEW.target_type='report') OR (NEW.source_type='report' AND NEW.target_type='alert'))
+     AND NEW.relationship_type <> 'derived_from' THEN
+    RAISE EXCEPTION 'Alert to Accident Report links must use incident_content_links unless this is a draft conversion provenance link';
   END IF;
   IF NEW.relationship_type IN ('derived_from','follows_up','covers')
      AND NOT EXISTS (SELECT 1 FROM public.editorial_conversion_targets
@@ -258,7 +260,7 @@ CREATE TRIGGER editorial_content_tags_reference_trg BEFORE INSERT OR UPDATE ON p
 CREATE TRIGGER editorial_relationships_reference_trg BEFORE INSERT OR UPDATE ON public.editorial_content_relationships FOR EACH ROW EXECUTE FUNCTION public.validate_editorial_relationship_reference();
 
 CREATE OR REPLACE FUNCTION public.audit_editorial_relationship_change()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 BEGIN
   INSERT INTO public.editorial_content_relationship_history(
     relationship_id, action, source_type, source_id, target_type, target_id,
@@ -269,9 +271,9 @@ BEGIN
     jsonb_build_object('provider', NEW.provider, 'generation_request_id', NEW.generation_request_id)
   );
   RETURN NEW;
-END $;
+END $$;
 CREATE OR REPLACE FUNCTION public.audit_editorial_relationship_removal()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 BEGIN
   IF NEW.deleted_at IS NOT NULL AND OLD.deleted_at IS NULL THEN
     INSERT INTO public.editorial_content_relationship_history(
@@ -284,7 +286,7 @@ BEGIN
     );
   END IF;
   RETURN NEW;
-END $;
+END $$;
 CREATE TRIGGER editorial_relationship_created_audit
   AFTER INSERT ON public.editorial_content_relationships
   FOR EACH ROW EXECUTE FUNCTION public.audit_editorial_relationship_change();
@@ -361,8 +363,9 @@ RETURNS public.editorial_content_relationships LANGUAGE plpgsql SECURITY DEFINER
 DECLARE r public.editorial_content_relationships;
 BEGIN
   IF NOT public.has_min_role(auth.uid(),'editor') OR NOT public.editorial_can_edit_content(_source_type,_source_id) THEN RAISE EXCEPTION 'source edit permission required'; END IF;
-  IF ((_source_type='alert' AND _target_type='report') OR (_source_type='report' AND _target_type='alert')) THEN
-    RAISE EXCEPTION 'Alert to Accident Report links must use incident_content_links';
+  IF ((_source_type='alert' AND _target_type='report') OR (_source_type='report' AND _target_type='alert'))
+     AND _relationship_type <> 'derived_from' THEN
+    RAISE EXCEPTION 'Alert to Accident Report links must use incident_content_links unless this is a draft conversion provenance link';
   END IF;
   IF NOT public.editorial_content_exists(_source_type,_source_id) OR NOT public.editorial_content_exists(_target_type,_target_id) THEN RAISE EXCEPTION 'relationship endpoint does not exist' USING ERRCODE='23503'; END IF;
   IF NOT (public.editorial_content_is_public(_target_type,_target_id) OR public.editorial_can_edit_content(_target_type,_target_id)) THEN RAISE EXCEPTION 'target visibility or edit permission required'; END IF;
@@ -425,6 +428,119 @@ BEGIN
     ON CONFLICT DO NOTHING;
   RETURN d;
 END $$;
+CREATE OR REPLACE FUNCTION public.editorial_create_related_draft_record(
+  _draft_id UUID,
+  _accepted_fields JSONB
+)
+RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE
+  d public.editorial_related_drafts;
+  f JSONB := COALESCE(_accepted_fields, '{}'::jsonb);
+  new_id UUID;
+  relationship_id UUID;
+  title_text TEXT;
+  summary_text TEXT;
+  body_text TEXT;
+  description_text TEXT;
+  county_text TEXT;
+  occurred_text TEXT;
+  slug_text TEXT;
+  editor_path TEXT;
+  parties_text TEXT[];
+BEGIN
+  IF jsonb_typeof(f) <> 'object' OR NOT public.has_min_role(auth.uid(),'editor') THEN
+    RAISE EXCEPTION 'editor and object proposal required';
+  END IF;
+  SELECT * INTO d
+  FROM public.editorial_related_drafts
+  WHERE id=_draft_id AND status='open'
+    AND (created_by=auth.uid() OR public.has_role(auth.uid(),'admin'))
+  FOR UPDATE;
+  IF NOT FOUND OR NOT public.editorial_can_edit_content(d.source_type,d.source_id) THEN
+    RAISE EXCEPTION 'draft creation permission denied';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.editorial_conversion_targets
+    WHERE source_type=d.source_type AND target_type=d.target_type AND enabled
+  ) THEN
+    RAISE EXCEPTION 'conversion is not enabled';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.editorial_content_relationships
+    WHERE source_type=d.source_type AND source_id=d.source_id
+      AND target_type=d.target_type AND relationship_type='derived_from'
+      AND deleted_at IS NULL
+  ) THEN
+    RAISE EXCEPTION 'a derived draft already exists for this source and destination';
+  END IF;
+
+  title_text := NULLIF(btrim(f->>'title'),'');
+  IF title_text IS NULL THEN RAISE EXCEPTION 'title is required'; END IF;
+
+  IF d.target_type='article' THEN
+    summary_text := NULLIF(btrim(COALESCE(f->>'summary',f->>'description')),'');
+    body_text := NULLIF(btrim(COALESCE(f->>'body',f->>'description')),'');
+    IF summary_text IS NULL OR body_text IS NULL THEN
+      RAISE EXCEPTION 'Article draft requires summary and body';
+    END IF;
+    slug_text := trim(both '-' from lower(regexp_replace(title_text,'[^a-zA-Z0-9]+','-','g')));
+    IF slug_text='' THEN RAISE EXCEPTION 'Article title cannot produce a slug'; END IF;
+    slug_text := left(slug_text,70) || '-' || substr(replace(gen_random_uuid()::text,'-',''),1,10);
+    EXECUTE 'INSERT INTO public.news(slug,title,summary,body,author_id,status,published_at)
+             VALUES ($1,$2,$3,$4,$5,''draft'',now()) RETURNING id'
+      INTO new_id USING slug_text,title_text,summary_text,body_text,auth.uid();
+    editor_path := '/admin/articles/' || new_id::text || '/edit';
+  ELSIF d.target_type='report' THEN
+    description_text := NULLIF(btrim(COALESCE(f->>'description',f->>'body')),'');
+    county_text := NULLIF(btrim(f->>'county'),'');
+    occurred_text := NULLIF(btrim(f->>'occurred_at'),'');
+    IF description_text IS NULL OR county_text IS NULL OR occurred_text IS NULL THEN
+      RAISE EXCEPTION 'Accident Report draft requires description, county and occurred_at';
+    END IF;
+    parties_text := ARRAY(SELECT jsonb_array_elements_text(COALESCE(f->'parties_involved','[]'::jsonb)));
+    EXECUTE 'INSERT INTO public.accident_reports
+      (user_id,title,description,county,road,occurred_at,vehicles_involved,casualties,
+       fatalities,severity,status,parties_involved,casualty_breakdown,is_anonymous)
+      VALUES ($1,$2,$3,$4,$5,$6::timestamptz,$7::integer,$8::integer,$9::integer,
+       COALESCE(NULLIF($10,''''),''moderate''),''pending'',$11,$12,false)
+      RETURNING id'
+      INTO new_id
+      USING auth.uid(),title_text,description_text,county_text,NULLIF(f->>'road',''),
+        occurred_text,NULLIF(f->>'vehicles_involved','')::integer,
+        NULLIF(f->>'casualties','')::integer,NULLIF(f->>'fatalities','')::integer,
+        f->>'severity',parties_text,COALESCE(f->'casualty_breakdown','{}'::jsonb);
+    editor_path := '/admin/reports/' || new_id::text || '/edit';
+  ELSIF d.target_type='alert' THEN
+    description_text := NULLIF(btrim(COALESCE(f->>'description',f->>'body')),'');
+    county_text := NULLIF(btrim(f->>'county'),'');
+    IF description_text IS NULL OR county_text IS NULL THEN
+      RAISE EXCEPTION 'Hazard Alert draft requires description and county';
+    END IF;
+    EXECUTE 'INSERT INTO public.alerts
+      (user_id,title,description,county,road,hazard_type,severity,status)
+      VALUES ($1,$2,$3,$4,$5,COALESCE(NULLIF($6,''''),''other''),
+              COALESCE(NULLIF($7,''''),''medium''),''pending'') RETURNING id'
+      INTO new_id
+      USING auth.uid(),title_text,description_text,county_text,NULLIF(f->>'road',''),
+        f->>'hazard_type',f->>'severity';
+    editor_path := '/admin/alerts/' || new_id::text || '/edit';
+  ELSE
+    RAISE EXCEPTION 'Automatic draft creation is not enabled for this destination';
+  END IF;
+
+  SELECT (public.editorial_link_content(
+    d.source_type,d.source_id,d.target_type,new_id,'derived_from',
+    d.generation_request_id,d.provider,d.prompt_version,d.source_snapshot_hash
+  )).id INTO relationship_id;
+  UPDATE public.editorial_related_drafts
+  SET status='saved',target_id=new_id,updated_at=now()
+  WHERE id=d.id;
+  RETURN jsonb_build_object(
+    'draft_id',new_id,'target_type',d.target_type,
+    'relationship_id',relationship_id,'editor_path',editor_path
+  );
+END $$;
+
 CREATE OR REPLACE FUNCTION public.editorial_remove_tag(_type TEXT,_id UUID,_tag UUID)
 RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 BEGIN
@@ -442,7 +558,7 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
   SELECT r.target_type,r.target_id,r.relationship_type,r.created_at FROM public.editorial_content_relationships r WHERE r.source_type=_type AND r.source_id=_id AND r.deleted_at IS NULL AND public.editorial_content_is_public(r.target_type,r.target_id)
   UNION ALL
   SELECT r.source_type,r.source_id,r.relationship_type,r.created_at FROM public.editorial_content_relationships r WHERE r.target_type=_type AND r.target_id=_id AND r.deleted_at IS NULL AND public.editorial_content_is_public(r.source_type,r.source_id)
-  ORDER BY linked_at DESC LIMIT LEAST(GREATEST(COALESCE(_limit,12),1),50);
+  ORDER BY 4 DESC LIMIT LEAST(GREATEST(COALESCE(_limit,12),1),50);
 $$;
 CREATE OR REPLACE FUNCTION public.editorial_search_tags(_query TEXT,_limit INTEGER DEFAULT 20)
 RETURNS SETOF public.editorial_tags LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
@@ -455,6 +571,6 @@ REVOKE ALL ON FUNCTION public.editorial_content_table(TEXT),public.editorial_con
 -- existing migration history explicitly grants anon EXECUTE so those policies
 -- can be planned successfully. A future policy refactor may remove that
 -- exposure, but it must be audited and deployed separately.
-REVOKE ALL ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_finalize_related_draft(UUID,TEXT,UUID),public.editorial_search_tags(TEXT,INTEGER) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_finalize_related_draft(UUID,TEXT,UUID),public.editorial_search_tags(TEXT,INTEGER) TO authenticated;
+REVOKE ALL ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_finalize_related_draft(UUID,TEXT,UUID),public.editorial_create_related_draft_record(UUID,JSONB),public.editorial_search_tags(TEXT,INTEGER) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.editorial_register_related_draft(TEXT,UUID,TEXT,UUID,TEXT,TEXT,JSONB,TEXT,JSONB),public.editorial_assign_tag(TEXT,UUID,UUID),public.editorial_remove_tag(TEXT,UUID,UUID),public.editorial_link_content(TEXT,UUID,TEXT,UUID,TEXT,UUID,TEXT,TEXT,TEXT),public.editorial_unlink_content(UUID),public.editorial_update_related_draft(UUID,JSONB),public.editorial_finalize_related_draft(UUID,TEXT,UUID),public.editorial_create_related_draft_record(UUID,JSONB),public.editorial_search_tags(TEXT,INTEGER) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.editorial_public_related_content(TEXT,UUID,INTEGER) TO anon,authenticated;

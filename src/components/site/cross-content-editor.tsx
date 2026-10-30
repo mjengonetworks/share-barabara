@@ -276,6 +276,33 @@ export function CrossContentEditor({
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const createDraftRecord = useMutation({
+    mutationFn: async () => {
+      if (!draftId || acceptedFields.size === 0)
+        throw new Error("Save and accept at least one generated field first.");
+      const reviewedDraft = Object.fromEntries(
+        Object.entries(draft ?? {}).filter(([key]) => acceptedFields.has(key)),
+      );
+      const { data, error } = await (supabase.rpc as any)("editorial_create_related_draft_record", {
+        _draft_id: draftId,
+        _accepted_fields: reviewedDraft,
+      });
+      if (error) throw error;
+      return data as { editor_path?: string; draft_id?: string };
+    },
+    onSuccess: (value) => {
+      void queryClient.invalidateQueries({
+        queryKey: ["editorial-relationships", sourceType, sourceId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["editorial-related-drafts", sourceType, sourceId],
+      });
+      toast.success("Draft created and linked. Opening the destination editor…");
+      if (value.editor_path) window.location.assign(value.editor_path);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   const addTag = useMutation({
     mutationFn: async () => {
       if (!newTag.trim() || !user) throw new Error("Enter a tag name.");
@@ -510,6 +537,13 @@ export function CrossContentEditor({
             </Button>
             {draftId ? (
               <>
+                <Button
+                  type="button"
+                  disabled={createDraftRecord.isPending}
+                  onClick={() => createDraftRecord.mutate()}
+                >
+                  {createDraftRecord.isPending ? "Creating…" : "Save as new draft"}
+                </Button>
                 <Input
                   value={targetId}
                   onChange={(event) => setTargetId(event.target.value)}

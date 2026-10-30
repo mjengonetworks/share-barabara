@@ -12,6 +12,7 @@ test("generic relationship migration preserves the canonical incident-link autho
   assert.match(migration, /incident_content_links/);
   assert.match(migration, /editorial_content_relationships/);
   assert.match(migration, /editorial_content_relationship_history/);
+  assert.match(migration, /editorial_create_related_draft_record/);
   assert.match(migration, /Alert to Accident Report links must use incident_content_links/);
   assert.match(migration, /deleted_at IS NULL/);
   assert.match(migration, /editorial_relationships_active_uq/);
@@ -34,6 +35,8 @@ test("admin editor exposes bidirectional related-content and conversion workflow
   assert.match(editor, /editorial_register_related_draft/);
   assert.match(editor, /editorial_update_related_draft/);
   assert.match(editor, /editorial_finalize_related_draft/);
+  assert.match(editor, /editorial_create_related_draft_record/);
+  assert.match(editor, /Save as new draft/);
   assert.match(editor, /provider: "grok"/);
   assert.match(editor, /sourceType/);
 });
