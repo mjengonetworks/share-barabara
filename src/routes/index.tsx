@@ -37,13 +37,13 @@ import { GlobalEditorialPreview } from "@/components/site/global-editorial-previ
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Share Barabara: Road Safety in Kenya" },
+      { title: "Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns" },
       {
         name: "description",
         content:
           "Live road hazard alerts, crash statistics, articles and safety guidance for Kenya's roads. Report hazards, file accident reports and join the conversation.",
       },
-      { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
+      { property: "og:title", content: "Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns" },
       {
         property: "og:description",
         content: "Live hazard alerts, crash data and safety guidance for every Kenyan road user.",

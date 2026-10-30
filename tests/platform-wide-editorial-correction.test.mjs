@@ -59,5 +59,7 @@ test("content AI state resets on record changes and supports collapse", async ()
 
 test("homepage metadata uses the approved platform title", async () => {
   const source = await read("src/routes/__root.tsx");
+  const homepage = await read("src/routes/index.tsx");
   assert.match(source, /Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns/);
+  assert.match(homepage, /Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns/);
 });
