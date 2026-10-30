@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Flame, MapPin, ShieldCheck } from "lucide-react";
+import { Flame, MapPin, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileNames, useProfileAvatars, useProfileBylines } from "@/lib/profiles";
 import { useRoleLabels, bylineLabel, roleRank, ROLE_RANK } from "@/hooks/useRoles";
@@ -21,7 +21,6 @@ import { BannerAd } from "@/components/site/banner-ad";
 import { ShareButtons } from "@/components/site/share-buttons";
 import { ContentRequestActions } from "@/components/site/content-request-actions";
 import { ShareBarabaraAI } from "@/components/site/share-barabara-ai";
-import { displayReportCount } from "@/lib/report-metrics";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
@@ -81,6 +80,10 @@ type RelatedReport = {
   casualties: number | null;
   fatalities: number | null;
 };
+
+function highlightCount(value: number | null | undefined, label: string) {
+  return { value: value == null ? "0" : String(value), label: value == null ? `${label} · count unavailable` : label };
+}
 
 function ReportList({ reports }: { reports: RelatedReport[] }) {
   return (
@@ -210,13 +213,6 @@ function ReportDetail() {
       />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
-          <Link
-            to="/reports"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground"
-          >
-            <ArrowLeft className="size-4" /> All reports
-          </Link>
-
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <PublicEditorialCategoryBadge>
               {report.incident_type || "Accident report"}
@@ -233,7 +229,6 @@ function ReportDetail() {
                 {report.status === "pending" ? "awaiting review" : report.status}
               </span>
             ) : null}
-            <span className="text-sm text-muted-foreground">{longDate(report.occurred_at)}</span>
           </div>
           {report.status === "rejected" && report.rejection_reason ? (
             <p className="mt-3 rounded border-l-4 border-destructive bg-destructive/10 p-4 text-sm">
@@ -244,9 +239,14 @@ function ReportDetail() {
           <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {report.title}
           </h1>
+          <p className="mt-2 text-sm text-muted-foreground">Incident date: {longDate(report.occurred_at)}</p>
           <div className="mt-3">
             <ShareButtons title={report.title} />
           </div>
+          <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="size-4" /> {report.county}
+            {report.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{report.road}</Link> : report.road}</> : null}
+          </p>
           {report.image_url ? (
             <figure className="mt-4">
               <img
@@ -257,21 +257,6 @@ function ReportDetail() {
               <EditorialMediaMeta caption={report.image_caption} credit={report.image_credit} />
             </figure>
           ) : null}
-          <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-4" /> {report.county}
-            {report.road ? (
-              <>
-                {" · "}
-                {linkedRoad ? (
-                  <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">
-                    {report.road}
-                  </Link>
-                ) : (
-                  report.road
-                )}
-              </>
-            ) : null}
-          </p>
           <div className="mt-2 flex items-start gap-3">
             {!report.is_anonymous ? (
               <UserAvatar
@@ -322,25 +307,21 @@ function ReportDetail() {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-3 gap-4">
+          <div className="mt-5 grid grid-cols-3 gap-3 sm:gap-4">
+            {(() => { const vehicles = highlightCount(report.vehicles_involved, "Vehicles involved"); const injured = highlightCount(report.casualties, "Injured"); const deaths = highlightCount(report.fatalities, "Deaths"); return <>
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
-              <p className="font-display text-2xl font-extrabold">
-                {displayReportCount(report.vehicles_involved)}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Vehicles involved</p>
+              <p className="font-display text-2xl font-extrabold" aria-label={vehicles.label}>{vehicles.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{vehicles.label}</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
-              <p className="font-display text-2xl font-extrabold text-caution">
-                {displayReportCount(report.casualties)}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Injured</p>
+              <p className="font-display text-2xl font-extrabold text-caution" aria-label={injured.label}>{injured.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{injured.label}</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 text-center card-elevated">
-              <p className="font-display text-2xl font-extrabold text-destructive">
-                {displayReportCount(report.fatalities)}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Deaths</p>
+              <p className="font-display text-2xl font-extrabold text-destructive" aria-label={deaths.label}>{deaths.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{deaths.label}</p>
             </div>
+            </>; })()}
           </div>
           {report.status === "approved" ? (
             <ShareBarabaraAI
@@ -361,10 +342,9 @@ function ReportDetail() {
             </div>
           ) : null}
 
-          <div className="mt-6 space-y-4 text-foreground/90">
-            <EditorialSummary>
-              <AdRichText content={report.description} placement="report-body" />
-            </EditorialSummary>
+          {(report as typeof report & { summary?: string | null }).summary ? <EditorialSummary className="mt-5"><AdRichText content={(report as typeof report & { summary?: string | null }).summary!} placement="report-summary" /></EditorialSummary> : null}
+          <div className="mt-5 space-y-4 bg-white text-foreground/90">
+            <AdRichText content={report.description} placement="report-body" />
           </div>
 
           <AttachmentGallery attachments={report.attachments as AttachmentRow[]} />

@@ -271,7 +271,7 @@ function ReportsPage() {
               </EditorialBand>
             ) : null}
 
-            <EditorialBand tone="plain" className="mt-8">
+            <EditorialBand tone="plain" className="mt-4">
               <h2 className="text-lg font-bold text-muted-foreground">Browse by severity</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
@@ -298,7 +298,7 @@ function ReportsPage() {
               </div>
             </EditorialBand>
 
-            <div id="all-reports" className="mt-8 scroll-mt-24">
+            <div id="all-reports" className="mt-4 scroll-mt-24">
               <SectionHeader
                 eyebrow="Approved public records"
                 title="Reports by County, Road and Incident Type"

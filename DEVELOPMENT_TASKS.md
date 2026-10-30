@@ -583,6 +583,18 @@ unfinished application changes are not merged here.
 - **Grok conversion — PENDING:** no browser/provider-backed session was available; no production test records were created.
 - **Responsive visual acceptance — PENDING:** the computer-use inventory returned no browser surfaces and the in-app browser was unavailable. No screenshots were captured at 320, 375, 390, 430, 768, 1024, 1280 or 1440px. Owner must perform visual acceptance on the live routes.
 
+## SB 2 — platform-wide editorial correction candidate (2026-10-30)
+
+- **Shared spacing — IMPLEMENTED / VISUAL ACCEPTANCE PENDING:** reduced shared EditorialBand, discovery, sidebar, ecosystem-preview and Reports/Alerts directory gaps to the compact editorial scale; no advertising placements were removed. Screenshot comparison remains pending because browser tooling is unavailable.
+- **Report/Alert detail hierarchy — IMPLEMENTED / VISUAL ACCEPTANCE PENDING:** removed redundant directory navigation from Report detail, moved incident/publication dates below headlines, moved location metadata above media, aligned shared headline proportions, kept Alert full-content accent treatment, and returned Report body content to a plain editorial surface.
+- **Summary fields — IMPLEMENTED / MIGRATION PENDING:** added editable Report and Alert summary controls and public rendering without using the body as a persisted summary. Review-only additive migration: `20261030190000_report_alert_summaries_review.sql`; it adds nullable `summary` columns only and has not been applied anywhere.
+- **Report statistic highlights — IMPLEMENTED:** highlights display numeric values including `0`; NULL values remain NULL in storage and are qualified with `count unavailable` in the visible label/accessibility text.
+- **Category administration — IMPLEMENTED / AUTHENTICATED ACCEPTANCE PENDING:** Article categories remain multi-select and now include searchable filtering; persistence still requires an authorised CMS browser check.
+- **Quick AI Summary — IMPLEMENTED / BROWSER ACCEPTANCE PENDING:** state resets on content identity changes, pending summary responses are ignored after navigation, and the panel has accessible collapse/reopen chevrons. Signed-out chat handoff remains unchanged.
+- **Homepage metadata — IMPLEMENTED:** root title and Open Graph title now use `Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns`; individual route metadata remains route-specific.
+- **Verification — PASSED:** focused correction tests 22/22; full suite 500/500; security suite 14/14; production build passed; `git diff --check` passed. TypeScript diagnostics: 826 candidate vs 827 at the pre-change documentation commit; remaining diagnostics are pre-existing generated-schema/index-signature debt.
+- **Release status:** application deployment is not approved for this candidate. Do not execute `20261030190000_report_alert_summaries_review.sql` without separate migration approval and a fresh verified backup. Responsive screenshots, authenticated CMS workflows and owner visual acceptance remain open.
+
 ## SB 2 — disposable PostgreSQL rehearsal update (2026-10-30)
 
 - **Migration rehearsal — PASSED:** PostgreSQL 17.11 disposable cluster at `127.0.0.1:55432`, database `sb2_rehearsal`, isolated from the running local service and production. Restored `E:\sb2-production-backup-20261029-final.dump` (SHA-256 `1A364DE9682614B3D8EFA06DB013A40F12D3DE120E12360F31BB0674C2D9BE67`; `pg_restore --list` showed 1205 TOC entries). Restore emitted one expected `public`-schema-exists message; all backup objects/data restored. Baseline rows: 97 Articles, 15 Reports, 14 Alerts, 1 Campaign, 0 Infrastructure Issues, 1 Feed Post, 0 incident links.

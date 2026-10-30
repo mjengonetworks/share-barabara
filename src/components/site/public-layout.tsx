@@ -431,7 +431,7 @@ export function EditorialBand({
   return (
     <section
       className={cn(
-        "-mx-4 px-4 py-10 sm:-mx-8 sm:px-8 sm:py-12",
+        "-mx-4 px-4 py-6 sm:-mx-8 sm:px-8 sm:py-8",
         tone === "pale" ? "bg-primary/[0.045]" : "bg-background",
         className,
       )}
@@ -444,7 +444,7 @@ export function EditorialBand({
 export function PublicSidebar({ children }: { children: ReactNode }) {
   return (
     <aside
-      className="space-y-6 lg:sticky lg:top-24 lg:self-start"
+      className="space-y-4 lg:sticky lg:top-24 lg:self-start"
       aria-label="Related content and newsletter"
     >
       {children}

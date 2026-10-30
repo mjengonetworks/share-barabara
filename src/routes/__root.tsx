@@ -88,12 +88,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Share Barabara: Road Safety in Kenya" },
+      { title: "Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns" },
       {
         name: "description",
         content: "Road safety for Kenya: live hazard alerts, crash statistics, news and articles.",
       },
-      { property: "og:title", content: "Share Barabara: Road Safety in Kenya" },
+      { property: "og:title", content: "Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns" },
       {
         property: "og:description",
         content: "Live hazard alerts, crash statistics, news and articles for Kenyan roads.",
@@ -179,7 +179,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </main>
-        {showSharedQuote ? <section className="mx-auto w-full max-w-6xl px-4 py-8"><QuoteOfTheDay /></section> : null}
+        {showSharedQuote ? <section className="mx-auto w-full max-w-6xl px-4 py-5"><QuoteOfTheDay /></section> : null}
         {!isAdminApp ? <SiteFooter /> : null}
       </div>
       <Toaster />

@@ -180,26 +180,10 @@ function AlertDetail() {
             {alert.status === "resolved" ? <span className="text-sm text-muted-foreground">Resolved</span> : null}
           </div>
 
-          <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="size-4" /> {alert.county}
-            {alert.road ? (
-              <>
-                {" · "}
-                {linkedRoad ? (
-                  <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">
-                    {alert.road}
-                  </Link>
-                ) : (
-                  alert.road
-                )}
-              </>
-            ) : null}
-          </p>
-
           <h1 className="mt-1.5 text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {alert.title}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">{longDate(alert.created_at)}</p>
+          <p className="mt-2 text-sm text-muted-foreground">Published: {longDate(alert.created_at)}</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Reported by{" "}
             <UserLink
@@ -216,6 +200,10 @@ function AlertDetail() {
           <div className="mt-3">
             <ShareButtons title={alert.title} />
           </div>
+          <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="size-4" /> {alert.county}
+            {alert.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline">{alert.road}</Link> : alert.road}</> : null}
+          </p>
 
           {alert.image_url ? (
             <figure className="mt-4">
@@ -238,7 +226,8 @@ function AlertDetail() {
             </div>
           ) : null}
 
-          <EditorialSummary className="mt-6">{renderRichText(alert.description)}</EditorialSummary>
+          {(alert as typeof alert & { summary?: string | null }).summary ? <EditorialSummary className="mt-5">{renderRichText((alert as typeof alert & { summary?: string | null }).summary!)}</EditorialSummary> : null}
+          <div className="mt-5"><EditorialSummary>{renderRichText(alert.description)}</EditorialSummary></div>
 
           <AttachmentGallery attachments={alert.attachments as AttachmentRow[]} />
 

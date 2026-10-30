@@ -25,13 +25,14 @@ test("report forms preserve Unknown separately from zero", async () => {
   assert.match(field, /if \(parsed !== null\) onChange\(parsed\)/);
 });
 
-test("public report displays and AI evidence use semantic unknown values", async () => {
+test("public report displays numeric highlights while qualifying unknown values", async () => {
   const metrics = await source("src/lib/report-metrics.ts");
   const retrieval = await source("src/lib/ai/retrieval.server.ts");
   const report = await source("src/routes/reports.$reportId.tsx");
   assert.match(metrics, /value === null \? "Not confirmed"/);
   assert.match(retrieval, /vehicles_involved \?\? "Not confirmed"/);
-  assert.match(report, /displayReportCount\(report\.fatalities\)/);
+  assert.match(report, /highlightCount\(report\.fatalities/);
+  assert.match(report, /count unavailable/);
 });
 
 test("known totals with unknown classification retain an Unspecified bucket", async () => {

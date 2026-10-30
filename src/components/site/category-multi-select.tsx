@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -23,6 +25,7 @@ export function CategoryMultiSelect({
   onChange: (next: string[]) => void;
 }) {
   const { canEditSeo } = useRoles();
+  const [search, setSearch] = useState("");
   const toggle = (name: string, checked: boolean) =>
     onChange(checked ? [...value, name] : value.filter((x) => x !== name));
 
@@ -52,8 +55,9 @@ export function CategoryMultiSelect({
           <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-        {categories.map((c) => (
+      <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] p-2">
+        <Input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.stopPropagation()} placeholder="Search categories…" aria-label="Search categories" className="mb-2 h-8" />
+        {categories.filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase())).map((c) => (
           <DropdownMenuCheckboxItem
             key={c.id}
             checked={value.includes(c.name)}
@@ -63,6 +67,7 @@ export function CategoryMultiSelect({
             {c.name}
           </DropdownMenuCheckboxItem>
         ))}
+        {!categories.some((c) => c.name.toLowerCase().includes(search.trim().toLowerCase())) ? <p className="px-2 py-2 text-xs text-muted-foreground">No categories found.</p> : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

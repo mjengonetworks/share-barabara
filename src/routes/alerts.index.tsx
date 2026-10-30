@@ -279,7 +279,7 @@ function AlertsPage() {
               </EditorialBand>
             ) : null}
 
-            <EditorialBand tone="plain" className="mt-8">
+            <EditorialBand tone="plain" className="mt-4">
               <h2 className="text-lg font-bold text-muted-foreground">Browse by type</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
@@ -306,7 +306,7 @@ function AlertsPage() {
               </div>
             </EditorialBand>
 
-            <div id="all-alerts" className="mt-8 scroll-mt-24">
+            <div id="all-alerts" className="mt-4 scroll-mt-24">
               <SectionHeader
                 eyebrow="Published alert records"
                 title="Alerts by Severity, County and Road"

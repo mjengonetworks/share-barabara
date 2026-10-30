@@ -442,7 +442,7 @@ export function DiscoverySections({
     .slice(0, 4);
 
   return (
-    <div className="mt-12 space-y-12">
+    <div className="mt-6 space-y-6">
       {focus === "article" ? (
         <DiscoveryGroup
           title="Related articles"

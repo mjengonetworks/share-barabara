@@ -8,6 +8,7 @@ import { suggestIncidentDuplicates } from "@/lib/incident-duplicates";
 type ReportSubmission = {
   requestedStatus?: "pending" | "approved";
   title: string;
+  summary?: string | null;
   description: string;
   county: string;
   road: string;

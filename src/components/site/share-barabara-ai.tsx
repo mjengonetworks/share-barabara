@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUp, Bot, Loader2, Sparkles } from "lucide-react";
+import { ArrowUp, Bot, ChevronDown, ChevronUp, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
@@ -108,7 +108,22 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const summaryRequested = useRef(false);
+  const requestVersion = useRef(0);
+
+  useEffect(() => {
+    requestVersion.current += 1;
+    summaryRequested.current = false;
+    setSummary(null);
+    setMessages([]);
+    setMessage("");
+    setThreadId(undefined);
+    setBusy(false);
+    setError(null);
+    setChatOpen(false);
+    setCollapsed(false);
+  }, [contextType, contextId]);
 
   useEffect(() => {
     if (user && isContentAIHash(window.location.hash)) setChatOpen(true);
@@ -122,10 +137,14 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
   }, [user, contextType, contextId]);
 
   async function summarize() {
+    const version = requestVersion.current;
     setBusy(true); setError(null);
-    try { setSummary(await callQuickAISummary({ data: { message: title ?? "Summarize this content", contextType, contextId, ...(sourceText ? { sourceText } : {}) } })); }
-    catch { setError("Share Barabara AI is temporarily unavailable."); }
-    finally { setBusy(false); }
+    try {
+      const result = await callQuickAISummary({ data: { message: title ?? "Summarize this content", contextType, contextId, ...(sourceText ? { sourceText } : {}) } });
+      if (requestVersion.current === version) setSummary(result);
+    }
+    catch { if (requestVersion.current === version) setError("Share Barabara AI is temporarily unavailable."); }
+    finally { if (requestVersion.current === version) setBusy(false); }
   }
   useEffect(() => {
     if (mode !== "summary" || !isContentAIHash(window.location.hash) || summaryRequested.current || summary) return;
@@ -148,8 +167,10 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
     if (isContentAIHash(window.location.hash) && (summaryAvailable || chatOpen)) focusAISurface("share-barabara-ai");
   }, [summaryAvailable, chatOpen]);
   return (
-    <section id="share-barabara-ai" className="mt-8 rounded-xl border border-primary bg-primary p-5 text-primary-foreground shadow-sm" aria-label="Share Barabara AI">
-      <div className="flex items-center gap-2"><Bot className="size-5 text-accent" /><p className="text-xs font-bold uppercase tracking-widest text-accent">SHARE BARABARA AI</p></div>
+    <section id="share-barabara-ai" className="mt-6 rounded-xl border border-primary bg-primary p-5 text-primary-foreground shadow-sm" aria-label="Share Barabara AI">
+      <div className="flex items-center gap-2"><Bot className="size-5 text-accent" /><p className="text-xs font-bold uppercase tracking-widest text-accent">SHARE BARABARA AI</p>{(summaryAvailable || chatOpen || mode === "chat") ? <Button type="button" variant="ghost" size="icon" className="ml-auto text-primary-foreground hover:bg-primary-foreground/10" aria-label={collapsed ? "Expand AI panel" : "Collapse AI panel"} title={collapsed ? "Expand AI panel" : "Collapse AI panel"} onClick={() => setCollapsed((value) => !value)}>{collapsed ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}</Button> : null}</div>
+      {collapsed ? <p className="mt-2 text-xs text-primary-foreground/70">AI panel collapsed for this record.</p> : null}
+      {!collapsed ? <>
       {mode === "chat" ? <p className="mt-2 text-sm text-primary-foreground/80">Chat with Share Barabara AI about this alert.</p> : null}
       {mode === "summary" && !summary ? <Button className="mt-4 border-accent/70 bg-transparent text-primary-foreground hover:bg-accent hover:text-accent-foreground" variant="outline" onClick={summarize} disabled={busy}><Sparkles className="mr-2 size-4" />{busy ? "Preparing summary…" : "Quick AI Summary"}</Button> : null}
       {mode === "summary" && summary ? (summaryAvailable ? <div className="mt-4 rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 p-4 text-sm"><SafeAIRenderer content={summary.answer!} /><EvidenceLinks evidence={summary.evidence} /></div> : <p className="mt-4 text-sm text-primary-foreground/75">{errorText(summary)}</p>) : null}
@@ -164,6 +185,7 @@ export function ShareBarabaraAI({ contextType, contextId, title, mode = "summary
       ) : null}
       {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
       {busy ? <Loader2 className="mt-3 size-4 animate-spin text-accent" /> : null}
+      </> : null}
     </section>
   );
 }

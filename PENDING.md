@@ -834,3 +834,15 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Authenticated CMS workflows — PENDING:** browser surfaces and an authorised CMS session were unavailable, so Featured Article/Report/Alert persistence, Related Content bidirectional editing, removal/reload and Alert-to-Report correction were not tested.
 - **Grok conversion — PENDING:** live provider-backed six-direction acceptance was not performed; no production test content was created.
 - **Responsive visual checks — PENDING:** no browser surface was available and no screenshots were captured at the required widths. Owner live acceptance remains required.
+
+## SB 2 — platform-wide editorial correction candidate (2026-10-30)
+
+- **Shared vertical spacing — IMPLEMENTED / VISUAL ACCEPTANCE PENDING:** compact spacing was applied to shared editorial bands, discovery modules, sidebars, ecosystem previews and Reports/Alerts directory transitions. No ad placement was removed.
+- **Report/Alert detail pages — IMPLEMENTED / VISUAL ACCEPTANCE PENDING:** metadata order, location placement, detail typography, Report plain-body treatment and Alert summary/full-content separation were corrected; redundant Report directory navigation was removed.
+- **Report/Alert summaries — IMPLEMENTED / MIGRATION PENDING:** CMS summary fields and public summary rendering are wired. Review-only migration `20261030190000_report_alert_summaries_review.sql` is prepared but not executed; separate owner approval and fresh backup are required.
+- **Report numeric highlights — IMPLEMENTED:** confirmed zero remains numeric zero; unknown values remain nullable and are qualified in the highlight label rather than stored as zero.
+- **Article categories — IMPLEMENTED / AUTHENTICATED ACCEPTANCE PENDING:** searchable multi-select UI is restored; live create/edit/save/reload verification remains pending.
+- **Quick AI Summary lifecycle — IMPLEMENTED / BROWSER ACCEPTANCE PENDING:** record-scoped reset, stale-response protection and collapse/reopen controls are implemented; navigation, back/forward and mobile placement need live browser evidence.
+- **Homepage SEO metadata — IMPLEMENTED:** approved homepage title and Open Graph title are present in the root metadata.
+- **Automated verification — PASSED:** focused 22/22, full 500/500, security 14/14, production build passed, diff check passed. TypeScript candidate 826 diagnostics vs 827 pre-change; known repository typing debt remains.
+- **Release gate:** no deployment or SQL execution has been performed for this candidate. Required next evidence is responsive screenshots, authenticated CMS acceptance, and owner approval for application deployment plus the summary migration.
