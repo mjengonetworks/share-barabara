@@ -781,3 +781,12 @@ unfinished application changes are not merged here.
 - **Application artifact:** verified application source remains e314441fd85e67cc993177918f762c2e3150f48f. Changes after that artifact are migration hardening, tests and release documentation only.
 - **Configuration to preserve:** production route sharebarabara.co.ke, production vars/secrets, rate limiter AI_RATE_LIMITER, cron */1 * * * *, custom domain and existing bindings.
 - **Deployment gate:** application deployment is prepared but not executed. Separate owner application approval remains required; post-deploy smoke tests and browser/authenticated acceptance are still open.
+
+## SB 2 — Release B application deployed (2026-10-31)
+
+- **Deployment:** approved application artifact `e314441fd85e67cc993177918f762c2e3150f48f` deployed through the established direct Wrangler artifact path after Nitro's generated staging block was removed from the generated config only. No SQL was rerun.
+- **Worker:** new production Worker `50d44ae9-9c62-4c18-8a82-eddb026a46cf`, previous `73b4a858-a4a7-4d6c-a745-281914b4f2a3`, 100% traffic. Deployment timestamp `2026-10-30T22:20:27Z`.
+- **Preserved configuration:** `sharebarabara.co.ke` custom domain, production environment variables, `AI_RATE_LIMITER`, `*/1 * * * *` schedule and ASSETS binding were confirmed in deployment output.
+- **Checks:** full suite 524/524, security suite 14/14, production build passed, `git diff --check` passed. No application-source changes exist after e314441; later commits are migrations, tests and documentation.
+- **Live smoke:** HTTP 200 for `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed`. Homepage SSR contains the approved hero sentence and `Share Barabara Kenya`; core News, Road Profile and Feed markers were confirmed.
+- **Acceptance state:** Implemented → Deployed → Live Tested. Browser screenshots, responsive visual inspection, browser-console inspection, authenticated CMS workflows, live publishing checks and owner UI acceptance remain Pending because browser automation/authenticated sessions were unavailable. Not User Accepted or Closed.

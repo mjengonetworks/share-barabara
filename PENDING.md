@@ -1004,3 +1004,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Prepared artifact:** e314441fd85e67cc993177918f762c2e3150f48f; later branch changes are SQL hardening/tests/docs and do not change the application artifact.
 - **Preserve:** sharebarabara.co.ke custom route, production configuration/secrets, AI rate limiter, existing cron and bindings.
 - **Pending:** separate application deployment approval, deployment, smoke tests, browser screenshots, authenticated CMS checks and owner UI acceptance.
+
+## SB 2 — Release B application deployed / acceptance open (2026-10-31)
+
+- **Deployed:** application artifact `e314441fd85e67cc993177918f762c2e3150f48f` is live as Worker `50d44ae9-9c62-4c18-8a82-eddb026a46cf` at 100% traffic; previous Worker `73b4a858-a4a7-4d6c-a745-281914b4f2a3`.
+- **Preserved:** production custom domain, vars/bindings, `AI_RATE_LIMITER`, cron `*/1 * * * *` and ASSETS binding. Nitro's generated non-production staging block was removed only from the generated deployment artifact; repository configuration was not changed.
+- **Verification:** full 524/524, security 14/14, build passed, diff check passed. HTTP 200 live smoke checks passed for `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed`; homepage hero and core SSR markers were confirmed.
+- **Database:** Release B migrations remain applied and verified; no SQL was rerun during deployment.
+- **Pending owner acceptance:** no browser screenshots or responsive evidence at 320/375/390/430/768/1024/1440px; no browser console/network inspection; no authenticated CMS or live editorial publishing acceptance. Community-versus-editorial Feed separation is database-verified but not authenticated/browser-verified. Status: Implemented → Deployed → Live Tested; not User Accepted / Closed.
