@@ -943,3 +943,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Three-migration order:** `20261030200000` → `20261030210000` → `20261030220000`. A single-transaction rehearsal passed and final RLS policies were verified. Final hardening checksum: `A92CEAB020FD6E0B60FCB711CB988832B7F78836E93CDA017510DCA5884819CA`.
 - **Production controls:** apply the three files as one controlled transaction after backup/schema preflight. Do not expose the interim permissive insert policy between migrations. Worker rollback does not reverse these SQL changes.
 - **Still blocked:** fresh production backup, actual production schema/ledger comparison and separate owner approval. Partial Ngong Road geometry remains review-only.
+
+## SB 2 — owner actions for final production preflight (2026-10-30)
+
+- Provide or restore the approved secure PostgreSQL/Supabase backup access for project `yhqoggbntunxvlbcatwj`; no backup is claimed here.
+- Run the documented read-only schema, constraint, policy, index and migration-ledger queries. Confirm the ledger reaches `20261030190000` and no Release B objects are already applied.
+- Create a fresh full custom-format backup immediately before SQL execution; verify nonzero size, SHA-256 and `pg_restore --list`.
+- Approve the exact three-file single-transaction sequence and the application artifact `e314441fd85e67cc993177918f762c2e3150f48f` separately.
+- Keep the partial Ngong Road geometry artifact unpublished; full geometry verification remains separate and does not block the core infrastructure approval if the application handles missing geometry safely.
