@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { RoadInput } from "@/components/site/road-input";
+import { LocationButton } from "@/components/site/location-button";
 
 export function InfrastructureIssueForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
@@ -36,13 +37,26 @@ export function InfrastructureIssueForm({ onDone, editorial = false }: { onDone?
     image_url: "",
     summary: "",
     content: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
   });
+  const locationSchemaQuery = useQuery({
+    queryKey: ["infrastructure-location-schema-capability"],
+    queryFn: async () => {
+      const { error } = await (supabase.from("infrastructure_issues") as any).select("latitude,longitude").limit(1);
+      return !error;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const locationSchemaSupported = locationSchemaQuery.data === true;
 
   const submit = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in required");
+      const { latitude, longitude, ...contentForm } = form;
       const { error } = await supabase.from("infrastructure_issues").insert({
-        ...form,
+        ...contentForm,
+        ...(locationSchemaSupported ? { latitude, longitude } : {}),
         image_url: form.image_url.trim() || null,
         user_id: user.id,
         page_id: identity.type === "page" ? identity.pageId : null,
@@ -97,6 +111,7 @@ export function InfrastructureIssueForm({ onDone, editorial = false }: { onDone?
           label="Road name or location"
         />
       </div>
+      {locationSchemaSupported ? <div className="sm:col-span-2 rounded border border-dashed border-border bg-muted/30 p-3"><Label>Verified issue location</Label><p className="mb-2 text-xs text-muted-foreground">Optional. Search or select a point; nothing is saved until you choose it.</p><LocationButton idPrefix="infrastructure-location" latitude={form.latitude} longitude={form.longitude} onLocate={(latitude, longitude) => setForm((current) => ({ ...current, latitude, longitude }))} /></div> : null}
       <div>
         <Label htmlFor="i-title">Issue title</Label>
         <Input

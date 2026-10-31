@@ -12,6 +12,14 @@ const review = fs.readFileSync(
   path.join(root, 'docs/infrastructure-issue-location-migration-review.md'),
   'utf8',
 );
+const infrastructureForm = fs.readFileSync(
+  path.join(root, 'src/components/site/infrastructure-issue-form.tsx'),
+  'utf8',
+);
+const editorialEditor = fs.readFileSync(
+  path.join(root, 'src/components/admin/editorial-record-editor.tsx'),
+  'utf8',
+);
 const sqlWithoutComments = migration.replace(/^\s*--.*$/gm, '');
 
 test('Infrastructure Issue coordinate proposal is additive and nullable', () => {
@@ -32,4 +40,13 @@ test('coordinate proposal validates pairs and ranges without changing RLS', () =
   assert.match(review, /change RLS policies/i);
   assert.match(review, /rollback|recovery/i);
   assert.match(review, /NULL coordinates/i);
+});
+
+test('Infrastructure Issue location UI is gated by schema capability', () => {
+  assert.match(infrastructureForm, /select\("latitude,longitude"\)/);
+  assert.match(infrastructureForm, /locationSchemaSupported/);
+  assert.match(infrastructureForm, /LocationButton/);
+  assert.match(editorialEditor, /infrastructureLocationSchemaQuery/);
+  assert.match(editorialEditor, /infrastructureLocationSupported/);
+  assert.match(editorialEditor, /\? \{ latitude: form\.latitude, longitude: form\.longitude \}/);
 });

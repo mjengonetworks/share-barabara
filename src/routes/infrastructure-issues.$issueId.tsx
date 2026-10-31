@@ -18,6 +18,7 @@ import { GlobalEditorialPreview } from "@/components/site/global-editorial-previ
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
 import { EditorialSummary } from "@/components/site/editorial-summary";
 import { PublicEditorialCategoryBadge } from "@/components/site/public-ui";
+import { RoadGeometryMap } from "@/components/site/road-geometry-map";
 
 export const Route = createFileRoute("/infrastructure-issues/$issueId")({
   loader: async ({ params }) => {
@@ -123,6 +124,10 @@ function IssueDetail() {
     },
   });
 
+  const issueLocation = issue as (typeof issue & { latitude?: unknown; longitude?: unknown }) | null | undefined;
+  const hasLocationColumns = Boolean(issueLocation && "latitude" in issueLocation && "longitude" in issueLocation);
+  const hasVerifiedLocation = hasLocationColumns && Number.isFinite(Number(issueLocation?.latitude)) && Number.isFinite(Number(issueLocation?.longitude));
+
   if (isLoading) {
     return <p className="mx-auto max-w-3xl px-4 py-20 text-muted-foreground">Loading issue…</p>;
   }
@@ -189,6 +194,8 @@ function IssueDetail() {
           <div className="mt-3">
             <ShareButtons title={issue.title} />
           </div>
+
+          {hasLocationColumns ? <div className="mt-4"><RoadGeometryMap geometry={null} markers={hasVerifiedLocation ? [{ id: issue.id, latitude: Number(issueLocation?.latitude), longitude: Number(issueLocation?.longitude), title: issue.title, href: `/infrastructure-issues/${issue.id}` }] : []} source="Verified Infrastructure Issue coordinates" /></div> : null}
 
           {issue.image_url ? (
             <figure className="mt-4">

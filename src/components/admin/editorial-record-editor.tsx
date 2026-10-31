@@ -24,6 +24,7 @@ import { findExistingRoad } from "@/lib/roads";
 import { submitAccidentReport } from "@/lib/report.functions";
 import { IncidentRelationshipPanel } from "@/components/site/incident-relationship-panel";
 import { CrossContentEditor } from "@/components/site/cross-content-editor";
+import { LocationButton } from "@/components/site/location-button";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -56,7 +57,7 @@ function initialForm(type: EditorialRecordType, record: RecordValue): RecordValu
   if (type === "article") return { ...common, category: stringValue(record, "category"), categories: Array.isArray(record.categories) ? record.categories : [], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
   if (type === "report") return { ...common, summary: stringValue(record, "summary"), county: stringValue(record, "county"), road: stringValue(record, "road"), incident_type: stringValue(record, "incident_type"), severity: stringValue(record, "severity"), occurred_at: stringValue(record, "occurred_at"), latitude: typeof record.latitude === "number" ? record.latitude : null, longitude: typeof record.longitude === "number" ? record.longitude : null, vehicles_involved: record.vehicles_involved ?? null, casualties: record.casualties ?? null, fatalities: record.fatalities ?? null, parties_involved: Array.isArray(record.parties_involved) ? record.parties_involved : [], casualty_breakdown: (record.casualty_breakdown ?? {}) as CasualtyBreakdown, attachments: (Array.isArray(record.attachments) ? record.attachments : []) as Attachment[], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
   if (type === "alert") return { ...common, alert_status: stringValue(record, "status"), summary: stringValue(record, "summary"), description: stringValue(record, "description"), county: stringValue(record, "county"), road: stringValue(record, "road"), hazard_type: stringValue(record, "hazard_type"), severity: stringValue(record, "severity") };
-  if (type === "infrastructure") return { ...common, road_name: stringValue(record, "road_name"), road_scope: stringValue(record, "road_scope") || "county", county: stringValue(record, "county"), authority: stringValue(record, "authority"), structure_type: stringValue(record, "structure_type") };
+  if (type === "infrastructure") return { ...common, road_name: stringValue(record, "road_name"), road_scope: stringValue(record, "road_scope") || "county", county: stringValue(record, "county"), authority: stringValue(record, "authority"), structure_type: stringValue(record, "structure_type"), latitude: typeof record.latitude === "number" ? record.latitude : null, longitude: typeof record.longitude === "number" ? record.longitude : null };
   return { ...common, description: stringValue(record, "description"), location: stringValue(record, "location"), start_date: stringValue(record, "start_date"), end_date: stringValue(record, "end_date") };
 }
 
@@ -85,6 +86,16 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
     },
   });
   const summarySupported = type !== "report" && type !== "alert" ? true : summarySchemaQuery.data === true;
+  const infrastructureLocationSchemaQuery = useQuery({
+    queryKey: ["infrastructure-location-schema-capability", "editor"],
+    enabled: type === "infrastructure",
+    queryFn: async () => {
+      const { error } = await (supabase.from("infrastructure_issues") as any).select("latitude,longitude").limit(1);
+      return !error;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const infrastructureLocationSupported = type === "infrastructure" && infrastructureLocationSchemaQuery.data === true;
 
   useEffect(() => {
     if (recordQuery.data) setForm(initialForm(type, recordQuery.data));
@@ -150,6 +161,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           summary: form.summary, content: form.body, image_url: form.image_url.trim() || null,
           image_alt: form.image_alt.trim() || null, image_caption: form.image_caption.trim() || null,
           image_credit: form.image_credit.trim() || null,
+          ...(infrastructureLocationSupported ? { latitude: form.latitude, longitude: form.longitude } : {}),
         };
       } else {
         payload = {
@@ -258,7 +270,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           <div className="sm:col-span-2"><Label>Supporting media</Label><AttachmentsField value={form.attachments} onChange={(value) => set("attachments", value)} /></div>
           <div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div><div><Label>SEO description</Label><Input value={form.seo_description} onChange={(e) => set("seo_description", e.target.value)} /></div><div className="sm:col-span-2"><Label>SEO keywords</Label><Input value={form.seo_keywords} onChange={(e) => set("seo_keywords", e.target.value)} /></div>
         </> : null}
-        {type === "infrastructure" ? <><div><Label>Road name</Label><Input value={form.road_name} onChange={(e) => set("road_name", e.target.value)} /></div><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road scope</Label><Select value={form.road_scope} onValueChange={(value) => set("road_scope", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="county">County road</SelectItem><SelectItem value="national">National road</SelectItem></SelectContent></Select></div></> : null}
+        {type === "infrastructure" ? <><div><Label>Road name</Label><Input value={form.road_name} onChange={(e) => set("road_name", e.target.value)} /></div><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road scope</Label><Select value={form.road_scope} onValueChange={(value) => set("road_scope", value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="county">County road</SelectItem><SelectItem value="national">National road</SelectItem></SelectContent></Select></div>{infrastructureLocationSupported ? <div className="sm:col-span-2 rounded border border-dashed border-border bg-muted/30 p-3"><Label>Verified issue location</Label><p className="mb-2 text-xs text-muted-foreground">Optional; available only when the reviewed coordinate columns exist.</p><LocationButton idPrefix="editor-infrastructure-location" latitude={form.latitude} longitude={form.longitude} onLocate={(latitude, longitude) => { set("latitude", latitude); set("longitude", longitude); }} /></div> : null}</> : null}
         {type === "campaign" ? <><div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div><div><Label>Start date</Label><Input type="datetime-local" value={form.start_date?.slice(0, 16)} onChange={(e) => set("start_date", e.target.value)} /></div><div><Label>End date</Label><Input type="datetime-local" value={form.end_date?.slice(0, 16)} onChange={(e) => set("end_date", e.target.value)} /></div></> : null}
       </section>
       <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>

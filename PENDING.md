@@ -1083,3 +1083,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Runtime:** Playwright verified Alert MapLibre rendering, controls and no overflow at all requested widths. Statistics used `public_canonical_accident_statistics` with HTTP 200 and no `alerts.duplicate_of_report_id` request or console error.
 - **Pending:** authenticated CMS acceptance, live provider-backed editor workflows and owner visual acceptance. No SQL executed; Infrastructure Issues coordinate and transport-statistics migrations remain unapproved/unexecuted.
 - **Lifecycle:** Implemented → Deployed → Live Tested; Release B remains **Deployed — Pending User Acceptance**, not Closed.
+
+## SB 2 — Infrastructure location and transport-statistics continuation (2026-10-31)
+
+- **Implemented locally:** Infrastructure Add/Edit and public detail map behavior is schema-gated. Existing production schemas remain safe; coordinate fields are only queried/submitted/rendered when the reviewed additive columns are available.
+- **Infrastructure migration:** unchanged review-only file SHA-256 `0D85E58F3E913B4D162ACCF8FB6616544C784244E83FD62F63C7E3F1E41FC891`. Rehearsal is pending because local `psql` is unavailable and Docker Desktop is not running. No production SQL executed.
+- **Transport migration:** `20261028140000_canonical_transport_statistics_extension_review.sql`, SHA-256 `9344AAA5839C80691D3CF499049D1698EB3D369ACD86761FD21CCB6E37F67AEA`, remains deferred and requires its canonical-statistics/relationship dependencies plus separate approval. Unsupported transport modes remain fail-closed.
+- **Tests:** targeted focused suites 15/15, full 536/536, security 14/14, build and diff checks passed. Authenticated CMS and owner acceptance remain pending; Release B is not closed.
