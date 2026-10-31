@@ -34,6 +34,7 @@ import { AlertPreviewCard } from "@/components/site/discovery-sections";
 import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { PublicPageHero } from "@/components/site/public-page-hero";
+import { RoadGeometryMap } from "@/components/site/road-geometry-map";
 import heroRoad from "@/assets/hero-road.jpg";
 import {
   IncidentEntityGroups,
@@ -168,6 +169,9 @@ function AlertsPage() {
   const trendingIds = new Set((trending as Array<{ id: string }>).map((item) => item.id));
   const rankedTrending = visible.filter((alert) => trendingIds.has(alert.id)).slice(0, 12);
   const hasDiscoveryFilter = county !== "all" || road !== "all" || hazard !== "all" || status !== "all";
+  const verifiedAlertMarkers = visible
+    .filter((alert: any) => Number.isFinite(alert.latitude) && Number.isFinite(alert.longitude))
+    .map((alert: any) => ({ id: alert.id, latitude: alert.latitude, longitude: alert.longitude, title: alert.title, href: `/alerts/${alert.id}` }));
 
   const alertActions = (item: PublicIncidentCard) => (
     <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -275,6 +279,10 @@ function AlertsPage() {
             ) : <div className="mt-5 max-w-xl">{hazardSubmissionCard}</div>}
 
             <div className="mt-5"><BannerAd placement="alerts-list-interval-1" /></div>
+            <EditorialBand tone="plain">
+              <SectionHeader eyebrow="Verified locations only" title="Alert map" />
+              <div className="mt-4"><RoadGeometryMap geometry={null} markers={verifiedAlertMarkers} source="Verified alert coordinates" /></div>
+            </EditorialBand>
             <EditorialBand tone="plain">
               <SectionHeader
                 eyebrow="Ranked by recorded views"

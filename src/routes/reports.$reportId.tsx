@@ -209,7 +209,7 @@ function ReportDetail() {
       />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-brand-blue">Accident Report</span>
             <Link
               to="/reports"
@@ -243,7 +243,7 @@ function ReportDetail() {
               {report.rejection_reason}
             </p>
           ) : null}
-          <p className="mt-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+          <p className="mt-1.5 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" />
             <Link to="/reports" search={{ county: report.county } as never} className="underline underline-offset-2 hover:text-brand-blue">
               {report.county}

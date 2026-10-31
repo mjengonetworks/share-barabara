@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 type Coordinate = [number, number];
 type MapMode = "light" | "dark";
+export type MapMarker = { id: string; longitude: number; latitude: number; title: string; href?: string };
 
 const MAP_STYLES: Record<MapMode, string> = {
   light: "https://tiles.openfreemap.org/styles/liberty",
@@ -28,7 +29,7 @@ function lineFeature(coordinates: Coordinate[]) {
 }
 
 /** Shared MapLibre road map using OpenFreeMap Liberty/Dark styles. */
-export function RoadGeometryMap({ geometry, source }: { geometry: unknown; source?: string | null }) {
+export function RoadGeometryMap({ geometry, source, markers = [] }: { geometry: unknown; source?: string | null; markers?: MapMarker[] }) {
   const coordinates = useMemo(() => extractCoordinates(geometry), [geometry]);
   const hasGeometry = coordinates.length >= 2;
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -54,12 +55,32 @@ export function RoadGeometryMap({ geometry, source }: { geometry: unknown; sourc
         map.addLayer({ id: "verified-road-line", type: "line", source: "verified-road-geometry", paint: { "line-color": mode === "dark" ? "#f6c453" : "#0b5cad", "line-width": 4 } });
         map.fitBounds(bounds, { padding: 48, maxZoom: 15, duration: 0 });
       } else {
-        map.setCenter([37.9, -0.2]);
-        map.setZoom(6);
+        if (markers.length) {
+          const bounds = new maplibregl.LngLatBounds([markers[0].longitude, markers[0].latitude], [markers[0].longitude, markers[0].latitude]);
+          markers.forEach((marker) => bounds.extend([marker.longitude, marker.latitude]));
+          map.fitBounds(bounds, { padding: 48, maxZoom: 13, duration: 0 });
+        } else {
+          map.setCenter([37.9, -0.2]);
+          map.setZoom(6);
+        }
+      }
+      if (markers.length) {
+        map.addSource("verified-map-markers", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: markers.map((marker) => ({ type: "Feature", properties: { title: marker.title, href: marker.href ?? "" }, geometry: { type: "Point", coordinates: [marker.longitude, marker.latitude] } })) },
+        });
+        map.addLayer({ id: "verified-map-markers", type: "circle", source: "verified-map-markers", paint: { "circle-color": mode === "dark" ? "#f6c453" : "#d83b3b", "circle-radius": 6, "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 } });
+        map.on("click", "verified-map-markers", (event) => {
+          const feature = event.features?.[0];
+          if (!feature || !feature.properties) return;
+          new maplibregl.Popup().setLngLat((feature.geometry as GeoJSON.Point).coordinates as [number, number]).setHTML(`<strong>${String(feature.properties.title ?? "Verified location")}</strong>`).addTo(map);
+        });
+        map.on("mouseenter", "verified-map-markers", () => { map.getCanvas().style.cursor = "pointer"; });
+        map.on("mouseleave", "verified-map-markers", () => { map.getCanvas().style.cursor = ""; });
       }
     });
     return () => { map.remove(); mapRef.current = null; };
-  }, [coordinates, mode]);
+  }, [coordinates, mode, markers]);
 
   return (
     <figure className="overflow-hidden rounded-xl border border-border bg-muted">
@@ -73,7 +94,7 @@ export function RoadGeometryMap({ geometry, source }: { geometry: unknown; sourc
       </div>
       {mapError ? <p className="border-b border-border bg-card px-3 py-2 text-sm text-muted-foreground">Map provider is unavailable. Verified geometry is retained, but the interactive map could not load.</p> : null}
       <div ref={containerRef} className="h-72 w-full" aria-label="Interactive verified road geometry map" />
-      <figcaption className="border-t border-border bg-card px-3 py-2 text-xs text-muted-foreground">{hasGeometry ? `Map context from verified road geometry${source ? ` · Source: ${source}` : ""}.` : "General Kenya map context; no verified road geometry or incident marker is shown."} Incident markers are shown separately only when coordinates are verified. Map data © OpenFreeMap contributors.</figcaption>
+      <figcaption className="border-t border-border bg-card px-3 py-2 text-xs text-muted-foreground">{hasGeometry ? `Map context from verified road geometry${source ? ` · Source: ${source}` : ""}.` : markers.length ? "General map context with verified incident locations only." : "General Kenya map context; no verified road geometry or incident marker is shown."} Incident markers are shown separately only when coordinates are verified. Map data © OpenFreeMap contributors.</figcaption>
     </figure>
   );
 }

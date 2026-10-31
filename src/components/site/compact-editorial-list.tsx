@@ -20,7 +20,7 @@ export function CompactEditorialList({ items }: { items: CompactEditorialItem[] 
           {item.imageUrl ? (
             <img src={item.imageUrl} alt="" loading="lazy" className="size-16 shrink-0 rounded-md object-cover" />
           ) : (
-            <div className="size-16 shrink-0 rounded-md bg-primary/5" aria-hidden="true" />
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-md bg-muted px-1 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground" aria-label="No image available">No image</div>
           )}
           <span className="min-w-0">
             <span className="line-clamp-3 text-sm font-semibold leading-snug text-foreground group-hover:text-brand-blue group-hover:underline">

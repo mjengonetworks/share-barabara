@@ -1039,3 +1039,9 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Alert increment:** top-row status chips are now clickable and route to status-filtered Alerts; `under_resolution` is grouped with `in_progress` without changing stored data.
 - **Tests:** focused 20/20, full 526/526, security 14/14, production build and diff check passed.
 - **Still pending:** browser screenshots at required widths, mobile/dark-mode visual review, console/network inspection, authenticated CMS status checks, map provider runtime verification and owner acceptance. Release B remains **Deployed — Pending User Acceptance**.
+
+## SB 2 — next UI/discovery increment pending deployment (2026-10-31)
+
+- Added verified-coordinate Alert discovery markers on the shared MapLibre map, general-map fallback without fabricated markers, tighter Report/Alert detail spacing and intentional sidebar no-image tiles.
+- Tests: focused 21/21, full 527/527, security 14/14, build and diff checks passed.
+- Not deployed and no SQL executed. Existing production Worker remains `c961ca9b-e1ae-4d0e-bd57-9710770edd40`. Browser visual/runtime MapLibre checks, authenticated CMS checks, geocoding, CMS location pickers and full Alert discovery redesign remain pending.

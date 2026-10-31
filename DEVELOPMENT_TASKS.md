@@ -822,3 +822,11 @@ unfinished application changes are not merged here.
 - **Files:** `src/components/site/road-geometry-map.tsx`, `src/routes/alerts.$alertId.tsx`, `src/routes/alerts.index.tsx`, `tests/map-status-discovery.test.mjs`, `tests/platform-wide-editorial-correction.test.mjs`, `package.json`, `bun.lock`.
 - **Verification:** focused 20/20, full 526/526, security 14/14, build passed, `git diff --check` passed.
 - **Release state:** application-only candidate; no SQL executed and no production deployment. Browser screenshots, responsive checks, console/network inspection and authenticated CMS acceptance remain Pending. Release B stays Deployed — Pending User Acceptance, not Closed.
+
+## SB 2 — next global UI and Alert discovery increment (2026-10-31)
+
+- **Implemented locally:** tightened Report/Alert classification-to-location spacing; added intentional `No image` sidebar tiles; added verified-coordinate MapLibre markers to Alert discovery; status-filtered Alert pages retain Latest, Featured, Trending and Browse All sections.
+- **Map safety:** Alerts use only finite stored latitude/longitude values for markers. Empty marker sets show a general Kenya-context map with no fabricated incident points. Existing Road Registry geometry remains verified-geometry-only.
+- **Files:** shared road map, Alerts discovery/detail, Report detail, compact editorial list, focused regression tests, dependency lock and task docs.
+- **Verification:** focused 21/21, full 527/527, security 14/14, production build passed, diff check passed.
+- **Release:** candidate is not deployed. No SQL or production data changes. Production remains Worker `c961ca9b-e1ae-4d0e-bd57-9710770edd40`; deployment approval, browser screenshots, runtime map/provider checks and owner acceptance remain pending.

@@ -15,6 +15,15 @@ test("road map exposes an accessible light/dark MapLibre style toggle", async ()
   assert.match(source, /General Kenya map context/);
   assert.match(source, /map\.setCenter\(\[37\.9, -0\.2\]\)/);
   assert.match(source, /if \(hasGeometry\)/);
+  assert.match(source, /verified-map-markers/);
+});
+
+test("alerts expose a filtered MapLibre discovery map and intentional no-image fallback", async () => {
+  const alerts = await read("src/routes/alerts.index.tsx");
+  const sidebar = await read("src/components/site/compact-editorial-list.tsx");
+  assert.match(alerts, /RoadGeometryMap geometry=\{null\} markers=\{verifiedAlertMarkers\}/);
+  assert.match(alerts, /Number\.isFinite\(alert\.latitude\)/);
+  assert.match(sidebar, /No image available/);
 });
 
 test("alert status is a clickable discovery filter and legacy status remains grouped", async () => {

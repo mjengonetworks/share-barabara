@@ -187,7 +187,7 @@ function AlertDetail() {
       />
       <div className="mx-auto grid w-full max-w-[1500px] gap-4 px-2 py-1.5 sm:gap-5 sm:px-6 sm:py-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,30%)] lg:py-4">
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-brand-blue">Alert / Hazard</span>
             {publicStatus ? <Link to="/alerts" search={{ status: alert.status === "under_resolution" ? "in_progress" : alert.status } as never} className={`rounded-full border px-2 py-0.5 text-xs font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${statusClass}`}>{publicStatus}</Link> : null}
             <TriangleAlert className="size-4 text-caution" />
@@ -199,7 +199,7 @@ function AlertDetail() {
             </Link>
           </div>
 
-          <p className="mt-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+          <p className="mt-1.5 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-4" />
             <Link to="/alerts" search={{ county: alert.county } as never} className="underline underline-offset-2 hover:text-brand-blue">{alert.county}</Link>
             {alert.road ? <> {" · "}{linkedRoad ? <Link to="/roads/$slug" params={{ slug: linkedRoad.slug }} className="underline underline-offset-2 hover:text-brand-blue">{alert.road}</Link> : alert.road}</> : null}
