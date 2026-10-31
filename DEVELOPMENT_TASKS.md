@@ -879,6 +879,14 @@ unfinished application changes are not merged here.
 - **Current infrastructure checksum:** `887AE3B3048246D0FED24574C702F19D9C5CE9A3F695B05EFD9A33A4201690EC`.
 - **Release controls:** no production SQL, deployment or production data changes occurred. Authenticated CMS/provider acceptance and owner visual acceptance remain pending; Release B remains **Deployed — Pending User Acceptance**.
 
+## SB 2 — final release preparation (2026-11-01)
+
+- **Candidate:** `7ae26cfc3efa2c743e06c30510370582f5d6478d`; the candidate is descended from deployed `e094512e72a91c0d2146cdbb0c146492ea5f97a9`. No newer production source was identified in the available repository evidence; live Worker source SHA remains unconfirmed by deployment metadata.
+- **Non-visual verification:** production HTTP smoke checks returned 200 for `/`, `/news`, `/reports`, `/alerts`, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed`. Focused tests 15/15, full suite 536/536, security 14/14, production build and `git diff --check` passed.
+- **Browser limitation:** CUA failed to initialize (`failed to write kernel assets`, OS error 3), and no Playwright runtime was available in this environment. No screenshot, console/network, responsive, map-control or authenticated CMS acceptance is claimed.
+- **Production schema limitation:** no direct read-only production database connection was available. Infrastructure/transport schema, RLS, RPC and migration-ledger compatibility remain owner SQL Editor checks before any migration approval.
+- **Release decisions:** application deployment **Ready for separate approval**; Infrastructure migration **Pending production compatibility queries and separate approval**; Transport migration **Pending production compatibility queries and separate approval**. Release B remains **Deployed — Pending User Acceptance**.
+
 ## SB 2 — post-deployment CMS and migration-safety increment (2026-10-31)
 
 - **Infrastructure CMS/public map guard:** Add/Edit Infrastructure Issue forms and the public detail route now feature-detect `latitude,longitude`. They do not request or submit unsupported columns before migration; after migration they expose the shared Photon/MapLibre picker and render only verified coordinates, with general-map fallback and no fabricated markers.
