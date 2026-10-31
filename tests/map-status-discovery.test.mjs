@@ -26,6 +26,15 @@ test("alerts expose a filtered MapLibre discovery map and intentional no-image f
   assert.match(sidebar, /No image available/);
 });
 
+test("alert discovery keeps search, status and paginated cards URL-backed", async () => {
+  const source = await read("src/routes/alerts.index.tsx");
+  assert.match(source, /q\?: string/);
+  assert.match(source, /placeholder=\"Search alerts\"/);
+  assert.match(source, /visible\.slice\(0, visibleLimit\)/);
+  assert.match(source, /Load more alerts/);
+  assert.match(source, /statusHeading/);
+});
+
 test("alert status is a clickable discovery filter and legacy status remains grouped", async () => {
   const detail = await read("src/routes/alerts.$alertId.tsx");
   const index = await read("src/routes/alerts.index.tsx");

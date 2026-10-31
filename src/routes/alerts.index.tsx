@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, MapPin, TriangleAlert, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -48,12 +49,13 @@ import {
 } from "@/components/site/public-ui";
 
 export const Route = createFileRoute("/alerts/")({
-  validateSearch: (search: Record<string, unknown>): { county?: string; road?: string; hazard?: string; status?: string } => {
+  validateSearch: (search: Record<string, unknown>): { county?: string; road?: string; hazard?: string; status?: string; q?: string } => {
     const county = typeof search["county"] === "string" ? (search["county"] as string) : undefined;
     const hazard = typeof search["hazard"] === "string" ? (search["hazard"] as string) : undefined;
     const road = typeof search["road"] === "string" ? (search["road"] as string) : undefined;
     const status = typeof search["status"] === "string" ? (search["status"] as string) : undefined;
-    return { ...(county ? { county } : {}), ...(road ? { road } : {}), ...(hazard ? { hazard } : {}), ...(status ? { status } : {}) };
+    const q = typeof search["q"] === "string" ? (search["q"] as string) : undefined;
+    return { ...(county ? { county } : {}), ...(road ? { road } : {}), ...(hazard ? { hazard } : {}), ...(status ? { status } : {}), ...(q ? { q } : {}) };
   },
   head: () => ({
     meta: [
@@ -109,6 +111,8 @@ function AlertsPage() {
   const [road, setRoad] = useState(searchParams.road ?? "all");
   const [hazard, setHazard] = useState(searchParams.hazard ?? "all");
   const [status, setStatus] = useState(searchParams.status ?? "all");
+  const [query, setQuery] = useState(searchParams.q ?? "");
+  const [visibleLimit, setVisibleLimit] = useState(12);
   const [openId, setOpenId] = useState<string | null>(null);
   const { data: hazardTypes = [] } = useIncidentTaxonomy();
 
@@ -117,7 +121,9 @@ function AlertsPage() {
     setRoad(searchParams.road ?? "all");
     setHazard(searchParams.hazard ?? "all");
     setStatus(searchParams.status ?? "all");
-  }, [searchParams.county, searchParams.road, searchParams.hazard, searchParams.status]);
+    setQuery(searchParams.q ?? "");
+    setVisibleLimit(12);
+  }, [searchParams.county, searchParams.road, searchParams.hazard, searchParams.status, searchParams.q]);
 
   const { data: alerts = [], isLoading } = useQuery({
     queryKey: ["alerts"],
@@ -148,6 +154,7 @@ function AlertsPage() {
       (county === "all" || a.county === county) &&
       (road === "all" || a.road_id === road) &&
       (status === "all" || (status === "in_progress" ? a.status === "in_progress" || a.status === "under_resolution" : a.status === status)) &&
+      (!query.trim() || `${a.title} ${a.description ?? ""} ${a.county ?? ""} ${a.road ?? ""}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())) &&
       (!selectedHazards || selectedHazards.has(a.hazard_type)),
   );
   const latest = visible.slice(0, 12);
@@ -168,7 +175,8 @@ function AlertsPage() {
   });
   const trendingIds = new Set((trending as Array<{ id: string }>).map((item) => item.id));
   const rankedTrending = visible.filter((alert) => trendingIds.has(alert.id)).slice(0, 12);
-  const hasDiscoveryFilter = county !== "all" || road !== "all" || hazard !== "all" || status !== "all";
+  const hasDiscoveryFilter = county !== "all" || road !== "all" || hazard !== "all" || status !== "all" || Boolean(query.trim());
+  const statusHeading = status === "active" ? "Active Alerts" : status === "in_progress" ? "Alerts In Progress" : status === "resolved" ? "Resolved Alerts" : "Road hazard alerts";
   const verifiedAlertMarkers = visible
     .filter((alert: any) => Number.isFinite(alert.latitude) && Number.isFinite(alert.longitude))
     .map((alert: any) => ({ id: alert.id, latitude: alert.latitude, longitude: alert.longitude, title: alert.title, href: `/alerts/${alert.id}` }));
@@ -222,7 +230,7 @@ function AlertsPage() {
     <div className="w-full py-4 sm:py-6">
       <PublicPageHero
         eyebrow="Community road watch"
-        title={hasDiscoveryFilter ? "Filtered road hazard alerts" : "Road hazard alerts"}
+        title={statusHeading}
         description={hasDiscoveryFilter ? "Browse the eligible hazard alerts matching the selected county, road and hazard filters." : "Current hazards, closures and disruptions reported by road users across Kenya. Check what is ahead and share what you see on your route."}
         image={heroRoad}
         compact
@@ -371,7 +379,8 @@ function AlertsPage() {
                   <SelectItem value="resolved">Resolved</SelectItem>
                 </SelectContent>
               </Select>
-              {hasDiscoveryFilter || status !== "all" ? <Button variant="ghost" size="sm" onClick={() => { setCounty("all"); setRoad("all"); setHazard("all"); setStatus("all"); void navigate({ search: {} }); }}>Clear all filters</Button> : null}
+              <Input value={query} onChange={(event) => { const value = event.target.value; setQuery(value); void navigate({ search: (previous: Record<string, string | undefined>) => ({ ...previous, q: value.trim() || undefined }) }); }} placeholder="Search alerts" aria-label="Search alerts" className="w-full sm:w-64" />
+              {hasDiscoveryFilter ? <Button variant="ghost" size="sm" onClick={() => { setCounty("all"); setRoad("all"); setHazard("all"); setStatus("all"); setQuery(""); void navigate({ search: {} }); }}>Clear all filters</Button> : null}
             </div>
 
             {isLoading ? <p className="mt-8 text-muted-foreground">Loading alerts…</p> : null}
@@ -383,12 +392,13 @@ function AlertsPage() {
 
             <div className="mt-6">
               <IncidentEntityGroups
-                items={visible as PublicIncidentCard[]}
+                items={visible.slice(0, visibleLimit) as PublicIncidentCard[]}
                 kind="alert"
                 getEntity={(item) => item.hazard_type ?? "Other alerts"}
                 renderActions={alertActions}
               />
             </div>
+            {visibleLimit < visible.length ? <div className="mt-5 text-center"><Button variant="outline" onClick={() => setVisibleLimit((limit) => limit + 12)}>Load more alerts</Button></div> : null}
         </div>
       </div>
 
