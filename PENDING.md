@@ -1067,3 +1067,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Browser runtime check:** Playwright Chromium inspected deployed `/`, `/news`, `/alerts`, `/statistics`, `/roads/ngong-road` and `/feed` at 390px and 1440px; all returned 200 and had no horizontal overflow. `/alerts` rendered MapLibre controls. Screenshots are outside the repository in the local `%TEMP%` directory; authenticated CMS and provider acceptance remain pending.
 - **Observed production limitations:** OpenFreeMap style/tile requests failed during this environment's run. The older deployed Statistics page also made invalid/out-of-date requests: Supabase `42703` for `alerts.duplicate_of_report_id` and `PGRST202` for the missing `public_canonical_transport_statistics` RPC. These are recorded findings, not silently treated as passed, and no production changes were made.
 - **TypeScript:** 849 existing diagnostics were reported on this branch; no TypeScript source changed in this increment. Do not represent the repository as TypeScript-clean.
+
+## SB 2 — Statistics and MapLibre runtime correction (2026-10-31)
+
+- **Statistics fix:** removed the invalid `alerts.duplicate_of_report_id` request. The adapter now uses the existing canonical accident-statistics RPC for default/road views and fails closed for unavailable non-road transport data. Approved-only, deduplicated and unknown-value semantics remain intact.
+- **MapLibre fix:** stabilized the shared map effect using a marker-value signature, preventing equivalent marker arrays from aborting and reloading OpenFreeMap style/tile requests on unrelated renders.
+- **Browser evidence:** Playwright checked `/alerts` at 360/390/440/768/1024/1280/1440px. Every viewport returned 200, had no horizontal overflow, mounted MapLibre canvas/controls and had no console errors. Direct Liberty/Dark style and representative tile requests returned 200. Authenticated CMS testing remains pending.
+- **Verification:** focused 14/14, full 535/535, security 14/14, build and diff checks passed. No production SQL or deployment occurred. Release B remains Deployed — Pending User Acceptance.
+- **TypeScript:** current run reported 848 existing diagnostics; no clean-pass claim is made.

@@ -100,10 +100,13 @@ function useGroupCounts(table: "alerts" | "accident_reports", column: string) {
   return useQuery({
     queryKey: ["group-counts", table, column],
     queryFn: async () => {
-      let query = supabase.from(table).select(`${column}, duplicate_of_report_id`);
+      // Duplicate identity is an Accident Report concern. Alerts must not
+      // request that column because their production schema does not contain it.
+      const selection = table === "accident_reports" ? `${column}, duplicate_of_report_id` : column;
+      let query = supabase.from(table).select(selection);
       if (table === "accident_reports") query = query.eq("status", "approved");
       let { data, error } = await query;
-      let hasDuplicateColumn = true;
+      let hasDuplicateColumn = table === "accident_reports";
       if (error && table === "accident_reports" && isMissingDuplicateColumn(error)) {
         const legacy = await supabase.from(table).select(column).eq("status", "approved");
         data = legacy.data;

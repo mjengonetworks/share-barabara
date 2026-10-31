@@ -67,6 +67,43 @@ function toLiveRows(rows: CanonicalTransportRow[], source: StatisticsSource): Li
   }));
 }
 
+async function loadCanonicalRoadIncidents(filter: CanonicalStatisticsFilter) {
+  const { data, error } = await (supabase.rpc as any)("public_canonical_accident_statistics", {
+    _from_date: filter.from ? filter.from.slice(0, 10) : null,
+    _to_date: filter.to ? filter.to.slice(0, 10) : null,
+    _county: filter.adminArea ?? null,
+    _road_id: null,
+    _severity: null,
+  });
+  if (error) {
+    if (!isMissingCanonicalRpc(error)) throw error;
+    return null;
+  }
+  return (data ?? []).map((row: any) => ({
+    incident_id: row.incident_id,
+    transport_mode: "road",
+    is_primary: true,
+    country_code: "KE",
+    admin_area: row.county ?? null,
+    locality: null,
+    transport_corridor: row.road ?? null,
+    occurred_at: row.occurred_at,
+    county: row.county ?? null,
+    road: row.road ?? null,
+    road_id: row.road_id ?? null,
+    severity: row.severity ?? null,
+    incident_type: row.incident_type ?? null,
+    vehicles_involved: row.vehicles_involved ?? null,
+    casualty_breakdown: row.casualty_breakdown ?? null,
+    fatalities: row.fatalities ?? null,
+    injuries: row.injuries ?? null,
+    latitude: row.latitude ?? null,
+    longitude: row.longitude ?? null,
+    report_id: row.report_id ?? null,
+    alert_id: row.alert_id ?? null,
+  } satisfies CanonicalTransportRow));
+}
+
 async function fallbackApprovedReports(filter: CanonicalStatisticsFilter) {
   // Before the canonical migration, the legacy schema can only represent
   // approved road Reports. Never present those rows as rail/aviation/etc. or
@@ -115,17 +152,34 @@ async function fallbackApprovedReports(filter: CanonicalStatisticsFilter) {
  * casualty data, preventing an unsafe double count.
  */
 export async function loadLiveCanonicalIncidents(filter: CanonicalStatisticsFilter = {}) {
-  const { data, error } = await (supabase.rpc as any)("public_canonical_transport_statistics", {
-    _from: filter.from ?? null,
-    _to: filter.to ?? null,
-    _country_code: filter.countryCode ?? null,
-    _transport_mode: filter.transportMode ?? null,
-    _admin_area: filter.adminArea ?? null,
-  });
-  if (!error && Array.isArray(data)) return toLiveRows(data as CanonicalTransportRow[], "canonical");
-  if (error && !isMissingCanonicalRpc(error)) throw error;
-  const fallback = await fallbackApprovedReports(filter);
-  return toLiveRows(fallback, "reports-fallback");
+  // The transport extension is additive and may not yet exist in a live
+  // database. Use the already-supported canonical road RPC first for the
+  // default/road view so an expected optional RPC absence does not create a
+  // noisy 404 or block the approved road statistics dataset.
+  if (!filter.transportMode || filter.transportMode === "road") {
+    const canonicalRoadRows = await loadCanonicalRoadIncidents(filter);
+    if (canonicalRoadRows) return toLiveRows(canonicalRoadRows, "canonical");
+    const fallback = await fallbackApprovedReports(filter);
+    return toLiveRows(fallback, "reports-fallback");
+  }
+
+  // Non-road modes require the reviewed transport extension. If it is not
+  // installed, return an honest empty result rather than relabelling road
+  // records or fabricating cross-modal statistics.
+  if (filter.transportMode && filter.transportMode !== "road") {
+    const { data, error } = await (supabase.rpc as any)("public_canonical_transport_statistics", {
+      _from: filter.from ?? null,
+      _to: filter.to ?? null,
+      _country_code: filter.countryCode ?? null,
+      _transport_mode: filter.transportMode,
+      _admin_area: filter.adminArea ?? null,
+    });
+    if (error && isMissingCanonicalRpc(error)) return [];
+    if (error) throw error;
+    return toLiveRows((data ?? []) as CanonicalTransportRow[], "canonical");
+  }
+
+  return [];
 }
 
 export async function loadCanonicalMapRows(filter: CanonicalStatisticsFilter & { transportCorridor?: string | null; incidentType?: string | null; severity?: string | null } = {}) {

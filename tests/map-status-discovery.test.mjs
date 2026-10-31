@@ -18,6 +18,12 @@ test("road map exposes an accessible light/dark MapLibre style toggle", async ()
   assert.match(source, /verified-map-markers/);
 });
 
+test("shared MapLibre road map does not reload for equivalent marker arrays", async () => {
+  const source = await read("src/components/site/road-geometry-map.tsx");
+  assert.match(source, /markerSignature = markers\.map/);
+  assert.match(source, /\[coordinates, mode, markerSignature\]/);
+});
+
 test("CMS location control uses bounded Photon search and MapLibre selection without fabricated coordinates", async () => {
   const picker = await read("src/components/site/location-button.tsx");
   const infrastructure = await read("src/components/site/infrastructure-issue-form.tsx");

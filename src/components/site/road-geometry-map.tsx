@@ -36,6 +36,10 @@ export function RoadGeometryMap({ geometry, source, markers = [] }: { geometry: 
   const mapRef = useRef<MapLibreMap | null>(null);
   const [mode, setMode] = useState<MapMode>("light");
   const [mapError, setMapError] = useState(false);
+  // Callers often derive marker objects during render. Depend on their stable
+  // value signature rather than the array identity so MapLibre is not torn
+  // down and reloaded on every unrelated sidebar/query update.
+  const markerSignature = markers.map((marker) => `${marker.id}:${marker.longitude}:${marker.latitude}:${marker.title}:${marker.href ?? ""}`).join("|");
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -80,7 +84,7 @@ export function RoadGeometryMap({ geometry, source, markers = [] }: { geometry: 
       }
     });
     return () => { map.remove(); mapRef.current = null; };
-  }, [coordinates, mode, markers]);
+  }, [coordinates, mode, markerSignature]);
 
   return (
     <figure className="overflow-hidden rounded-xl border border-border bg-muted">

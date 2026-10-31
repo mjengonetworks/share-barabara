@@ -25,6 +25,18 @@ test("statistics route consumes the adapter and exposes transport-mode filtering
   }
 });
 
+test("statistics does not request Report-only duplicate identity from Alerts", () => {
+  assert.match(route, /table === "accident_reports" \? `\$\{column\}, duplicate_of_report_id` : column/);
+  assert.match(route, /Duplicate identity is an Accident Report concern/);
+});
+
+test("statistics uses the existing canonical road RPC before the optional transport extension", () => {
+  assert.match(adapter, /public_canonical_accident_statistics/);
+  assert.match(adapter, /!filter\.transportMode \|\| filter\.transportMode === "road"/);
+  assert.match(adapter, /Non-road modes require the reviewed transport extension/);
+  assert.match(adapter, /if \(error && isMissingCanonicalRpc\(error\)\) return \[\]/);
+});
+
 test("the map adapter uses the canonical map RPC and excludes coordinate-less rows", () => {
   assert.match(adapter, /public_canonical_transport_map/);
   assert.match(adapter, /_from: filter\.from/);
