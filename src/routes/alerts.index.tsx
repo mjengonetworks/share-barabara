@@ -149,13 +149,14 @@ function AlertsPage() {
   );
 
   const selectedHazards = hazard === "all" ? null : descendantsOf(hazardTypes, hazard);
-  const visible = alerts.filter(
-    (a) =>
-      (county === "all" || a.county === county) &&
-      (road === "all" || a.road_id === road) &&
-      (status === "all" || (status === "in_progress" ? a.status === "in_progress" || a.status === "under_resolution" : a.status === status)) &&
-      (!query.trim() || `${a.title} ${a.description ?? ""} ${a.county ?? ""} ${a.road ?? ""}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())) &&
-      (!selectedHazards || selectedHazards.has(a.hazard_type)),
+  const matchesDiscoveryFilters = (a: (typeof alerts)[number]) =>
+    (county === "all" || a.county === county) &&
+    (road === "all" || a.road_id === road) &&
+    (!query.trim() || `${a.title} ${a.description ?? ""} ${a.county ?? ""} ${a.road ?? ""}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())) &&
+    (!selectedHazards || selectedHazards.has(a.hazard_type));
+  const statusScoped = alerts.filter(matchesDiscoveryFilters);
+  const visible = statusScoped.filter(
+    (a) => status === "all" || (status === "in_progress" ? a.status === "in_progress" || a.status === "under_resolution" : a.status === status),
   );
   const latest = visible.slice(0, 12);
   const featured = visible
@@ -178,9 +179,9 @@ function AlertsPage() {
   const hasDiscoveryFilter = county !== "all" || road !== "all" || hazard !== "all" || status !== "all" || Boolean(query.trim());
   const statusHeading = status === "active" ? "Active Alerts" : status === "in_progress" ? "Alerts In Progress" : status === "resolved" ? "Resolved Alerts" : "Road hazard alerts";
   const statusFilters = [
-    { value: "active", label: "Active", count: alerts.filter((alert) => alert.status === "active").length },
-    { value: "in_progress", label: "In Progress", count: alerts.filter((alert) => alert.status === "in_progress" || alert.status === "under_resolution").length },
-    { value: "resolved", label: "Resolved", count: alerts.filter((alert) => alert.status === "resolved").length },
+    { value: "active", label: "Active", count: statusScoped.filter((alert) => alert.status === "active").length },
+    { value: "in_progress", label: "In Progress", count: statusScoped.filter((alert) => alert.status === "in_progress" || alert.status === "under_resolution").length },
+    { value: "resolved", label: "Resolved", count: statusScoped.filter((alert) => alert.status === "resolved").length },
   ];
   const verifiedAlertMarkers = visible
     .filter((alert: any) => Number.isFinite(alert.latitude) && Number.isFinite(alert.longitude))

@@ -38,6 +38,8 @@ test("alert discovery keeps search, status and paginated cards URL-backed", asyn
   assert.match(source, /title="Most Viewed Alerts"/);
   assert.match(source, /title="Alert status"/);
   assert.match(source, /search=\{\{ status: filter\.value \} as never\}/);
+  assert.match(source, /const statusScoped = alerts\.filter\(matchesDiscoveryFilters\)/);
+  assert.match(source, /statusScoped\.filter\(\(alert\) => alert\.status === "active"\)/);
   assert.match(source, /const verifiedAlertMarkers = visible/);
 });
 
