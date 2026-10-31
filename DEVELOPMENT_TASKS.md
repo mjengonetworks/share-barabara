@@ -805,6 +805,15 @@ unfinished application changes are not merged here.
 - **Verification:** focused 20/20, full 526/526, security 14/14, build passed, diff check passed. No SQL or deployment performed.
 - **Explicit pending work:** full Active/In Progress/Resolved discovery redesign, platform-wide map adoption, reviewed geocoding, CMS map pickers, global spacing/media refinements and browser screenshots remain pending. Release B stays Deployed — Pending User Acceptance.
 
+## SB 2 — candidate f43383b deployed (2026-10-31)
+
+- **Deployment:** candidate `f43383b13278c89361f5d18c75311afd3880bff3` deployed without SQL or production-data changes. Nitro's generated staging block was removed only from the generated deployment artifact before direct Wrangler deployment.
+- **Worker:** `c961ca9b-e1ae-4d0e-bd57-9710770edd40` at 100%, replacing `50d44ae9-9c62-4c18-8a82-eddb026a46cf`; deployment timestamp `2026-10-31T07:04:34Z`.
+- **Configuration:** custom domain `sharebarabara.co.ke`, production bindings, `AI_RATE_LIMITER`, `ASSETS`, `DEPLOYMENT_ENV=production`, `WEB_PUSH_ENABLED=true` and cron `*/1 * * * *` confirmed in deployment output.
+- **Live smoke:** HTTP 200 for `/`, `/news`, `/reports`, `/alerts`, `/alerts?status=active`, `/alerts?status=in_progress`, `/alerts?status=resolved`, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed`. Status discovery SSR shells and road/feed markers were present.
+- **Checks:** full 526/526, security 14/14, build passed, diff check passed.
+- **Acceptance:** browser screenshots, runtime MapLibre controls/provider behavior, console/network inspection, authenticated CMS workflows and owner visual acceptance remain Pending. Keep Deployed — Pending User Acceptance; do not close.
+
 ## SB 2 — global detail and map refinement increment (2026-10-31)
 
 - **Mapping audit:** Road Registry currently uses `src/components/site/road-geometry-map.tsx` with stored LineString/MultiLineString geometry and no fabricated midpoint markers. The former renderer was an OpenStreetMap iframe; no shared MapLibre layer existed. Road identity/autocomplete remains in `src/lib/roads.ts`, `src/components/site/road-input.tsx` and `/roads/$slug`; no new schema dependency was introduced.

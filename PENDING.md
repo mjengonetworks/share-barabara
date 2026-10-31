@@ -1026,6 +1026,13 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - Latest production Worker remains `50d44ae9-9c62-4c18-8a82-eddb026a46cf` at 100%; no deployment or SQL execution occurred.
 - Focused tests 20/20, full suite 526/526, security 14/14 and production build passed. Browser visual acceptance remains unavailable/pending. Full status discovery, geocoding, CMS map pickers and platform-wide MapLibre rollout remain explicit pending tasks.
 
+## SB 2 — candidate f43383b production deployment (2026-10-31)
+
+- Deployed Worker `c961ca9b-e1ae-4d0e-bd57-9710770edd40` at 100%, previous Worker `50d44ae9-9c62-4c18-8a82-eddb026a46cf`. No SQL or production-data changes were made.
+- Live HTTP smoke checks passed for core pages, all three Alert status query routes, `/roads/ngong-road` and `/feed`.
+- Full suite 526/526, security 14/14, build and diff checks passed.
+- Browser screenshots, interactive MapLibre/Light-Dark controls, browser console/network, authenticated CMS and visual owner acceptance remain pending. Remaining platform-wide mapping/geocoding, CMS location pickers and Alert discovery redesign remain open. Status is Deployed — Pending User Acceptance, not Closed.
+
 ## SB 2 — global detail/map refinement candidate (2026-10-31)
 
 - **Map increment:** replaced the road-profile OpenStreetMap iframe with shared MapLibre/OpenFreeMap Liberty/Dark rendering. Light/Dark mode toggle, fullscreen/navigation controls, verified geometry, attribution and provider-failure fallback are implemented. No production SQL or deployment was performed.
