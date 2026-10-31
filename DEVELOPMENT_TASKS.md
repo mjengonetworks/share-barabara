@@ -797,6 +797,14 @@ unfinished application changes are not merged here.
 - **Not claimed:** no screenshots, responsive checks at 320/375/390/412/430/440/768/1024/1280/1440px, browser console/network inspection, authenticated CMS verification or safe editorial Feed-publishing workflow test.
 - **Owner acceptance:** remains open for homepage, News, Reports, Alerts, Statistics, Infrastructure Issues, Campaigns, Road Registry/road profiles, Media & Feed, detail pages, sidebars, maps, advertising and horizontal-overflow review. Keep status Deployed — Pending User Acceptance; do not close.
 
+## SB 2 — candidate 8c1be54 final review (2026-10-31)
+
+- **General map correction:** road profiles now render a usable general MapLibre/OpenFreeMap map centered on Kenya when verified geometry is absent. Navigation, zoom, fullscreen and Light/Dark controls remain available; no road line or incident marker is created without verified geometry. OpenFreeMap remains tiles/style-only; place search is not claimed until a reviewed geocoder is selected.
+- **Status discovery:** Alert status chips link to `/alerts?status=active`, `/alerts?status=in_progress` or `/alerts?status=resolved`; legacy `under_resolution` maps to `In Progress` and is included in the `in_progress` results.
+- **Production reconciliation:** Wrangler still reports Worker 50d44ae9-9c62-4c18-8a82-eddb026a46cf as the latest 100% deployment. The exact deployed Worker source SHA is not exposed by Wrangler metadata; the candidate diff is reviewed against artifact e314441 and contains only the documented map/status application increment plus tests/docs/dependency lock changes.
+- **Verification:** focused 20/20, build passed, diff check passed. No SQL or deployment performed.
+- **Explicit pending work:** full Active/In Progress/Resolved discovery redesign, platform-wide map adoption, reviewed geocoding, CMS map pickers, global spacing/media refinements and browser screenshots remain pending. Release B stays Deployed — Pending User Acceptance.
+
 ## SB 2 — global detail and map refinement increment (2026-10-31)
 
 - **Mapping audit:** Road Registry currently uses `src/components/site/road-geometry-map.tsx` with stored LineString/MultiLineString geometry and no fabricated midpoint markers. The former renderer was an OpenStreetMap iframe; no shared MapLibre layer existed. Road identity/autocomplete remains in `src/lib/roads.ts`, `src/components/site/road-input.tsx` and `/roads/$slug`; no new schema dependency was introduced.

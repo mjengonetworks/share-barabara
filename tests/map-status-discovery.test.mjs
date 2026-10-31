@@ -12,7 +12,9 @@ test("road map exposes an accessible light/dark MapLibre style toggle", async ()
   assert.match(source, /aria-label=\"Map style\"/);
   assert.match(source, /aria-pressed=\{mode === option\}/);
   assert.match(source, /FullscreenControl/);
-  assert.match(source, /Verified road geometry is not available yet/);
+  assert.match(source, /General Kenya map context/);
+  assert.match(source, /map\.setCenter\(\[37\.9, -0\.2\]\)/);
+  assert.match(source, /if \(hasGeometry\)/);
 });
 
 test("alert status is a clickable discovery filter and legacy status remains grouped", async () => {

@@ -30,13 +30,14 @@ function lineFeature(coordinates: Coordinate[]) {
 /** Shared MapLibre road map using OpenFreeMap Liberty/Dark styles. */
 export function RoadGeometryMap({ geometry, source }: { geometry: unknown; source?: string | null }) {
   const coordinates = useMemo(() => extractCoordinates(geometry), [geometry]);
+  const hasGeometry = coordinates.length >= 2;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [mode, setMode] = useState<MapMode>("light");
   const [mapError, setMapError] = useState(false);
 
   useEffect(() => {
-    if (coordinates.length < 2 || !containerRef.current) return;
+    if (!containerRef.current) return;
     setMapError(false);
     const map = new maplibregl.Map({ container: containerRef.current, style: MAP_STYLES[mode], attributionControl: true, cooperativeGestures: true });
     mapRef.current = map;
@@ -44,20 +45,21 @@ export function RoadGeometryMap({ geometry, source }: { geometry: unknown; sourc
     map.addControl(new maplibregl.FullscreenControl(), "top-right");
     map.on("error", () => setMapError(true));
     map.on("load", () => {
-      const lons = coordinates.map(([lon]) => lon);
-      const lats = coordinates.map(([, lat]) => lat);
-      const bounds = new maplibregl.LngLatBounds([lons[0], lats[0]], [lons[0], lats[0]]);
-      coordinates.forEach((coordinate) => bounds.extend(coordinate));
-      map.addSource("verified-road-geometry", { type: "geojson", data: lineFeature(coordinates) });
-      map.addLayer({ id: "verified-road-line", type: "line", source: "verified-road-geometry", paint: { "line-color": mode === "dark" ? "#f6c453" : "#0b5cad", "line-width": 4 } });
-      map.fitBounds(bounds, { padding: 48, maxZoom: 15, duration: 0 });
+      if (hasGeometry) {
+        const lons = coordinates.map(([lon]) => lon);
+        const lats = coordinates.map(([, lat]) => lat);
+        const bounds = new maplibregl.LngLatBounds([lons[0], lats[0]], [lons[0], lats[0]]);
+        coordinates.forEach((coordinate) => bounds.extend(coordinate));
+        map.addSource("verified-road-geometry", { type: "geojson", data: lineFeature(coordinates) });
+        map.addLayer({ id: "verified-road-line", type: "line", source: "verified-road-geometry", paint: { "line-color": mode === "dark" ? "#f6c453" : "#0b5cad", "line-width": 4 } });
+        map.fitBounds(bounds, { padding: 48, maxZoom: 15, duration: 0 });
+      } else {
+        map.setCenter([37.9, -0.2]);
+        map.setZoom(6);
+      }
     });
     return () => { map.remove(); mapRef.current = null; };
   }, [coordinates, mode]);
-
-  if (coordinates.length < 2) {
-    return <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Verified road geometry is not available yet; incidents without coordinates remain unpinned.</p>;
-  }
 
   return (
     <figure className="overflow-hidden rounded-xl border border-border bg-muted">
@@ -69,9 +71,9 @@ export function RoadGeometryMap({ geometry, source }: { geometry: unknown; sourc
           ))}
         </div>
       </div>
-      {mapError ? <p className="border-b border-border bg-card px-3 py-2 text-sm text-muted-foreground">Map provider is unavailable. The verified road geometry is retained, but the interactive map could not load.</p> : null}
+      {mapError ? <p className="border-b border-border bg-card px-3 py-2 text-sm text-muted-foreground">Map provider is unavailable. Verified geometry is retained, but the interactive map could not load.</p> : null}
       <div ref={containerRef} className="h-72 w-full" aria-label="Interactive verified road geometry map" />
-      <figcaption className="border-t border-border bg-card px-3 py-2 text-xs text-muted-foreground">Map context from verified road geometry{source ? ` · Source: ${source}` : ""}. Incident markers are shown separately only when coordinates are verified. Map data © OpenFreeMap contributors.</figcaption>
+      <figcaption className="border-t border-border bg-card px-3 py-2 text-xs text-muted-foreground">{hasGeometry ? `Map context from verified road geometry${source ? ` · Source: ${source}` : ""}.` : "General Kenya map context; no verified road geometry or incident marker is shown."} Incident markers are shown separately only when coordinates are verified. Map data © OpenFreeMap contributors.</figcaption>
     </figure>
   );
 }

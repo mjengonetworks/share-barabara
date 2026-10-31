@@ -1019,6 +1019,13 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - Therefore screenshots and visual assertions for all required viewport widths, console/network checks, authenticated CMS workflows and non-destructive Feed lifecycle checks remain Pending. No production changes were made.
 - Release B remains **Deployed — Pending User Acceptance**, not Closed. Owner must complete browser and authenticated acceptance before closure.
 
+## SB 2 — candidate 8c1be54 release readiness (2026-10-31)
+
+- Road profiles without verified geometry now retain a general interactive Kenya map with navigation/zoom and no fabricated road or incident geometry. Place search is intentionally not claimed because OpenFreeMap does not provide geocoding.
+- Alert status links and legacy `under_resolution` mapping are implemented and covered by tests.
+- Latest production Worker remains `50d44ae9-9c62-4c18-8a82-eddb026a46cf` at 100%; no deployment or SQL execution occurred.
+- Focused tests 20/20 and production build passed. Browser visual acceptance remains unavailable/pending. Full status discovery, geocoding, CMS map pickers and platform-wide MapLibre rollout remain explicit pending tasks.
+
 ## SB 2 — global detail/map refinement candidate (2026-10-31)
 
 - **Map increment:** replaced the road-profile OpenStreetMap iframe with shared MapLibre/OpenFreeMap Liberty/Dark rendering. Light/Dark mode toggle, fullscreen/navigation controls, verified geometry, attribution and provider-failure fallback are implemented. No production SQL or deployment was performed.
