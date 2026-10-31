@@ -802,7 +802,7 @@ unfinished application changes are not merged here.
 - **General map correction:** road profiles now render a usable general MapLibre/OpenFreeMap map centered on Kenya when verified geometry is absent. Navigation, zoom, fullscreen and Light/Dark controls remain available; no road line or incident marker is created without verified geometry. OpenFreeMap remains tiles/style-only; place search is not claimed until a reviewed geocoder is selected.
 - **Status discovery:** Alert status chips link to `/alerts?status=active`, `/alerts?status=in_progress` or `/alerts?status=resolved`; legacy `under_resolution` maps to `In Progress` and is included in the `in_progress` results.
 - **Production reconciliation:** Wrangler still reports Worker 50d44ae9-9c62-4c18-8a82-eddb026a46cf as the latest 100% deployment. The exact deployed Worker source SHA is not exposed by Wrangler metadata; the candidate diff is reviewed against artifact e314441 and contains only the documented map/status application increment plus tests/docs/dependency lock changes.
-- **Verification:** focused 20/20, build passed, diff check passed. No SQL or deployment performed.
+- **Verification:** focused 20/20, full 526/526, security 14/14, build passed, diff check passed. No SQL or deployment performed.
 - **Explicit pending work:** full Active/In Progress/Resolved discovery redesign, platform-wide map adoption, reviewed geocoding, CMS map pickers, global spacing/media refinements and browser screenshots remain pending. Release B stays Deployed — Pending User Acceptance.
 
 ## SB 2 — global detail and map refinement increment (2026-10-31)

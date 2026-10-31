@@ -1024,7 +1024,7 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - Road profiles without verified geometry now retain a general interactive Kenya map with navigation/zoom and no fabricated road or incident geometry. Place search is intentionally not claimed because OpenFreeMap does not provide geocoding.
 - Alert status links and legacy `under_resolution` mapping are implemented and covered by tests.
 - Latest production Worker remains `50d44ae9-9c62-4c18-8a82-eddb026a46cf` at 100%; no deployment or SQL execution occurred.
-- Focused tests 20/20 and production build passed. Browser visual acceptance remains unavailable/pending. Full status discovery, geocoding, CMS map pickers and platform-wide MapLibre rollout remain explicit pending tasks.
+- Focused tests 20/20, full suite 526/526, security 14/14 and production build passed. Browser visual acceptance remains unavailable/pending. Full status discovery, geocoding, CMS map pickers and platform-wide MapLibre rollout remain explicit pending tasks.
 
 ## SB 2 — global detail/map refinement candidate (2026-10-31)
 
