@@ -34,3 +34,14 @@ test("the map adapter uses the canonical map RPC and excludes coordinate-less ro
   assert.match(adapter, /report_id/);
   assert.match(adapter, /alert_id/);
 });
+
+test("statistics page uses filtered deduplicated rows for a clustered MapLibre map", () => {
+  assert.match(route, /StatisticsIncidentMap/);
+  assert.match(route, /rows=\{thisYearSummary\.rows\}/);
+  assert.match(route, /liveRoad/);
+  assert.match(route, /liveVehicle/);
+  assert.match(route, /roadOptions/);
+  assert.match(route, /vehicleOptions/);
+  assert.match(readFileSync("src/components/site/statistics-incident-map.tsx", "utf8"), /cluster: true/);
+  assert.match(readFileSync("src/components/site/statistics-incident-map.tsx", "utf8"), /Exploratory place search/);
+});

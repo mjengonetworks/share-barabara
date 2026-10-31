@@ -44,6 +44,7 @@ import {
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { loadLiveCanonicalIncidents, type LiveIncidentRow } from "@/lib/canonical-statistics";
+import { StatisticsIncidentMap } from "@/components/site/statistics-incident-map";
 
 export const Route = createFileRoute("/statistics")({
   head: () => ({
@@ -472,15 +473,21 @@ function StatisticsPage() {
   const [liveCounty, setLiveCounty] = useState("all");
   const [liveSeverity, setLiveSeverity] = useState("all");
   const [liveParty, setLiveParty] = useState("all");
+  const [liveRoad, setLiveRoad] = useState("all");
+  const [liveVehicle, setLiveVehicle] = useState("all");
   const [liveTransportMode, setLiveTransportMode] = useState("all");
   const { data: liveReports = [] } = useLiveYearReports(liveTransportMode, activeYear);
   const liveUsesCanonical = liveReports.some((row) => row.source === "canonical");
-  const liveFiltered = liveCounty !== "all" || liveSeverity !== "all" || liveParty !== "all" || liveTransportMode !== "all";
+  const roadOptions = Array.from(new Map(liveReports.filter((row) => row.road_id && row.road).map((row) => [row.road_id, row.road])).entries()).sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+  const vehicleOptions = Array.from(new Set(liveReports.map((row) => row.vehicles_involved).filter((value): value is number => Number.isFinite(value)))).sort((a, b) => a - b);
+  const liveFiltered = liveCounty !== "all" || liveSeverity !== "all" || liveParty !== "all" || liveRoad !== "all" || liveVehicle !== "all" || liveTransportMode !== "all";
 
   const matchesLiveFilters = (r: LiveIncidentRow) =>
     (liveCounty === "all" || r.county === liveCounty) &&
     (liveSeverity === "all" || r.severity === liveSeverity) &&
-    (liveParty === "all" || r.parties_involved.includes(liveParty));
+    (liveParty === "all" || r.parties_involved.includes(liveParty)) &&
+    (liveRoad === "all" || r.road_id === liveRoad) &&
+    (liveVehicle === "all" || String(r.vehicles_involved) === liveVehicle);
 
   const jan1ThisYear = new Date(activeYear, 0, 1).getTime();
   const isIncompleteYear = activeYear === currentYear;
@@ -755,6 +762,14 @@ function StatisticsPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={liveRoad} onValueChange={setLiveRoad}>
+            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+            <SelectContent className="max-h-64"><SelectItem value="all">All roads</SelectItem>{roadOptions.map(([id, name]) => <SelectItem key={id} value={String(id)}>{name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={liveVehicle} onValueChange={setLiveVehicle}>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="all">All vehicle counts</SelectItem>{vehicleOptions.map((value) => <SelectItem key={value} value={String(value)}>{value} vehicle{value === 1 ? "" : "s"}</SelectItem>)}</SelectContent>
+          </Select>
           <Select value={liveTransportMode} onValueChange={setLiveTransportMode}>
             <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -775,6 +790,8 @@ function StatisticsPage() {
                 setLiveCounty("all");
                 setLiveSeverity("all");
                 setLiveParty("all");
+                setLiveRoad("all");
+                setLiveVehicle("all");
                 setLiveTransportMode("all");
               }}
             >
@@ -963,6 +980,11 @@ function StatisticsPage() {
               No approved incident-type records match these filters.
             </p>
           )}
+        </section>
+        <section className="mt-8" aria-labelledby="live-incident-map-heading">
+          <h3 id="live-incident-map-heading" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Approved incident locations</h3>
+          <p className="mt-1 text-sm text-muted-foreground">The map uses the same filtered, deduplicated report rows as the live totals. Reports without verified coordinates remain in the counts but are not pinned.</p>
+          <div className="mt-3"><StatisticsIncidentMap rows={thisYearSummary.rows} /></div>
         </section>
       </div>
 
