@@ -18,6 +18,19 @@ test("road map exposes an accessible light/dark MapLibre style toggle", async ()
   assert.match(source, /verified-map-markers/);
 });
 
+test("CMS location control uses bounded Photon search and MapLibre selection without fabricated coordinates", async () => {
+  const picker = await read("src/components/site/location-button.tsx");
+  const infrastructure = await read("src/components/site/infrastructure-issue-form.tsx");
+  assert.match(picker, /photon\.komoot\.io\/api/);
+  assert.match(picker, /setTimeout\(async \(\) =>/);
+  assert.match(picker, /url\.searchParams\.set\("limit", "5"\)/);
+  assert.match(picker, /AbortController/);
+  assert.match(picker, /maplibregl\.Map/);
+  assert.match(picker, /onLocate\(event\.lngLat\.lat, event\.lngLat\.lng\)/);
+  assert.match(picker, /No marker is created until a coordinate is selected/);
+  assert.match(infrastructure, /<RoadInput/);
+});
+
 test("alerts expose a filtered MapLibre discovery map and intentional no-image fallback", async () => {
   const alerts = await read("src/routes/alerts.index.tsx");
   const sidebar = await read("src/components/site/compact-editorial-list.tsx");

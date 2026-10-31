@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { RoadInput } from "@/components/site/road-input";
 
 export function InfrastructureIssueForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
@@ -88,14 +89,12 @@ export function InfrastructureIssueForm({ onDone, editorial = false }: { onDone?
         </div>
       ) : null}
       <div>
-        <Label htmlFor="i-road">Road name</Label>
-        <Input
+        <RoadInput
           id="i-road"
           required
-          maxLength={150}
           value={form.road_name}
-          onChange={(e) => setForm({ ...form, road_name: e.target.value })}
-          placeholder="e.g. Nairobi-Nakuru Highway"
+          onChange={(road_name) => setForm({ ...form, road_name })}
+          label="Road name or location"
         />
       </div>
       <div>

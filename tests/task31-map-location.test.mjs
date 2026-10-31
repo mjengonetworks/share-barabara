@@ -31,7 +31,8 @@ test("location entry has explicit current-location, manual and clear paths", () 
   assert.match(picker, /Use entered coordinates/);
   assert.match(picker, /Clear point/);
   assert.match(geolocation, /getCurrentPosition/);
-  assert.match(picker, /Map selection will be enabled/);
+  assert.match(picker, /Search a place/);
+  assert.match(picker, /Click the map to place the point/);
 });
 
 test("Article location UI feature-detects the review schema before writing new columns", () => {
@@ -54,7 +55,8 @@ test("Alerts and Reports retain radius-compatible coordinates without fabricated
   assert.match(task27, /isValidCoordinate/);
   assert.match(task27, /do not broaden the subscription/);
   assert.match(picker, /A point is optional/);
-  assert.doesNotMatch(picker, /county.*centroid|geocod/i);
+  assert.match(picker, /Photon/);
+  assert.doesNotMatch(picker, /county.*centroid/i);
 });
 
 test("admin Alert and Report editing can correct optional points", () => {

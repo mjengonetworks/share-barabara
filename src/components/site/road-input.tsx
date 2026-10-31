@@ -9,12 +9,14 @@ export function RoadInput({
   onSelect,
   id = "road",
   label = "Road or landmark",
+  required = false,
 }: {
   value: string;
   onChange: (v: string) => void;
   onSelect?: (road: { id: string; name: string; slug: string; county?: string | null }) => void;
   id?: string;
   label?: string;
+  required?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const { data: suggestions = [] } = useRoadSuggestions(value);
@@ -25,6 +27,7 @@ export function RoadInput({
       <Input
         id={id}
         value={value}
+        required={required}
         onChange={(e) => {
           onChange(e.target.value);
           setOpen(true);
