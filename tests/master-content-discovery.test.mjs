@@ -94,7 +94,7 @@ test("detail order keeps location before headline and media fluid", async () => 
   for (const source of [report, alert]) {
     const view = source.slice(source.indexOf("<article"));
     assert.ok(view.indexOf("<MapPin") < view.indexOf("<h1"));
-    assert.match(source, /block h-auto max-w-full rounded-xl/);
+  assert.match(source, /block h-auto (?:w-full )?max-w-full rounded-xl/);
     assert.doesNotMatch(source, /Publication date:/);
   }
 });

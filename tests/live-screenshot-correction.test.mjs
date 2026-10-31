@@ -14,7 +14,7 @@ test("Report and Alert media uses intrinsic sizing and scene headings", async ()
   assert.match(gallery, /h-auto max-w-full/);
   assert.doesNotMatch(gallery, /aspect-video w-full rounded-lg border border-border object-cover/);
   for (const source of [report, alert]) {
-    assert.match(source, /block h-auto max-w-full rounded-xl border/);
+    assert.match(source, /block h-auto (?:w-full )?max-w-full rounded-xl border/);
     assert.match(source, /mt-1\.5 flex flex-wrap items-center gap-1 text-sm/);
   }
 });

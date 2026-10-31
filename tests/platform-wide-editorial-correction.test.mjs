@@ -62,6 +62,7 @@ test("Report and Alert public detail pages preserve the approved media and metad
   assert.ok(alertView.indexOf("longDate(alert.created_at)") < alertView.indexOf("ShareButtons"));
   assert.ok(alertView.indexOf("ShareButtons") < alertView.indexOf("<figure"));
   assert.ok(alertView.indexOf("<figure") < alertView.indexOf("UserAvatar"));
+  assert.match(alert, /className="block h-auto w-full max-w-full rounded-xl/);
 });
 
 test("Alert lifecycle status keeps null unselected and maps legacy values", async () => {

@@ -218,7 +218,7 @@ function AlertDetail() {
               <img
                 src={alert.image_url}
                 alt={alertMedia.image_alt || alert.title}
-                className="block h-auto max-w-full rounded-xl border border-border object-contain"
+                className="block h-auto w-full max-w-full rounded-xl border border-border object-contain"
               />
               <EditorialMediaMeta {...(alertMedia.image_caption ? { caption: alertMedia.image_caption } : {})} {...(alertMedia.image_credit ? { credit: alertMedia.image_credit } : {})} />
             </figure>
