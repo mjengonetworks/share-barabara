@@ -146,7 +146,7 @@ function AlertsPage() {
     (a) =>
       (county === "all" || a.county === county) &&
       (road === "all" || a.road_id === road) &&
-      (status === "all" || a.status === status) &&
+      (status === "all" || (status === "in_progress" ? a.status === "in_progress" || a.status === "under_resolution" : a.status === status)) &&
       (!selectedHazards || selectedHazards.has(a.hazard_type)),
   );
   const latest = visible.slice(0, 12);
@@ -167,7 +167,7 @@ function AlertsPage() {
   });
   const trendingIds = new Set((trending as Array<{ id: string }>).map((item) => item.id));
   const rankedTrending = visible.filter((alert) => trendingIds.has(alert.id)).slice(0, 12);
-  const hasDiscoveryFilter = county !== "all" || road !== "all" || hazard !== "all";
+  const hasDiscoveryFilter = county !== "all" || road !== "all" || hazard !== "all" || status !== "all";
 
   const alertActions = (item: PublicIncidentCard) => (
     <div className="flex flex-wrap items-center gap-2 text-xs">

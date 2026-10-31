@@ -796,3 +796,12 @@ unfinished application changes are not merged here.
 - **Browser status:** Pending. CUA browser initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)` before a browser surface could be opened.
 - **Not claimed:** no screenshots, responsive checks at 320/375/390/412/430/440/768/1024/1280/1440px, browser console/network inspection, authenticated CMS verification or safe editorial Feed-publishing workflow test.
 - **Owner acceptance:** remains open for homepage, News, Reports, Alerts, Statistics, Infrastructure Issues, Campaigns, Road Registry/road profiles, Media & Feed, detail pages, sidebars, maps, advertising and horizontal-overflow review. Keep status Deployed — Pending User Acceptance; do not close.
+
+## SB 2 — global detail and map refinement increment (2026-10-31)
+
+- **Mapping audit:** Road Registry currently uses `src/components/site/road-geometry-map.tsx` with stored LineString/MultiLineString geometry and no fabricated midpoint markers. The former renderer was an OpenStreetMap iframe; no shared MapLibre layer existed. Road identity/autocomplete remains in `src/lib/roads.ts`, `src/components/site/road-input.tsx` and `/roads/$slug`; no new schema dependency was introduced.
+- **Implemented:** replaced the road-geometry iframe with a reusable MapLibre renderer using OpenFreeMap Liberty and Dark styles, accessible Light/Dark mode buttons, navigation/fullscreen controls, verified-geometry-only line rendering, fit-to-geometry behavior, attribution and provider-failure fallback. Existing no-geometry fail-closed behavior remains.
+- **Alert correction:** status chips now appear in the top Alert/Hazard classification row, link to `/alerts?status=...`, and legacy `under_resolution` maps to the shared `in_progress` discovery filter. Alert directory filtering groups both legacy and current values.
+- **Files:** `src/components/site/road-geometry-map.tsx`, `src/routes/alerts.$alertId.tsx`, `src/routes/alerts.index.tsx`, `tests/map-status-discovery.test.mjs`, `tests/platform-wide-editorial-correction.test.mjs`, `package.json`, `bun.lock`.
+- **Verification:** focused 20/20, full 526/526, security 14/14, build passed, `git diff --check` passed.
+- **Release state:** application-only candidate; no SQL executed and no production deployment. Browser screenshots, responsive checks, console/network inspection and authenticated CMS acceptance remain Pending. Release B stays Deployed — Pending User Acceptance, not Closed.

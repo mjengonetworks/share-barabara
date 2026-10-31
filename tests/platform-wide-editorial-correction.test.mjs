@@ -25,7 +25,7 @@ test("Report and Alert detail metadata follows the shared article hierarchy", as
   assert.match(report, /bg-white text-foreground/);
   assert.doesNotMatch(alert, /Published:/);
   assert.match(alert, /Alert \/ Hazard/);
-  assert.match(alert, /longDate\(alert\.created_at\)[\s\S]*?publicStatus/);
+  assert.match(alert, /publicStatus \? <Link[\s\S]*?longDate\(alert\.created_at\)/);
   assert.match(alert, /By\{" "\}/);
   const alertView = alert.slice(alert.indexOf('<article'));
   assert.ok(alertView.indexOf("ShareButtons") < alertView.indexOf("UserAvatar"));
@@ -56,6 +56,7 @@ test("Report and Alert public detail pages preserve the approved media and metad
   assert.ok(reportView.indexOf("ShareButtons") < reportView.indexOf("<figure"));
   assert.ok(reportView.indexOf("<figure") < reportView.indexOf('By{" "}'));
   assert.ok(alertView.indexOf("Alert / Hazard") < alertView.indexOf("<MapPin"));
+  assert.ok(alertView.indexOf("publicStatus") < alertView.indexOf("<MapPin"));
   assert.ok(alertView.indexOf("<MapPin") < alertView.indexOf("<h1"));
   assert.ok(alertView.indexOf("<h1") < alertView.indexOf("longDate(alert.created_at)"));
   assert.ok(alertView.indexOf("longDate(alert.created_at)") < alertView.indexOf("ShareButtons"));

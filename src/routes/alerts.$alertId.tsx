@@ -189,6 +189,7 @@ function AlertDetail() {
         <article className="min-w-0 rounded-xl border border-border bg-card p-1.5 card-elevated sm:rounded-2xl sm:p-3">
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-brand-blue">Alert / Hazard</span>
+            {publicStatus ? <Link to="/alerts" search={{ status: alert.status === "under_resolution" ? "in_progress" : alert.status } as never} className={`rounded-full border px-2 py-0.5 text-xs font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${statusClass}`}>{publicStatus}</Link> : null}
             <TriangleAlert className="size-4 text-caution" />
             <Link to="/alerts" search={{ hazard: alert.hazard_type ?? undefined } as never} className="inline-flex items-center rounded border border-destructive/30 px-0.5 py-0.5 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <SeverityBadge value={alert.severity} />
@@ -207,10 +208,7 @@ function AlertDetail() {
           <h1 className="mt-2 max-w-4xl text-[24.7px] font-bold leading-[1.15] tracking-[-0.025em] text-foreground sm:text-[34px] lg:text-[clamp(34px,2.5vw,42px)]">
             {alert.title}
           </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span>{longDate(alert.created_at)}</span>
-            {publicStatus ? <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${statusClass}`}>{publicStatus}</span> : null}
-          </div>
+          <div className="mt-2 text-sm text-muted-foreground"><span>{longDate(alert.created_at)}</span></div>
           <div className="mt-3">
             <ShareButtons title={alert.title} />
           </div>

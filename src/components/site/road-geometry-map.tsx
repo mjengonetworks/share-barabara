@@ -1,6 +1,14 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import maplibregl, { type Map as MapLibreMap } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 type Coordinate = [number, number];
+type MapMode = "light" | "dark";
+
+const MAP_STYLES: Record<MapMode, string> = {
+  light: "https://tiles.openfreemap.org/styles/liberty",
+  dark: "https://tiles.openfreemap.org/styles/dark",
+};
 
 function extractCoordinates(value: unknown): Coordinate[] {
   if (!value || typeof value !== "object") return [];
@@ -15,36 +23,55 @@ function extractCoordinates(value: unknown): Coordinate[] {
   return [];
 }
 
-/**
- * Renders an OSM interactive map only when an attributed LineString or
- * MultiLineString is present. No midpoint or AI-generated coordinate is used
- * as a substitute for missing geometry.
- */
+function lineFeature(coordinates: Coordinate[]) {
+  return { type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates } };
+}
+
+/** Shared MapLibre road map using OpenFreeMap Liberty/Dark styles. */
 export function RoadGeometryMap({ geometry, source }: { geometry: unknown; source?: string | null }) {
   const coordinates = useMemo(() => extractCoordinates(geometry), [geometry]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const [mode, setMode] = useState<MapMode>("light");
+  const [mapError, setMapError] = useState(false);
+
+  useEffect(() => {
+    if (coordinates.length < 2 || !containerRef.current) return;
+    setMapError(false);
+    const map = new maplibregl.Map({ container: containerRef.current, style: MAP_STYLES[mode], attributionControl: true, cooperativeGestures: true });
+    mapRef.current = map;
+    map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
+    map.addControl(new maplibregl.FullscreenControl(), "top-right");
+    map.on("error", () => setMapError(true));
+    map.on("load", () => {
+      const lons = coordinates.map(([lon]) => lon);
+      const lats = coordinates.map(([, lat]) => lat);
+      const bounds = new maplibregl.LngLatBounds([lons[0], lats[0]], [lons[0], lats[0]]);
+      coordinates.forEach((coordinate) => bounds.extend(coordinate));
+      map.addSource("verified-road-geometry", { type: "geojson", data: lineFeature(coordinates) });
+      map.addLayer({ id: "verified-road-line", type: "line", source: "verified-road-geometry", paint: { "line-color": mode === "dark" ? "#f6c453" : "#0b5cad", "line-width": 4 } });
+      map.fitBounds(bounds, { padding: 48, maxZoom: 15, duration: 0 });
+    });
+    return () => { map.remove(); mapRef.current = null; };
+  }, [coordinates, mode]);
+
   if (coordinates.length < 2) {
     return <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">Verified road geometry is not available yet; incidents without coordinates remain unpinned.</p>;
   }
-  const lons = coordinates.map(([lon]) => lon);
-  const lats = coordinates.map(([, lat]) => lat);
-  const minLon = Math.min(...lons);
-  const maxLon = Math.max(...lons);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const padLon = Math.max((maxLon - minLon) * 0.12, 0.002);
-  const padLat = Math.max((maxLat - minLat) * 0.12, 0.002);
-  const bbox = `${minLon - padLon},${minLat - padLat},${maxLon + padLon},${maxLat + padLat}`;
+
   return (
     <figure className="overflow-hidden rounded-xl border border-border bg-muted">
-      <iframe
-        title="Verified road geometry map"
-        src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik`}
-        className="h-72 w-full border-0"
-        loading="lazy"
-      />
-      <figcaption className="border-t border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-        Map context from verified road geometry{source ? ` · Source: ${source}` : ""}. Incident markers are shown separately only when coordinates are verified.
-      </figcaption>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card px-3 py-2">
+        <span className="text-xs font-semibold text-muted-foreground">Map style</span>
+        <div className="flex rounded-md border border-border p-0.5" role="group" aria-label="Map style">
+          {(["light", "dark"] as const).map((option) => (
+            <button key={option} type="button" aria-pressed={mode === option} onClick={() => setMode(option)} className={`rounded px-2.5 py-1 text-xs font-semibold capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${mode === option ? "bg-brand-blue text-white" : "text-muted-foreground hover:bg-muted"}`}>{option}</button>
+          ))}
+        </div>
+      </div>
+      {mapError ? <p className="border-b border-border bg-card px-3 py-2 text-sm text-muted-foreground">Map provider is unavailable. The verified road geometry is retained, but the interactive map could not load.</p> : null}
+      <div ref={containerRef} className="h-72 w-full" aria-label="Interactive verified road geometry map" />
+      <figcaption className="border-t border-border bg-card px-3 py-2 text-xs text-muted-foreground">Map context from verified road geometry{source ? ` · Source: ${source}` : ""}. Incident markers are shown separately only when coordinates are verified. Map data © OpenFreeMap contributors.</figcaption>
     </figure>
   );
 }

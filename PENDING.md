@@ -1018,3 +1018,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - CUA browser initialization failed with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`.
 - Therefore screenshots and visual assertions for all required viewport widths, console/network checks, authenticated CMS workflows and non-destructive Feed lifecycle checks remain Pending. No production changes were made.
 - Release B remains **Deployed — Pending User Acceptance**, not Closed. Owner must complete browser and authenticated acceptance before closure.
+
+## SB 2 — global detail/map refinement candidate (2026-10-31)
+
+- **Map increment:** replaced the road-profile OpenStreetMap iframe with shared MapLibre/OpenFreeMap Liberty/Dark rendering. Light/Dark mode toggle, fullscreen/navigation controls, verified geometry, attribution and provider-failure fallback are implemented. No production SQL or deployment was performed.
+- **Alert increment:** top-row status chips are now clickable and route to status-filtered Alerts; `under_resolution` is grouped with `in_progress` without changing stored data.
+- **Tests:** focused 20/20, full 526/526, security 14/14, production build and diff check passed.
+- **Still pending:** browser screenshots at required widths, mobile/dark-mode visual review, console/network inspection, authenticated CMS status checks, map provider runtime verification and owner acceptance. Release B remains **Deployed — Pending User Acceptance**.
