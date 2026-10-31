@@ -861,3 +861,12 @@ unfinished application changes are not merged here.
 - **Browser matrix:** Playwright inspected `/alerts` at 360, 390, 440, 768, 1024, 1280 and 1440px. All returned 200, had no horizontal overflow, rendered one MapLibre canvas and three controls, and produced no console errors. Direct Liberty/Dark style and representative tile requests returned HTTP 200. Authenticated CMS workflows remain pending.
 - **Verification:** focused runtime/statistics/migration tests 14/14; full suite 535/535; security 14/14; production build and diff check passed. No production SQL or deployment occurred.
 - **TypeScript:** current diagnostic run reported 848 pre-existing diagnostics; no new TypeScript error class was introduced by this correction. The repository is not TypeScript-clean.
+
+## SB 2 — e094512 production deployment (2026-10-31)
+
+- **Deployment:** approved application commit `e094512e72a91c0d2146cdbb0c146492ea5f97a9` deployed to Worker `48ab00f9-5e14-422c-903f-549bd8053b6c` at `2026-10-31T15:51:08.414Z`, replacing `5f2fd891-27e1-442e-915f-8fd60f5e2ab4`. Traffic is 100% on `sharebarabara.co.ke`.
+- **Configuration:** ASSETS, AI_RATE_LIMITER (30/60s), production variables, custom domain and cron `*/1 * * * *` were preserved. No SQL or production data changes occurred.
+- **Public smoke:** HTTP 200 for `/`, `/news`, `/reports`, `/alerts`, all three Alert status filters, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed`.
+- **Live Statistics network:** Playwright confirmed no `alerts.duplicate_of_report_id` request. `public_canonical_accident_statistics` returned HTTP 200; the default Statistics page produced no console errors. Unsupported transport modes remain fail-closed pending the separate transport migration.
+- **Live browser:** `/alerts` rendered MapLibre canvas and three controls at 360, 390, 440, 768, 1024, 1280 and 1440px with no horizontal overflow, console errors or HTTP error responses. Desktop/mobile screenshots were captured outside the repository and visually inspected. Authenticated CMS workflows remain pending.
+- **Release state:** Deployed — Pending User Acceptance; do not mark Release B Closed without owner confirmation. The Infrastructure Issues coordinate migration and transport-statistics migration remain unexecuted.

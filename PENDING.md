@@ -1075,3 +1075,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Browser evidence:** Playwright checked `/alerts` at 360/390/440/768/1024/1280/1440px. Every viewport returned 200, had no horizontal overflow, mounted MapLibre canvas/controls and had no console errors. Direct Liberty/Dark style and representative tile requests returned 200. Authenticated CMS testing remains pending.
 - **Verification:** focused 14/14, full 535/535, security 14/14, build and diff checks passed. No production SQL or deployment occurred. Release B remains Deployed — Pending User Acceptance.
 - **TypeScript:** current run reported 848 existing diagnostics; no clean-pass claim is made.
+
+## SB 2 — e094512 deployed (2026-10-31)
+
+- **Worker:** `48ab00f9-5e14-422c-903f-549bd8053b6c` deployed at `2026-10-31T15:51:08.414Z`, replacing `5f2fd891-27e1-442e-915f-8fd60f5e2ab4`; traffic 100%. Production bindings, custom domain and cron preserved.
+- **Smoke:** all major public routes, Alert status filters, Road Registry and Feed returned HTTP 200.
+- **Runtime:** Playwright verified Alert MapLibre rendering, controls and no overflow at all requested widths. Statistics used `public_canonical_accident_statistics` with HTTP 200 and no `alerts.duplicate_of_report_id` request or console error.
+- **Pending:** authenticated CMS acceptance, live provider-backed editor workflows and owner visual acceptance. No SQL executed; Infrastructure Issues coordinate and transport-statistics migrations remain unapproved/unexecuted.
+- **Lifecycle:** Implemented → Deployed → Live Tested; Release B remains **Deployed — Pending User Acceptance**, not Closed.
