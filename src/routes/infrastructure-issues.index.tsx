@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
@@ -26,6 +26,7 @@ import { EditorialBand, SectionHeader } from "@/components/site/public-layout";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
 import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { RoadGeometryMap } from "@/components/site/road-geometry-map";
 
 export const Route = createFileRoute("/infrastructure-issues/")({
   validateSearch: (
@@ -77,11 +78,43 @@ function InfrastructureIssuesPage() {
     },
   });
 
+  const locationSchemaQuery = useQuery({
+    queryKey: ["infrastructure-location-schema-capability"],
+    queryFn: async () => {
+      const { error } = await (supabase.from("infrastructure_issues") as any)
+        .select("latitude,longitude")
+        .limit(1);
+      return !error;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const visible = issues.filter(
     (i) =>
       (county === "all" || i.county === county) &&
       (authority === "all" || i.authority === authority) &&
       (structure === "all" || i.structure_type === structure),
+  );
+  const verifiedMarkers = useMemo(
+    () =>
+      locationSchemaQuery.data === true
+        ? visible
+            .filter(
+              (issue) =>
+                typeof issue.latitude === "number" &&
+                Number.isFinite(issue.latitude) &&
+                typeof issue.longitude === "number" &&
+                Number.isFinite(issue.longitude),
+            )
+            .map((issue) => ({
+              id: issue.id,
+              latitude: issue.latitude,
+              longitude: issue.longitude,
+              title: issue.title,
+              href: `/infrastructure-issues/${issue.id}`,
+            }))
+        : [],
+    [locationSchemaQuery.data, visible],
   );
 
   return (
@@ -169,6 +202,16 @@ function InfrastructureIssuesPage() {
           <p className="mt-8 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
             No issues match this filter yet.
           </p>
+        ) : null}
+
+        {locationSchemaQuery.data === true ? (
+          <div className="mt-6">
+            <RoadGeometryMap
+              geometry={null}
+              markers={verifiedMarkers}
+              source="Verified Infrastructure Issue coordinates"
+            />
+          </div>
         ) : null}
 
         {visible.length > 0 ? (

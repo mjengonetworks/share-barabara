@@ -871,6 +871,14 @@ unfinished application changes are not merged here.
 - **Live browser:** `/alerts` rendered MapLibre canvas and three controls at 360, 390, 440, 768, 1024, 1280 and 1440px with no horizontal overflow, console errors or HTTP error responses. Desktop/mobile screenshots were captured outside the repository and visually inspected. Authenticated CMS workflows remain pending.
 - **Release state:** Deployed — Pending User Acceptance; do not mark Release B Closed without owner confirmation. The Infrastructure Issues coordinate migration and transport-statistics migration remain unexecuted.
 
+## SB 2 — corrected isolated migration rehearsal (2026-10-31)
+
+- **Application correction:** Infrastructure Issues listing, Add/Edit and detail use the shared `RoadGeometryMap` behind one cached schema-capability probe. Only finite verified coordinates become markers; unsupported schemas render no coordinate payload and no fabricated locations.
+- **Infrastructure rehearsal:** PostgreSQL 17.11 isolated cluster `127.0.0.1:55432`, database `sb2_infra`; exact migration applied successfully. Two fixture records were preserved, nullable columns/index/check constraint were present, RLS/read policy remained enabled, one-sided coordinates were rejected, and a valid coordinate insert rolled back with count remaining 2.
+- **Transport correction/rehearsal:** exact migration initially exposed a duplicate `casualty_breakdown` projection in its view. The reviewed fix removes that duplicate. Revised checksum: `A30D825F15E07B7041B64C43AE9EC5D0096C415B9AC370FFEC99AD8233F9A6A6`. In isolated `sb2_transport`, one canonical incident and one statistics row were preserved; transport-mode RLS, view, statistics RPC and verified-coordinate map RPC were created, and the revised migration reran successfully.
+- **Current infrastructure checksum:** `887AE3B3048246D0FED24574C702F19D9C5CE9A3F695B05EFD9A33A4201690EC`.
+- **Release controls:** no production SQL, deployment or production data changes occurred. Authenticated CMS/provider acceptance and owner visual acceptance remain pending; Release B remains **Deployed — Pending User Acceptance**.
+
 ## SB 2 — post-deployment CMS and migration-safety increment (2026-10-31)
 
 - **Infrastructure CMS/public map guard:** Add/Edit Infrastructure Issue forms and the public detail route now feature-detect `latitude,longitude`. They do not request or submit unsupported columns before migration; after migration they expose the shared Photon/MapLibre picker and render only verified coordinates, with general-map fallback and no fabricated markers.

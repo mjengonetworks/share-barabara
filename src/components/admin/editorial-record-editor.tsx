@@ -87,7 +87,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   });
   const summarySupported = type !== "report" && type !== "alert" ? true : summarySchemaQuery.data === true;
   const infrastructureLocationSchemaQuery = useQuery({
-    queryKey: ["infrastructure-location-schema-capability", "editor"],
+    queryKey: ["infrastructure-location-schema-capability"],
     enabled: type === "infrastructure",
     queryFn: async () => {
       const { error } = await (supabase.from("infrastructure_issues") as any).select("latitude,longitude").limit(1);

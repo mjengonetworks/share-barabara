@@ -20,6 +20,10 @@ const editorialEditor = fs.readFileSync(
   path.join(root, 'src/components/admin/editorial-record-editor.tsx'),
   'utf8',
 );
+const infrastructureListing = fs.readFileSync(
+  path.join(root, 'src/routes/infrastructure-issues.index.tsx'),
+  'utf8',
+);
 const sqlWithoutComments = migration.replace(/^\s*--.*$/gm, '');
 
 test('Infrastructure Issue coordinate proposal is additive and nullable', () => {
@@ -34,6 +38,8 @@ test('Infrastructure Issue coordinate proposal is additive and nullable', () => 
 
 test('coordinate proposal validates pairs and ranges without changing RLS', () => {
   assert.match(migration, /latitude IS NULL AND longitude IS NULL/i);
+  assert.match(migration, /latitude IS NOT NULL/i);
+  assert.match(migration, /longitude IS NOT NULL/i);
   assert.match(migration, /latitude BETWEEN -90 AND 90/i);
   assert.match(migration, /longitude BETWEEN -180 AND 180/i);
   assert.match(migration, /infrastructure_issues_coordinates_idx/i);
@@ -49,4 +55,8 @@ test('Infrastructure Issue location UI is gated by schema capability', () => {
   assert.match(editorialEditor, /infrastructureLocationSchemaQuery/);
   assert.match(editorialEditor, /infrastructureLocationSupported/);
   assert.match(editorialEditor, /\? \{ latitude: form\.latitude, longitude: form\.longitude \}/);
+  assert.match(infrastructureListing, /RoadGeometryMap/);
+  assert.match(infrastructureListing, /infrastructure-location-schema-capability/);
+  assert.match(infrastructureListing, /Number\.isFinite\(issue\.latitude\)/);
+  assert.match(infrastructureListing, /Number\.isFinite\(issue\.longitude\)/);
 });

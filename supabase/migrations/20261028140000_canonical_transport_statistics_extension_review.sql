@@ -193,7 +193,6 @@ SELECT
   COALESCE(i.verified_incident_type,s.incident_type) AS incident_type,
   s.fatalities,
   s.injuries,
-  s.casualty_breakdown,
   s.statistics_source,
   s.report_id,
   s.alert_id
