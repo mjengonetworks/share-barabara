@@ -33,6 +33,12 @@ test("alert discovery keeps search, status and paginated cards URL-backed", asyn
   assert.match(source, /visible\.slice\(0, visibleLimit\)/);
   assert.match(source, /Load more alerts/);
   assert.match(source, /statusHeading/);
+  assert.match(source, /title="Latest Alerts"/);
+  assert.match(source, /title="Featured Alerts"/);
+  assert.match(source, /title="Most Viewed Alerts"/);
+  assert.match(source, /title="Alert status"/);
+  assert.match(source, /search=\{\{ status: filter\.value \} as never\}/);
+  assert.match(source, /const verifiedAlertMarkers = visible/);
 });
 
 test("alert status is a clickable discovery filter and legacy status remains grouped", async () => {

@@ -177,6 +177,11 @@ function AlertsPage() {
   const rankedTrending = visible.filter((alert) => trendingIds.has(alert.id)).slice(0, 12);
   const hasDiscoveryFilter = county !== "all" || road !== "all" || hazard !== "all" || status !== "all" || Boolean(query.trim());
   const statusHeading = status === "active" ? "Active Alerts" : status === "in_progress" ? "Alerts In Progress" : status === "resolved" ? "Resolved Alerts" : "Road hazard alerts";
+  const statusFilters = [
+    { value: "active", label: "Active", count: alerts.filter((alert) => alert.status === "active").length },
+    { value: "in_progress", label: "In Progress", count: alerts.filter((alert) => alert.status === "in_progress" || alert.status === "under_resolution").length },
+    { value: "resolved", label: "Resolved", count: alerts.filter((alert) => alert.status === "resolved").length },
+  ];
   const verifiedAlertMarkers = visible
     .filter((alert: any) => Number.isFinite(alert.latitude) && Number.isFinite(alert.longitude))
     .map((alert: any) => ({ id: alert.id, latitude: alert.latitude, longitude: alert.longitude, title: alert.title, href: `/alerts/${alert.id}` }));
@@ -239,26 +244,28 @@ function AlertsPage() {
 
       <div className="mx-auto mt-5 max-w-[1500px] px-4 sm:px-6">
         <div className="min-w-0">
-            {latest.length > 0 ? (
-              <EditorialBand tone="plain">
-                <SectionHeader
-                  eyebrow="Newest published alerts"
-                  title="Latest Alerts"
-                  to="/alerts"
-                  actionLabel="View all"
-                />
+            <EditorialBand tone="plain">
+              <SectionHeader
+                eyebrow="Newest published alerts"
+                title="Latest Alerts"
+                to="/alerts"
+                actionLabel="View all"
+              />
+              {latest.length > 0 ? (
                 <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {latest.slice(0, 3).map((alert) => (
                     <AlertPreviewCard key={alert.id} alert={alert as any} />
                   ))}
                 </div>
-                <div className="mt-5 text-center">
-                  <Link to="/alerts" className="text-sm font-bold text-brand-blue underline underline-offset-4">
-                    Read more
-                  </Link>
-                </div>
-              </EditorialBand>
-            ) : null}
+              ) : (
+                <p className="mt-4 rounded border border-dashed border-border p-4 text-sm text-muted-foreground">No published Alerts match the current filters.</p>
+              )}
+              <div className="mt-5 text-center">
+                <Link to="/alerts" className="text-sm font-bold text-brand-blue underline underline-offset-4">
+                  Read more
+                </Link>
+              </div>
+            </EditorialBand>
 
             <EditorialBand tone="pale">
               <SectionHeader
@@ -293,8 +300,8 @@ function AlertsPage() {
             </EditorialBand>
             <EditorialBand tone="plain">
               <SectionHeader
-                eyebrow="Ranked by recorded views"
-                title="Trending / Most Viewed Alerts"
+                eyebrow="Ranked by genuine recorded views"
+                title="Most Viewed Alerts"
                 icon={<Flame className="size-5 text-destructive" />}
               />
               {rankedTrending.length > 0 ? (
@@ -308,6 +315,24 @@ function AlertsPage() {
               )}
               <div className="mt-5 text-center">
                 <Link to="/alerts" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more</Link>
+              </div>
+            </EditorialBand>
+
+            <EditorialBand tone="plain">
+              <SectionHeader eyebrow="Browse by lifecycle" title="Alert status" />
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {statusFilters.map((filter) => (
+                  <Link
+                    key={filter.value}
+                    to="/alerts"
+                    search={{ status: filter.value } as never}
+                    className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="text-sm font-semibold text-brand-blue">{filter.label} Alerts</span>
+                    <span className="mt-1 block text-2xl font-bold text-foreground">{filter.count}</span>
+                    <span className="text-xs text-muted-foreground">eligible records</span>
+                  </Link>
+                ))}
               </div>
             </EditorialBand>
 
