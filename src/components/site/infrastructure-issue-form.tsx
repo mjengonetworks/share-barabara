@@ -43,8 +43,9 @@ export function InfrastructureIssueForm({ onDone, editorial = false }: { onDone?
   const locationSchemaQuery = useQuery({
     queryKey: ["infrastructure-location-schema-capability"],
     queryFn: async () => {
-      const { error } = await (supabase.from("infrastructure_issues") as any).select("latitude,longitude").limit(1);
-      return !error;
+      const { data, error } = await (supabase.from("infrastructure_issues") as any).select("*").limit(1);
+      if (error || !data?.[0]) return false;
+      return Object.prototype.hasOwnProperty.call(data[0], "latitude") && Object.prototype.hasOwnProperty.call(data[0], "longitude");
     },
     staleTime: 5 * 60 * 1000,
   });

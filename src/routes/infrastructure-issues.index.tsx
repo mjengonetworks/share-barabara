@@ -78,26 +78,20 @@ function InfrastructureIssuesPage() {
     },
   });
 
-  const locationSchemaQuery = useQuery({
-    queryKey: ["infrastructure-location-schema-capability"],
-    queryFn: async () => {
-      const { error } = await (supabase.from("infrastructure_issues") as any)
-        .select("latitude,longitude")
-        .limit(1);
-      return !error;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-
   const visible = issues.filter(
     (i) =>
       (county === "all" || i.county === county) &&
       (authority === "all" || i.authority === authority) &&
       (structure === "all" || i.structure_type === structure),
   );
+  const locationSchemaSupported = issues.some(
+    (issue) =>
+      Object.prototype.hasOwnProperty.call(issue, "latitude") &&
+      Object.prototype.hasOwnProperty.call(issue, "longitude"),
+  );
   const verifiedMarkers = useMemo(
     () =>
-      locationSchemaQuery.data === true
+      locationSchemaSupported
         ? visible
             .filter(
               (issue) =>
@@ -114,7 +108,7 @@ function InfrastructureIssuesPage() {
               href: `/infrastructure-issues/${issue.id}`,
             }))
         : [],
-    [locationSchemaQuery.data, visible],
+    [locationSchemaSupported, visible],
   );
 
   return (
@@ -204,7 +198,7 @@ function InfrastructureIssuesPage() {
           </p>
         ) : null}
 
-        {locationSchemaQuery.data === true ? (
+        {locationSchemaSupported ? (
           <div className="mt-6">
             <RoadGeometryMap
               geometry={null}

@@ -901,6 +901,13 @@ unfinished application changes are not merged here.
 - **Application:** current deployed Worker remains `8f21478b-01c2-4bdf-bae1-365b703c3556`. No speculative UI changes were introduced without browser evidence. Existing schema-gated Infrastructure map behavior and fail-closed transport behavior remain preserved.
 - **Acceptance pending:** browser screenshots/responsive MapLibre checks, console/network inspection, authenticated CMS workflows and owner visual acceptance. Release B remains **Deployed — Pending User Acceptance**.
 
+## SB 2 — Infrastructure schema-probe runtime correction (2026-11-01)
+
+- **Root cause:** the deployed pre-migration schema did not contain `infrastructure_issues.latitude` or `longitude`, while the public listing/editor capability probe queried those columns directly. Playwright reproduced HTTP 400 responses on `/infrastructure-issues` at every tested width.
+- **Fix:** capability detection now uses the existing safe `select=*` response and checks returned keys, while coordinate submission/rendering remains gated. This removes invalid requests without fabricating coordinates or changing the migration requirement.
+- **Runtime evidence:** Playwright tooling was provisioned outside the repository using the existing Chromium binary. The deployed site showed 200 responses and no overflow for Alerts, Reports, Statistics, Infrastructure Issues and Road Registry across 360–1440px; the pre-fix Infrastructure route’s only observed error was the invalid coordinate-column request. Local dev-server navigation was unavailable, so post-fix live verification requires a separately approved deployment.
+- **Status:** application-only corrective candidate pending approval; migrations remain unexecuted and unapproved. Authenticated CMS acceptance remains pending.
+
 ## SB 2 — post-deployment CMS and migration-safety increment (2026-10-31)
 
 - **Infrastructure CMS/public map guard:** Add/Edit Infrastructure Issue forms and the public detail route now feature-detect `latitude,longitude`. They do not request or submit unsupported columns before migration; after migration they expose the shared Photon/MapLibre picker and render only verified coordinates, with general-map fallback and no fabricated markers.

@@ -49,14 +49,17 @@ test('coordinate proposal validates pairs and ranges without changing RLS', () =
 });
 
 test('Infrastructure Issue location UI is gated by schema capability', () => {
-  assert.match(infrastructureForm, /select\("latitude,longitude"\)/);
+  assert.match(infrastructureForm, /select\("\*"\)/);
+  assert.doesNotMatch(infrastructureForm, /select\("latitude,longitude"\)/);
   assert.match(infrastructureForm, /locationSchemaSupported/);
   assert.match(infrastructureForm, /LocationButton/);
   assert.match(editorialEditor, /infrastructureLocationSchemaQuery/);
   assert.match(editorialEditor, /infrastructureLocationSupported/);
   assert.match(editorialEditor, /\? \{ latitude: form\.latitude, longitude: form\.longitude \}/);
+  assert.doesNotMatch(editorialEditor, /select\("latitude,longitude"\)/);
   assert.match(infrastructureListing, /RoadGeometryMap/);
-  assert.match(infrastructureListing, /infrastructure-location-schema-capability/);
+  assert.match(infrastructureListing, /hasOwnProperty\.call\(issue, "latitude"\)/);
   assert.match(infrastructureListing, /Number\.isFinite\(issue\.latitude\)/);
   assert.match(infrastructureListing, /Number\.isFinite\(issue\.longitude\)/);
+  assert.doesNotMatch(infrastructureListing, /select\("latitude,longitude"\)/);
 });
