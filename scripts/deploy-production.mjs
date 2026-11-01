@@ -2,7 +2,8 @@ import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { prepareProductionWranglerConfig } from "./production-deploy-config.mjs";
 
-const build = spawnSync("npm", ["run", "build"], { stdio: "inherit", shell: process.platform === "win32" });
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const build = spawnSync(npmCommand, ["run", "build"], { stdio: "inherit", shell: false });
 if (build.status !== 0) process.exit(build.status ?? 1);
 
 const configPath = ".output/server/wrangler.json";
