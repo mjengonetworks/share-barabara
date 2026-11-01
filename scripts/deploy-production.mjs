@@ -2,9 +2,10 @@ import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { prepareProductionWranglerConfig } from "./production-deploy-config.mjs";
 
-const buildCommand = process.platform === "win32" ? process.env.ComSpec : "npm";
-const buildArgs = process.platform === "win32" ? ["/d", "/s", "/c", "npm run build"] : ["run", "build"];
-const build = spawnSync(buildCommand, buildArgs, { stdio: "inherit", shell: false });
+const build = spawnSync(process.execPath, ["node_modules/vite/bin/vite.js", "build", "--mode", "static"], {
+  stdio: "inherit",
+  shell: false,
+});
 if (build.status !== 0) process.exit(build.status ?? 1);
 
 const configPath = ".output/server/wrangler.json";
