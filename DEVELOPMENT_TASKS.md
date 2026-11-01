@@ -929,6 +929,14 @@ unfinished application changes are not merged here.
 - **Verification:** isolated PostgreSQL fixture confirmed one approved coordinate-bearing record becomes eligible, one-sided coordinates remain absent, and the transaction rolls back to the original count of 2. Focused 15/15, full 536/536, security 14/14 and production build passed.
 - **Pending:** deployment approval for this application-only increment, authenticated CMS testing, populated live detail/map verification and production schema results. Release B remains **Deployed — Pending User Acceptance**.
 
+## SB 2 — final Infrastructure map candidate review (2026-11-01)
+
+- **Scope reconciliation:** candidate `2a8d79db9c0844282f5da8c2ef8bbe491b47405b` adds only the Infrastructure empty-state general map, its regression assertion and task documentation relative to deployed `4c0370d5f69c2a7055e91eab4839014bd5728f95`; no migration or unrelated production code is included.
+- **Production reconciliation:** Wrangler still reports Worker `5fdd7c0f-4195-4ba3-9854-d0c5440881ae` at 100%; no newer deployment was identified in available deployment records.
+- **Fixture verification:** isolated PostgreSQL populated probe yielded one approved coordinate-bearing record, preserved its coordinates, and rolled back to two records. The application’s shared map marker, popup/detail-link and no-marker fallback logic remains covered by source/regression tests; a populated live page is unavailable because production has zero eligible records.
+- **Checks:** focused 15/15, full 536/536, security 14/14, production build and diff checks passed.
+- **Decision:** candidate is ready for separate application deployment approval. Both database migrations remain unexecuted and unapproved; authenticated CMS and owner visual acceptance remain pending.
+
 ## SB 2 — post-deployment CMS and migration-safety increment (2026-10-31)
 
 - **Infrastructure CMS/public map guard:** Add/Edit Infrastructure Issue forms and the public detail route now feature-detect `latitude,longitude`. They do not request or submit unsupported columns before migration; after migration they expose the shared Photon/MapLibre picker and render only verified coordinates, with general-map fallback and no fabricated markers.
