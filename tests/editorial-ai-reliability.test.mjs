@@ -57,10 +57,18 @@ test("content schemas reject unsupported optional database fields", () => {
 });
 
 test("the editor guards duplicate requests and preserves changed form values", async () => {
-  const button = await read("src/components/site/editorial-ai-button.tsx");
+  const [button, editor] = await Promise.all([
+    read("src/components/site/editorial-ai-button.tsx"),
+    read("src/components/admin/editorial-record-editor.tsx"),
+  ]);
   assert.match(button, /if \(\(!sourceMaterial\.trim\(\) && sourceFiles\.length === 0\) \|\| busy\) return/);
   assert.match(button, /requestRef\.current/);
   assert.match(button, /const snapshot = currentRef\.current/);
   assert.match(button, /JSON\.stringify\(latest\[field\]\) === JSON\.stringify\(snapshot\[field\]\)/);
   assert.match(button, /No fields were changed|toast\.error/);
+  assert.match(button, /category: "provider-response"/);
+  assert.match(button, /category: "schema-validation"/);
+  assert.match(button, /category: "unsupported-field"/);
+  assert.match(editor, /CMS persistence failed/);
+  assert.doesNotMatch(editor, /toast\.error\(error\.message\)/);
 });

@@ -38,6 +38,21 @@ const CONFIG: Record<EditorialRecordType, { table: string; label: string; back: 
 
 type RecordValue = Record<string, any>;
 
+function safePersistenceMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const normalized = message.toLocaleLowerCase();
+  if (/column .*does not exist|schema cache|could not find the .*column|unknown column/.test(normalized)) {
+    return "CMS persistence failed: the production database does not support one of the submitted fields. No changes were saved; contact an administrator.";
+  }
+  if (/duplicate|unique constraint|already exists/.test(normalized)) {
+    return "CMS persistence failed: this record conflicts with an existing record. No changes were saved; review the values and retry.";
+  }
+  if (/permission|not authorized|row-level security|rls/.test(normalized)) {
+    return "CMS persistence failed: your session is not authorized to save this record. No changes were saved; sign in again or contact an administrator.";
+  }
+  return "CMS persistence failed: the record could not be saved. No changes were saved; retry and contact an administrator if the problem persists.";
+}
+
 function stringValue(record: RecordValue, key: string) {
   return typeof record[key] === "string" ? record[key] : "";
 }
@@ -216,7 +231,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       }
     },
     onSuccess: () => toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created as a draft.`),
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => toast.error(safePersistenceMessage(error)),
   });
 
   if (isEditing && recordQuery.error) return <p className="rounded-lg border border-destructive/30 p-6 text-destructive">Unable to load this {config.label.toLowerCase()}.</p>;
