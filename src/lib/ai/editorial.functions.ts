@@ -158,6 +158,12 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
     const value = parsed[field];
     if (contentType === "report" && ["vehicles_involved", "casualties", "fatalities"].includes(field)) {
       if (value === null || (typeof value === "number" && Number.isInteger(value) && value >= 0)) draft[field] = value;
+    } else if (value === undefined) {
+      // Provider schemas require every property, but accepting a partial object
+      // here keeps the server compatible with providers that silently ignore
+      // nullable properties. Missing fields are simply left untouched by the
+      // non-destructive client mapper.
+      continue;
     } else if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
       draft[field] = value.slice(0, 12) as string[];
     } else if (typeof value === "string" || typeof value === "number" || value === null) {
@@ -166,8 +172,14 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
       draft[field] = typeof value === "string"
         ? field === "seo_keywords"
           ? value.replace(/\s*\n\s*/g, " ").replace(/\s*,\s*/g, ", ").trim()
+          : ["start_date", "end_date"].includes(field)
+            ? normalizeCalendarDate(value, field)
+            : field === "occurred_at"
+              ? normalizeOccurredAt(value, field)
           : field === "body" || field === "description" ? value : value.trim()
         : value;
+    } else if (value !== undefined) {
+      throw new Error(`${field}: expected text, number, list or null`);
     }
   }
   if (contentType === "article" || contentType === "report") {
@@ -178,12 +190,31 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
   if (contentType === "campaign") {
     for (const field of ["start_date", "end_date"]) {
       if (draft[field] !== undefined && draft[field] !== null && (typeof draft[field] !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(draft[field]))) {
-        throw new Error(`${field} must be an ISO calendar date`);
+        throw new Error(`${field}: expected an ISO calendar date (YYYY-MM-DD)`);
       }
     }
   }
   if (Object.keys(draft).length === 0) throw new Error("Editorial AI returned no usable fields");
   return draft;
+}
+
+function normalizeCalendarDate(value: string, field: string) {
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s].*)?$/);
+  if (!match) throw new Error(`${field}: expected an ISO calendar date (YYYY-MM-DD)`);
+  const date = new Date(`${match[1]}T00:00:00Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== match[1]) {
+    throw new Error(`${field}: invalid calendar date`);
+  }
+  return match[1];
+}
+
+function normalizeOccurredAt(value: string, field: string) {
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return `${trimmed}T00:00:00`;
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) throw new Error(`${field}: expected an ISO date or datetime`);
+  return parsed.toISOString();
 }
 
 /** Pure parser seam used by regression tests for provider-format failures. */
@@ -570,7 +601,7 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
           : message === "provider_json_unparseable" || message.includes("no usable fields")
             ? "Invalid structured response"
             : "Schema validation failed";
-        throw new Error(`${category} [${requestId}]. No fields were changed. Review the source and retry.`);
+        throw new Error(`${category}: ${message} [${requestId}]. No fields were changed. Review the source and retry.`);
       }
     },
   );

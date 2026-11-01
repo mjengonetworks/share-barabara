@@ -151,8 +151,15 @@ export async function completeWithProvider(
       const payload = (await response.json()) as {
         choices?: Array<{ message?: { content?: unknown } }>;
       };
-      const answer = payload.choices?.[0]?.message?.content;
-      if (typeof answer !== "string" || !answer.trim()) {
+      const rawAnswer = payload.choices?.[0]?.message?.content;
+      // xAI can return content blocks for some compatible models. Preserve the
+      // structured text without logging provider payloads or secrets.
+      const answer = typeof rawAnswer === "string"
+        ? rawAnswer
+        : Array.isArray(rawAnswer)
+          ? rawAnswer.map((part) => typeof part === "string" ? part : part && typeof part === "object" && "text" in part && typeof part.text === "string" ? part.text : "").join("")
+          : "";
+      if (!answer.trim()) {
         console.warn("[Share Barabara AI] provider returned no usable answer", { provider, attempt });
         return { ok: false as const, error: "malformed_ai_response" as const };
       }
