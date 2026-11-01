@@ -222,7 +222,12 @@ export function parseEditorialDraftForTest(contentType: EditorialContentType, an
   return parseDraft(contentType, answer);
 }
 
-type ControlledValues = { hazardTypes?: string[]; severities?: string[]; newsCategories?: string[] };
+export type ControlledValues = {
+  hazardTypes?: string[];
+  severities?: string[];
+  newsCategories?: string[];
+  unavailable?: string[];
+};
 
 function editorialPrompt(
   contentType: EditorialContentType,
@@ -240,6 +245,9 @@ function editorialPrompt(
       : "",
     controlledValues.newsCategories?.length
       ? `Permitted Article category values: ${controlledValues.newsCategories.join(", ")}. Use a category only when the evidence supports it; do not invent a theft or vandalism subtype.`
+      : "",
+    controlledValues.unavailable?.length
+      ? `Controlled taxonomy is unavailable for ${controlledValues.unavailable.join(", ")}. Return null for those classification fields; do not invent a value.`
       : "",
   ].filter(Boolean).join("\n");
   return [
@@ -362,22 +370,25 @@ async function controlledValues(
         ? ["hazard_types", "report_severities"] as const
         : [] as const;
   const results = await Promise.all(tables.map((table) => db.from(table).select("*")));
-  if (results.some((result) => result.error)) throw new Error("Controlled taxonomy is unavailable");
+  const unavailable = results.flatMap((result, index) => result.error ? [tables[index]] : []);
+  if (unavailable.length) {
+    console.warn("[Share Barabara AI] optional controlled taxonomy unavailable", { contentType, tables: unavailable });
+  }
   const values = results.map((result) =>
     (result.data ?? [])
       .filter((row) => (row as { active?: boolean }).active !== false)
       .map((row) => (row as { value?: string; name?: string }).value ?? (row as { name?: string }).name)
       .filter(Boolean),
   );
-  if (contentType === "article") return { newsCategories: values[0] };
+  if (contentType === "article") return { newsCategories: unavailable.includes("news_categories") ? undefined : values[0], unavailable };
   return contentType === "alert"
-    ? { hazardTypes: values[0], severities: values[1] }
+    ? { hazardTypes: unavailable.includes("hazard_types") ? undefined : values[0], severities: unavailable.includes("alert_severities") ? undefined : values[1], unavailable }
     : contentType === "report"
-      ? { hazardTypes: values[0], severities: values[1] }
+      ? { hazardTypes: unavailable.includes("hazard_types") ? undefined : values[0], severities: unavailable.includes("report_severities") ? undefined : values[1], unavailable }
       : {};
 }
 
-function assertControlledDraftValues(contentType: EditorialContentType, draft: EditorialDraft, allowed: ControlledValues) {
+export function assertControlledDraftValues(contentType: EditorialContentType, draft: EditorialDraft, allowed: ControlledValues) {
   const checks = contentType === "article"
     ? [["category", allowed.newsCategories]] as const
     : contentType === "alert"
@@ -387,10 +398,15 @@ function assertControlledDraftValues(contentType: EditorialContentType, draft: E
       : [];
   for (const [field, values] of checks) {
     const value = draft[field];
+    if (!values && value !== null && value !== undefined) {
+      draft[field] = null;
+      continue;
+    }
     if (typeof value === "string" && value.trim() && values && !values.includes(value)) {
       throw new Error(`Editorial AI returned an unsupported ${field}`);
     }
   }
+  return draft;
 }
 
 function currentFields(record: Record<string, unknown>, contentType: EditorialContentType) {
