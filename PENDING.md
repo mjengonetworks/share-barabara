@@ -1135,3 +1135,9 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Live Playwright:** `/infrastructure-issues` returned 200 at 360, 390, 440, 768, 1024, 1280 and 1440px. Scroll width matched viewport width at every size; no console errors or HTTP 400 responses occurred. Screenshots were captured under `%TEMP%/sb2-infrastructure-*.png`. The listing was empty, so no detail links or map canvas were available to exercise.
 - **Live smoke:** homepage, News, Reports, Alerts and all status filters, Statistics, Campaigns, Infrastructure Issues, Road Registry and Feed returned HTTP 200.
 - **Pending:** authenticated CMS workflows, populated Infrastructure detail/map behavior, migration compatibility SQL Editor results and owner visual acceptance. Release B remains **Deployed — Pending User Acceptance**.
+
+## SB 2 — post-hotfix functional verification (2026-11-01)
+
+- **Live browser matrix:** Playwright verified `/alerts`, `/reports`, `/statistics`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed` at 390, 768 and 1440px. All returned 200, had no horizontal overflow, and produced no console or HTTP error responses. Alerts and Statistics rendered MapLibre canvases with two style controls. Screenshots are stored under `%TEMP%/sb2-live-*.png`.
+- **Isolated Infrastructure fixture:** PostgreSQL 17.11 inserted one approved coordinate-bearing fixture inside a transaction, observed one eligible coordinate row and zero one-sided-coordinate candidates, then rolled back with the original count of 2 preserved. No production records were created.
+- **Pending:** the public Infrastructure listing is empty, so populated cards, detail maps and marker clicks remain unverified live. Authenticated CMS acceptance and production SQL Editor schema results remain pending. Both migrations remain unexecuted and unapproved.
