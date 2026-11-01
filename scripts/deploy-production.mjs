@@ -1,12 +1,6 @@
-import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import { prepareProductionWranglerConfig } from "./production-deploy-config.mjs";
-
-const build = spawnSync(process.execPath, ["node_modules/vite/bin/vite.js", "build", "--mode", "static"], {
-  stdio: "inherit",
-  shell: false,
-});
-if (build.status !== 0) process.exit(build.status ?? 1);
 
 const configPath = ".output/server/wrangler.json";
 const config = JSON.parse(await readFile(configPath, "utf8"));
