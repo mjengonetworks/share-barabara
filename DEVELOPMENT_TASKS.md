@@ -908,6 +908,14 @@ unfinished application changes are not merged here.
 - **Runtime evidence:** Playwright tooling was provisioned outside the repository using the existing Chromium binary. The deployed site showed 200 responses and no overflow for Alerts, Reports, Statistics, Infrastructure Issues and Road Registry across 360–1440px; the pre-fix Infrastructure route’s only observed error was the invalid coordinate-column request. Local dev-server navigation was unavailable, so post-fix live verification requires a separately approved deployment.
 - **Status:** application-only corrective candidate pending approval; migrations remain unexecuted and unapproved. Authenticated CMS acceptance remains pending.
 
+## SB 2 — Infrastructure schema-probe hotfix deployment (2026-11-01)
+
+- **Deployment:** approved commit `4c0370d5f69c2a7055e91eab4839014bd5728f95` deployed as Worker `5fdd7c0f-4195-4ba3-9854-d0c5440881ae` at `2026-11-01T08:33:52.074Z`, replacing `8f21478b-01c2-4bdf-bae1-365b703c3556`; traffic is 100%.
+- **Configuration:** ASSETS, `AI_RATE_LIMITER`, production variables, custom domain and cron were preserved. No migration or production data change occurred.
+- **Live Playwright:** `/infrastructure-issues` returned 200 at 360, 390, 440, 768, 1024, 1280 and 1440px. Scroll width matched viewport width at every size; no console errors or HTTP 400 responses occurred. Screenshots were captured under `%TEMP%/sb2-infrastructure-*.png`. The listing was empty, so no detail links or map canvas were available to exercise.
+- **Live smoke:** homepage, News, Reports, Alerts and all status filters, Statistics, Campaigns, Infrastructure Issues, Road Registry and Feed returned HTTP 200.
+- **Pending:** authenticated CMS workflows, populated Infrastructure detail/map behavior, migration compatibility SQL Editor results and owner visual acceptance. Release B remains **Deployed — Pending User Acceptance**.
+
 ## SB 2 — post-deployment CMS and migration-safety increment (2026-10-31)
 
 - **Infrastructure CMS/public map guard:** Add/Edit Infrastructure Issue forms and the public detail route now feature-detect `latitude,longitude`. They do not request or submit unsupported columns before migration; after migration they expose the shared Photon/MapLibre picker and render only verified coordinates, with general-map fallback and no fabricated markers.
