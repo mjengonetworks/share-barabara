@@ -198,15 +198,17 @@ function InfrastructureIssuesPage() {
           </p>
         ) : null}
 
-        {locationSchemaSupported ? (
-          <div className="mt-6">
-            <RoadGeometryMap
-              geometry={null}
-              markers={verifiedMarkers}
-              source="Verified Infrastructure Issue coordinates"
-            />
-          </div>
-        ) : null}
+        <div className="mt-6">
+          <RoadGeometryMap
+            geometry={null}
+            markers={locationSchemaSupported ? verifiedMarkers : []}
+            source={
+              locationSchemaSupported
+                ? "Verified Infrastructure Issue coordinates"
+                : "General map context; coordinate fields are pending schema support"
+            }
+          />
+        </div>
 
         {visible.length > 0 ? (
           <EditorialBand tone="pale" className="mt-6">

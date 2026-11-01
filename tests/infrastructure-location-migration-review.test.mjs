@@ -58,6 +58,7 @@ test('Infrastructure Issue location UI is gated by schema capability', () => {
   assert.match(editorialEditor, /\? \{ latitude: form\.latitude, longitude: form\.longitude \}/);
   assert.doesNotMatch(editorialEditor, /select\("latitude,longitude"\)/);
   assert.match(infrastructureListing, /RoadGeometryMap/);
+  assert.match(infrastructureListing, /General map context; coordinate fields are pending schema support/);
   assert.match(infrastructureListing, /hasOwnProperty\.call\(issue, "latitude"\)/);
   assert.match(infrastructureListing, /Number\.isFinite\(issue\.latitude\)/);
   assert.match(infrastructureListing, /Number\.isFinite\(issue\.longitude\)/);

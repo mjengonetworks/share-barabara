@@ -1141,3 +1141,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Live browser matrix:** Playwright verified `/alerts`, `/reports`, `/statistics`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed` at 390, 768 and 1440px. All returned 200, had no horizontal overflow, and produced no console or HTTP error responses. Alerts and Statistics rendered MapLibre canvases with two style controls. Screenshots are stored under `%TEMP%/sb2-live-*.png`.
 - **Isolated Infrastructure fixture:** PostgreSQL 17.11 inserted one approved coordinate-bearing fixture inside a transaction, observed one eligible coordinate row and zero one-sided-coordinate candidates, then rolled back with the original count of 2 preserved. No production records were created.
 - **Pending:** the public Infrastructure listing is empty, so populated cards, detail maps and marker clicks remain unverified live. Authenticated CMS acceptance and production SQL Editor schema results remain pending. Both migrations remain unexecuted and unapproved.
+
+## SB 2 — Infrastructure empty-state map increment (2026-11-01)
+
+- **Root cause:** the live approved Infrastructure query returned HTTP 200 with `[]`; the empty listing is therefore an expected no-eligible-record state, not a permission/query failure.
+- **Implementation:** Infrastructure listings now always render the shared MapLibre general map. Pre-migration or coordinate-less states show no markers; post-migration verified coordinates remain schema-gated and marker-eligible. The empty state remains non-fabricated and searchable through the general map.
+- **Verification:** isolated PostgreSQL fixture confirmed one approved coordinate-bearing record becomes eligible, one-sided coordinates remain absent, and the transaction rolls back to the original count of 2. Focused 15/15, full 536/536, security 14/14 and production build passed.
+- **Pending:** deployment approval for this application-only increment, authenticated CMS testing, populated live detail/map verification and production schema results. Release B remains **Deployed — Pending User Acceptance**.
