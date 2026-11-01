@@ -1156,3 +1156,11 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Fixture verification:** isolated PostgreSQL populated probe yielded one approved coordinate-bearing record, preserved its coordinates, and rolled back to two records. The application’s shared map marker, popup/detail-link and no-marker fallback logic remains covered by source/regression tests; a populated live page is unavailable because production has zero eligible records.
 - **Checks:** focused 15/15, full 536/536, security 14/14, production build and diff checks passed.
 - **Decision:** candidate is ready for separate application deployment approval. Both database migrations remain unexecuted and unapproved; authenticated CMS and owner visual acceptance remain pending.
+
+## SB 2 — Infrastructure empty-state map deployment (2026-11-01)
+
+- **Deployment:** approved application candidate `2a8d79db9c0844282f5da8c2ef8bbe491b47405b` deployed as Worker `1bb2385c-a1fc-4ee3-b1c0-fc6d1cd27e82` at `2026-11-01T09:08:26.340Z`, replacing `5fdd7c0f-4195-4ba3-9854-d0c5440881ae`; traffic is 100%.
+- **Configuration:** custom domain, routes, production variables, ASSETS, `AI_RATE_LIMITER` and cron were preserved. No SQL or production data changes occurred.
+- **Live Playwright:** `/infrastructure-issues` returned 200 at 360, 390, 440, 768, 1024, 1280 and 1440px. The empty state showed the general MapLibre map and two Light/Dark controls at every width; no markers, overflow, console errors, HTTP 400 responses or tile/map initialization failures were observed. Screenshots: `%TEMP%/sb2-final-infrastructure-*.png`.
+- **Focused live routes:** Alerts, Reports, Statistics, Road Registry and Feed returned 200 at 390px with no console/network errors or horizontal overflow.
+- **Pending:** populated Infrastructure detail/marker verification, authenticated CMS acceptance, production SQL Editor schema results, separate migration approvals and owner visual acceptance. Release B remains **Deployed — Pending User Acceptance**.
