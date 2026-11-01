@@ -36,3 +36,7 @@ RLS/permission verification with anonymous, ordinary authenticated and editor
 roles, authenticated browser acceptance of the admin panel, and owner approval
 for the migration and production deployment. Production Worker source metadata
 does not expose a Git SHA; do not infer ancestry from `origin/main`.
+## Editorial AI schema validation — 2026-11-01
+
+- **IMPLEMENTED on `fix/editorial-ai-schema-validation`; not deployed.** Reproduced the generic `Schema validation failed` boundary in `src/lib/ai/editorial.functions.ts`: valid ISO datetime output for Campaign `start_date`/`end_date` was rejected by a date-only parser, and Report `occurred_at` had no safe normalization. The correction normalizes valid ISO dates/datetimes, preserves null/unknown values, accepts compatible xAI content blocks, keeps strict provider schemas and allowlists, and returns field/rule diagnostics without applying failed proposals. All five content types retain separate field contracts and the four action/provider routes remain Generate/Grok, Auto-Populate/Groq, Auto-Populate/Grok and Update Existing/Grok. No migration, database write, provider secret read, or deployment was performed. Focused AI/security regression coverage passes 38/38; production build passes. Full-suite, lint, live-provider and authenticated-CMS verification remain open until completed/available.
+
