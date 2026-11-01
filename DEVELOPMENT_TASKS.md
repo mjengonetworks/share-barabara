@@ -887,6 +887,13 @@ unfinished application changes are not merged here.
 - **Production schema limitation:** no direct read-only production database connection was available. Infrastructure/transport schema, RLS, RPC and migration-ledger compatibility remain owner SQL Editor checks before any migration approval.
 - **Release decisions:** application deployment **Ready for separate approval**; Infrastructure migration **Pending production compatibility queries and separate approval**; Transport migration **Pending production compatibility queries and separate approval**. Release B remains **Deployed — Pending User Acceptance**.
 
+## SB 2 — application-only deployment (2026-11-01)
+
+- **Deployment:** approved commit `53d41ad23155adb5ae11b2440adb747895db3417` deployed as Worker `8f21478b-01c2-4bdf-bae1-365b703c3556` at `2026-11-01T07:51:18.724Z`, replacing Worker `48ab00f9-5e14-422c-903f-549bd8053b6c`; Wrangler reports 100% traffic.
+- **Configuration:** ASSETS, `AI_RATE_LIMITER` (30/60s), production variables, custom domain `sharebarabara.co.ke`, and cron `*/1 * * * *` were retained. No SQL migration or production data change was executed.
+- **Live smoke:** `/`, `/news`, `/reports`, `/alerts`, all three Alert status filters, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed` returned HTTP 200. Infrastructure application compatibility is confirmed only at route level; database-level schema verification remains pending.
+- **Acceptance:** CUA/Playwright browser runtime was unavailable, so no screenshots, responsive visual, console/network, MapLibre interaction or authenticated CMS acceptance is claimed. Release B remains **Deployed — Pending User Acceptance**.
+
 ## SB 2 — post-deployment CMS and migration-safety increment (2026-10-31)
 
 - **Infrastructure CMS/public map guard:** Add/Edit Infrastructure Issue forms and the public detail route now feature-detect `latitude,longitude`. They do not request or submit unsupported columns before migration; after migration they expose the shared Photon/MapLibre picker and render only verified coordinates, with general-map fallback and no fabricated markers.
