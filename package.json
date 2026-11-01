@@ -8,7 +8,7 @@
     "build": "vite build --mode static",
     "build:staging": "node scripts/build-staging.mjs",
     "deploy:staging": "node scripts/deploy-staging.mjs",
-    "deploy:production": "npm run build && node scripts/deploy-production.mjs",
+    "deploy:production": "bun run build && node scripts/deploy-production.mjs",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
