@@ -1,5 +1,24 @@
 # Development tasks
 
+## Editorial AI taxonomy compatibility hotfix — DEPLOYED / FUNCTIONAL ACCEPTANCE PENDING — 2026-11-01
+
+- Approved application-only commit `b9e39a1f12ba316ffe8c09ee5ac036bfc45b51e7`
+  was deployed from its verified direct parent `f0653527d8dbb11cd5a218f5cf1d869618ca54ea`.
+- Production Worker `20555c39-f497-4145-b022-34176c0ee0f0` was created at
+  `2026-11-01T12:00:51.572Z` and is serving 100% traffic. Cloudflare source
+  metadata remains Unknown, so the Git-to-Worker mapping is recorded from the
+  checked-out deployment candidate and Wrangler deployment evidence.
+- The deployment preserved the custom domain `sharebarabara.co.ke`, production
+  environment, `ASSETS`, `AI_RATE_LIMITER`, existing variables/secrets and the
+  `*/1 * * * *` cron. No SQL migration or production data change was executed.
+- Public and admin route-shell smoke checks returned HTTP 200. Full tests pass
+  `548/548`, security tests pass `14/14`, and the production build passes.
+  Full lint remains blocked by the repository-wide CRLF/Prettier limitation;
+  unrelated files were not reformatted.
+- Live taxonomy REST checks returned HTTP 200 for all four taxonomy tables.
+  Authenticated Grok/Groq generation, Auto-Populate and Update Existing remain
+  owner acceptance requirements and were not exercised.
+
 ## Task 70 / SB 2 — News Featured regression and editorial workflow audit — IMPLEMENTED / DEPLOYMENT PENDING — 2026-10-30
 
 This extends the existing Task 70 record; no duplicate task was created.

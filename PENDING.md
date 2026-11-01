@@ -1,5 +1,19 @@
 # Pending
 
+- **EDITORIAL AI TAXONOMY COMPATIBILITY HOTFIX — DEPLOYED / FUNCTIONAL
+  ACCEPTANCE PENDING (2026-11-01).** Approved application-only commit
+  `b9e39a1f12ba316ffe8c09ee5ac036bfc45b51e7`, directly descended from deployed
+  code `f0653527d8dbb11cd5a218f5cf1d869618ca54ea`, is live on Worker
+  `20555c39-f497-4145-b022-34176c0ee0f0` at 100% traffic from
+  `2026-11-01T12:00:51.572Z`. Cloudflare source metadata is Unknown. The custom
+  domain, production vars/secrets, `ASSETS`, `AI_RATE_LIMITER` and `*/1 * * * *`
+  cron were preserved. No SQL migration or production data change was executed.
+  Public and admin route-shell smoke checks returned HTTP 200. Full tests pass
+  `548/548`, security `14/14`, and production build passes. Full lint remains
+  blocked by the repository CRLF/Prettier limitation. Live taxonomy REST checks
+  returned HTTP 200 for `news_categories`, `hazard_types`, `alert_severities`
+  and `report_severities`; authenticated Grok/Groq workflows remain unverified.
+
 - **TASK 70 / SB 2 NEWS FEATURED AND EDITORIAL WORKFLOW CORRECTION — IMPLEMENTED /
   DEPLOYMENT AND LIVE ACCEPTANCE PENDING (2026-10-30).** `/news` now keeps
   Latest News → Featured Articles → Trending News → Browse by Category in that
