@@ -1113,3 +1113,10 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **Configuration:** ASSETS, `AI_RATE_LIMITER` (30/60s), production variables, custom domain `sharebarabara.co.ke`, and cron `*/1 * * * *` were retained. No SQL migration or production data change was executed.
 - **Live smoke:** `/`, `/news`, `/reports`, `/alerts`, all three Alert status filters, `/statistics`, `/campaigns`, `/infrastructure-issues`, `/roads/ngong-road` and `/feed` returned HTTP 200. Infrastructure application compatibility is confirmed only at route level; database-level schema verification remains pending.
 - **Acceptance:** CUA/Playwright browser runtime was unavailable, so no screenshots, responsive visual, console/network, MapLibre interaction or authenticated CMS acceptance is claimed. Release B remains **Deployed — Pending User Acceptance**.
+
+## SB 2 — post-deployment schema verification and continuation (2026-11-01)
+
+- **Production schema access:** direct read-only Supabase access was unavailable in this session. Added `docs/release-b-production-read-only-verification.sql`, containing only metadata, schema, constraint, index, RLS, relationship, RPC, view, count and migration-ledger SELECTs for owner execution in Supabase SQL Editor.
+- **Migration decisions:** Infrastructure remains separately pending production schema compatibility and approval; Transport remains separately pending its canonical-statistics/relationship dependencies and approval. No production SQL was executed.
+- **Application:** current deployed Worker remains `8f21478b-01c2-4bdf-bae1-365b703c3556`. No speculative UI changes were introduced without browser evidence. Existing schema-gated Infrastructure map behavior and fail-closed transport behavior remain preserved.
+- **Acceptance pending:** browser screenshots/responsive MapLibre checks, console/network inspection, authenticated CMS workflows and owner visual acceptance. Release B remains **Deployed — Pending User Acceptance**.
