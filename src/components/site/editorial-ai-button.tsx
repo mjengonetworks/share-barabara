@@ -68,8 +68,23 @@ function classifyEditorialError(error: unknown) {
   if (/source retrieval|could not retrieve|fetch the source/.test(normalized)) {
     return { category: "source-retrieval", message };
   }
-  if (/invalid|schema|usable draft|structured/.test(normalized)) {
-    return { category: "invalid-provider-response", message };
+  if (/unsupported .*field|unsupported field/.test(normalized)) {
+    return {
+      category: "unsupported-field",
+      message: "Editorial AI proposed a field this CMS does not support. No fields were changed; contact an administrator if the problem persists.",
+    };
+  }
+  if (/schema validation failed|source-grounding validation failed/.test(normalized)) {
+    return { category: "schema-validation", message };
+  }
+  if (/invalid provider response|provider_json_unparseable|invalid structured response|usable draft|structured/.test(normalized)) {
+    return {
+      category: "provider-response",
+      message: "The AI provider returned a response the CMS could not parse. No fields were changed; retry or paste the source text directly.",
+    };
+  }
+  if (/validation failed/.test(normalized)) {
+    return { category: "schema-validation", message };
   }
   return { category: "unknown", message };
 }
