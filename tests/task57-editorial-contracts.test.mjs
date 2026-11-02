@@ -9,9 +9,9 @@ const button = await read("src/components/site/editorial-ai-button.tsx");
 const article = await read("src/components/site/article-form.tsx");
 const report = await read("src/components/site/report-form.tsx");
 const alert = await read("src/components/site/alert-form.tsx");
-const adminArticle = await read("src/routes/_authenticated/admin/articles.tsx");
-const adminReport = await read("src/routes/_authenticated/admin/reports.tsx");
-const adminAlert = await read("src/routes/_authenticated/admin/alerts.tsx");
+const adminArticle = await read("src/components/admin/editorial-record-editor.tsx");
+const adminReport = adminArticle;
+const adminAlert = adminArticle;
 
 test("Task 57 preserves the two original prompt documents as separate contracts", async () => {
   const news = await read("docs/editorial-prompts/share_barabara_news_article_prompt.md");
@@ -45,15 +45,13 @@ test("Update Existing receives unsaved current form state without persisting", (
   assert.doesNotMatch(button, /supabase\.from|\.update\(/);
   // Shared Add forms may render role-gated controls, but only authorized
   // editorial users can invoke them; public submissions remain moderated.
-  for (const source of [adminArticle, adminReport, adminAlert]) {
-    assert.match(source, /mode="update"/);
-  }
+  assert.match(adminArticle, /mode: "update"/);
   assert.doesNotMatch(article, /mode="update"/);
   assert.match(report, /canReview/);
   assert.match(alert, /canReview/);
-  assert.match(adminArticle, /mode="update"[\s\S]*current=\{d\}/);
-  assert.match(adminReport, /mode="update"[\s\S]*current=\{d\}/);
-  assert.match(adminAlert, /mode="update"[\s\S]*current=\{editingParties\}/);
+  assert.match(adminArticle, /mode: "update"[\s\S]*current=\{aiCurrent\}/);
+  assert.match(adminReport, /mode: "update"[\s\S]*current=\{aiCurrent\}/);
+  assert.match(adminAlert, /mode: "update"[\s\S]*current=\{aiCurrent\}/);
 });
 
 test("Task 57 retains safe structured output and official-name rules", () => {
@@ -67,8 +65,8 @@ test("Task 57 retains safe structured output and official-name rules", () => {
 
 test("Featured Image follows SEO in rich Article and Report editors", () => {
   assert.ok(article.indexOf("SEO (optional") < article.indexOf("Featured image (optional)"));
-  assert.ok(adminArticle.indexOf("SEO (optional") < adminArticle.indexOf("Featured image details"));
-  assert.ok(adminReport.indexOf("SEO (optional") < adminReport.indexOf("Featured image details"));
+  assert.ok(adminArticle.indexOf("SEO title") < adminArticle.indexOf("Featured image and attribution"));
+  assert.ok(adminReport.indexOf("SEO title") < adminReport.indexOf("Featured image and attribution"));
 });
 
 test("Task 57 has no SearXNG or autonomous publishing dependency", () => {

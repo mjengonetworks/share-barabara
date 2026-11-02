@@ -24,12 +24,11 @@ test("the coordinated CMS action matrix keeps one content type and provider cont
     "src/components/site/article-form.tsx",
     "src/components/site/alert-form.tsx",
     "src/components/site/report-form.tsx",
-    "src/routes/_authenticated/admin/campaigns.tsx",
-    "src/routes/_authenticated/admin/infrastructure-issues.tsx",
+    "src/components/admin/editorial-record-editor.tsx",
   ].map((file) => import("node:fs/promises").then(({ readFile }) => readFile(file, "utf8"))));
   const source = files.join("\n");
   for (const contentType of ["article", "alert", "report", "campaign", "infrastructure"]) {
-    assert.match(source, new RegExp(`contentType=\\"${contentType}\\"|contentType: \\"${contentType}\\"`), contentType);
+    assert.ok(new RegExp(`contentType=\\"${contentType}\\"|contentType: \\"${contentType}\\"|type === \\"${contentType}\\"|type=\\"${contentType}\\"`).test(source), contentType);
   }
   assert.ok(source.includes('mode="generate"') || source.includes('mode: "generate"'));
   assert.ok(source.includes('mode="autopopulate"') || source.includes('mode: "autopopulate"'));

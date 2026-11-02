@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -28,12 +27,10 @@ import { ImageUploadField } from "@/components/site/image-upload-field";
 import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
 import { supabase } from "@/integrations/supabase/client";
 import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
-import { useAuth } from "@/hooks/useAuth";
 import { campaignStatus } from "@/lib/campaigns";
-import { longDate, slugify } from "@/lib/format";
+import { longDate } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
-import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
   head: () => ({ meta: [{ title: "Campaigns: Share Barabara Admin" }] }),
@@ -46,24 +43,6 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
   previous: "outline",
 };
 
-type EventForm = {
-  title: string;
-  location: string;
-  description: string;
-  image_url: string;
-  start_date: string;
-  end_date: string;
-};
-
-const EMPTY_EVENT: EventForm = {
-  title: "",
-  location: "",
-  description: "",
-  image_url: "",
-  start_date: new Date().toISOString().slice(0, 10),
-  end_date: new Date().toISOString().slice(0, 10),
-};
-
 type ReportForm = {
   report_content: string;
   report_image_url: string;
@@ -72,13 +51,8 @@ type ReportForm = {
 
 function CampaignsAdminPage() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  if (/^\/admin\/campaigns\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
-  const { user } = useAuth();
+  if (/^\/admin\/campaigns\/(?:new|[^/]+\/edit)\/?$/.test(pathname)) return <Outlet />;
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<EventForm>(EMPTY_EVENT);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [reportOpenId, setReportOpenId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -116,29 +90,6 @@ function CampaignsAdminPage() {
     });
   }, [campaigns, search, statusFilter]);
 
-  const openCreate = () => {
-    setEditingId(null);
-    setForm(EMPTY_EVENT);
-    setAttachments([]);
-    setOpen(true);
-  };
-
-  const openEdit = (id: string) => {
-    const c = campaigns.find((x) => x.id === id);
-    if (!c) return;
-    setEditingId(id);
-    setForm({
-      title: c.title,
-      location: c.location ?? "",
-      description: c.description,
-      image_url: c.image_url ?? "",
-      start_date: c.start_date,
-      end_date: c.end_date,
-    });
-    setAttachments(((c.attachments as Attachment[] | null) ?? []) as Attachment[]);
-    setOpen(true);
-  };
-
   const openReport = (id: string) => {
     const c = campaigns.find((x) => x.id === id);
     if (!c) return;
@@ -150,35 +101,6 @@ function CampaignsAdminPage() {
     });
     setReportAttachments(((c.report_attachments as Attachment[] | null) ?? []) as Attachment[]);
   };
-
-  const save = useMutation({
-    mutationFn: async () => {
-      const payload = {
-        title: form.title.trim(),
-        location: form.location.trim() || null,
-        description: form.description.trim(),
-        image_url: form.image_url.trim() || null,
-        attachments,
-        start_date: form.start_date,
-        end_date: form.end_date,
-      };
-      if (editingId) {
-        const { error } = await supabase.from("campaigns").update(payload).eq("id", editingId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("campaigns")
-          .insert({ ...payload, slug: slugify(form.title), created_by: user?.id ?? null });
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success(editingId ? "Campaign updated" : "Campaign created");
-      setOpen(false);
-      refresh();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const saveReport = useMutation({
     mutationFn: async (id: string) => {
@@ -219,7 +141,7 @@ function CampaignsAdminPage() {
         eyebrow="Site content"
         title="Manage Campaigns"
         websiteHref="/campaigns"
-        actions={<Button size="sm" onClick={openCreate}><Plus className="mr-1.5 size-4" /> Add New Campaign</Button>}
+        actions={<Button asChild size="sm"><Link to="/admin/campaigns/new"><Plus className="mr-1.5 size-4" /> Add New Campaign</Link></Button>}
         description={
           <>
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a
@@ -229,111 +151,6 @@ function CampaignsAdminPage() {
           </>
         }
       />
-
-      <div className="mt-4">
-        <Dialog
-          open={open}
-          onOpenChange={(v) => {
-            setOpen(v);
-            if (!v) setEditingId(null);
-          }}
-        >
-          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
-            <DialogHeader>
-              <DialogTitle>{editingId ? "Edit campaign" : "New campaign"}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="c-title">Title</Label>
-                <Input
-                  id="c-title"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="c-location">Location</Label>
-                <Input
-                  id="c-location"
-                  value={form.location}
-                  onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  placeholder="e.g. Uhuru Park, Nairobi"
-                />
-              </div>
-              <div>
-                <Label htmlFor="c-desc">Description</Label>
-                <Textarea
-                  id="c-desc"
-                  rows={3}
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
-              </div>
-              <div className="space-y-3">
-                {([{ mode: "generate", provider: "grok" }, { mode: "autopopulate", provider: "groq" }, { mode: "autopopulate", provider: "grok" }, ...(editingId ? [{ mode: "update" as const, provider: "grok" }] : [])] as const).map(({ mode, provider }) => (
-                  <EditorialAIButton
-                    key={`${mode}-${provider}`}
-                    contentType="campaign"
-                    mode={mode}
-                    provider={provider}
-                    current={form}
-                    contentId={editingId ?? undefined}
-                    source=""
-                    onDraft={(draft) => setForm((current) => ({
-                      ...current,
-                      ...Object.fromEntries(Object.entries(draft).filter(([key]) => key in current)),
-                    }) as EventForm)}
-                  />
-                ))}
-              </div>
-              <div>
-                <Label>Main banner (optional)</Label>
-                <div className="mt-2">
-                  <ImageUploadField
-                    value={form.image_url}
-                    onChange={(url) => setForm({ ...form, image_url: url })}
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <Label htmlFor="c-start">Start date</Label>
-                  <Input
-                    id="c-start"
-                    type="date"
-                    value={form.start_date}
-                    onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="c-end">End date</Label>
-                  <Input
-                    id="c-end"
-                    type="date"
-                    value={form.end_date}
-                    onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>More media (optional)</Label>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Extra photos or promo videos for the event, beyond the main banner.
-                </p>
-                <div className="mt-2">
-                  <AttachmentsField value={attachments} onChange={setAttachments} />
-                </div>
-              </div>
-              <Button
-                disabled={!form.title.trim() || !form.description.trim() || save.isPending}
-                onClick={() => save.mutate()}
-              >
-                {editingId ? "Save changes" : "Create campaign"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
 
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
@@ -357,14 +174,14 @@ function CampaignsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface>
-        <AdminListingHeader className="xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto]"><span>Image</span><span>Title</span><span>Location</span><span>Status</span><span>Dates</span><span>Actions</span></AdminListingHeader>
+        <AdminListingHeader className="grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto]"><span>Image</span><span>Title</span><span>Location</span><span>Status</span><span>Dates</span><span>Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {visibleCampaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
             <li
               key={c.id}
-              className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 border-b border-border/70 px-3 py-3 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto]"
+              className="grid min-w-[1100px] grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto] items-center gap-2 border-b border-border/70 px-3 py-3 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4"
             >
               <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
               {c.image_url ? (
@@ -392,9 +209,9 @@ function CampaignsAdminPage() {
                   <p className="line-clamp-2 font-semibold">{c.title}</p>
                 </div>
               </div>
-              <span className="hidden truncate text-sm xl:block">{c.location || "—"}</span>
+              <span className="truncate text-sm">{c.location || "—"}</span>
               <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
-              <span className="hidden whitespace-nowrap text-xs text-muted-foreground xl:block">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
+              <span className="whitespace-nowrap text-xs text-muted-foreground">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
               <div className="flex flex-wrap items-center gap-1">
               <Button size="sm" variant="outline" asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></Button>
               <Dialog

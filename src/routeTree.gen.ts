@@ -76,6 +76,11 @@ import { Route as AuthenticatedAdminRoadsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminSocialLinksRouteImport } from './routes/_authenticated/admin/social-links'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminVideosRouteImport } from './routes/_authenticated/admin/videos'
+import { Route as AuthenticatedAdminAlertsNewRouteImport } from './routes/_authenticated/admin/alerts.new'
+import { Route as AuthenticatedAdminArticlesNewRouteImport } from './routes/_authenticated/admin/articles.new'
+import { Route as AuthenticatedAdminCampaignsNewRouteImport } from './routes/_authenticated/admin/campaigns.new'
+import { Route as AuthenticatedAdminInfrastructureIssuesNewRouteImport } from './routes/_authenticated/admin/infrastructure-issues.new'
+import { Route as AuthenticatedAdminMyArticlesNewRouteImport } from './routes/_authenticated/admin/my-articles.new'
 import { Route as AuthenticatedAdminReportsNewRouteImport } from './routes/_authenticated/admin/reports.new'
 import { Route as AuthenticatedAdminAlertsAlertIdEditRouteImport } from './routes/_authenticated/admin/alerts.$alertId.edit'
 import { Route as AuthenticatedAdminArticlesArticleIdEditRouteImport } from './routes/_authenticated/admin/articles.$articleId.edit'
@@ -442,6 +447,36 @@ const AuthenticatedAdminVideosRoute =
     path: '/videos',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAlertsNewRoute =
+  AuthenticatedAdminAlertsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminAlertsRoute,
+  } as any)
+const AuthenticatedAdminArticlesNewRoute =
+  AuthenticatedAdminArticlesNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminArticlesRoute,
+  } as any)
+const AuthenticatedAdminCampaignsNewRoute =
+  AuthenticatedAdminCampaignsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminCampaignsRoute,
+  } as any)
+const AuthenticatedAdminInfrastructureIssuesNewRoute =
+  AuthenticatedAdminInfrastructureIssuesNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminInfrastructureIssuesRoute,
+  } as any)
+const AuthenticatedAdminMyArticlesNewRoute =
+  AuthenticatedAdminMyArticlesNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAdminMyArticlesRoute,
+  } as any)
 const AuthenticatedAdminReportsNewRoute =
   AuthenticatedAdminReportsNewRouteImport.update({
     id: '/new',
@@ -531,7 +566,7 @@ export interface FileRoutesByFullPath {
   '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRouteWithChildren
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
-  '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
+  '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRouteWithChildren
   '/admin/my-content': typeof AuthenticatedAdminMyContentRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
@@ -546,6 +581,11 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/videos': typeof AuthenticatedAdminVideosRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/alerts/new': typeof AuthenticatedAdminAlertsNewRoute
+  '/admin/articles/new': typeof AuthenticatedAdminArticlesNewRoute
+  '/admin/campaigns/new': typeof AuthenticatedAdminCampaignsNewRoute
+  '/admin/infrastructure-issues/new': typeof AuthenticatedAdminInfrastructureIssuesNewRoute
+  '/admin/my-articles/new': typeof AuthenticatedAdminMyArticlesNewRoute
   '/admin/reports/new': typeof AuthenticatedAdminReportsNewRoute
   '/admin/alerts/$alertId/edit': typeof AuthenticatedAdminAlertsAlertIdEditRoute
   '/admin/articles/$articleId/edit': typeof AuthenticatedAdminArticlesArticleIdEditRoute
@@ -604,7 +644,7 @@ export interface FileRoutesByTo {
   '/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRouteWithChildren
   '/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
-  '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
+  '/admin/my-articles': typeof AuthenticatedAdminMyArticlesRouteWithChildren
   '/admin/my-content': typeof AuthenticatedAdminMyContentRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
@@ -619,6 +659,11 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/videos': typeof AuthenticatedAdminVideosRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/alerts/new': typeof AuthenticatedAdminAlertsNewRoute
+  '/admin/articles/new': typeof AuthenticatedAdminArticlesNewRoute
+  '/admin/campaigns/new': typeof AuthenticatedAdminCampaignsNewRoute
+  '/admin/infrastructure-issues/new': typeof AuthenticatedAdminInfrastructureIssuesNewRoute
+  '/admin/my-articles/new': typeof AuthenticatedAdminMyArticlesNewRoute
   '/admin/reports/new': typeof AuthenticatedAdminReportsNewRoute
   '/admin/alerts/$alertId/edit': typeof AuthenticatedAdminAlertsAlertIdEditRoute
   '/admin/articles/$articleId/edit': typeof AuthenticatedAdminArticlesArticleIdEditRoute
@@ -680,7 +725,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/infrastructure-issues': typeof AuthenticatedAdminInfrastructureIssuesRouteWithChildren
   '/_authenticated/admin/merch-items': typeof AuthenticatedAdminMerchItemsRoute
   '/_authenticated/admin/merch-orders': typeof AuthenticatedAdminMerchOrdersRoute
-  '/_authenticated/admin/my-articles': typeof AuthenticatedAdminMyArticlesRoute
+  '/_authenticated/admin/my-articles': typeof AuthenticatedAdminMyArticlesRouteWithChildren
   '/_authenticated/admin/my-content': typeof AuthenticatedAdminMyContentRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/_authenticated/admin/notification-health': typeof AuthenticatedAdminNotificationHealthRoute
@@ -695,6 +740,11 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/videos': typeof AuthenticatedAdminVideosRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/alerts/new': typeof AuthenticatedAdminAlertsNewRoute
+  '/_authenticated/admin/articles/new': typeof AuthenticatedAdminArticlesNewRoute
+  '/_authenticated/admin/campaigns/new': typeof AuthenticatedAdminCampaignsNewRoute
+  '/_authenticated/admin/infrastructure-issues/new': typeof AuthenticatedAdminInfrastructureIssuesNewRoute
+  '/_authenticated/admin/my-articles/new': typeof AuthenticatedAdminMyArticlesNewRoute
   '/_authenticated/admin/reports/new': typeof AuthenticatedAdminReportsNewRoute
   '/_authenticated/admin/alerts/$alertId/edit': typeof AuthenticatedAdminAlertsAlertIdEditRoute
   '/_authenticated/admin/articles/$articleId/edit': typeof AuthenticatedAdminArticlesArticleIdEditRoute
@@ -771,6 +821,11 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/videos'
     | '/admin/'
+    | '/admin/alerts/new'
+    | '/admin/articles/new'
+    | '/admin/campaigns/new'
+    | '/admin/infrastructure-issues/new'
+    | '/admin/my-articles/new'
     | '/admin/reports/new'
     | '/admin/alerts/$alertId/edit'
     | '/admin/articles/$articleId/edit'
@@ -844,6 +899,11 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/videos'
     | '/admin'
+    | '/admin/alerts/new'
+    | '/admin/articles/new'
+    | '/admin/campaigns/new'
+    | '/admin/infrastructure-issues/new'
+    | '/admin/my-articles/new'
     | '/admin/reports/new'
     | '/admin/alerts/$alertId/edit'
     | '/admin/articles/$articleId/edit'
@@ -919,6 +979,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/videos'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/alerts/new'
+    | '/_authenticated/admin/articles/new'
+    | '/_authenticated/admin/campaigns/new'
+    | '/_authenticated/admin/infrastructure-issues/new'
+    | '/_authenticated/admin/my-articles/new'
     | '/_authenticated/admin/reports/new'
     | '/_authenticated/admin/alerts/$alertId/edit'
     | '/_authenticated/admin/articles/$articleId/edit'
@@ -1434,6 +1499,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVideosRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/alerts/new': {
+      id: '/_authenticated/admin/alerts/new'
+      path: '/new'
+      fullPath: '/admin/alerts/new'
+      preLoaderRoute: typeof AuthenticatedAdminAlertsNewRouteImport
+      parentRoute: typeof AuthenticatedAdminAlertsRoute
+    }
+    '/_authenticated/admin/articles/new': {
+      id: '/_authenticated/admin/articles/new'
+      path: '/new'
+      fullPath: '/admin/articles/new'
+      preLoaderRoute: typeof AuthenticatedAdminArticlesNewRouteImport
+      parentRoute: typeof AuthenticatedAdminArticlesRoute
+    }
+    '/_authenticated/admin/campaigns/new': {
+      id: '/_authenticated/admin/campaigns/new'
+      path: '/new'
+      fullPath: '/admin/campaigns/new'
+      preLoaderRoute: typeof AuthenticatedAdminCampaignsNewRouteImport
+      parentRoute: typeof AuthenticatedAdminCampaignsRoute
+    }
+    '/_authenticated/admin/infrastructure-issues/new': {
+      id: '/_authenticated/admin/infrastructure-issues/new'
+      path: '/new'
+      fullPath: '/admin/infrastructure-issues/new'
+      preLoaderRoute: typeof AuthenticatedAdminInfrastructureIssuesNewRouteImport
+      parentRoute: typeof AuthenticatedAdminInfrastructureIssuesRoute
+    }
+    '/_authenticated/admin/my-articles/new': {
+      id: '/_authenticated/admin/my-articles/new'
+      path: '/new'
+      fullPath: '/admin/my-articles/new'
+      preLoaderRoute: typeof AuthenticatedAdminMyArticlesNewRouteImport
+      parentRoute: typeof AuthenticatedAdminMyArticlesRoute
+    }
     '/_authenticated/admin/reports/new': {
       id: '/_authenticated/admin/reports/new'
       path: '/new'
@@ -1480,11 +1580,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminAlertsRouteChildren {
+  AuthenticatedAdminAlertsNewRoute: typeof AuthenticatedAdminAlertsNewRoute
   AuthenticatedAdminAlertsAlertIdEditRoute: typeof AuthenticatedAdminAlertsAlertIdEditRoute
 }
 
 const AuthenticatedAdminAlertsRouteChildren: AuthenticatedAdminAlertsRouteChildren =
   {
+    AuthenticatedAdminAlertsNewRoute: AuthenticatedAdminAlertsNewRoute,
     AuthenticatedAdminAlertsAlertIdEditRoute:
       AuthenticatedAdminAlertsAlertIdEditRoute,
   }
@@ -1495,11 +1597,13 @@ const AuthenticatedAdminAlertsRouteWithChildren =
   )
 
 interface AuthenticatedAdminArticlesRouteChildren {
+  AuthenticatedAdminArticlesNewRoute: typeof AuthenticatedAdminArticlesNewRoute
   AuthenticatedAdminArticlesArticleIdEditRoute: typeof AuthenticatedAdminArticlesArticleIdEditRoute
 }
 
 const AuthenticatedAdminArticlesRouteChildren: AuthenticatedAdminArticlesRouteChildren =
   {
+    AuthenticatedAdminArticlesNewRoute: AuthenticatedAdminArticlesNewRoute,
     AuthenticatedAdminArticlesArticleIdEditRoute:
       AuthenticatedAdminArticlesArticleIdEditRoute,
   }
@@ -1510,11 +1614,13 @@ const AuthenticatedAdminArticlesRouteWithChildren =
   )
 
 interface AuthenticatedAdminCampaignsRouteChildren {
+  AuthenticatedAdminCampaignsNewRoute: typeof AuthenticatedAdminCampaignsNewRoute
   AuthenticatedAdminCampaignsCampaignIdEditRoute: typeof AuthenticatedAdminCampaignsCampaignIdEditRoute
 }
 
 const AuthenticatedAdminCampaignsRouteChildren: AuthenticatedAdminCampaignsRouteChildren =
   {
+    AuthenticatedAdminCampaignsNewRoute: AuthenticatedAdminCampaignsNewRoute,
     AuthenticatedAdminCampaignsCampaignIdEditRoute:
       AuthenticatedAdminCampaignsCampaignIdEditRoute,
   }
@@ -1525,11 +1631,14 @@ const AuthenticatedAdminCampaignsRouteWithChildren =
   )
 
 interface AuthenticatedAdminInfrastructureIssuesRouteChildren {
+  AuthenticatedAdminInfrastructureIssuesNewRoute: typeof AuthenticatedAdminInfrastructureIssuesNewRoute
   AuthenticatedAdminInfrastructureIssuesIssueIdEditRoute: typeof AuthenticatedAdminInfrastructureIssuesIssueIdEditRoute
 }
 
 const AuthenticatedAdminInfrastructureIssuesRouteChildren: AuthenticatedAdminInfrastructureIssuesRouteChildren =
   {
+    AuthenticatedAdminInfrastructureIssuesNewRoute:
+      AuthenticatedAdminInfrastructureIssuesNewRoute,
     AuthenticatedAdminInfrastructureIssuesIssueIdEditRoute:
       AuthenticatedAdminInfrastructureIssuesIssueIdEditRoute,
   }
@@ -1537,6 +1646,20 @@ const AuthenticatedAdminInfrastructureIssuesRouteChildren: AuthenticatedAdminInf
 const AuthenticatedAdminInfrastructureIssuesRouteWithChildren =
   AuthenticatedAdminInfrastructureIssuesRoute._addFileChildren(
     AuthenticatedAdminInfrastructureIssuesRouteChildren,
+  )
+
+interface AuthenticatedAdminMyArticlesRouteChildren {
+  AuthenticatedAdminMyArticlesNewRoute: typeof AuthenticatedAdminMyArticlesNewRoute
+}
+
+const AuthenticatedAdminMyArticlesRouteChildren: AuthenticatedAdminMyArticlesRouteChildren =
+  {
+    AuthenticatedAdminMyArticlesNewRoute: AuthenticatedAdminMyArticlesNewRoute,
+  }
+
+const AuthenticatedAdminMyArticlesRouteWithChildren =
+  AuthenticatedAdminMyArticlesRoute._addFileChildren(
+    AuthenticatedAdminMyArticlesRouteChildren,
   )
 
 interface AuthenticatedAdminReportsRouteChildren {
@@ -1571,7 +1694,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminInfrastructureIssuesRoute: typeof AuthenticatedAdminInfrastructureIssuesRouteWithChildren
   AuthenticatedAdminMerchItemsRoute: typeof AuthenticatedAdminMerchItemsRoute
   AuthenticatedAdminMerchOrdersRoute: typeof AuthenticatedAdminMerchOrdersRoute
-  AuthenticatedAdminMyArticlesRoute: typeof AuthenticatedAdminMyArticlesRoute
+  AuthenticatedAdminMyArticlesRoute: typeof AuthenticatedAdminMyArticlesRouteWithChildren
   AuthenticatedAdminMyContentRoute: typeof AuthenticatedAdminMyContentRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
   AuthenticatedAdminNotificationHealthRoute: typeof AuthenticatedAdminNotificationHealthRoute
@@ -1609,7 +1732,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
       AuthenticatedAdminInfrastructureIssuesRouteWithChildren,
     AuthenticatedAdminMerchItemsRoute: AuthenticatedAdminMerchItemsRoute,
     AuthenticatedAdminMerchOrdersRoute: AuthenticatedAdminMerchOrdersRoute,
-    AuthenticatedAdminMyArticlesRoute: AuthenticatedAdminMyArticlesRoute,
+    AuthenticatedAdminMyArticlesRoute:
+      AuthenticatedAdminMyArticlesRouteWithChildren,
     AuthenticatedAdminMyContentRoute: AuthenticatedAdminMyContentRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
     AuthenticatedAdminNotificationHealthRoute:

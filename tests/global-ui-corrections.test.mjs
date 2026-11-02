@@ -110,7 +110,7 @@ test("admin content listings use the shared responsive listing surface", async (
   }
   const listing = await fs.readFile("src/components/admin/admin-listing-surface.tsx", "utf8");
   assert.match(listing, /odd:bg-background/);
-  assert.match(listing, /xl:grid/);
+  assert.match(listing, /grid min-w-\[1100px\]/);
 });
 
 test("admin editorial listings use the Mjengo-style checkbox, thumbnail and dense row hierarchy", async () => {

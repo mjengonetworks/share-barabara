@@ -19,11 +19,11 @@ test("coordinate validation enforces complete latitude/longitude ranges", () => 
   assert.match(location, /Partial pairs are discarded/);
 });
 
-test("county-only, road-only and text locations remain valid", () => {
+test("Article forms remain editorial-only while incident location contracts stay available elsewhere", () => {
   assert.doesNotMatch(migration, /NOT NULL.*location_label|NOT NULL.*county|NOT NULL.*road/);
-  assert.match(articleForm, /Location \(optional\)/);
-  assert.match(articleForm, /A point is never required/);
-  assert.match(articleForm, /RoadInput/);
+  assert.doesNotMatch(articleForm, /Location \(optional\)|A point is never required|RoadInput|location_label|latitude|longitude/);
+  assert.match(read("src/components/site/report-form.tsx"), /LocationButton/);
+  assert.match(read("src/components/site/alert-form.tsx"), /LocationButton/);
 });
 
 test("location entry has explicit current-location, manual and clear paths", () => {
@@ -38,8 +38,7 @@ test("location entry has explicit current-location, manual and clear paths", () 
 test("Article location UI feature-detects the review schema before writing new columns", () => {
   assert.match(capability, /location_label, location_type, county, road, latitude, longitude/);
   assert.match(capability, /return !error/);
-  assert.match(articleForm, /articleLocationAvailable/);
-  assert.match(articleForm, /\.\.\.\(articleLocationAvailable/);
+  assert.doesNotMatch(articleForm, /articleLocationAvailable|\.\.\.\(articleLocationAvailable/);
 });
 
 test("review migration preserves old rows and adds optional Article location metadata", () => {
@@ -60,12 +59,12 @@ test("Alerts and Reports retain radius-compatible coordinates without fabricated
 });
 
 test("admin Alert and Report editing can correct optional points", () => {
-  const alerts = read("src/routes/_authenticated/admin/alerts.tsx");
-  const reports = read("src/routes/_authenticated/admin/reports.tsx");
+  const alerts = read("src/components/site/alert-form.tsx");
+  const reports = read("src/components/site/report-form.tsx");
   assert.match(alerts, /LocationButton/);
-  assert.match(alerts, /latitude: editingParties\.latitude/);
+  assert.match(alerts, /latitude/);
   assert.match(reports, /LocationButton/);
-  assert.match(reports, /latitude: number \| null/);
+  assert.match(reports, /latitude/);
 });
 
 test("free-text roads are preserved without silently creating canonical roads", () => {

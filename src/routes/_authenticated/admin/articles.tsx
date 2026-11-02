@@ -67,7 +67,7 @@ type Status = "draft" | "pending_review" | "published" | "rejected";
 
 function ArticlesQueuePage() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  if (/^\/admin\/articles\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
+  if (/^\/admin\/articles\/(?:new|[^/]+\/edit)\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const { canPublishArticles } = useRoles();
   const queryClient = useQueryClient();
@@ -171,7 +171,7 @@ function ArticlesQueuePage() {
         title="Manage Articles"
         description="Review submissions from contributors. Publishing or rejecting needs moderator rank or above."
         websiteHref="/news"
-        actions={<Button asChild size="sm"><Link to="/admin/my-articles"><Plus className="mr-1.5 size-4" /> Add New Article</Link></Button>}
+        actions={<Button asChild size="sm"><Link to="/admin/articles/new"><Plus className="mr-1.5 size-4" /> Add New Article</Link></Button>}
       />
 
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -263,7 +263,7 @@ function ArticlesQueuePage() {
 
           return (
             <li key={a.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto]">
+              <div className="grid min-w-[1100px] grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto] items-center gap-2 p-3 sm:p-4">
                 <input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {a.image_url ? (
@@ -280,21 +280,14 @@ function ArticlesQueuePage() {
                   </div>
                   <div className="min-w-0 text-left">
                   <div className="min-w-0"><p className="line-clamp-2 font-semibold leading-snug">{a.title}</p>
-                    <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground xl:hidden">
-                      <span>{a.author_id ? names[a.author_id] ?? "Unknown author" : "Unknown author"}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>{dateTime(a.created_at)}</span>
-                      <span aria-hidden="true">·</span>
-                      <span className="font-semibold capitalize">{a.status.replace("_", " ")}</span>
-                    </div>
                   </div>
                   </div>
 
-                <div className="hidden min-w-0 flex-wrap gap-1 xl:flex">{(a.categories?.length ? a.categories : [a.category]).map((c) => <span key={c} className="rounded bg-accent/20 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-accent-foreground">{c}</span>)}</div>
-                <span className="hidden text-xs font-semibold capitalize text-muted-foreground xl:block">{a.status.replace("_", " ")}</span>
-                <span className="hidden min-w-0 truncate text-sm xl:block">{a.author_id ? <UserLink userId={a.author_id} name={names[a.author_id]} /> : "—"}</span>
-                <span className="hidden items-center gap-1 text-xs text-muted-foreground xl:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span>
-                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(a.created_at)}</span>
+                <div className="min-w-0 flex flex-wrap gap-1">{(a.categories?.length ? a.categories : [a.category]).map((c) => <span key={c} className="rounded bg-accent/20 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-accent-foreground">{c}</span>)}</div>
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</span>
+                <span className="min-w-0 text-sm">{a.author_id ? <UserLink userId={a.author_id} name={names[a.author_id]} /> : "—"}</span>
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span>
+                <span className="text-xs text-muted-foreground">{dateTime(a.created_at)}</span>
                 <div className="flex items-center gap-1">
                 <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/articles/${a.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>

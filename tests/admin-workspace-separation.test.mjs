@@ -24,8 +24,8 @@ test("content management pages expose internal authoring and website preview act
     read("src/components/admin/admin-page-header.tsx"),
   ]);
   assert.match(header, /View on website/);
-  assert.match(articles, /to="\/admin\/my-articles"/);
-  assert.match(alerts, /<AlertForm editorial onDone=/);
+  assert.match(articles, /to="\/admin\/articles\/new"/);
+  assert.match(alerts, /to="\/admin\/alerts\/new"/);
   assert.match(reports, /\/admin\/reports\/new/);
   assert.match(campaigns, /websiteHref="\/campaigns"/);
   for (const source of [articles, alerts, reports, campaigns]) {
@@ -34,13 +34,15 @@ test("content management pages expose internal authoring and website preview act
 });
 
 test("admin content editing retains editorial AI and public route preservation", async () => {
-  const [articles, alerts, reports, publicRoutes] = await Promise.all([
+  const [articles, alerts, reports, editor, publicRoutes] = await Promise.all([
     read("src/routes/_authenticated/admin/articles.tsx"),
     read("src/routes/_authenticated/admin/alerts.tsx"),
     read("src/routes/_authenticated/admin/reports.tsx"),
+    read("src/components/admin/editorial-record-editor.tsx"),
     read("src/routes/news.index.tsx"),
   ]);
-  for (const source of [articles, alerts, reports]) assert.match(source, /EditorialAIButton/);
+  for (const source of [articles, alerts, reports]) assert.match(source, /EditorialRecordEditor|\/admin\/[^\"]+\/new/);
+  assert.match(editor, /EditorialAIButton/);
   assert.match(publicRoutes, /createFileRoute\("\/news\/"\)/);
   assert.match(publicRoutes, /\.from\("news"\)/);
 });

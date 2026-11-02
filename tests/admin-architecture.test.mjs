@@ -28,19 +28,18 @@ test("admin route owns the workspace navigation and public pages retain the foot
 });
 
 test("editorial AI is wired to admin editors while public submission forms remain clean", async () => {
-  const [articles, alerts, reports, updates, publicAlert, publicReport, editorial] =
+  const [articles, alerts, reports, editor, publicAlert, publicReport, editorial] =
     await Promise.all([
       read("src/routes/_authenticated/admin/articles.tsx"),
       read("src/routes/_authenticated/admin/alerts.tsx"),
       read("src/routes/_authenticated/admin/reports.tsx"),
-      read("src/components/site/editorial-updates-manager.tsx"),
+      read("src/components/admin/editorial-record-editor.tsx"),
       read("src/components/site/alert-form.tsx"),
       read("src/components/site/report-form.tsx"),
       read("src/lib/ai/editorial.functions.ts"),
     ]);
-  for (const source of [articles, alerts, reports, updates]) {
-    assert.match(source, /EditorialAIButton/);
-  }
+  for (const source of [articles, alerts, reports]) assert.match(source, /EditorialRecordEditor|\/admin\/[^\"]+\/new/);
+  assert.match(editor, /EditorialAIButton/);
   assert.match(publicAlert, /useRoles|canReview/);
   assert.match(publicAlert, /provider=\{mode === "autopopulate" \? "groq" : "grok"\}/);
   assert.match(publicReport, /useRoles|canReview/);

@@ -321,7 +321,7 @@ function ReportsQueuePage() {
 
           return (
             <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto]">
+              <div className="grid min-w-[1100px] grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto] items-center gap-2 p-3 sm:p-4">
                 <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {r.image_url ? (
@@ -342,12 +342,12 @@ function ReportsQueuePage() {
                   </div>
                   </div>
 
-                <span className="hidden truncate text-sm xl:block">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
-                <span className="hidden xl:block"><SeverityBadge value={r.severity} /></span>
+                <span className="truncate text-sm">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
+                <span><SeverityBadge value={r.severity} /></span>
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
-                <span className="hidden min-w-0 truncate text-sm xl:block">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
-                <span className="hidden items-center gap-1 text-xs text-muted-foreground xl:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
-                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(r.created_at)}</span>
+                <span className="min-w-0 text-sm">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
+                <span className="text-xs text-muted-foreground">{dateTime(r.created_at)}</span>
                 <div className="flex items-center gap-1">
                 <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
