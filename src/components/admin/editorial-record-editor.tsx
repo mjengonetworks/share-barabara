@@ -257,6 +257,10 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
     <Link to={config.back} className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue"><ArrowLeft className="size-4" /> Back to {config.label.toLowerCase()}s</Link>
     <AdminPageHeader eyebrow="Editorial workspace" title={`${isEditing ? "Edit" : "New"} ${config.label}`} description={isEditing ? "Complete record editor. Existing values and media remain intact unless you change them." : "Create a structured record. Save a draft or publish when your role permits."} websiteHref={config.list} />
     <div className="space-y-5 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-7">
+      <section className="space-y-3" aria-labelledby="editorial-ai-heading">
+        <h2 id="editorial-ai-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial AI</h2>
+        {aiActions.map(({ mode, provider }) => <EditorialAIButton key={`${mode}-${provider}`} contentType={type} mode={mode} provider={provider} contentId={id} current={aiCurrent} source="" onDraft={applyDraft} />)}
+      </section>
       {type === "article" ? <section className="space-y-3 rounded border border-border bg-muted/30 p-3" aria-labelledby="article-status-heading">
         <Label id="article-status-heading" htmlFor="article-status">Article Status</Label>
         <Select value={form.status || "draft"} onValueChange={(value) => set("status", value)}>
@@ -269,10 +273,6 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         </Select>
         {!canReview ? <p className="text-xs text-muted-foreground">Published is available only to editors and administrators.</p> : null}
       </section> : null}
-      <section className="space-y-3" aria-labelledby="editorial-ai-heading">
-        <h2 id="editorial-ai-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial AI</h2>
-        {aiActions.map(({ mode, provider }) => <EditorialAIButton key={`${mode}-${provider}`} contentType={type} mode={mode} provider={provider} contentId={id} current={aiCurrent} source="" onDraft={applyDraft} />)}
-      </section>
       {type === "article" || type === "report" || type === "alert" ? (
         <section className="rounded border border-dashed border-border bg-muted/30 p-3" aria-labelledby="editorial-selection-heading">
           <h2 id="editorial-selection-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial selection</h2>

@@ -1130,3 +1130,10 @@ unfinished application changes are not merged here.
 - **Configuration:** custom domain, `ASSETS`, `AI_RATE_LIMITER`, production variables, secrets, authentication, existing content and cron `*/1 * * * *` were preserved. No SQL or migration was executed.
 - **Smoke tests:** public `/`, `/news`, `/reports`, `/alerts`, `/campaigns`, `/infrastructure-issues` and admin shells `/admin/articles`, `/admin/reports`, `/admin/alerts`, `/admin/campaigns`, `/admin/infrastructure-issues`, `/admin/my-articles` all returned HTTP 200.
 - **Acceptance:** authenticated Article save/status workflows, AI-populated save, failed-save recovery and visual/browser verification remain pending. No authenticated save acceptance is claimed.
+
+## ARTICLE STATUS PLACEMENT AND VIEWS CORRECTION — IMPLEMENTED / NOT DEPLOYED (2026-11-03)
+
+- **Status placement:** moved the existing Article Status control below all four Editorial AI actions and immediately before the ordinary Title/editorial fields. Draft, Pending review, Published, permission gating and existing persistence logic were unchanged; the bottom Create/Update action remains unchanged.
+- **Views audit:** reused the canonical `news_views` event table and existing moderator RLS. Earlier work was identified in `da39e98` (admin row counts), `4b34ad9` (global listing columns) and `293fb63` (public session-deduplicated tracking). The current Articles page had no Views sort control, and `useViewCounts` fetched raw rows subject to the PostgREST response-row limit, undercounting records when the event set exceeded that limit.
+- **Correction:** `useViewCounts` now requests an exact server-side count per filtered Article ID, preserving RLS and avoiding duplicate counters. Articles now sort the complete filtered dataset ascending, descending or unsorted; unavailable/loading counts display `—`, while a successful zero remains `0`.
+- **Verification:** full suite 562/562, security suite 14/14, production build and `git diff --check` passed. No SQL, migration or deployment was performed. Production remains on Worker `964fe50e-b8ce-47bd-a755-d436600f64fd`.

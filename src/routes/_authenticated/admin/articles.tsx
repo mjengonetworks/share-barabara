@@ -75,6 +75,7 @@ function ArticlesQueuePage() {
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [viewSort, setViewSort] = useState<"none" | "asc" | "desc">("none");
   const [drafts, setDrafts] = useState<Record<string, ArticleDraft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -105,11 +106,19 @@ function ArticlesQueuePage() {
   const { data: names = {} } = useProfileNames(
     articles.map((a) => a.author_id).filter((id): id is string => !!id),
   );
-  const { data: viewCounts = {}, isError: viewCountsError } = useViewCounts(
+  const { data: viewCounts = {}, isError: viewCountsError, isLoading: viewCountsLoading } = useViewCounts(
     "news_views",
     "news_id",
     articles.map((a) => a.id),
   );
+
+  const sortedArticles = useMemo(() => {
+    if (viewSort === "none" || viewCountsError || viewCountsLoading) return articles;
+    return [...articles].sort((a, b) => {
+      const difference = (viewCounts[a.id] ?? 0) - (viewCounts[b.id] ?? 0);
+      return viewSort === "asc" ? difference : -difference;
+    });
+  }, [articles, viewCounts, viewCountsError, viewCountsLoading, viewSort]);
 
   const save = useMutation({
     mutationFn: async ({
@@ -232,9 +241,9 @@ function ArticlesQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span>Image</span><span>Title</span><span>Category</span><span>Status</span><span>Author</span><span>Views</span><span>Created</span><span>Actions</span></AdminListingHeader>
+        <AdminListingHeader><span>Image</span><span>Title</span><span>Category</span><span>Status</span><span>Author</span><span><button type="button" className="underline decoration-dotted underline-offset-2" onClick={() => setViewSort((value) => value === "none" ? "desc" : value === "desc" ? "asc" : "none")} aria-label={`Sort articles by views ${viewSort === "desc" ? "ascending" : viewSort === "asc" ? "off" : "descending"}`}>Views {viewSort === "desc" ? "↓" : viewSort === "asc" ? "↑" : "↕"}</button></span><span>Created</span><span>Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
-        {articles.map((a) => {
+        {sortedArticles.map((a) => {
           const d: ArticleDraft = drafts[a.id] ?? {
             title: a.title,
             summary: a.summary,
@@ -286,7 +295,7 @@ function ArticlesQueuePage() {
                 <div className="min-w-0 flex flex-wrap gap-1">{(a.categories?.length ? a.categories : [a.category]).map((c) => <span key={c} className="rounded bg-accent/20 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-accent-foreground">{c}</span>)}</div>
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</span>
                 <span className="min-w-0 text-sm">{a.author_id ? <UserLink userId={a.author_id} name={names[a.author_id]} /> : "—"}</span>
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span>
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Eye className="size-3" />{viewCountsError || viewCountsLoading ? "—" : viewCounts[a.id] ?? 0}</span>
                 <span className="text-xs text-muted-foreground">{dateTime(a.created_at)}</span>
                 <div className="flex items-center gap-1">
                 <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/articles/${a.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>

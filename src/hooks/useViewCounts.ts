@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-/** View counts per entity, for admin list rows. Counts raw view events; an
- *  entity with no event rows therefore has zero recorded views. Requires the
- *  applicable staff rank from the view-table RLS policies. */
+/** View counts per entity, for admin list rows. Uses exact server-side counts
+ *  so PostgREST's response-row limit cannot turn recorded views into zeroes.
+ *  RLS still comes from the canonical view table for the current staff role. */
 export function useViewCounts(
   table: "news_views" | "accident_report_views" | "alert_views",
   idColumn: "news_id" | "report_id" | "alert_id",
@@ -14,14 +14,14 @@ export function useViewCounts(
     queryKey: ["view-counts", table, unique],
     enabled: unique.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from(table).select(idColumn).in(idColumn, unique);
-      if (error) throw error;
-      const counts: Record<string, number> = {};
-      for (const row of data as unknown as Record<string, string>[]) {
-        const id = row[idColumn] as string;
-        counts[id] = (counts[id] ?? 0) + 1;
-      }
-      return counts;
+      const entries = await Promise.all(unique.map(async (id) => {
+        const { count, error } = await (supabase.from(table) as any)
+          .select(idColumn, { count: "exact", head: true })
+          .eq(idColumn, id);
+        if (error) throw error;
+        return [id, count ?? 0] as const;
+      }));
+      return Object.fromEntries(entries) as Record<string, number>;
     },
   });
 }

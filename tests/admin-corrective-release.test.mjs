@@ -85,3 +85,11 @@ test("Article status controls use canonical values and the news persistence cont
   assert.match(editor, /Update article/);
   assert.match(editor, /type === "article" \? <Button/);
 });
+
+test("Article status remains after Editorial AI and before ordinary fields", () => {
+  const editor = read("src/components/admin/editorial-record-editor.tsx");
+  const aiPosition = editor.indexOf('aria-labelledby="editorial-ai-heading"');
+  const statusPosition = editor.indexOf('aria-labelledby="article-status-heading"');
+  const titlePosition = editor.indexOf('id="editor-title"');
+  assert.ok(aiPosition >= 0 && statusPosition > aiPosition && titlePosition > statusPosition);
+});
