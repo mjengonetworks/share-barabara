@@ -1,5 +1,24 @@
 # Pending
 
+- **OWNER PRODUCTION PREFLIGHT + TWO-GATE RELEASE — READY / NOT EXECUTED
+  (2026-11-02).** Run `docs/production-editorial-relationship-preflight.sql`
+  in the verified production Supabase SQL Editor exactly as checked in. It is
+  read-only and has not been run by this workstream. PASS requires all source
+  tables/role helpers and required columns, no generic relationship objects or
+  functions already present, and the existing `incident_content_links` table.
+  ALREADY APPLIED means the generic objects already exist and must be verified
+  without rerunning the fail-closed migration. Any missing prerequisite,
+  permission error or partial object state is BLOCKED. Gate A is explicit
+  production migration approval; Gate B is a separate explicit application
+  deployment approval after migration verification. No production SQL or
+  deployment has occurred.
+- Migration SHA-256:
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+  The relationship UI requires the migration objects, so the required order is
+  migration, verification, then application deployment. The Editorial AI
+  `Schema validation failed` issue remains open and is not resolved by this
+  migration; safe diagnostic fields remain enabled for the eventual release.
+
 - **RELATIONSHIP MIGRATION REHEARSAL — PASS / PRODUCTION PREFLIGHT PENDING
   (2026-11-02).** The exact migration executed successfully on a disposable
   local PostgreSQL 17 cluster. Article/Report, Article/Campaign,

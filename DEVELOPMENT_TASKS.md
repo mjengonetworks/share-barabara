@@ -1,5 +1,41 @@
 # Development tasks
 
+## Production preflight and release gates — OWNER ACTION REQUIRED — 2026-11-02
+
+- The owner-run script is `docs/production-editorial-relationship-preflight.sql`.
+  A static scan found only `SELECT` statements and read-only CTEs; it contains
+  no `CREATE`, `ALTER`, `DROP`, `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`,
+  privilege changes, procedure calls or transaction writes. It has not been
+  executed against production.
+- Owner procedure: open the verified production Supabase project, choose **SQL
+  Editor → New query**, paste the exact script from this candidate, and run it
+  without editing it. Save every result set for review. Do not include
+  credentials, cookies, API keys or other secrets in the evidence.
+- **PASS before migration:** all required source tables exist; required
+  `deleted_at` columns are compatible; `public.app_role`, `has_role` and
+  `has_min_role` exist; `anon`, `authenticated` and `service_role` are present;
+  every generic relationship table and function reports `exists = false`;
+  and `incident_content_links` exists. A zero incident-link count is valid.
+- **ALREADY APPLIED:** all reviewed generic relationship tables/functions are
+  already present and their RLS/policy result sets can be matched to the
+  reviewed migration. Do not rerun the migration; record the existing objects
+  and verify them separately.
+- **BLOCKED:** any missing prerequisite, permission/query error, partial or
+  unexpected generic object/function state, or schema result that cannot be
+  reconciled. A mixed generic-object state is not safe to “repair” by rerunning
+  the migration.
+- Gate A is separate: production migration approval requires a PASS preflight,
+  the migration SHA-256
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`, and
+  explicit approval. Gate B is separate: application deployment requires
+  successful post-migration verification and a second explicit approval. The
+  relationship UI depends on the migration objects, so migration first and
+  application second is the safe order.
+- The Editorial AI `Schema validation failed` defect remains open. The safe
+  request-ID, content-type, action, validation-boundary and field diagnostics
+  remain in the candidate; the relationship migration does not claim to fix
+  that defect.
+
 ## Final migration rehearsal — PASS / production preflight pending — 2026-11-02
 
 - Rehearsed the exact migration on an isolated PostgreSQL 17 cluster at
