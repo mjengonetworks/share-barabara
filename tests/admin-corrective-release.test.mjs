@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { buildArticlePersistencePayload, resolveArticleStatus } from "../src/lib/article-persistence.ts";
 
 const read = (file) => fs.readFileSync(file, "utf8");
 
@@ -48,4 +49,39 @@ test("Article summary validation remains strict and has a bounded repair path", 
   assert.match(source, /IMPORTANT REPAIR/);
   assert.match(source, /contentType !== "article"/);
   assert.match(source, /No fields were changed/);
+});
+
+test("Article status controls use canonical values and the news persistence contract", () => {
+  assert.equal(resolveArticleStatus("draft", false), "draft");
+  assert.equal(resolveArticleStatus("pending_review", false), "pending_review");
+  assert.equal(resolveArticleStatus("published", false), "draft");
+  assert.equal(resolveArticleStatus("published", true), "published");
+
+  const form = {
+    title: "New road safety article",
+    summary: "A concise summary",
+    body: "Verified editorial body",
+    source: "Source desk",
+    category: "News",
+    categories: ["News"],
+    image_url: "",
+    image_alt: "",
+    image_caption: "",
+    image_credit: "",
+    featured: false,
+    seo_title: "",
+    seo_description: "",
+    seo_keywords: "",
+  };
+  const created = buildArticlePersistencePayload(form, "pending_review", "user-1", false);
+  assert.equal(created.author_id, "user-1");
+  assert.equal(created.status, "pending_review");
+  assert.match(created.slug, /^new-road-safety-article-/);
+  assert.equal("user_id" in created, false);
+
+  const editor = read("src/components/admin/editorial-record-editor.tsx");
+  assert.match(editor, /Article Status/);
+  assert.match(editor, /Create article/);
+  assert.match(editor, /Update article/);
+  assert.match(editor, /type === "article" \? <Button/);
 });

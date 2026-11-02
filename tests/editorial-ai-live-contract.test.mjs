@@ -61,12 +61,13 @@ test("Article public placement prioritizes linked Reports below the Summary", as
 });
 
 test("Article forms keep incident-only fields out and preserve source mapping", async () => {
-  const [add, edit] = await Promise.all([
+  const [add, edit, persistence] = await Promise.all([
     readFile("src/components/site/article-form.tsx", "utf8"),
     readFile("src/components/admin/editorial-record-editor.tsx", "utf8"),
+    readFile("src/lib/article-persistence.ts", "utf8"),
   ]);
   assert.match(add, /source: form\.source\.trim\(\) \|\| null/);
-  assert.match(edit, /source: form\.source\.trim\(\) \|\| null/);
+  assert.match(persistence, /source: form\.source\.trim\(\) \|\| null/);
   assert.doesNotMatch(add, /vehicles_involved|casualty_breakdown|occurred_at/);
   const articleBranch = edit.match(/if \(type === "article"\)[\s\S]*?(?=\n  if \(type === "report"\))/)?.[0] ?? "";
   assert.doesNotMatch(articleBranch, /vehicles_involved|casualty_breakdown|occurred_at/);

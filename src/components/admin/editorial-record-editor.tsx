@@ -27,6 +27,7 @@ import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { LocationButton } from "@/components/site/location-button";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
+import { buildArticlePersistencePayload, resolveArticleStatus } from "@/lib/article-persistence";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -40,19 +41,20 @@ const CONFIG: Record<EditorialRecordType, { table: string; label: string; back: 
 
 type RecordValue = Record<string, any>;
 
-function safePersistenceMessage(error: unknown) {
+function safePersistenceMessage(error: unknown, context: { requestId: string; operation: string; contentType: EditorialRecordType }) {
   const message = error instanceof Error ? error.message : String(error ?? "");
   const normalized = message.toLocaleLowerCase();
+  const diagnostic = `Request ID ${context.requestId}; operation=${context.operation}; contentType=${context.contentType}.`;
   if (/column .*does not exist|schema cache|could not find the .*column|unknown column/.test(normalized)) {
-    return "CMS persistence failed: the production database does not support one of the submitted fields. No changes were saved; contact an administrator.";
+    return `CMS persistence failed: the database schema rejected a submitted field. No changes were saved. ${diagnostic}`;
   }
   if (/duplicate|unique constraint|already exists/.test(normalized)) {
-    return "CMS persistence failed: this record conflicts with an existing record. No changes were saved; review the values and retry.";
+    return `CMS persistence failed: this record conflicts with an existing value. No changes were saved. ${diagnostic}`;
   }
   if (/permission|not authorized|row-level security|rls/.test(normalized)) {
-    return "CMS persistence failed: your session is not authorized to save this record. No changes were saved; sign in again or contact an administrator.";
+    return `CMS persistence failed: your session is not authorized to save this record. No changes were saved. ${diagnostic}`;
   }
-  return "CMS persistence failed: the record could not be saved. No changes were saved; retry and contact an administrator if the problem persists.";
+  return `CMS persistence failed: the record could not be saved. No changes were saved; retry without rerunning AI. ${diagnostic}`;
 }
 
 function stringValue(record: RecordValue, key: string) {
@@ -133,7 +135,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   });
 
   const save = useMutation({
-    mutationFn: async (requestedStatus?: "draft" | "approved") => {
+    mutationFn: async ({ requestedStatus, requestId }: { requestedStatus?: "draft" | "pending_review" | "published" | "approved"; requestId: string }) => {
       if (!form) throw new Error("Record is still loading");
       if (type === "report" && !form.title.trim()) throw new Error("Report title is required");
       if (type === "report" && !form.body.trim()) throw new Error("Incident description is required");
@@ -145,16 +147,9 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       }
       let payload: RecordValue;
       if (type === "article") {
-        payload = {
-          title: form.title, summary: form.summary, body: form.body,
-          source: form.source.trim() || null,
-          category: form.categories?.[0] || form.category || "News",
-          categories: form.categories ?? [],
-          image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
-          image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
-          featured: form.featured,
-          seo_title: form.seo_title, seo_description: form.seo_description, seo_keywords: form.seo_keywords,
-        };
+        if (!form.title.trim()) throw new Error("Article title is required");
+        if (!form.body.trim()) throw new Error("Article body is required");
+        payload = buildArticlePersistencePayload(form, resolveArticleStatus(requestedStatus, canReview), user?.id ?? null, isEditing);
       } else if (type === "report") {
         payload = {
           title: form.title, ...(summarySupported ? { summary: form["summary"].trim() || null } : {}), description: form.body, county: form.county, road: form.road,
@@ -193,7 +188,11 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           image_credit: form.image_credit.trim() || null,
         };
       }
-      const status = requestedStatus === "approved" && canReview ? "approved" : undefined;
+      const status = type === "article"
+        ? payload.status
+        : requestedStatus === "approved" && canReview
+          ? "approved"
+          : undefined;
       if (isEditing) {
         const patch = status ? { ...payload, status } : payload;
         const { error } = await (supabase.from(config.table) as any).update(patch).eq("id", id);
@@ -229,15 +228,18 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       } else {
         const insertPayload = {
           ...payload,
-          user_id: user?.id ?? null,
-          ...(type === "alert" ? { status: form.alert_status || null } : { status: status === "approved" ? "approved" : "pending" }),
+          ...(type === "article"
+            ? { author_id: user?.id ?? null, status }
+            : type === "alert"
+              ? { user_id: user?.id ?? null, status: form.alert_status || null }
+              : { user_id: user?.id ?? null, status: status === "approved" ? "approved" : "pending" }),
         };
         const { error } = await (supabase.from(config.table) as any).insert(insertPayload);
         if (error) throw error;
       }
     },
-    onSuccess: () => toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created as a draft.`),
-    onError: (error: Error) => toast.error(safePersistenceMessage(error)),
+    onSuccess: (_data, variables) => toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created with status ${String(variables.requestedStatus ?? "draft").replace("_", " ")}.`),
+    onError: (error: Error, variables) => toast.error(safePersistenceMessage(error, { requestId: variables.requestId, operation: isEditing ? "update" : "create", contentType: type })),
   });
 
   if (isEditing && recordQuery.error) return <p className="rounded-lg border border-destructive/30 p-6 text-destructive">Unable to load this {config.label.toLowerCase()}.</p>;
@@ -255,6 +257,18 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
     <Link to={config.back} className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue"><ArrowLeft className="size-4" /> Back to {config.label.toLowerCase()}s</Link>
     <AdminPageHeader eyebrow="Editorial workspace" title={`${isEditing ? "Edit" : "New"} ${config.label}`} description={isEditing ? "Complete record editor. Existing values and media remain intact unless you change them." : "Create a structured record. Save a draft or publish when your role permits."} websiteHref={config.list} />
     <div className="space-y-5 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-7">
+      {type === "article" ? <section className="space-y-3 rounded border border-border bg-muted/30 p-3" aria-labelledby="article-status-heading">
+        <Label id="article-status-heading" htmlFor="article-status">Article Status</Label>
+        <Select value={form.status || "draft"} onValueChange={(value) => set("status", value)}>
+          <SelectTrigger id="article-status"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="pending_review">Pending review</SelectItem>
+            <SelectItem value="published" disabled={!canReview}>Published</SelectItem>
+          </SelectContent>
+        </Select>
+        {!canReview ? <p className="text-xs text-muted-foreground">Published is available only to editors and administrators.</p> : null}
+      </section> : null}
       <section className="space-y-3" aria-labelledby="editorial-ai-heading">
         <h2 id="editorial-ai-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial AI</h2>
         {aiActions.map(({ mode, provider }) => <EditorialAIButton key={`${mode}-${provider}`} contentType={type} mode={mode} provider={provider} contentId={id} current={aiCurrent} source="" onDraft={applyDraft} />)}
@@ -298,7 +312,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
       {isEditing && (type === "report" || type === "alert") ? <IncidentRelationshipPanel /> : null}
       {isEditing ? <CrossContentEditor sourceType={type} sourceId={id!} sourceRecord={recordQuery.data ?? {}} /> : null}
-      <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => save.mutate("draft")} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Save changes" : "Save draft"}</Button>{canReview ? <Button type="button" onClick={() => save.mutate("approved")} disabled={save.isPending}>{isEditing ? "Save & publish" : "Publish report"}</Button> : null}</div></section>
+      <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><div className="flex flex-wrap gap-2">{type === "article" ? <Button type="button" onClick={() => save.mutate({ requestedStatus: form.status as "draft" | "pending_review" | "published", requestId: crypto.randomUUID() })} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Update article" : "Create article"}</Button> : <><Button type="button" variant="outline" onClick={() => save.mutate({ requestedStatus: "draft", requestId: crypto.randomUUID() })} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Save changes" : "Save draft"}</Button>{canReview ? <Button type="button" onClick={() => save.mutate({ requestedStatus: "approved", requestId: crypto.randomUUID() })} disabled={save.isPending}>{isEditing ? "Save & publish" : "Publish report"}</Button> : null}</>}</div></section>
     </div>
   </div>;
 }
