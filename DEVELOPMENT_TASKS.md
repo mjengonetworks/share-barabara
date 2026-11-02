@@ -1,5 +1,26 @@
 # Development tasks
 
+## Final application-only release verification — READY / NOT DEPLOYED — 2026-11-02
+
+- Final application release commit: `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030`.
+  It descends from the known deployed Git baseline `b9e39a1`; the current
+  production Worker remains `20555c39-f497-4145-b022-34176c0ee0f0` at 100%
+  traffic. Cloudflare still reports source metadata as Unknown, so the live
+  Worker cannot be mapped to a Git SHA independently.
+- The final release diff contains application, tests and documentation only;
+  the relationship migration file has no candidate-only database changes.
+  The already-applied production relationship infrastructure is not rerun or
+  modified.
+- Verification: full suite **554/554**, security **14/14**, production build
+  **PASS**, and `git diff --check` **PASS**. Lint remains blocked by the
+  pre-existing repository-wide CRLF/Prettier condition; TypeScript generated
+  schema/config limitations remain separately documented.
+- Deployment procedure after explicit approval: recheck the Worker immediately,
+  confirm no newer production deployment, build the application-only artifact
+  from this commit, deploy with the existing production Wrangler configuration,
+  then verify the new Worker ID, 100% traffic, public/admin routes and the
+  relationship picker. Do not execute SQL or migrations.
+
 ## Production relationship infrastructure — ALREADY APPLIED / APPLICATION-ONLY RELEASE — 2026-11-02
 
 - The consolidated owner-run script was

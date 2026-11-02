@@ -1,5 +1,16 @@
 # Pending
 
+- **FINAL APPLICATION-ONLY CANDIDATE — READY / NOT DEPLOYED (2026-11-02).**
+  Release commit: `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030`, descended from
+  known deployed baseline `b9e39a1`. The candidate preserves the responsive
+  Article list, Article/Report field ownership, canonical categories and
+  `news.source`, relationship picker/reciprocal presentation, linked Reports
+  below Article Summary and safe Editorial AI diagnostics. It contains no
+  candidate-only relationship migration change. Full suite `554/554`, security
+  `14/14`, production build and `git diff --check` pass. Lint is blocked by
+  pre-existing CRLF/Prettier violations; generated TypeScript limitations are
+  documented. Do not deploy or execute SQL without explicit approval.
+
 - **PRODUCTION RELATIONSHIP INFRASTRUCTURE — ALREADY APPLIED / APPLICATION-ONLY
   CANDIDATE (2026-11-02).** Owner execution of the consolidated preflight
   returned **ALREADY APPLIED** with all 37 checks PASS or ALREADY APPLIED.
