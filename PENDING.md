@@ -1,5 +1,17 @@
 # Pending
 
+- **APPLICATION-ONLY RELEASE DEPLOYED — FUNCTIONAL ACCEPTANCE PENDING
+  (2026-11-02).** Approved commit
+  `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030` is deployed as Worker
+  `e0c468f8-74d2-4d8c-b038-2d78e77f2b82` at 100% traffic, timestamp
+  `2026-11-02T07:54:47.295Z`. Public `/news`, `/reports`, `/alerts`,
+  `/campaigns`, `/infrastructure-issues` and admin `/admin`, `/admin/articles`
+  smoke checks returned HTTP 200. No SQL or migration ran. Remaining items are
+  authenticated relationship selection/persistence, mobile Articles review,
+  Article/Report field separation, public linked-content rendering, exact
+  production relationship contract verification and the unresolved Editorial AI
+  `Schema validation failed` reproduction.
+
 - **FINAL APPLICATION-ONLY CANDIDATE — READY / NOT DEPLOYED (2026-11-02).**
   Release commit: `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030`, descended from
   known deployed baseline `b9e39a1`. The candidate preserves the responsive

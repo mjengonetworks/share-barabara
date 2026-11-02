@@ -1,5 +1,20 @@
 # Development tasks
 
+## Application-only production deployment — DEPLOYED / ACCEPTANCE PENDING — 2026-11-02
+
+- Approved commit deployed: `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030`.
+- New production Worker: `e0c468f8-74d2-4d8c-b038-2d78e77f2b82`.
+- Deployment timestamp: `2026-11-02T07:54:47.295Z`.
+- Wrangler confirmed 100% traffic, custom domain `sharebarabara.co.ke`,
+  `ASSETS`, `AI_RATE_LIMITER`, production variables and `*/1 * * * *` cron.
+- Live smoke checks returned HTTP 200 for `/news`, `/reports`, `/alerts`,
+  `/campaigns`, `/infrastructure-issues`, `/admin` and `/admin/articles`.
+- No SQL, migration or production data change was executed. The Editorial AI
+  `Schema validation failed` issue remains open; safe diagnostics are deployed
+  for the owner’s next reproduction. Authenticated relationship persistence,
+  mobile Articles layout, field-separation acceptance, public linked-content
+  review and exact production relationship contract verification remain pending.
+
 ## Final application-only release verification — READY / NOT DEPLOYED — 2026-11-02
 
 - Final application release commit: `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030`.
