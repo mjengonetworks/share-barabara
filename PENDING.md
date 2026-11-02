@@ -1,23 +1,30 @@
 # Pending
 
-- **OWNER PRODUCTION PREFLIGHT + TWO-GATE RELEASE — READY / NOT EXECUTED
-  (2026-11-02).** Run `docs/production-editorial-relationship-preflight.sql`
-  in the verified production Supabase SQL Editor exactly as checked in. It is
-  read-only and has not been run by this workstream. PASS requires all source
-  tables/role helpers and required columns, no generic relationship objects or
-  functions already present, and the existing `incident_content_links` table.
-  ALREADY APPLIED means the generic objects already exist and must be verified
-  without rerunning the fail-closed migration. Any missing prerequisite,
-  permission error or partial object state is BLOCKED. Gate A is explicit
-  production migration approval; Gate B is a separate explicit application
-  deployment approval after migration verification. No production SQL or
-  deployment has occurred.
+- **PRODUCTION RELATIONSHIP INFRASTRUCTURE — ALREADY APPLIED / APPLICATION-ONLY
+  CANDIDATE (2026-11-02).** Owner execution of the consolidated preflight
+  returned **ALREADY APPLIED** with all 37 checks PASS or ALREADY APPLIED.
+  Required tables/columns, role helpers, relationship objects/RPC signatures,
+  RLS/policies and `incident_content_links` are present. Do not execute or
+  rerun `20261030180000_editorial_content_relationships_review.sql`; no
+  database migration is required for the application candidate. The reviewed
+  migration SHA-256 remains
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+- **REMAINING CONTRACT ACCEPTANCE:** the consolidated output confirms object
+  presence, signatures and RLS/policy presence but does not expose complete
+  function bodies, constraints, indexes or privilege ACLs. No discrepancy is
+  currently reported; authenticated relationship writes and exact catalog
+  equivalence remain pending owner-authorized verification. The Editorial AI
+  `Schema validation failed` issue remains open.
+
+- **OWNER PRODUCTION PREFLIGHT — SUPERSEDED BY ALREADY-APPLIED RESULT
+  (2026-11-02).** The consolidated read-only script was executed by the owner;
+  its 37 checks returned PASS or ALREADY APPLIED. No migration Gate A remains
+  for this application candidate. Do not rerun the relationship migration.
 - Migration SHA-256:
   `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
-  The relationship UI requires the migration objects, so the required order is
-  migration, verification, then application deployment. The Editorial AI
-  `Schema validation failed` issue remains open and is not resolved by this
-  migration; safe diagnostic fields remain enabled for the eventual release.
+  The application-only candidate requires a separate deployment approval. The
+  Editorial AI `Schema validation failed` issue remains open and is not
+  resolved by this migration; safe diagnostic fields remain enabled.
 
 - **RELATIONSHIP MIGRATION REHEARSAL — PASS / PRODUCTION PREFLIGHT PENDING
   (2026-11-02).** The exact migration executed successfully on a disposable
