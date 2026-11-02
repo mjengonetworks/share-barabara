@@ -1123,3 +1123,10 @@ unfinished application changes are not merged here.
 - **Failure recovery:** safe request IDs, operation/content-type context and categorized diagnostics are shown without exposing raw database details. Failed saves leave the form and generated content intact so the user can retry without rerunning AI.
 - **Verification:** focused Article persistence/status tests 6/6, full suite 560/560, security suite 14/14, production build and `git diff --check` passed. No SQL, migration or deployment was performed.
 - **Production baseline:** Worker `7255039b-58e8-42b4-b6f3-827cd19991e1` remained active at the final pre-release check; this correction is not deployed. Authenticated browser acceptance and real database save-path verification remain owner-required.
+
+## URGENT ARTICLE SAVE AND STATUS CORRECTION — DEPLOYED (2026-11-02)
+
+- **Deployment:** approved commit `6f34aca56d9d6cea05740a9394316a37a14af704` deployed at `2026-11-02T20:28:49.923Z` as Worker `964fe50e-b8ce-47bd-a755-d436600f64fd`; Wrangler reports 100% traffic. Previous Worker `7255039b-58e8-42b4-b6f3-827cd19991e1` is the rollback target.
+- **Configuration:** custom domain, `ASSETS`, `AI_RATE_LIMITER`, production variables, secrets, authentication, existing content and cron `*/1 * * * *` were preserved. No SQL or migration was executed.
+- **Smoke tests:** public `/`, `/news`, `/reports`, `/alerts`, `/campaigns`, `/infrastructure-issues` and admin shells `/admin/articles`, `/admin/reports`, `/admin/alerts`, `/admin/campaigns`, `/admin/infrastructure-issues`, `/admin/my-articles` all returned HTTP 200.
+- **Acceptance:** authenticated Article save/status workflows, AI-populated save, failed-save recovery and visual/browser verification remain pending. No authenticated save acceptance is claimed.
