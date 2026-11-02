@@ -76,8 +76,6 @@ INSERT INTO public.editorial_conversion_targets(source_type,target_type,required
  ('article','report','["title","body"]'),('report','article','["title","description"]'),
  ('article','alert','["title","body"]'),('alert','article','["title","description"]'),
  ('article','campaign','["title","summary"]'),('campaign','article','["title","description"]'),
- ('report','campaign','["title","description"]'),('campaign','report','["title","summary"]'),
- ('alert','campaign','["title","description"]'),('campaign','alert','["title","summary"]'),
  ('article','infrastructure','["title","body"]'),('infrastructure','article','["title","summary","content"]'),
  ('report','alert','["title","description","county"]'),('alert','report','["title","description","county"]'),
  ('report','infrastructure','["title","description","county"]'),('infrastructure','alert','["title","summary","road_name"]')
