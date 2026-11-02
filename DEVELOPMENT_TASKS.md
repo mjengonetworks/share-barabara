@@ -1,6 +1,29 @@
 # Development tasks
 
-## Final migration rehearsal + Editorial AI diagnostic — IMPLEMENTED / REHEARSAL BLOCKED — 2026-11-02
+## Final migration rehearsal — PASS / production preflight pending — 2026-11-02
+
+- Rehearsed the exact migration on an isolated PostgreSQL 17 cluster at
+  localhost port 55433 using a disposable modeled baseline. The cluster was
+  stopped and removed after verification; no production data was used.
+- Migration execution: **PASS**. Article ↔ Report, Article ↔ Campaign, Report
+  ↔ Campaign and Alert ↔ Campaign persisted through `editorial_link_content`.
+  Duplicate linking returned the existing row; unlink marked the relationship
+  deleted. Reciprocal public lookup worked through
+  `editorial_public_related_content`.
+- Security: editor writes passed; non-editor writes failed; canonical Alert ↔
+  Report `related` writes were rejected in favor of `incident_content_links`;
+  unpublished targets could be linked by an editor with edit access but were
+  excluded from public results. Anonymous public lookup passed and direct
+  relationship writes remained unavailable.
+- Repeat execution: **PASS / fail-closed**. Reapplying the migration stopped at
+  the expected existing-object guard. The migration is not idempotently replayable.
+- Exact migration SHA-256 remains
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+- Read-only production preflight is prepared at
+  `docs/production-editorial-relationship-preflight.sql`. It must be run by the
+  owner before migration approval; it performs no schema or data mutations.
+
+## Final migration rehearsal + Editorial AI diagnostic — SUPERSEDED BY PASS RECORD ABOVE — 2026-11-02
 
 - Migration under review: `20261030180000_editorial_content_relationships_review.sql`.
 - SHA-256: `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
@@ -10,9 +33,8 @@
   `incident_content_links` Alert ↔ canonical Report workflow. It intentionally
   fails closed if prerequisites or any migration object already exists; repeat
   execution is safely rejected, not idempotently replayed.
-- Disposable PostgreSQL rehearsal is blocked because Docker Desktop's engine is
-  unavailable and no local `postgres`, `initdb`, `pg_ctl` or Supabase emulator
-  is installed. No production connection was used.
+- Initial rehearsal was blocked while Docker was unavailable; the later local
+  PostgreSQL 17 rehearsal is recorded in the PASS entry above.
 - Relationship UI now visibly gates link/unlink controls when the relationship
   schema or editor permission is unavailable. The migration is a hard
   application deployment prerequisite unless a separately approved feature flag

@@ -1,11 +1,23 @@
 # Pending
 
-- **FINAL RELATIONSHIP MIGRATION REHEARSAL + EDITORIAL AI DIAGNOSTIC —
-  IMPLEMENTED / REHEARSAL BLOCKED (2026-11-02).** Migration SHA-256 is
+- **RELATIONSHIP MIGRATION REHEARSAL — PASS / PRODUCTION PREFLIGHT PENDING
+  (2026-11-02).** The exact migration executed successfully on a disposable
+  local PostgreSQL 17 cluster. Article/Report, Article/Campaign,
+  Report/Campaign and Alert/Campaign links persisted; duplicate prevention,
+  unlinking, reciprocal public lookup, unpublished-target filtering, editor
+  permissions, non-editor rejection and canonical Alert/Report protection all
+  passed. Reapplying the migration failed closed as designed. The temporary
+  cluster was removed. SHA-256 is
   `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
-  Static dependency/RLS/RPC review passed, but disposable PostgreSQL rehearsal
-  is blocked because Docker's engine and local PostgreSQL/Supabase tooling are
-  unavailable. The migration is additive, fail-closed on repeat execution and
+  Owner must run the read-only script
+  `docs/production-editorial-relationship-preflight.sql` before migration
+  approval. No production SQL or deployment was performed.
+
+- **FINAL RELATIONSHIP MIGRATION REHEARSAL + EDITORIAL AI DIAGNOSTIC —
+  SUPERSEDED BY PASS RECORD ABOVE (2026-11-02).** Migration SHA-256 is
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+  Static dependency/RLS/RPC review passed; the later local PostgreSQL rehearsal
+  passed. The migration is additive, fail-closed on repeat execution and
   must run before relationship UI deployment; no production SQL was executed.
   Relationship controls now show an explicit unavailable state instead of
   silently offering nonfunctional writes. Editorial AI errors now identify safe
