@@ -25,6 +25,51 @@ export type EditorialMode = "generate" | "autopopulate" | "update";
 export type EditorialProvider = "groq" | "grok";
 export type EditorialValue = string | number | null | string[];
 type EditorialDraft = Record<string, EditorialValue>;
+
+const diagnosticFields = [
+  "title", "summary", "body", "description", "category", "county", "road",
+  "hazard_type", "incident_type", "severity", "occurred_at", "start_date",
+  "end_date", "vehicles_involved", "casualties", "fatalities", "parties_involved",
+  "seo_title", "seo_description", "seo_keywords", "image_alt", "image_caption",
+  "image_credit", "road_name", "authority", "structure_type", "content", "editor_note",
+];
+
+export type EditorialDiagnostic = {
+  contentType: EditorialContentType;
+  action: EditorialMode;
+  provider: EditorialProvider;
+  boundary: "taxonomy-lookup" | "provider" | "structured-output" | "source-grounding" | "proposal-validation";
+  category: "taxonomy-lookup-failed" | "provider-response-invalid" | "source-grounding-failed" | "schema-validation-failed";
+  field?: string;
+  requestId: string;
+};
+
+export function editorialDiagnosticForTest(
+  contentType: EditorialContentType,
+  action: EditorialMode,
+  provider: EditorialProvider,
+  message: string,
+  requestId = "test-request",
+): EditorialDiagnostic {
+  const field = diagnosticFields.find((candidate) => new RegExp(`\\b${candidate.replace("_", "\\_")}\\b`).test(message));
+  const normalized = message.toLocaleLowerCase();
+  if (normalized.includes("taxonomy_lookup_failed")) {
+    return { contentType, action, provider, boundary: "taxonomy-lookup", category: "taxonomy-lookup-failed", field, requestId };
+  }
+  if (normalized.startsWith("source fidelity failure")) {
+    return { contentType, action, provider, boundary: "source-grounding", category: "source-grounding-failed", field, requestId };
+  }
+  if (normalized.includes("provider_json_unparseable") || normalized.includes("no usable fields")) {
+    return { contentType, action, provider, boundary: "structured-output", category: "provider-response-invalid", field, requestId };
+  }
+  return { contentType, action, provider, boundary: "proposal-validation", category: "schema-validation-failed", field, requestId };
+}
+
+function diagnosticMessage(diagnostic: EditorialDiagnostic, detail: string) {
+  const field = diagnostic.field ? ` field=${diagnostic.field}` : "";
+  return `${diagnostic.category}: ${detail.slice(0, 240)} [requestId=${diagnostic.requestId}; contentType=${diagnostic.contentType}; action=${diagnostic.action}; boundary=${diagnostic.boundary}${field}]`;
+}
+
 export type EditorialProposal = {
   contentType: EditorialContentType;
   contentId: string;
@@ -390,7 +435,7 @@ async function controlledValues(
   const results = await Promise.all(tables.map(async (table) => ({ table, result: await db.from(table).select("*") })));
   const unexpected = results.find(({ result }) => result.error && !isMissingTaxonomyRelation(result.error));
   if (unexpected?.result.error) {
-    throw new Error(`Controlled taxonomy lookup failed for ${unexpected.table}: ${taxonomyErrorMessage(unexpected.result.error) || "unknown database error"}`);
+    throw new Error(`taxonomy_lookup_failed:${unexpected.table}:${taxonomyErrorMessage(unexpected.result.error) || "database error"}`);
   }
   const unavailable = results.flatMap(({ table, result }) => result.error ? [table] : []);
   if (unavailable.length) {
@@ -584,7 +629,15 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
       const provider: EditorialProvider = input.provider ?? (mode === "autopopulate" ? "groq" : "grok");
       if (mode !== "autopopulate" && provider !== "grok")
         throw new Error("Generate and Update Existing use xAI Grok");
-      const allowedTaxonomy = await controlledValues(context.supabase, contentType);
+      let allowedTaxonomy: ControlledValues;
+      try {
+        allowedTaxonomy = await controlledValues(context.supabase, contentType);
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : "taxonomy lookup failed";
+        const diagnostic = editorialDiagnosticForTest(contentType, mode, provider, detail, requestId);
+        console.warn("[Share Barabara AI] editorial taxonomy lookup failed", diagnostic);
+        throw new Error(diagnosticMessage(diagnostic, "Controlled taxonomy lookup failed. No fields were changed."));
+      }
       const result = await completeWithProvider(provider, {
         mode: "editorial",
         task: mode === "autopopulate" ? "extract" : "draft",
@@ -634,12 +687,8 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
           answerLength: result.answer.length,
         });
         const message = error instanceof Error ? error.message : "Unknown validation failure";
-        const category = message.startsWith("Source fidelity failure")
-          ? "Source-grounding validation failed"
-          : message === "provider_json_unparseable" || message.includes("no usable fields")
-            ? "Invalid structured response"
-            : "Schema validation failed";
-        throw new Error(`${category}: ${message} [${requestId}]. No fields were changed. Review the source and retry.`);
+        const diagnostic = editorialDiagnosticForTest(contentType, mode, provider, message, requestId);
+        throw new Error(diagnosticMessage(diagnostic, `${message}. No fields were changed. Review the source and retry.`));
       }
     },
   );

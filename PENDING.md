@@ -1,5 +1,18 @@
 # Pending
 
+- **FINAL RELATIONSHIP MIGRATION REHEARSAL + EDITORIAL AI DIAGNOSTIC —
+  IMPLEMENTED / REHEARSAL BLOCKED (2026-11-02).** Migration SHA-256 is
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+  Static dependency/RLS/RPC review passed, but disposable PostgreSQL rehearsal
+  is blocked because Docker's engine and local PostgreSQL/Supabase tooling are
+  unavailable. The migration is additive, fail-closed on repeat execution and
+  must run before relationship UI deployment; no production SQL was executed.
+  Relationship controls now show an explicit unavailable state instead of
+  silently offering nonfunctional writes. Editorial AI errors now identify safe
+  request ID, content type, action, boundary and field metadata. Full tests
+  `554/554`, security `14/14` and build pass. Authenticated live AI failure
+  reproduction, database rehearsal and browser acceptance remain pending.
+
 - **ADMIN CMS + EDITORIAL AI + CROSS-CONTENT INTEGRATION — IMPLEMENTED / LIVE
   ACCEPTANCE PENDING (2026-11-02).** Taxonomy lookup now treats only missing
   optional relations as unavailable; permission/connectivity failures remain

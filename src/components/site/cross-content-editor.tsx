@@ -106,6 +106,7 @@ export function CrossContentEditor({
       return [...(outgoing.data ?? []), ...(incoming.data ?? [])] as Array<Record<string, unknown>>;
     },
   });
+  const relationshipControlsUnavailable = Boolean(relationships.error);
 
   const tags = useQuery({
     queryKey: ["editorial-tags", tagQuery],
@@ -683,7 +684,7 @@ export function CrossContentEditor({
             type="button"
             variant="outline"
             className="self-end"
-            disabled={link.isPending}
+            disabled={link.isPending || relationshipControlsUnavailable}
             onClick={() => link.mutate()}
           >
             Link
@@ -718,6 +719,11 @@ export function CrossContentEditor({
           />
         </div>
       </div>
+      {relationshipControlsUnavailable ? (
+        <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+          Related-content controls are unavailable until the approved relationship schema is present and your editor permission is active. No relationship changes were saved.
+        </p>
+      ) : null}
       {relationships.data?.length ? (
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -741,6 +747,7 @@ export function CrossContentEditor({
                 variant="ghost"
                 size="icon"
                 aria-label="Unlink content"
+                disabled={relationshipControlsUnavailable || unlink.isPending}
                 onClick={() => unlink.mutate(String(relationship["id"]))}
               >
                 <Trash2 className="size-3.5 text-destructive" />

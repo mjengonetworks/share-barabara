@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { taxonomyLookupPolicyForTest } from "../src/lib/ai/editorial.functions.ts";
+import { editorialDiagnosticForTest, taxonomyLookupPolicyForTest } from "../src/lib/ai/editorial.functions.ts";
 import { editorialResponseSchemaForContentType } from "../src/lib/ai/providers.server.ts";
 import { readFile } from "node:fs/promises";
 
@@ -17,6 +17,25 @@ test("only an actually missing taxonomy relation is treated as optional", () => 
     taxonomyLookupPolicyForTest({ status: 503, message: "upstream unavailable" }),
     "failed",
   );
+});
+
+test("validation diagnostics identify the safe boundary and field without source or provider data", () => {
+  const diagnostic = editorialDiagnosticForTest(
+    "article",
+    "autopopulate",
+    "groq",
+    "summary exceeds 20 words",
+    "request-123",
+  );
+  assert.deepEqual(diagnostic, {
+    contentType: "article",
+    action: "autopopulate",
+    provider: "groq",
+    boundary: "proposal-validation",
+    category: "schema-validation-failed",
+    field: "summary",
+    requestId: "request-123",
+  });
 });
 
 test("all CMS content types use the same strict, field-complete provider contract", () => {

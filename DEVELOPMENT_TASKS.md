@@ -1,5 +1,29 @@
 # Development tasks
 
+## Final migration rehearsal + Editorial AI diagnostic — IMPLEMENTED / REHEARSAL BLOCKED — 2026-11-02
+
+- Migration under review: `20261030180000_editorial_content_relationships_review.sql`.
+- SHA-256: `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+- Static audit confirms the migration is additive: it creates the generic
+  relationship/draft/tag/event tables, indexes, RLS policies and new RPCs. It
+  does not replace existing functions or policies and preserves the separate
+  `incident_content_links` Alert ↔ canonical Report workflow. It intentionally
+  fails closed if prerequisites or any migration object already exists; repeat
+  execution is safely rejected, not idempotently replayed.
+- Disposable PostgreSQL rehearsal is blocked because Docker Desktop's engine is
+  unavailable and no local `postgres`, `initdb`, `pg_ctl` or Supabase emulator
+  is installed. No production connection was used.
+- Relationship UI now visibly gates link/unlink controls when the relationship
+  schema or editor permission is unavailable. The migration is a hard
+  application deployment prerequisite unless a separately approved feature flag
+  is introduced.
+- Editorial AI diagnostics now carry safe `requestId`, `contentType`, action,
+  validation boundary and optional field metadata. They never include provider
+  keys, auth data, source text or raw database errors. Focused diagnostic tests
+  pass.
+- Full suite `554/554`, security `14/14`, production build and diff checks pass.
+  TypeScript and CRLF/Prettier remain pre-existing repository blockers.
+
 ## Admin CMS + Editorial AI + cross-content integration — IMPLEMENTED / LIVE ACCEPTANCE PENDING — 2026-11-02
 
 - Reconciled from deployed taxonomy hotfix ancestry `b9e39a1` in isolated
