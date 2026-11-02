@@ -24,9 +24,11 @@ function href(type: ContentType, row: Record<string, unknown>) {
 export function RelatedContent({
   contentType,
   contentId,
+  preferredTypes,
 }: {
   contentType: ContentType;
   contentId: string;
+  preferredTypes?: ContentType[];
 }) {
   const query = useQuery({
     queryKey: ["public-related-content", contentType, contentId],
@@ -60,7 +62,8 @@ export function RelatedContent({
             relationship_type: row.relationship_type,
           });
       }
-      return records;
+      const order = new Map((preferredTypes ?? []).map((type, index) => [type, index]));
+      return records.sort((left, right) => (order.get(left.related_type as ContentType) ?? 99) - (order.get(right.related_type as ContentType) ?? 99));
     },
   });
 

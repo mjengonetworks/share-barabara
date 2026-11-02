@@ -46,6 +46,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
     image_alt: "",
     image_caption: "",
     image_credit: "",
+    source: "",
     seo_title: "",
     seo_description: "",
     seo_keywords: "",
@@ -64,6 +65,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
         image_alt: form.image_alt.trim() || null,
         image_caption: form.image_caption.trim() || null,
         image_credit: form.image_credit.trim() || null,
+        source: form.source.trim() || null,
         ...(editorialFields
           ? {
               seo_title: form.seo_title.trim() || null,
@@ -113,6 +115,7 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
         image_alt: "",
         image_caption: "",
         image_credit: "",
+        source: "",
         seo_title: "",
         seo_description: "",
         seo_keywords: "",
@@ -233,6 +236,10 @@ export function ArticleForm({ onDone, editorial = false }: { onDone?: () => void
           onChange={(e) => setForm({ ...form, summary: e.target.value })}
           placeholder="A one or two sentence summary shown in article listings."
         />
+      </div>
+      <div>
+        <Label htmlFor="a-source">Source / credit (optional)</Label>
+        <Input id="a-source" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Source publication or reporting credit" />
       </div>
       <div>
         <Label htmlFor="a-body">Article body</Label>

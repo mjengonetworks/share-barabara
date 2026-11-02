@@ -1,5 +1,20 @@
 # Pending
 
+- **ADMIN CMS + EDITORIAL AI + CROSS-CONTENT INTEGRATION — IMPLEMENTED / LIVE
+  ACCEPTANCE PENDING (2026-11-02).** Taxonomy lookup now treats only missing
+  optional relations as unavailable; permission/connectivity failures remain
+  actionable errors. Full suite `550/550` and production build pass. Article
+  admin rows are responsive and compact, Article Add/Edit uses canonical
+  categories and preserves `news.source`, and the field ownership inventory is
+  recorded in `docs/editorial-field-inventory.md`. Cross-content targets now
+  include Article ↔ Report, Article ↔ Campaign, Report ↔ Campaign and Alert ↔
+  Campaign. Public Article related content is placed below the Summary with
+  Accident Reports prioritized and shown with images/links. The relationship
+  migration remains review-only and was not executed. Live authenticated
+  reproduction of the owner’s persistent Schema validation failed response,
+  DevTools request evidence, browser visual checks and provider acceptance
+  remain outstanding. Do not deploy this branch yet.
+
 - **EDITORIAL AI TAXONOMY COMPATIBILITY HOTFIX — DEPLOYED / FUNCTIONAL
   ACCEPTANCE PENDING (2026-11-01).** Approved application-only commit
   `b9e39a1f12ba316ffe8c09ee5ac036bfc45b51e7`, directly descended from deployed

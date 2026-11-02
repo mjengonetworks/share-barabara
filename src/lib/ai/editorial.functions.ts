@@ -229,6 +229,24 @@ export type ControlledValues = {
   unavailable?: string[];
 };
 
+function taxonomyErrorMessage(error: unknown) {
+  const value = error as { code?: string; message?: string; status?: number } | null;
+  return [value?.code, value?.message, value?.status ? `HTTP ${value.status}` : ""]
+    .filter(Boolean)
+    .join(" ")
+    .slice(0, 240);
+}
+
+function isMissingTaxonomyRelation(error: unknown) {
+  const value = error as { code?: string; message?: string; status?: number } | null;
+  const text = `${value?.code ?? ""} ${value?.message ?? ""}`.toLocaleLowerCase();
+  return value?.status === 404 || /42p01|pgrst202|pgrst205|relation .* does not exist|schema cache.*not find/.test(text);
+}
+
+export function taxonomyLookupPolicyForTest(error: unknown) {
+  return isMissingTaxonomyRelation(error) ? "unavailable" : "failed";
+}
+
 function editorialPrompt(
   contentType: EditorialContentType,
   mode: EditorialMode,
@@ -369,12 +387,16 @@ async function controlledValues(
       : contentType === "report"
         ? ["hazard_types", "report_severities"] as const
         : [] as const;
-  const results = await Promise.all(tables.map((table) => db.from(table).select("*")));
-  const unavailable = results.flatMap((result, index) => result.error ? [tables[index]] : []);
+  const results = await Promise.all(tables.map(async (table) => ({ table, result: await db.from(table).select("*") })));
+  const unexpected = results.find(({ result }) => result.error && !isMissingTaxonomyRelation(result.error));
+  if (unexpected?.result.error) {
+    throw new Error(`Controlled taxonomy lookup failed for ${unexpected.table}: ${taxonomyErrorMessage(unexpected.result.error) || "unknown database error"}`);
+  }
+  const unavailable = results.flatMap(({ table, result }) => result.error ? [table] : []);
   if (unavailable.length) {
     console.warn("[Share Barabara AI] optional controlled taxonomy unavailable", { contentType, tables: unavailable });
   }
-  const values = results.map((result) =>
+  const values = results.map(({ result }) =>
     (result.data ?? [])
       .filter((row) => (row as { active?: boolean }).active !== false)
       .map((row) => (row as { value?: string; name?: string }).value ?? (row as { name?: string }).name)

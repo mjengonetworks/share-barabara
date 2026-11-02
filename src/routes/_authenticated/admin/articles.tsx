@@ -263,7 +263,7 @@ function ArticlesQueuePage() {
 
           return (
             <li key={a.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto]">
+              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto]">
                 <input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {a.image_url ? (
@@ -279,11 +279,19 @@ function ArticlesQueuePage() {
                   )}
                   </div>
                   <div className="min-w-0 text-left">
-                  <div className="min-w-0"><p className="line-clamp-2 font-semibold">{a.title}</p></div>
+                  <div className="min-w-0"><p className="line-clamp-2 font-semibold leading-snug">{a.title}</p>
+                    <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground xl:hidden">
+                      <span>{a.author_id ? names[a.author_id] ?? "Unknown author" : "Unknown author"}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{dateTime(a.created_at)}</span>
+                      <span aria-hidden="true">·</span>
+                      <span className="font-semibold capitalize">{a.status.replace("_", " ")}</span>
+                    </div>
+                  </div>
                   </div>
 
                 <div className="hidden min-w-0 flex-wrap gap-1 xl:flex">{(a.categories?.length ? a.categories : [a.category]).map((c) => <span key={c} className="rounded bg-accent/20 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-accent-foreground">{c}</span>)}</div>
-                <span className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</span>
+                <span className="hidden text-xs font-semibold capitalize text-muted-foreground xl:block">{a.status.replace("_", " ")}</span>
                 <span className="hidden min-w-0 truncate text-sm xl:block">{a.author_id ? <UserLink userId={a.author_id} name={names[a.author_id]} /> : "—"}</span>
                 <span className="hidden items-center gap-1 text-xs text-muted-foreground xl:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span>
                 <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(a.created_at)}</span>

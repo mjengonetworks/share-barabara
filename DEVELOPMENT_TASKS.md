@@ -1,5 +1,30 @@
 # Development tasks
 
+## Admin CMS + Editorial AI + cross-content integration — IMPLEMENTED / LIVE ACCEPTANCE PENDING — 2026-11-02
+
+- Reconciled from deployed taxonomy hotfix ancestry `b9e39a1` in isolated
+  branch `investigate/admin-cms-editorial-ai-20261102`.
+- Editorial AI now distinguishes a genuinely missing optional taxonomy relation
+  from authorization, connectivity and other database failures. Missing
+  classifications remain null; available taxonomies still reject unsupported
+  values with the field name preserved in the validation error.
+- The Article admin list now keeps the thumbnail first, presents compact
+  desktop columns and switches to readable stacked mobile metadata without
+  horizontal overflow. Article Add/Edit now uses canonical categories and
+  exposes the existing `news.source` field; Accident Report-only fields remain
+  in the Report editor.
+- Cross-content target rules now include Article ↔ Accident Report, Article ↔
+  Campaign, Accident Report ↔ Campaign and Alert ↔ Campaign. Public Article
+  related content is ordered immediately below the Article Summary, with
+  report thumbnails and links first. Relationship writes still require the
+  review-only additive migration; no migration was executed.
+- Added `docs/editorial-field-inventory.md` as the shared CMS/AI/public field
+  contract and added focused live-contract regression coverage.
+- Full suite `550/550` and production build pass. TypeScript remains blocked by
+  pre-existing generated-schema/configuration errors outside the changed files.
+  Authenticated production reproduction of the owner’s failing AI request and
+  browser visual acceptance remain pending.
+
 ## Editorial AI taxonomy compatibility hotfix — DEPLOYED / FUNCTIONAL ACCEPTANCE PENDING — 2026-11-01
 
 - Approved application-only commit `b9e39a1f12ba316ffe8c09ee5ac036bfc45b51e7`

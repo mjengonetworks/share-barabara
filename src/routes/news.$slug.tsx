@@ -418,6 +418,13 @@ function NewsDetail() {
           {article.summary?.trim() ? (
             <EditorialSummary className="mt-5">{article.summary}</EditorialSummary>
           ) : null}
+          <div className="mt-5">
+            <RelatedContent
+              contentType="article"
+              contentId={article.id}
+              preferredTypes={["report", "campaign", "alert", "infrastructure"]}
+            />
+          </div>
           {article.status === "published" ? (
             <div className="mt-5">
               <BannerAd placement="article-quick-summary" />
@@ -460,7 +467,6 @@ function NewsDetail() {
           contextualAlerts={contextualAlerts}
         />
       </div>
-      <RelatedContent contentType="article" contentId={article.id} />
       <GlobalEditorialPreview
         destination="news"
         excludeId={article.id}

@@ -27,11 +27,11 @@ const callGenerate = generateEditorialDraft as unknown as (args: {
 }) => Promise<{ draft?: Record<string, EditorialValue> }>;
 const types: EditorialContentType[] = ["article", "report", "alert", "campaign", "infrastructure"];
 const targets: Record<EditorialContentType, EditorialContentType[]> = {
-  article: ["report", "alert", "campaign", "infrastructure"],
-  report: ["article", "alert", "campaign", "infrastructure"],
-  alert: ["article", "report", "infrastructure"],
-  campaign: ["article"],
-  infrastructure: ["article", "alert"],
+  article: ["report", "campaign", "alert", "infrastructure"],
+  report: ["article", "campaign", "alert", "infrastructure"],
+  alert: ["article", "campaign", "report", "infrastructure"],
+  campaign: ["article", "report", "alert", "infrastructure"],
+  infrastructure: ["article", "report", "alert", "campaign"],
 };
 
 function label(value: EditorialContentType) {
