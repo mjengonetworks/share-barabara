@@ -13,7 +13,7 @@ import {
   ShieldAlert,
   Trash2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -216,7 +216,7 @@ function ReportsQueuePage() {
         description="Edit submissions for accuracy and clarity, then approve them."
         websiteHref="/reports"
         actions={
-          <Button asChild size="sm"><Link to="/admin/reports/new"><Plus className="mr-1.5 size-4" /> Add New Report</Link></Button>
+          <Link className={buttonVariants({ size: "sm" })} to="/admin/reports/new"><Plus className="mr-1.5 size-4" /> Add New Report</Link>
         }
       />
       <IncidentDiscoveryPanel />

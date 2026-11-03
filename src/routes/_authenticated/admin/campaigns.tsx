@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { AlertTriangle, Megaphone, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -141,7 +141,7 @@ function CampaignsAdminPage() {
         eyebrow="Site content"
         title="Manage Campaigns"
         websiteHref="/campaigns"
-        actions={<Button asChild size="sm"><Link to="/admin/campaigns/new"><Plus className="mr-1.5 size-4" /> Add New Campaign</Link></Button>}
+        actions={<Link className={buttonVariants({ size: "sm" })} to="/admin/campaigns/new"><Plus className="mr-1.5 size-4" /> Add New Campaign</Link>}
         description={
           <>
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a

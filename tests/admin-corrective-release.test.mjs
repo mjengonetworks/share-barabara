@@ -93,3 +93,19 @@ test("Article status remains after Editorial AI and before ordinary fields", () 
   const titlePosition = editor.indexOf('id="editor-title"');
   assert.ok(aiPosition >= 0 && statusPosition > aiPosition && titlePosition > statusPosition);
 });
+
+test("CMS Add New controls are direct navigable links to full-page routes", () => {
+  const entryPoints = {
+    articles: "/admin/articles/new",
+    reports: "/admin/reports/new",
+    alerts: "/admin/alerts/new",
+    campaigns: "/admin/campaigns/new",
+    infrastructure: "/admin/infrastructure-issues/new",
+    myArticles: "/admin/my-articles/new",
+  };
+  for (const [name, path] of Object.entries(entryPoints)) {
+    const source = read(`src/routes/_authenticated/admin/${name === "myArticles" ? "my-articles" : name === "infrastructure" ? "infrastructure-issues" : name}.tsx`);
+    assert.match(source, new RegExp(`className=\\{buttonVariants\\([\\s\\S]*?to=\\"${path.replaceAll("/", "\\/")}`), name);
+  }
+  assert.match(read("src/routes/_authenticated/admin/index.tsx"), /to="\/admin\/articles\/new">Add News Article/);
+});

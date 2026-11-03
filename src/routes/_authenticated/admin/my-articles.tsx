@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, MoreVertical, Newspaper, Pencil, Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,9 +99,7 @@ function MyArticlesPage() {
 
       <div className="mt-6">
         {canWrite ? (
-          <Button asChild>
-            <Link to="/admin/my-articles/new"><Plus className="mr-1.5 size-4" /> New article</Link>
-          </Button>
+          <Link className={buttonVariants()} to="/admin/my-articles/new"><Plus className="mr-1.5 size-4" /> New article</Link>
         ) : (
           <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted-foreground">
             Writing articles is a subscriber perk.{" "}

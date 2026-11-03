@@ -1144,3 +1144,10 @@ unfinished application changes are not merged here.
 - **Configuration:** custom domain, `ASSETS`, `AI_RATE_LIMITER`, production variables, secrets, authentication, existing content and cron `*/1 * * * *` were preserved. No SQL or migration was executed.
 - **Smoke tests:** public `/`, `/news`, `/reports`, `/alerts`, `/campaigns`, `/infrastructure-issues` and admin shells `/admin/articles`, `/admin/reports`, `/admin/alerts`, `/admin/campaigns`, `/admin/infrastructure-issues`, `/admin/my-articles` all returned HTTP 200.
 - **Acceptance:** source/test verification covers status placement, exact view counts, filtered-dataset sorting and public tracking. Authenticated visual interaction, console inspection and production count/sort acceptance remain pending because browser automation is unavailable.
+
+## URGENT NEW ARTICLE NAVIGATION HOTFIX — IMPLEMENTED / NOT DEPLOYED (2026-11-03)
+
+- **Root cause:** the Add New controls used the shared Radix `Button asChild` Slot wrapper around router links. The route and auth guard were present, but the production failure occurred at this wrapped navigation boundary, so the tap/click did not reliably activate the full-page destination.
+- **Correction:** Articles, My Articles, Accident Reports, Alerts, Campaigns and Infrastructure Issues now use direct TanStack Router links with the same button styling. The dashboard Add News Article shortcut now points directly to `/admin/articles/new` instead of the listing. No popup editor was restored and no permissions were bypassed.
+- **Verification:** targeted Add New/full-page route regression checks pass; full suite 563/563, security suite 14/14 and production build pass. No SQL, migration or deployment was performed. Browser-level click/touch, keyboard and console verification remain blocked by the unavailable browser automation environment.
+- **Production baseline:** Worker `5c00e601-e1d0-439c-8818-beb70981a737` remains current; candidate pending owner approval.

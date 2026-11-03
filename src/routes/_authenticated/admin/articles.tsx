@@ -13,7 +13,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -180,7 +180,7 @@ function ArticlesQueuePage() {
         title="Manage Articles"
         description="Review submissions from contributors. Publishing or rejecting needs moderator rank or above."
         websiteHref="/news"
-        actions={<Button asChild size="sm"><Link to="/admin/articles/new"><Plus className="mr-1.5 size-4" /> Add New Article</Link></Button>}
+        actions={<Link className={buttonVariants({ size: "sm" })} to="/admin/articles/new"><Plus className="mr-1.5 size-4" /> Add New Article</Link>}
       />
 
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">

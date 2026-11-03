@@ -12,7 +12,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -133,7 +133,7 @@ function InfrastructureIssuesAdminPage() {
         eyebrow="Content & moderation"
         title="Manage Infrastructure Issues"
         description="Roads, bridges, drainage and signage problems reported by the community."
-        actions={<Button asChild size="sm"><Link to="/admin/infrastructure-issues/new"><Plus className="mr-1.5 size-4" /> Add New Issue</Link></Button>}
+        actions={<Link className={buttonVariants({ size: "sm" })} to="/admin/infrastructure-issues/new"><Plus className="mr-1.5 size-4" /> Add New Issue</Link>}
       />
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>

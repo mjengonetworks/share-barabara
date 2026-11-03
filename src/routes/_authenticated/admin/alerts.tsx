@@ -3,7 +3,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Eye, MoreVertical, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -131,7 +131,7 @@ function AlertsAdminPage() {
         description="Adjust severity or remove alerts that are spam, duplicate or resolved."
         websiteHref="/alerts"
         actions={
-          <Button asChild size="sm"><Link to="/admin/alerts/new"><Plus className="mr-1.5 size-4" /> Add new alert</Link></Button>
+          <Link className={buttonVariants({ size: "sm" })} to="/admin/alerts/new"><Plus className="mr-1.5 size-4" /> Add new alert</Link>
         }
       />
 
