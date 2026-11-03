@@ -1,5 +1,26 @@
 # Development tasks
 
+## CMS AI performance and post-save navigation — READY / NOT DEPLOYED — 2026-11-03
+
+- The shared five-type editor now invalidates the relevant admin/owned-list
+  queries and navigates to the appropriate list only from the successful save
+  handler. Persistence errors remain on the editor with form values intact.
+  The existing My Articles `ArticleForm` success callback continues to return
+  to `/admin/my-articles`; its error path does not reset form data.
+- Editorial AI remains single-flight and non-destructive. Unchanged-value
+  protection now uses identity checks for primitives and structural comparison
+  only for objects. A local 10,000-iteration, 200-field benchmark measured
+  proposal-filtering work at 3461 ms before versus 2039 ms after (~41% lower);
+  provider/network latency was not included. Each completed request now records
+  a safe client duration and exposes the loading/completion state.
+- Regression tests cover successful save redirects, failed-save retention,
+  AI single-flight/loading behavior, timing and My Content navigation. No SQL
+  or migration was added or executed. My Quotes remains explicitly unavailable.
+- Latest Wrangler reconciliation still shows Worker
+  `62fe18de-87c7-452b-8f5a-a2590011e0d0` at 100%; this candidate is not deployed.
+- Browser/authenticated acceptance remains unverified because CUA is
+  unavailable with OS error 3.
+
 ## My Content dashboard and unified owned lists — READY / NOT DEPLOYED — 2026-11-03
 
 - Standardized `My Content` around the approved admin listing surface with

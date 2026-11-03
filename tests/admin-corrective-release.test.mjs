@@ -132,4 +132,26 @@ test("My Content exposes owned destinations and a unified ownership-aware table"
   assert.match(source, /Previous/);
   assert.match(source, /Next/);
   assert.match(source, /admin\/my-articles\/new/);
+  assert.match(source, /Add new/);
+});
+
+test("shared editor redirects only after successful persistence and refreshes owned lists", () => {
+  const editor = read("src/components/admin/editorial-record-editor.tsx");
+  assert.match(editor, /useNavigate/);
+  assert.match(editor, /queryClient\.invalidateQueries\(\{ queryKey: \["my-content"\] \}\)/);
+  assert.match(editor, /await navigate\(\{ to: config\.back \}\)/);
+  assert.match(editor, /onError: \(error: Error, variables\)/);
+  const articleForm = read("src/components/site/article-form.tsx");
+  assert.match(articleForm, /onDone\?\.\(\)/);
+  assert.match(articleForm, /onError: \(e: Error\)/);
+});
+
+test("Editorial AI loading is single-flight, non-destructive and timed", () => {
+  const button = read("src/components/site/editorial-ai-button.tsx");
+  assert.match(button, /busy\)/);
+  assert.match(button, /setBusy\(true\)/);
+  assert.match(button, /performance\.now\(\)/);
+  assert.match(button, /filterUnchangedEditorialDraft/);
+  assert.match(button, /No fields were changed|No fields were changed/);
+  assert.match(button, /Populating fields…/);
 });

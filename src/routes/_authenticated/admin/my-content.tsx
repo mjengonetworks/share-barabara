@@ -79,6 +79,7 @@ function MyContentPage() {
 
   return <div className="w-full max-w-[1500px]">
     <AdminPageHeader eyebrow="Overview" title="My content" description="Content you created or own. Each list is filtered server-side by your account and keeps the existing editorial permissions." />
+    {activeSources.length === 1 ? <a className="mt-4 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90" href={activeSources[0].create}>Add new {activeSources[0].label.toLowerCase()}</a> : null}
     <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="My content destinations">
       {NAVIGATION.map((item) => item.href ? <a key={item.key} className="rounded-lg border border-border bg-card p-4 shadow-sm transition hover:border-brand-blue" href={item.href}><p className="font-bold">{item.label}</p><p className="mt-1 text-xs text-muted-foreground">Open owned list</p></a> : <div key={item.key} className="rounded-lg border border-dashed border-border bg-muted/30 p-4"><p className="font-bold">{item.label}</p><p className="mt-1 text-xs text-muted-foreground">No user-owned Quotes list is implemented.</p></div>)}
     </section>

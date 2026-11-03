@@ -44,6 +44,25 @@ function nonDestructiveDraft(draft: Record<string, EditorialValue>) {
   ) as Record<string, EditorialValue>;
 }
 
+function sameEditorialValue(left: EditorialValue | undefined, right: EditorialValue | undefined) {
+  if (Object.is(left, right)) return true;
+  if (typeof left !== "object" || typeof right !== "object" || left === null || right === null) return false;
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+export function filterUnchangedEditorialDraft(
+  proposed: Record<string, EditorialValue>,
+  latest?: Record<string, EditorialValue>,
+  snapshot?: Record<string, EditorialValue>,
+) {
+  return nonDestructiveDraft(Object.fromEntries(
+    Object.entries(proposed).filter(([field]) => {
+      if (!latest || !snapshot || !(field in latest) || !(field in snapshot)) return true;
+      return sameEditorialValue(latest[field], snapshot[field]);
+    }),
+  ) as Record<string, EditorialValue>);
+}
+
 function initialSourceMaterial(source: string, mode: EditorialMode) {
   if (mode === "update") return "";
   // Only remove the exact legacy scaffold. Any other non-empty text is
@@ -107,6 +126,7 @@ export function EditorialAIButton({
   current?: Record<string, EditorialValue>;
 }) {
   const [busy, setBusy] = useState(false);
+  const [lastDurationMs, setLastDurationMs] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [sourceMaterial, setSourceMaterial] = useState(() => initialSourceMaterial(source, mode));
   const [sourceFiles, setSourceFiles] = useState<Array<{ name: string; text: string }>>([]);
@@ -136,6 +156,7 @@ export function EditorialAIButton({
     if ((!sourceMaterial.trim() && sourceFiles.length === 0) || busy) return;
     const requestNumber = ++requestRef.current;
     const snapshot = currentRef.current ? { ...currentRef.current } : undefined;
+    const startedAt = performance.now();
     setBusy(true);
     try {
       const attachedText = sourceFiles.map((file) => `ATTACHED SOURCE: ${file.name}\n${file.text}`).join("\n\n");
@@ -154,13 +175,11 @@ export function EditorialAIButton({
         throw new Error("No draft returned");
       }
       const latest = currentRef.current;
-      const safeDraft = nonDestructiveDraft(Object.fromEntries(
-        Object.entries(proposed).filter(([field]) => {
-          if (!latest || !snapshot || !(field in latest) || !(field in snapshot)) return true;
-          return JSON.stringify(latest[field]) === JSON.stringify(snapshot[field]);
-        }),
-      ) as Record<string, EditorialValue>);
+      const safeDraft = filterUnchangedEditorialDraft(proposed, latest, snapshot);
       onDraft(safeDraft);
+      const durationMs = Math.round(performance.now() - startedAt);
+      setLastDurationMs(durationMs);
+      console.info("[Share Barabara Editorial AI] completed", { contentType, mode, provider: selectedProvider, durationMs });
       toast.success("Editorial AI values populated. Review and continue editing before saving.");
     } catch (error) {
       const classified = classifyEditorialError(error);
@@ -258,6 +277,7 @@ export function EditorialAIButton({
         </div>
         <p className="text-xs text-muted-foreground">Image source analysis coming soon. Use the normal featured-image upload for article media.</p>
         {sourceFiles.length > 0 ? <ul className="space-y-1 text-xs text-muted-foreground" aria-label="Attached source files">{sourceFiles.map((file, index) => <li key={`${file.name}-${index}`} className="flex items-center gap-2"><FileText className="size-3.5 shrink-0" /><span className="min-w-0 flex-1 truncate">{file.name}</span><button type="button" className="rounded p-1 hover:bg-muted" aria-label={`Remove ${file.name}`} onClick={() => setSourceFiles((current) => current.filter((_, i) => i !== index))}><X className="size-3.5" /></button></li>)}</ul> : null}
+        {lastDurationMs !== null ? <p className="text-xs text-muted-foreground" role="status">Last request completed in {lastDurationMs} ms.</p> : null}
         <Button type="button" onClick={() => void generate()} disabled={busy || (!sourceMaterial.trim() && sourceFiles.length === 0)}>
           <Sparkles className="mr-2 size-4" />
           {busy

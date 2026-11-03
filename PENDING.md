@@ -1,5 +1,16 @@
 # Pending
 
+- **CMS AI PERFORMANCE / POST-SAVE NAVIGATION — READY / NOT DEPLOYED
+  (2026-11-03).** Shared editor saves now refresh relevant list queries and
+  redirect only after confirmed persistence; failures retain the editor and
+  entered values. Editorial AI keeps one in-flight request, avoids repeated
+  primitive serialization during changed-field protection and reports safe
+  client duration. Local filtering benchmark: 3461 ms to 2039 ms over 10,000
+  iterations; provider latency was not measured. Full suite `567/567` and
+  security `14/14` pass; production build passes. Changed-file lint remains
+  blocked by existing Prettier/CRLF formatting debt. Browser/authenticated
+  acceptance remains pending due CUA OS error 3. No SQL or migration ran.
+
 - **MY CONTENT UNIFIED LISTS — READY / NOT DEPLOYED (2026-11-03).** The My
   Content dashboard now exposes only real owned destinations, with My Quotes
   explicitly marked unavailable because no user-owned Quotes list exists.

@@ -64,7 +64,8 @@ test("the editor guards duplicate requests and preserves changed form values", a
   assert.match(button, /if \(\(!sourceMaterial\.trim\(\) && sourceFiles\.length === 0\) \|\| busy\) return/);
   assert.match(button, /requestRef\.current/);
   assert.match(button, /const snapshot = currentRef\.current/);
-  assert.match(button, /JSON\.stringify\(latest\[field\]\) === JSON\.stringify\(snapshot\[field\]\)/);
+  assert.match(button, /sameEditorialValue\(latest\[field\], snapshot\[field\]\)/);
+  assert.match(button, /JSON\.stringify\(left\) === JSON\.stringify\(right\)/);
   assert.match(button, /No fields were changed|toast\.error/);
   assert.match(button, /category: "provider-response"/);
   assert.match(button, /category: "schema-validation"/);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -84,6 +84,8 @@ function initialForm(type: EditorialRecordType, record: RecordValue): RecordValu
 export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType; id?: string }) {
   const config = CONFIG[type];
   const isEditing = Boolean(id);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { canReview } = useRoles();
   const { identity } = useActiveIdentity();
@@ -238,7 +240,15 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         if (error) throw error;
       }
     },
-    onSuccess: (_data, variables) => toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created with status ${String(variables.requestedStatus ?? "draft").replace("_", " ")}.`),
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [`admin-${type === "report" ? "reports" : type === "infrastructure" ? "infrastructure-issues" : `${type}s`}`] }),
+        queryClient.invalidateQueries({ queryKey: [type === "article" ? "my-articles" : `${type}s`] }),
+        queryClient.invalidateQueries({ queryKey: ["my-content"] }),
+      ]);
+      toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created with status ${String(variables.requestedStatus ?? "draft").replace("_", " ")}.`);
+      await navigate({ to: config.back });
+    },
     onError: (error: Error, variables) => toast.error(safePersistenceMessage(error, { requestId: variables.requestId, operation: isEditing ? "update" : "create", contentType: type })),
   });
 
