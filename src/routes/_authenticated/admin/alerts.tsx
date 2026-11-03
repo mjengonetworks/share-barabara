@@ -131,7 +131,7 @@ function AlertsAdminPage() {
         description="Adjust severity or remove alerts that are spam, duplicate or resolved."
         websiteHref="/alerts"
         actions={
-          <Link className={buttonVariants({ size: "sm" })} to="/admin/alerts/new"><Plus className="mr-1.5 size-4" /> Add new alert</Link>
+          <a className={buttonVariants({ size: "sm" })} href="/admin/alerts/new"><Plus className="mr-1.5 size-4" /> Add new alert</a>
         }
       />
 

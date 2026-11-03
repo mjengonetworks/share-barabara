@@ -141,7 +141,7 @@ function CampaignsAdminPage() {
         eyebrow="Site content"
         title="Manage Campaigns"
         websiteHref="/campaigns"
-        actions={<Link className={buttonVariants({ size: "sm" })} to="/admin/campaigns/new"><Plus className="mr-1.5 size-4" /> Add New Campaign</Link>}
+        actions={<a className={buttonVariants({ size: "sm" })} href="/admin/campaigns/new"><Plus className="mr-1.5 size-4" /> Add New Campaign</a>}
         description={
           <>
         Status (upcoming / ongoing / previous) is derived automatically from the dates. Once a

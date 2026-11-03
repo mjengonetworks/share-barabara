@@ -180,7 +180,7 @@ function ArticlesQueuePage() {
         title="Manage Articles"
         description="Review submissions from contributors. Publishing or rejecting needs moderator rank or above."
         websiteHref="/news"
-        actions={<Link className={buttonVariants({ size: "sm" })} to="/admin/articles/new"><Plus className="mr-1.5 size-4" /> Add New Article</Link>}
+        actions={<a className={buttonVariants({ size: "sm" })} href="/admin/articles/new"><Plus className="mr-1.5 size-4" /> Add New Article</a>}
       />
 
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">

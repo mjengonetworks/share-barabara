@@ -1151,3 +1151,9 @@ unfinished application changes are not merged here.
 - **Correction:** Articles, My Articles, Accident Reports, Alerts, Campaigns and Infrastructure Issues now use direct TanStack Router links with the same button styling. The dashboard Add News Article shortcut now points directly to `/admin/articles/new` instead of the listing. No popup editor was restored and no permissions were bypassed.
 - **Verification:** targeted Add New/full-page route regression checks pass; full suite 563/563, security suite 14/14 and production build pass. No SQL, migration or deployment was performed. Browser-level click/touch, keyboard and console verification remain blocked by the unavailable browser automation environment.
 - **Production baseline:** Worker `5c00e601-e1d0-439c-8818-beb70981a737` remains current; candidate pending owner approval.
+
+## URGENT NEW ARTICLE NAVIGATION HOTFIX — FINAL CANDIDATE (2026-11-03)
+
+- **Production discrepancy:** the live Worker `5c00e601-e1d0-439c-8818-beb70981a737` still runs application commit `1a08ce5`; the prior direct-router-link candidate was not deployed. The route tree confirms `/admin/articles/new` is a child of `/admin/articles`, and no disabled state or Article-specific permission guard blocks its Add New control.
+- **Final correction:** native full-page anchors now serve Articles, My Articles, Accident Reports, Alerts, Campaigns, Infrastructure Issues and dashboard creation shortcuts. This removes both router-event and Radix Slot interception from the critical navigation while preserving the existing full-page editor and authentication.
+- **Verification:** Add New/direct-route regression checks pass; full suite 563/563, security suite 14/14, production build and `git diff --check` pass. Browser click/touch/keyboard, console and live authenticated route verification remain blocked by unavailable browser automation. No SQL, migration or deployment was performed.

@@ -133,7 +133,7 @@ function InfrastructureIssuesAdminPage() {
         eyebrow="Content & moderation"
         title="Manage Infrastructure Issues"
         description="Roads, bridges, drainage and signage problems reported by the community."
-        actions={<Link className={buttonVariants({ size: "sm" })} to="/admin/infrastructure-issues/new"><Plus className="mr-1.5 size-4" /> Add New Issue</Link>}
+        actions={<a className={buttonVariants({ size: "sm" })} href="/admin/infrastructure-issues/new"><Plus className="mr-1.5 size-4" /> Add New Issue</a>}
       />
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>

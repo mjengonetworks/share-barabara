@@ -18,7 +18,7 @@ test("all five editorial Add routes are dedicated full-page routes", () => {
 
 test("My Articles Add and Edit use full-page routes", () => {
   const source = read("src/routes/_authenticated/admin/my-articles.tsx");
-  assert.match(source, /to="\/admin\/my-articles\/new"/);
+  assert.match(source, /href="\/admin\/my-articles\/new"/);
   assert.match(source, /href=\{`\/admin\/articles\/\$\{a\.id\}\/edit`\}/);
   assert.doesNotMatch(source, /<Dialog/);
 });
@@ -94,7 +94,7 @@ test("Article status remains after Editorial AI and before ordinary fields", () 
   assert.ok(aiPosition >= 0 && statusPosition > aiPosition && titlePosition > statusPosition);
 });
 
-test("CMS Add New controls are direct navigable links to full-page routes", () => {
+test("CMS Add New controls are direct native links to full-page routes", () => {
   const entryPoints = {
     articles: "/admin/articles/new",
     reports: "/admin/reports/new",
@@ -105,7 +105,7 @@ test("CMS Add New controls are direct navigable links to full-page routes", () =
   };
   for (const [name, path] of Object.entries(entryPoints)) {
     const source = read(`src/routes/_authenticated/admin/${name === "myArticles" ? "my-articles" : name === "infrastructure" ? "infrastructure-issues" : name}.tsx`);
-    assert.match(source, new RegExp(`className=\\{buttonVariants\\([\\s\\S]*?to=\\"${path.replaceAll("/", "\\/")}`), name);
+    assert.match(source, new RegExp(`className=\\{buttonVariants\\([\\s\\S]*?href=\\"${path.replaceAll("/", "\\/")}`), name);
   }
-  assert.match(read("src/routes/_authenticated/admin/index.tsx"), /to="\/admin\/articles\/new">Add News Article/);
+  assert.match(read("src/routes/_authenticated/admin/index.tsx"), /href="\/admin\/articles\/new">Add News Article/);
 });

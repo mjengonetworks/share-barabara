@@ -216,7 +216,7 @@ function ReportsQueuePage() {
         description="Edit submissions for accuracy and clarity, then approve them."
         websiteHref="/reports"
         actions={
-          <Link className={buttonVariants({ size: "sm" })} to="/admin/reports/new"><Plus className="mr-1.5 size-4" /> Add New Report</Link>
+          <a className={buttonVariants({ size: "sm" })} href="/admin/reports/new"><Plus className="mr-1.5 size-4" /> Add New Report</a>
         }
       />
       <IncidentDiscoveryPanel />

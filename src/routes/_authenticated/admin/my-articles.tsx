@@ -99,7 +99,7 @@ function MyArticlesPage() {
 
       <div className="mt-6">
         {canWrite ? (
-          <Link className={buttonVariants()} to="/admin/my-articles/new"><Plus className="mr-1.5 size-4" /> New article</Link>
+          <a className={buttonVariants()} href="/admin/my-articles/new"><Plus className="mr-1.5 size-4" /> New article</a>
         ) : (
           <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted-foreground">
             Writing articles is a subscriber perk.{" "}
