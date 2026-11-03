@@ -1,5 +1,14 @@
 # Pending
 
+- **MY CONTENT UNIFIED LISTS — READY / NOT DEPLOYED (2026-11-03).** The My
+  Content dashboard now exposes only real owned destinations, with My Quotes
+  explicitly marked unavailable because no user-owned Quotes list exists.
+  Owned queries use server-side account filters; the shared listing surface
+  keeps complete columns and confines narrow-screen scrolling to the table.
+  My Articles retains its full-page child route and Outlet fix. Focused
+  regression coverage was added. CUA OS error 3 prevents browser-level visual
+  and authenticated acceptance; no SQL or migration is required.
+
 - **APPLICATION-ONLY RELEASE DEPLOYED — FUNCTIONAL ACCEPTANCE PENDING
   (2026-11-02).** Approved commit
   `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030` is deployed as Worker

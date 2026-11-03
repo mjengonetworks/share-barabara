@@ -118,3 +118,18 @@ test("My Articles hands its child creation route to the full-page editor", () =>
   assert.match(child, /createFileRoute\("\/_authenticated\/admin\/my-articles\/new"\)/);
   assert.match(child, /ArticleForm editorial/);
 });
+
+test("My Content exposes owned destinations and a unified ownership-aware table", () => {
+  const source = read("src/routes/_authenticated/admin/my-content.tsx");
+  assert.match(source, /\/admin\/my-articles/);
+  for (const key of ["reports", "alerts", "campaigns", "infrastructure"]) assert.match(source, new RegExp(`key: "${key}"`), key);
+  assert.match(source, /My Quotes/);
+  assert.match(source, /No user-owned Quotes list is implemented/);
+  assert.match(source, /\.eq\(source\.owner, user!\.id\)/);
+  assert.match(source, /AdminListingSurface/);
+  assert.match(source, /min-w-\[1100px\]/);
+  assert.match(source, /Views order/);
+  assert.match(source, /Previous/);
+  assert.match(source, /Next/);
+  assert.match(source, /admin\/my-articles\/new/);
+});

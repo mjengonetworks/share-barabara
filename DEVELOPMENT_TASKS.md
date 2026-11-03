@@ -1,5 +1,24 @@
 # Development tasks
 
+## My Content dashboard and unified owned lists — READY / NOT DEPLOYED — 2026-11-03
+
+- Standardized `My Content` around the approved admin listing surface with
+  server-side owner filters, compact fixed-column tables, internal mobile
+  horizontal scrolling, search, status filtering, article view ordering and
+  pagination.
+- Added working navigation for My Articles, Accident Reports, Hazard Alerts,
+  Campaigns, Infrastructure Issues, Feed posts and Media/Videos. My Quotes is
+  intentionally reported as unavailable because no user-owned Quotes list
+  route exists; no placeholder route was created.
+- Preserved full-page editor destinations, including
+  `/admin/my-articles/new`; the existing parent `<Outlet />` regression guard
+  remains in place. No SQL or migration was added or executed.
+- Added a regression test for owned destinations, table parity, internal
+  mobile scrolling, views ordering, pagination and the My Articles editor link.
+- Browser/authenticated visual acceptance remains unverified because CUA is
+  unavailable with OS error 3. Production baseline remains Worker
+  `62fe18de-87c7-452b-8f5a-a2590011e0d0`; this work is not deployed.
+
 ## Application-only production deployment — DEPLOYED / ACCEPTANCE PENDING — 2026-11-02
 
 - Approved commit deployed: `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030`.
