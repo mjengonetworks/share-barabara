@@ -1157,3 +1157,10 @@ unfinished application changes are not merged here.
 - **Production discrepancy:** the live Worker `5c00e601-e1d0-439c-8818-beb70981a737` still runs application commit `1a08ce5`; the prior direct-router-link candidate was not deployed. The route tree confirms `/admin/articles/new` is a child of `/admin/articles`, and no disabled state or Article-specific permission guard blocks its Add New control.
 - **Final correction:** native full-page anchors now serve Articles, My Articles, Accident Reports, Alerts, Campaigns, Infrastructure Issues and dashboard creation shortcuts. This removes both router-event and Radix Slot interception from the critical navigation while preserving the existing full-page editor and authentication.
 - **Verification:** Add New/direct-route regression checks pass; full suite 563/563, security suite 14/14, production build and `git diff --check` pass. Browser click/touch/keyboard, console and live authenticated route verification remain blocked by unavailable browser automation. No SQL, migration or deployment was performed.
+
+## URGENT NEW ARTICLE NAVIGATION HOTFIX — DEPLOYED (2026-11-03)
+
+- **Deployment:** approved commit `1478c291570cd3e1c02ceed009a51b4d3661f3e6` deployed at `2026-11-03T09:10:04.222Z` as Worker `8c229129-f427-4bf3-ab05-dc00089eb19a`; Wrangler reports 100% traffic. Previous Worker `5c00e601-e1d0-439c-8818-beb70981a737` is the rollback target.
+- **Configuration:** custom domain, `ASSETS`, `AI_RATE_LIMITER`, production variables, secrets, authentication, existing content and cron `*/1 * * * *` were preserved. No SQL or migration was executed.
+- **Smoke tests:** `/admin/articles/new`, `/admin/articles`, `/admin/my-articles`, all other CMS creation routes, and public `/`, `/news`, `/reports`, `/alerts`, `/campaigns`, `/infrastructure-issues` returned HTTP 200. Unauthenticated HTML cannot expose the authenticated listing anchor, so that check remains session-dependent.
+- **Acceptance:** browser click/touch/keyboard, authenticated button activation, console and live editor verification remain pending because browser automation is unavailable.
