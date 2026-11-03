@@ -1171,3 +1171,10 @@ unfinished application changes are not merged here.
 - **Correction:** My Articles now switches to its child outlet for `/admin/my-articles/new`, preserving the existing full-page `ArticleForm` editor, authentication, permissions, AI controls and save behavior. The Articles admin route already had the equivalent outlet handoff and remains unchanged.
 - **Verification:** full suite 564/564, security suite 14/14, production build and `git diff --check` pass. No SQL, migration or deployment was performed. Browser sequence, refresh, back navigation, mobile touch and authenticated network/console verification remain pending because browser automation is unavailable.
 - **Production baseline:** Worker `8c229129-f427-4bf3-ab05-dc00089eb19a` remains current; candidate pending review.
+
+## CRITICAL MY ARTICLES NAVIGATION LOOP — DEPLOYED (2026-11-03)
+
+- **Deployment:** approved commit `de4612f8348342f189c30b3879e120343b38f66a` deployed at `2026-11-03T09:25:17.431Z` as Worker `62fe18de-87c7-452b-8f5a-a2590011e0d0`; Wrangler reports 100% traffic. Previous Worker `8c229129-f427-4bf3-ab05-dc00089eb19a` is the rollback target.
+- **Configuration:** custom domain, `ASSETS`, `AI_RATE_LIMITER`, production variables, secrets, authentication, existing content and cron `*/1 * * * *` were preserved. No SQL or migration was executed.
+- **Smoke tests:** `/admin/my-articles/new`, `/admin/articles/new`, all other CMS creation routes, the two parent admin routes and public `/`, `/news`, `/reports`, `/alerts`, `/campaigns`, `/infrastructure-issues` all returned HTTP 200.
+- **Acceptance:** the parent `<Outlet />` handoff and direct route registration are covered by tests. Authenticated My Articles → Add New interaction, refresh/back navigation, mobile touch, console and network verification remain pending because browser automation is unavailable.
