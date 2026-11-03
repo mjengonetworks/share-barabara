@@ -109,3 +109,12 @@ test("CMS Add New controls are direct native links to full-page routes", () => {
   }
   assert.match(read("src/routes/_authenticated/admin/index.tsx"), /href="\/admin\/articles\/new">Add News Article/);
 });
+
+test("My Articles hands its child creation route to the full-page editor", () => {
+  const parent = read("src/routes/_authenticated/admin/my-articles.tsx");
+  const child = read("src/routes/_authenticated/admin/my-articles.new.tsx");
+  assert.match(parent, /Outlet/);
+  assert.match(parent, /admin\/my-articles\/new/);
+  assert.match(child, /createFileRoute\("\/_authenticated\/admin\/my-articles\/new"\)/);
+  assert.match(child, /ArticleForm editorial/);
+});

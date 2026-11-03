@@ -1164,3 +1164,10 @@ unfinished application changes are not merged here.
 - **Configuration:** custom domain, `ASSETS`, `AI_RATE_LIMITER`, production variables, secrets, authentication, existing content and cron `*/1 * * * *` were preserved. No SQL or migration was executed.
 - **Smoke tests:** `/admin/articles/new`, `/admin/articles`, `/admin/my-articles`, all other CMS creation routes, and public `/`, `/news`, `/reports`, `/alerts`, `/campaigns`, `/infrastructure-issues` returned HTTP 200. Unauthenticated HTML cannot expose the authenticated listing anchor, so that check remains session-dependent.
 - **Acceptance:** browser click/touch/keyboard, authenticated button activation, console and live editor verification remain pending because browser automation is unavailable.
+
+## CRITICAL MY ARTICLES NAVIGATION LOOP — IMPLEMENTED / NOT DEPLOYED (2026-11-03)
+
+- **Root cause:** `/admin/my-articles/new` is a registered child route of `my-articles.tsx`, but the parent page did not render `<Outlet />` or hand off when the child path was active. Navigation succeeded, then the parent list continued rendering, so the full-page Article editor was never visible. This was separate from the anchor fix.
+- **Correction:** My Articles now switches to its child outlet for `/admin/my-articles/new`, preserving the existing full-page `ArticleForm` editor, authentication, permissions, AI controls and save behavior. The Articles admin route already had the equivalent outlet handoff and remains unchanged.
+- **Verification:** full suite 564/564, security suite 14/14, production build and `git diff --check` pass. No SQL, migration or deployment was performed. Browser sequence, refresh, back navigation, mobile touch and authenticated network/console verification remain pending because browser automation is unavailable.
+- **Production baseline:** Worker `8c229129-f427-4bf3-ab05-dc00089eb19a` remains current; candidate pending review.

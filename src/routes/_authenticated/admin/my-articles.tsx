@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, MoreVertical, Newspaper, Pencil, Plus, Trash2 } from "lucide-react";
@@ -30,6 +30,8 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 function MyArticlesPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/my-articles\/new\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const { keepsArticleRightsAfterPublish, canPublishArticles } = useRoles();
   const canWrite = useCanWriteArticles();
