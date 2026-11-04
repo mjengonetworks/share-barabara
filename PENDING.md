@@ -1,5 +1,18 @@
 # Pending
 
+- **CMS CORRECTIVE RELEASE — DEPLOYED / AUTHENTICATED ACCEPTANCE PENDING
+  (2026-11-04).** Reviewed candidate
+  `ef7af12a0307bb6e59ccf0d4aa2dac71b444ee47` is live as Worker
+  `a27e1959-4e15-4753-b9c7-0f2e86d6826f` at 100% traffic from
+  `2026-11-04T13:56:01.302Z`. The prior Worker
+  `34264529-e64b-4d69-915b-bc5447d84dc0` is preserved for rollback. The
+  production build, artifact test, full suite `572/572`, security `14/14`,
+  changed-file ESLint and Git diff checks passed. Public/admin smoke checks
+  returned HTTP 200; `/feed` returned its expected 307 redirect. No SQL or
+  migration ran. Authenticated browser verification remains pending because no
+  browser surface was available; live Campaigns HTTP response-body and
+  responsive-layout claims remain unverified.
+
 - **CMS AI PERFORMANCE / POST-SAVE NAVIGATION — READY / NOT DEPLOYED
   (2026-11-03).** Shared editor saves now refresh relevant list queries and
   redirect only after confirmed persistence; failures retain the editor and

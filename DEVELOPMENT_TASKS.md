@@ -1,5 +1,24 @@
 # Development tasks
 
+## CMS corrective release — DEPLOYED / AUTHENTICATED ACCEPTANCE PENDING — 2026-11-04
+
+- Reviewed candidate `ef7af12a0307bb6e59ccf0d4aa2dac71b444ee47` was deployed
+  through the existing production Wrangler script as Worker
+  `a27e1959-4e15-4753-b9c7-0f2e86d6826f` at 100% traffic on
+  `2026-11-04T13:56:01.302Z`.
+- The expected baseline Worker
+  `34264529-e64b-4d69-915b-bc5447d84dc0` was active immediately before
+  deployment and remains preserved as the rollback target. The custom domain,
+  production bindings, authentication configuration, route and `*/1 * * * *`
+  cron were preserved. No SQL or migration ran.
+- Pre-deployment gates passed: production build, Worker artifact test, full
+  source tests `572/572`, security tests `14/14`, changed-file ESLint and Git
+  diff checks. Public/admin smoke checks returned HTTP 200; `/feed` returned
+  its expected 307 redirect to the feed sort URL.
+- Authenticated browser verification remains pending because no browser surface
+  was available. Do not claim live Campaigns HTTP 400 resolution or responsive
+  layout acceptance without authenticated request and viewport evidence.
+
 ## CMS AI performance and post-save navigation — READY / NOT DEPLOYED — 2026-11-03
 
 - The shared five-type editor now invalidates the relevant admin/owned-list
