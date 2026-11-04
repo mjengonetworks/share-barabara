@@ -170,7 +170,7 @@ function Index() {
           className="absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
-        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:py-6">
+        <div className="relative public-content-container py-10 sm:py-6">
           <div className="flex flex-wrap gap-2">
             <a
               href="https://mjengohub.co.ke"
@@ -222,7 +222,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <section className="public-content-container py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="text-[1.44375rem] font-bold">Latest hazard alerts</h2>
           <div className="flex gap-3">
@@ -250,12 +250,12 @@ function Index() {
         )}
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <section className="public-content-container py-10">
         <FeaturedProfileCard slot="home_profile" />
       </section>
 
       <section className="border-y border-border bg-secondary/40">
-        <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="public-content-container py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-[1.44375rem] font-bold">News &amp; Articles</h2>
             <div className="flex gap-3">
@@ -278,11 +278,11 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-6">
+      <section className="public-content-container py-6">
         <BannerAd placement="homepage-between-news-reports" />
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <section className="public-content-container py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="flex items-center gap-2 text-[1.44375rem] font-bold">
             <CarFront className="size-7 text-accent" /> Accident reports
@@ -313,7 +313,7 @@ function Index() {
       </section>
 
       {pages.length > 0 ? (
-        <section className="mx-auto max-w-6xl px-4 py-10">
+        <section className="public-content-container py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="flex items-center gap-2 text-[1.44375rem] font-bold">
               <Building2 className="size-7 text-accent" /> Pages
@@ -351,7 +351,7 @@ function Index() {
         </section>
       ) : null}
 
-      <section className="mx-auto max-w-6xl px-4">
+      <section className="public-content-container">
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-dashed border-border bg-muted/30 p-6">
           <div className="flex items-center gap-3">
             <Construction className="size-8 shrink-0 text-accent" />
@@ -369,7 +369,7 @@ function Index() {
       </section>
 
       <section className="border-y border-border bg-secondary/40">
-        <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="public-content-container py-10">
           <div className="grid gap-6 sm:grid-cols-3">
             <PreviewCard
               title="Crash statistics"
@@ -400,7 +400,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <section className="public-content-container py-10">
         <div className="rounded-lg border border-border bg-card p-8 text-center card-elevated">
           <HandHeart className="mx-auto size-8 text-accent" />
           <h2 className="mt-3 text-[1.155rem] font-bold">Support Share Barabara</h2>
@@ -414,11 +414,11 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-6">
+      <section className="public-content-container py-6">
         <BannerAd placement="homepage-support-partner" />
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <section className="public-content-container py-10">
         <div className="grid gap-6 lg:grid-cols-2">
           <QuoteOfTheDay />
           <div className="flex flex-col justify-center rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
@@ -436,7 +436,7 @@ function Index() {
       </section>
 
       <section className="py-10">
-        <div className="mx-auto max-w-6xl px-4">
+        <div className="public-content-container">
           <PublicNewsletterCard
             title="Get the Share Barabara newsletter"
             description="Hazard trends, new campaigns and top stories, straight to your inbox."
@@ -449,7 +449,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <section className="public-content-container py-10">
         <div className="grid gap-6 lg:grid-cols-2">
           <div>
             <h2 className="text-[1.44375rem] font-bold">In an emergency</h2>
@@ -474,12 +474,12 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <section className="public-content-container py-10">
         <FeaturedPageCard slot="home_page" />
       </section>
 
       <section className="border-t border-border bg-secondary/40">
-        <div className="mx-auto max-w-6xl space-y-8 px-4 py-10">
+        <div className="public-content-container space-y-8 py-10">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <PreviewCard
               title="Share Barabara AI"
