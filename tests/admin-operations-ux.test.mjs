@@ -43,6 +43,17 @@ test("admin content lists preserve unknown casualty values and unavailable views
   assert.match(reports, /NullableNumberField[\s\S]*label="Injured"/);
   assert.match(reports, /NullableNumberField[\s\S]*label="Fatalities"/);
   assert.match(reports, /viewCountsError \? "—"/);
-  assert.match(articles, /viewCountsError \? "—"/);
+  assert.match(articles, /viewCountsError \|\| viewCountsLoading \? "—"/);
   assert.match(alerts, /viewCountsError \? "—"/);
+});
+
+test("Article views use exact canonical counts and sort the complete filtered dataset", async () => {
+  const hook = await read("src/hooks/useViewCounts.ts");
+  const articles = await read("src/routes/_authenticated/admin/articles.tsx");
+  assert.match(hook, /count: "exact", head: true/);
+  assert.match(hook, /news_views|accident_report_views|alert_views/);
+  assert.match(articles, /viewSort/);
+  assert.match(articles, /sortedArticles\.map/);
+  assert.match(articles, /viewCountsLoading/);
+  assert.match(articles, /Sort articles by views/);
 });

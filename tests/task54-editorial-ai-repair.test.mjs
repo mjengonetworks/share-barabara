@@ -29,7 +29,7 @@ test("Groq keeps the required default model and OpenAI-compatible endpoint", () 
 test("editorial completions request provider-enforced JSON output", () => {
   assert.match(providers, /type: "json_schema"/);
   assert.match(providers, /strict: true/);
-  assert.match(editorial, /parseDraft\(contentType, result\.answer\)/);
+  assert.match(editorial, /validateProviderDraft\(result\.answer\)/);
 });
 
 test("editorial instructions are sent as system instructions and source as evidence", () => {

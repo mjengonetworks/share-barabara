@@ -3,7 +3,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Eye, MoreVertical, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,11 +28,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import {
-  PartyCasualtyInputs,
-  type CasualtyBreakdown,
-} from "@/components/site/party-casualty-inputs";
 import { supabase } from "@/integrations/supabase/client";
 import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useProfileNames } from "@/lib/profiles";
@@ -40,16 +35,10 @@ import { UserLink } from "@/components/site/user-link";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
-import { findExistingRoad } from "@/lib/roads";
-import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { useHazardTypes, useAlertSeverities } from "@/hooks/useTaxonomy";
 import { useViewCounts } from "@/hooks/useViewCounts";
-import { EditorialAIButton } from "@/components/site/editorial-ai-button";
-import { LocationButton } from "@/components/site/location-button";
-import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
-import { AlertForm } from "@/components/site/alert-form";
 
 export const Route = createFileRoute("/_authenticated/admin/alerts")({
   head: () => ({ meta: [{ title: "Hazard Alerts: Share Barabara Admin" }] }),
@@ -58,7 +47,7 @@ export const Route = createFileRoute("/_authenticated/admin/alerts")({
 
 function AlertsAdminPage() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  if (/^\/admin\/alerts\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
+  if (/^\/admin\/alerts\/(?:new|[^/]+\/edit)\/?$/.test(pathname)) return <Outlet />;
   const queryClient = useQueryClient();
   const { data: hazardTypes = [] } = useHazardTypes();
   const { data: severities = [] } = useAlertSeverities();
@@ -67,19 +56,6 @@ function AlertsAdminPage() {
   const [severity, setSeverity] = useState("all");
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
-  const [editingParties, setEditingParties] = useState<{
-    id: string;
-    title: string;
-    description: string;
-    county: string;
-    road: string;
-    latitude: number | null;
-    longitude: number | null;
-    hazard_type: string;
-    severity: string;
-    parties: string[];
-    casualties: CasualtyBreakdown;
-  } | null>(null);
 
   const { data: allAlerts = [], isLoading } = useQuery({
     queryKey: ["admin-alerts"],
@@ -147,36 +123,6 @@ function AlertsAdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const saveParties = useMutation({
-    mutationFn: async () => {
-      if (!editingParties) return;
-      const road_id = await findExistingRoad(editingParties.road);
-      const { error } = await supabase
-        .from("alerts")
-        .update({
-          title: editingParties.title.trim(),
-          description: editingParties.description,
-          county: editingParties.county,
-          road: editingParties.road.trim() || null,
-          latitude: editingParties.latitude,
-          longitude: editingParties.longitude,
-          road_id,
-          hazard_type: editingParties.hazard_type,
-          severity: editingParties.severity,
-          parties_involved: editingParties.parties,
-          casualty_breakdown: editingParties.casualties,
-        })
-        .eq("id", editingParties.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Updated");
-      setEditingParties(null);
-      queryClient.invalidateQueries({ queryKey: ["admin-alerts"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   return (
     <div className="w-full max-w-[1500px]">
       <AdminPageHeader
@@ -185,13 +131,7 @@ function AlertsAdminPage() {
         description="Adjust severity or remove alerts that are spam, duplicate or resolved."
         websiteHref="/alerts"
         actions={
-          <Dialog>
-            <DialogTrigger asChild><Button size="sm"><Plus className="mr-1.5 size-4" /> Add new alert</Button></DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-              <DialogHeader><DialogTitle>New hazard alert</DialogTitle></DialogHeader>
-              <AlertForm editorial onDone={() => queryClient.invalidateQueries({ queryKey: ["admin-alerts"] })} />
-            </DialogContent>
-          </Dialog>
+          <a className={buttonVariants({ size: "sm" })} href="/admin/alerts/new"><Plus className="mr-1.5 size-4" /> Add new alert</a>
         }
       />
 
@@ -271,7 +211,7 @@ function AlertsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface className="mt-0">
-        <Table>
+        <Table className="min-w-[1100px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-10"><span className="sr-only">Select</span></TableHead>
@@ -371,166 +311,6 @@ function AlertsAdminPage() {
         </Table>
       </AdminListingSurface>
 
-      <Dialog open={!!editingParties} onOpenChange={(v) => !v && setEditingParties(null)}>
-        <DialogContent>
-          <DialogHeader>
-          <DialogTitle>Edit alert</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Correct the alert details and, where verified, classify the people involved. Existing
-            fields and the current alert schema are reused.
-          </p>
-          {editingParties ? (
-            <>
-              {(["generate", "autopopulate"] as const).map((mode) => (
-                <EditorialAIButton
-                  key={mode}
-                  contentType="alert"
-                  mode={mode}
-                  provider={mode === "autopopulate" ? "groq" : "grok"}
-                  current={editingParties}
-                  source=""
-                  onDraft={(draft) =>
-                    setEditingParties((current) =>
-                      current
-                        ? {
-                            ...current,
-                            ...(typeof draft.title === "string" ? { title: draft.title } : {}),
-                            ...(typeof draft.description === "string" ? { description: draft.description } : {}),
-                            ...(typeof draft.county === "string" ? { county: draft.county } : {}),
-                            ...(typeof draft.road === "string" ? { road: draft.road } : {}),
-                            ...(typeof draft.hazard_type === "string" ? { hazard_type: draft.hazard_type } : {}),
-                            ...(typeof draft.severity === "string" ? { severity: draft.severity } : {}),
-                          }
-                        : current,
-                    )
-                  }
-                />
-              ))}
-              <EditorialAIButton
-                contentType="alert"
-                mode="autopopulate"
-                provider="grok"
-                current={editingParties}
-                source=""
-                onDraft={(draft) =>
-                  setEditingParties((current) =>
-                    current
-                      ? {
-                          ...current,
-                          ...(typeof draft.title === "string" ? { title: draft.title } : {}),
-                          ...(typeof draft.description === "string" ? { description: draft.description } : {}),
-                          ...(typeof draft.county === "string" ? { county: draft.county } : {}),
-                          ...(typeof draft.road === "string" ? { road: draft.road } : {}),
-                          ...(typeof draft.hazard_type === "string" ? { hazard_type: draft.hazard_type } : {}),
-                          ...(typeof draft.severity === "string" ? { severity: draft.severity } : {}),
-                        }
-                      : current,
-                  )
-                }
-              />
-              <EditorialAIButton
-                contentType="alert"
-                mode="update"
-                contentId={editingParties.id}
-                source=""
-                current={editingParties}
-                onDraft={(draft) =>
-                  setEditingParties((current) =>
-                    current
-                      ? {
-                          ...current,
-                          ...(typeof draft.title === "string" ? { title: draft.title } : {}),
-                          ...(typeof draft.description === "string" ? { description: draft.description } : {}),
-                          ...(typeof draft.county === "string" ? { county: draft.county } : {}),
-                          ...(typeof draft.road === "string" ? { road: draft.road } : {}),
-                          ...(typeof draft.hazard_type === "string" ? { hazard_type: draft.hazard_type } : {}),
-                          ...(typeof draft.severity === "string" ? { severity: draft.severity } : {}),
-                        }
-                      : current,
-                  )
-                }
-              />
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="edit-alert-title">Title</Label>
-                  <Input id="edit-alert-title" value={editingParties.title} onChange={(e) => setEditingParties({ ...editingParties, title: e.target.value })} />
-                </div>
-                <div>
-                  <Label htmlFor="edit-alert-description">Details</Label>
-                  <RichTextEditor id="edit-alert-description" rows={6} value={editingParties.description} onChange={(v) => setEditingParties({ ...editingParties, description: v })} />
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <Label>County</Label>
-                    <Select value={editingParties.county} onValueChange={(v) => setEditingParties({ ...editingParties, county: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent className="max-h-64">{KENYA_COUNTIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-alert-road">Road or location</Label>
-                    <Input id="edit-alert-road" value={editingParties.road} onChange={(e) => setEditingParties({ ...editingParties, road: e.target.value })} />
-                  </div>
-                </div>
-                <div className="rounded border border-dashed border-border bg-muted/30 p-3">
-                  <Label>Point location (optional)</Label>
-                  <LocationButton idPrefix="edit-alert-location" latitude={editingParties.latitude} longitude={editingParties.longitude} onLocate={(latitude, longitude) => setEditingParties({ ...editingParties, latitude, longitude })} />
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <Label>Hazard type</Label>
-                    <Select value={editingParties.hazard_type} onValueChange={(v) => setEditingParties({ ...editingParties, hazard_type: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{hazardTypes.map((h) => <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Severity</Label>
-                    <Select value={editingParties.severity} onValueChange={(v) => setEditingParties({ ...editingParties, severity: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{severities.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {PARTIES_INVOLVED.map((p) => (
-                  <label key={p.value} className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={editingParties.parties.includes(p.value)}
-                      onCheckedChange={(v) =>
-                        setEditingParties({
-                          ...editingParties,
-                          parties:
-                            v === true
-                              ? [...editingParties.parties, p.value]
-                              : editingParties.parties.filter((x) => x !== p.value),
-                        })
-                      }
-                    />
-                    {p.label}
-                  </label>
-                ))}
-              </div>
-              <PartyCasualtyInputs
-                parties={editingParties.parties}
-                value={editingParties.casualties}
-                onChange={(v) => setEditingParties({ ...editingParties, casualties: v })}
-              />
-              <EditorialUpdatesManager
-                parentType="alert"
-                parentId={editingParties.id}
-                parentTitle={editingParties.title}
-                parentBody={editingParties.description}
-              />
-              <Button disabled={saveParties.isPending} onClick={() => saveParties.mutate()}>
-                {saveParties.isPending ? "Saving…" : "Save"}
-              </Button>
-            </>
-          ) : null}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

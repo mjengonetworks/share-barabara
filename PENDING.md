@@ -1,5 +1,128 @@
 # Pending
 
+- **CMS AI PERFORMANCE / POST-SAVE NAVIGATION — READY / NOT DEPLOYED
+  (2026-11-03).** Shared editor saves now refresh relevant list queries and
+  redirect only after confirmed persistence; failures retain the editor and
+  entered values. Editorial AI keeps one in-flight request, avoids repeated
+  primitive serialization during changed-field protection and reports safe
+  client duration. Local filtering benchmark: 3461 ms to 2039 ms over 10,000
+  iterations; provider latency was not measured. Full suite `567/567` and
+  security `14/14` pass; production build passes. Changed-file lint remains
+  blocked by existing Prettier/CRLF formatting debt. Browser/authenticated
+  acceptance remains pending due CUA OS error 3. No SQL or migration ran.
+
+- **MY CONTENT UNIFIED LISTS — READY / NOT DEPLOYED (2026-11-03).** The My
+  Content dashboard now exposes only real owned destinations, with My Quotes
+  explicitly marked unavailable because no user-owned Quotes list exists.
+  Owned queries use server-side account filters; the shared listing surface
+  keeps complete columns and confines narrow-screen scrolling to the table.
+  My Articles retains its full-page child route and Outlet fix. Focused
+  regression coverage was added. CUA OS error 3 prevents browser-level visual
+  and authenticated acceptance; no SQL or migration is required.
+
+- **APPLICATION-ONLY RELEASE DEPLOYED — FUNCTIONAL ACCEPTANCE PENDING
+  (2026-11-02).** Approved commit
+  `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030` is deployed as Worker
+  `e0c468f8-74d2-4d8c-b038-2d78e77f2b82` at 100% traffic, timestamp
+  `2026-11-02T07:54:47.295Z`. Public `/news`, `/reports`, `/alerts`,
+  `/campaigns`, `/infrastructure-issues` and admin `/admin`, `/admin/articles`
+  smoke checks returned HTTP 200. No SQL or migration ran. Remaining items are
+  authenticated relationship selection/persistence, mobile Articles review,
+  Article/Report field separation, public linked-content rendering, exact
+  production relationship contract verification and the unresolved Editorial AI
+  `Schema validation failed` reproduction.
+
+- **FINAL APPLICATION-ONLY CANDIDATE — READY / NOT DEPLOYED (2026-11-02).**
+  Release commit: `0cd169ac4a83b1d758c16afbf7db0c19a6dcb030`, descended from
+  known deployed baseline `b9e39a1`. The candidate preserves the responsive
+  Article list, Article/Report field ownership, canonical categories and
+  `news.source`, relationship picker/reciprocal presentation, linked Reports
+  below Article Summary and safe Editorial AI diagnostics. It contains no
+  candidate-only relationship migration change. Full suite `554/554`, security
+  `14/14`, production build and `git diff --check` pass. Lint is blocked by
+  pre-existing CRLF/Prettier violations; generated TypeScript limitations are
+  documented. Do not deploy or execute SQL without explicit approval.
+
+- **PRODUCTION RELATIONSHIP INFRASTRUCTURE — ALREADY APPLIED / APPLICATION-ONLY
+  CANDIDATE (2026-11-02).** Owner execution of the consolidated preflight
+  returned **ALREADY APPLIED** with all 37 checks PASS or ALREADY APPLIED.
+  Required tables/columns, role helpers, relationship objects/RPC signatures,
+  RLS/policies and `incident_content_links` are present. Do not execute or
+  rerun `20261030180000_editorial_content_relationships_review.sql`; no
+  database migration is required for the application candidate. The reviewed
+  migration SHA-256 remains
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+- **REMAINING CONTRACT ACCEPTANCE:** the consolidated output confirms object
+  presence, signatures and RLS/policy presence but does not expose complete
+  function bodies, constraints, indexes or privilege ACLs. No discrepancy is
+  currently reported; authenticated relationship writes and exact catalog
+  equivalence remain pending owner-authorized verification. The Editorial AI
+  `Schema validation failed` issue remains open.
+
+- **OWNER PRODUCTION PREFLIGHT — SUPERSEDED BY ALREADY-APPLIED RESULT
+  (2026-11-02).** The consolidated read-only script was executed by the owner;
+  its 37 checks returned PASS or ALREADY APPLIED. No migration Gate A remains
+  for this application candidate. Do not rerun the relationship migration.
+- Migration SHA-256:
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+  The application-only candidate requires a separate deployment approval. The
+  Editorial AI `Schema validation failed` issue remains open and is not
+  resolved by this migration; safe diagnostic fields remain enabled.
+
+- **RELATIONSHIP MIGRATION REHEARSAL — PASS / PRODUCTION PREFLIGHT PENDING
+  (2026-11-02).** The exact migration executed successfully on a disposable
+  local PostgreSQL 17 cluster. Article/Report, Article/Campaign,
+  Report/Campaign and Alert/Campaign links persisted; duplicate prevention,
+  unlinking, reciprocal public lookup, unpublished-target filtering, editor
+  permissions, non-editor rejection and canonical Alert/Report protection all
+  passed. Reapplying the migration failed closed as designed. The temporary
+  cluster was removed. SHA-256 is
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+  Owner must run the read-only script
+  `docs/production-editorial-relationship-preflight.sql` before migration
+  approval. No production SQL or deployment was performed.
+
+- **FINAL RELATIONSHIP MIGRATION REHEARSAL + EDITORIAL AI DIAGNOSTIC —
+  SUPERSEDED BY PASS RECORD ABOVE (2026-11-02).** Migration SHA-256 is
+  `24A895BC031F21C6F1EF9201A4F9004DCA6AEC157E3F65CC395CE1A65536ED51`.
+  Static dependency/RLS/RPC review passed; the later local PostgreSQL rehearsal
+  passed. The migration is additive, fail-closed on repeat execution and
+  must run before relationship UI deployment; no production SQL was executed.
+  Relationship controls now show an explicit unavailable state instead of
+  silently offering nonfunctional writes. Editorial AI errors now identify safe
+  request ID, content type, action, boundary and field metadata. Full tests
+  `554/554`, security `14/14` and build pass. Authenticated live AI failure
+  reproduction, database rehearsal and browser acceptance remain pending.
+
+- **ADMIN CMS + EDITORIAL AI + CROSS-CONTENT INTEGRATION — IMPLEMENTED / LIVE
+  ACCEPTANCE PENDING (2026-11-02).** Taxonomy lookup now treats only missing
+  optional relations as unavailable; permission/connectivity failures remain
+  actionable errors. Full suite `550/550` and production build pass. Article
+  admin rows are responsive and compact, Article Add/Edit uses canonical
+  categories and preserves `news.source`, and the field ownership inventory is
+  recorded in `docs/editorial-field-inventory.md`. Cross-content targets now
+  include Article ↔ Report, Article ↔ Campaign, Report ↔ Campaign and Alert ↔
+  Campaign. Public Article related content is placed below the Summary with
+  Accident Reports prioritized and shown with images/links. The relationship
+  migration remains review-only and was not executed. Live authenticated
+  reproduction of the owner’s persistent Schema validation failed response,
+  DevTools request evidence, browser visual checks and provider acceptance
+  remain outstanding. Do not deploy this branch yet.
+
+- **EDITORIAL AI TAXONOMY COMPATIBILITY HOTFIX — DEPLOYED / FUNCTIONAL
+  ACCEPTANCE PENDING (2026-11-01).** Approved application-only commit
+  `b9e39a1f12ba316ffe8c09ee5ac036bfc45b51e7`, directly descended from deployed
+  code `f0653527d8dbb11cd5a218f5cf1d869618ca54ea`, is live on Worker
+  `20555c39-f497-4145-b022-34176c0ee0f0` at 100% traffic from
+  `2026-11-01T12:00:51.572Z`. Cloudflare source metadata is Unknown. The custom
+  domain, production vars/secrets, `ASSETS`, `AI_RATE_LIMITER` and `*/1 * * * *`
+  cron were preserved. No SQL migration or production data change was executed.
+  Public and admin route-shell smoke checks returned HTTP 200. Full tests pass
+  `548/548`, security `14/14`, and production build passes. Full lint remains
+  blocked by the repository CRLF/Prettier limitation. Live taxonomy REST checks
+  returned HTTP 200 for `news_categories`, `hazard_types`, `alert_severities`
+  and `report_severities`; authenticated Grok/Groq workflows remain unverified.
+
 - **TASK 70 / SB 2 NEWS FEATURED AND EDITORIAL WORKFLOW CORRECTION — IMPLEMENTED /
   DEPLOYMENT AND LIVE ACCEPTANCE PENDING (2026-10-30).** `/news` now keeps
   Latest News → Featured Articles → Trending News → Browse by Category in that
@@ -1152,4 +1275,28 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - **EDITORIAL AI LIVE ACCEPTANCE — BLOCKED / DEPLOYED HOTFIX FUNCTIONAL ACCEPTANCE PENDING (2026-11-01).** No authorized browser was available and the in-app browser could not be provisioned; authentication was not bypassed. Therefore browser console/network inspection, authenticated CMS initialization and live Grok/Groq actions remain unverified. Independent regression coverage passes 39/39 focused, 541/541 full and 14/14 security; production build passes. The Nitro deployment wrapper correction is deployed in Worker `09634464-d413-496f-816b-c4d02b179bcb` at `2026-11-01T10:36:42.390Z`; generated Wrangler configuration was valid without manual editing and received 100% traffic.
 - **EDITORIAL AI FUNCTIONAL ACCEPTANCE — OWNER SESSION REQUIRED (2026-11-01).** Added the owner-ready matrix at `docs/editorial-ai-acceptance-matrix.md` covering Articles, Accident Reports, Alerts, Campaigns and Infrastructure Issues across Generate with Grok, Groq Auto-Populate, Grok Auto-Populate and Update Existing with Grok. Added regression coverage for content-block parsing, timeout retry bounds, unsupported fields, duplicate requests and preservation of changed values. Focused 43/43, full 545/545, security 14/14 and build pass. Acceptance is blocked until an authorized signed-in admin browser session is available; no authentication bypass or production content changes are allowed.
 - **EDITORIAL AI FUNCTIONAL ACCEPTANCE — OWNER ACTION REQUIRED (2026-11-01).** Use `docs/editorial-ai-acceptance-matrix.md` with an authorized signed-in editor/moderator browser session. The latest undeployed diagnostic increment separates provider parsing, schema validation, unsupported-field and CMS persistence failures without exposing raw database details. Focused 43/43, full 545/545, security 14/14 and build pass. Production remains on Worker `09634464-d413-496f-816b-c4d02b179bcb`; no further deployment was performed.
-- **EDITORIAL AI FINAL RECONCILED RELEASE — DEPLOYED / ACCEPTANCE PENDING (2026-11-01).** Approved commit `f0653527d8dbb11cd5a218f5cf1d869618ca54ea` deployed at `2026-11-01T11:12:24.641Z` as Worker `803996f6-8fff-48da-9a1f-c163c86c178e` with 100% traffic. Generated Wrangler configuration was valid without manual editing, and public/admin smoke routes for all five editorial areas returned HTTP 200. Live authenticated CMS, browser console/network, Grok generation, Groq Auto-Populate, Grok Auto-Populate, Update Existing and persistence acceptance remain outstanding. No migrations or production data changes were executed.
+- **EDITORIAL AI FINAL RECONCILED RELEASE CANDIDATE — NOT DEPLOYED (2026-11-01).** Branch `release/editorial-ai-final-reconciled` is based on deployed code `7f3f4e334ddb11ffee8666d2ab63cd0df0de8bf7` and contains only reviewed Editorial AI reliability/diagnostic changes. Worker `09634464-d413-496f-816b-c4d02b179bcb` remains current. Focused 43/43, full 545/545, security 14/14 and production build pass; authenticated CMS and live provider acceptance remain outstanding.
+- **URGENT EDITORIAL AI PRODUCTION SCHEMA BLOCKER (2026-11-01).** Active Worker `803996f6-8fff-48da-9a1f-c163c86c178e` still reports the owner-facing CMS failure. Read-only production API evidence shows the optional taxonomy relations used by `controlledValues` return HTTP 404. The corrective candidate now fails classifications closed to unknown when those relations are absent, while preserving strict validation when available. No migration, SQL or deployment has occurred. Live authenticated provider acceptance remains required.
+
+- **URGENT CORRECTIVE RELEASE — OWNER ACCEPTANCE REJECTED (2026-11-02).** Corrective candidate work addresses the rejected requirements: full-page Add/Edit routes for all five admin content types and My Articles; removal of incident-only controls from Article forms; strict Article summary validation with bounded repair; and identical complete admin table columns on desktop/mobile using an internal horizontal scroller. Cross-content linking remains included. No SQL or migration is required or executed for this correction.
+- **Acceptance still pending:** browser evidence at 360, 390, 412, 768, 1024 and 1440px; screenshots of the complete table and internal horizontal scrolling; authenticated Add/Edit verification for all five types and My Articles; Article field audit confirmation; relationship selection/persistence and public linked-content verification; live AI Auto-Populate tests for valid and initially overlong Article summaries. Do not claim visual or authenticated acceptance from automated tests alone.
+- **URGENT CORRECTIVE RELEASE DEPLOYED (2026-11-02).** Approved commit `d1d1ec1cbfc6953cd90d00d1df0f2a79e8f746ce` is live as Worker `7255039b-58e8-42b4-b6f3-827cd19991e1` with 100% traffic at `2026-11-02T19:25:30.062Z`. Previous Worker `e0c468f8-74d2-4d8c-b038-2d78e77f2b82` is the rollback target. Public and admin route-shell smoke checks returned HTTP 200. No migration or SQL executed.
+- **Post-deployment acceptance remains open:** CUA OS error 3 blocks screenshots and browser interaction evidence; authenticated full-page Add/Edit flows, mobile table parity at 360/390/412/768/1024/1440px, Article AI summary repair, cross-content relationship persistence and owner visual acceptance must still be exercised. Editorial AI remains deployed with functional acceptance pending.
+
+- **URGENT ARTICLE SAVE AND STATUS CORRECTION — NOT DEPLOYED (2026-11-02).** Root cause identified in the shared Article persistence path: missing canonical slug, incorrect `user_id` mapping instead of `author_id`, and inconsistent status persistence. The fix adds canonical Article payload/status mapping, permission-gated publication, top-of-form status controls, `Create article`/`Update article` actions, and safe request-ID diagnostics that preserve form content on failure. Focused 6/6, full 560/560, security 14/14, production build and diff check pass. No SQL or migration was executed. Remaining acceptance: authenticated manual create/edit/reload for draft, pending review and authorized publication; AI-populated save; failed-save retry without rerunning AI; and live database/RLS verification.
+
+- **URGENT ARTICLE SAVE AND STATUS CORRECTION — DEPLOYED (2026-11-02).** Approved commit `6f34aca56d9d6cea05740a9394316a37a14af704` is live as Worker `964fe50e-b8ce-47bd-a755-d436600f64fd` at `2026-11-02T20:28:49.923Z` with 100% traffic. Previous Worker `7255039b-58e8-42b4-b6f3-827cd19991e1` is the rollback target. Public and admin route smoke tests returned HTTP 200. No SQL or migration executed. Authenticated Article save/status, AI-populated save, failed-save recovery and visual acceptance remain owner acceptance tasks.
+
+- **ARTICLE STATUS PLACEMENT AND VIEWS CORRECTION — NOT DEPLOYED (2026-11-03).** Article Status now appears after the four Editorial AI controls and before the Title/ordinary fields, without changing the existing status system. The Articles list now uses exact canonical `news_views` counts per filtered Article ID and supports complete-dataset ascending/descending Views sorting; unavailable counts remain `—`, distinct from genuine zeroes. Reused prior tracking/listing work from `da39e98`, `4b34ad9` and `293fb63`. Full 562/562, security 14/14 and production build pass. No SQL or migration executed. Candidate remains pending owner approval and authenticated/browser acceptance.
+
+- **ARTICLE STATUS PLACEMENT AND VIEWS CORRECTION — DEPLOYED (2026-11-03).** Approved commit `1a08ce5ac61101b0992194e3d4e6e0e45b44684d` is live as Worker `5c00e601-e1d0-439c-8818-beb70981a737` at `2026-11-03T08:01:55.406Z` with 100% traffic. Previous Worker `964fe50e-b8ce-47bd-a755-d436600f64fd` is the rollback target. Public and admin route smoke tests returned HTTP 200. No SQL or migration executed. Authenticated Article status interaction, production view values/sorting, console/API inspection and visual acceptance remain owner acceptance tasks.
+
+- **URGENT NEW ARTICLE NAVIGATION HOTFIX — NOT DEPLOYED (2026-11-03).** Replaced Slot-wrapped Add New navigation with direct full-page router links across Articles, My Articles, Accident Reports, Alerts, Campaigns and Infrastructure Issues. Corrected the dashboard Article shortcut to `/admin/articles/new`. Targeted route/navigation checks pass, full suite 563/563, security 14/14 and production build pass. No SQL or migration executed. Browser click/touch/keyboard and console/API acceptance remain pending; production baseline is Worker `5c00e601-e1d0-439c-8818-beb70981a737`.
+
+- **URGENT NEW ARTICLE NAVIGATION HOTFIX — FINAL CANDIDATE NOT DEPLOYED (2026-11-03).** The live Worker remains `5c00e601-e1d0-439c-8818-beb70981a737` on application commit `1a08ce5`; the previous navigation candidate was not deployed. Final candidate replaces all Add New router/Slot wrappers with native full-page anchors, including `/admin/articles/new`, and preserves the full-page editor. Full 563/563, security 14/14 and build pass. Browser click/touch/keyboard and live authenticated acceptance remain pending. No SQL or migration executed.
+
+- **URGENT NEW ARTICLE NAVIGATION HOTFIX — DEPLOYED (2026-11-03).** Approved commit `1478c291570cd3e1c02ceed009a51b4d3661f3e6` is live as Worker `8c229129-f427-4bf3-ab05-dc00089eb19a` at `2026-11-03T09:10:04.222Z` with 100% traffic. Previous Worker `5c00e601-e1d0-439c-8818-beb70981a737` is the rollback target. All public/admin route smoke checks returned HTTP 200, including `/admin/articles/new` and every other CMS creation route. No SQL or migration executed. Authenticated button activation, visual, keyboard/touch, console and editor acceptance remain pending.
+
+- **CRITICAL MY ARTICLES NAVIGATION LOOP — NOT DEPLOYED (2026-11-03).** Root cause confirmed: the `/admin/my-articles` parent never rendered its registered `/admin/my-articles/new` child outlet, so navigation returned to the parent list view. Added the path handoff while preserving the existing full-page ArticleForm. Full 564/564, security 14/14 and production build pass. No SQL or migration executed. Candidate pending review; authenticated sequence, refresh/back, mobile and console/network acceptance remain outstanding.
+
+- **CRITICAL MY ARTICLES NAVIGATION LOOP — DEPLOYED (2026-11-03).** Approved commit `de4612f8348342f189c30b3879e120343b38f66a` is live as Worker `62fe18de-87c7-452b-8f5a-a2590011e0d0` at `2026-11-03T09:25:17.431Z` with 100% traffic. Previous Worker `8c229129-f427-4bf3-ab05-dc00089eb19a` is the rollback target. All CMS creation routes and public smoke routes returned HTTP 200. No SQL or migration executed. Authenticated My Articles workflow, visual, mobile, console and network acceptance remain pending.

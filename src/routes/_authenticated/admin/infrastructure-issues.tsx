@@ -12,7 +12,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,8 +39,6 @@ import { UserLink } from "@/components/site/user-link";
 import { dateTime } from "@/lib/format";
 import { KENYA_COUNTIES, ROAD_AUTHORITIES, STRUCTURE_TYPES } from "@/lib/constants";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
-import { InfrastructureIssueForm } from "@/components/site/infrastructure-issue-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const Route = createFileRoute("/_authenticated/admin/infrastructure-issues")({
@@ -62,7 +60,7 @@ type Status = "pending" | "approved" | "rejected";
 
 function InfrastructureIssuesAdminPage() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  if (/^\/admin\/infrastructure-issues\/[^/]+\/edit\/?$/.test(pathname)) return <Outlet />;
+  if (/^\/admin\/infrastructure-issues\/(?:new|[^/]+\/edit)\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
@@ -70,7 +68,6 @@ function InfrastructureIssuesAdminPage() {
   const [search, setSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: allIssues = [], isLoading } = useQuery({
     queryKey: ["admin-infrastructure-issues"],
@@ -136,18 +133,8 @@ function InfrastructureIssuesAdminPage() {
         eyebrow="Content & moderation"
         title="Manage Infrastructure Issues"
         description="Roads, bridges, drainage and signage problems reported by the community."
-        actions={<Button size="sm" onClick={() => setCreateOpen(true)}><Plus className="mr-1.5 size-4" /> Add New Issue</Button>}
+        actions={<a className={buttonVariants({ size: "sm" })} href="/admin/infrastructure-issues/new"><Plus className="mr-1.5 size-4" /> Add New Issue</a>}
       />
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogTrigger asChild>
-          <Button className="mt-4"><Plus className="mr-1.5 size-4" /> Add infrastructure issue</Button>
-        </DialogTrigger>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader><DialogTitle>New infrastructure issue</DialogTitle></DialogHeader>
-          <InfrastructureIssueForm editorial onDone={() => setCreateOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <Label>Status</Label>
@@ -217,7 +204,7 @@ function InfrastructureIssuesAdminPage() {
 
           return (
             <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid grid-cols-[auto_56px_minmax(0,1fr)_auto_auto] items-center gap-2 p-3 sm:p-4 xl:grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,auto)_auto]">
+              <div className="grid min-w-[1100px] grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(7rem,auto)_auto] items-center gap-2 p-3 sm:p-4">
                 <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {i.image_url ? (
@@ -239,11 +226,11 @@ function InfrastructureIssuesAdminPage() {
                   </div>
                   </div>
 
-                <span className="hidden truncate text-sm xl:block">{i.structure_type || "—"}</span>
-                <span className="hidden truncate text-sm xl:block">{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
+                <span className="truncate text-sm">{i.structure_type || "—"}</span>
+                <span className="truncate text-sm">{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
-                <span className="hidden min-w-0 truncate text-sm xl:block">{i.user_id ? <UserLink userId={i.user_id} name={names[i.user_id]} /> : "—"}</span>
-                <span className="hidden text-xs text-muted-foreground xl:block">{dateTime(i.created_at)}</span>
+                <span className="min-w-0 text-sm">{i.user_id ? <UserLink userId={i.user_id} name={names[i.user_id]} /> : "—"}</span>
+                <span className="text-xs text-muted-foreground">{dateTime(i.created_at)}</span>
                 <div className="flex items-center gap-1">
                 <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/infrastructure-issues/${i.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>

@@ -25,7 +25,7 @@ import {
   YAxis,
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { num } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -371,7 +371,7 @@ function OverviewPage() {
       <section className="mt-8 rounded-lg border border-border bg-card p-5 card-elevated" aria-labelledby="admin-review-heading">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div><p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Workspace</p><h2 id="admin-review-heading" className="mt-1 text-lg font-bold">Items requiring review</h2><p className="mt-1 text-sm text-muted-foreground">Live queue counts from the current moderation and editorial tables. An em dash means the optional table is not available.</p></div>
-          <div className="flex flex-wrap gap-2"><Button asChild size="sm"><Link to="/admin/articles">Add News Article</Link></Button><Button asChild size="sm" variant="outline"><Link to="/admin/alerts">Add Alert</Link></Button><Button asChild size="sm" variant="outline"><Link to="/admin/reports">Add Accident Report</Link></Button></div>
+          <div className="flex flex-wrap gap-2"><a className={buttonVariants({ size: "sm" })} href="/admin/articles/new">Add News Article</a><a className={buttonVariants({ size: "sm", variant: "outline" })} href="/admin/alerts/new">Add Alert</a><a className={buttonVariants({ size: "sm", variant: "outline" })} href="/admin/reports/new">Add Accident Report</a></div>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[{ label: "Articles pending review", key: "articles", to: "/admin/articles" }, { label: "Article drafts", key: "articleDrafts", to: "/admin/articles" }, { label: "Reports pending review", key: "reports", to: "/admin/reports" }, { label: "Alerts pending review", key: "alerts", to: "/admin/alerts" }, { label: "Feed posts pending", key: "feed", to: "/admin/feed" }, { label: "Editorial updates in draft", key: "updates", to: "/admin/alerts" }].map((item) => <Link key={item.key} to={item.to} className="rounded border border-border p-3 transition-colors hover:border-accent"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</p><p className="mt-2 font-display text-2xl font-extrabold">{reviewQueue[item.key] === null || reviewQueue[item.key] === undefined ? "—" : num(reviewQueue[item.key]!)}</p></Link>)}

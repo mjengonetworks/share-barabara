@@ -23,11 +23,7 @@ test("Editorial AI panels are collapsed and expose both Auto-Populate providers"
     "src/components/site/article-form.tsx",
     "src/components/site/alert-form.tsx",
     "src/components/site/report-form.tsx",
-    "src/routes/_authenticated/admin/articles.tsx",
-    "src/routes/_authenticated/admin/alerts.tsx",
-    "src/routes/_authenticated/admin/reports.tsx",
-    "src/routes/_authenticated/admin/campaigns.tsx",
-    "src/routes/_authenticated/admin/infrastructure-issues.tsx",
+    "src/components/admin/editorial-record-editor.tsx",
   ]) {
     const source = await read(path);
     assert.match(source, /provider="groq"|provider: "groq"|mode === "autopopulate" \? "groq"/);
@@ -36,21 +32,19 @@ test("Editorial AI panels are collapsed and expose both Auto-Populate providers"
 });
 
 test("Update Existing is create/edit aware in the client and server", async () => {
-  const [server, articleForm, alertForm, reportForm, campaigns, infrastructure] = await Promise.all([
+  const [server, articleForm, alertForm, reportForm, editor] = await Promise.all([
     read("src/lib/ai/editorial.functions.ts"),
     read("src/components/site/article-form.tsx"),
     read("src/components/site/alert-form.tsx"),
     read("src/components/site/report-form.tsx"),
-    read("src/routes/_authenticated/admin/campaigns.tsx"),
-    read("src/routes/_authenticated/admin/infrastructure-issues.tsx"),
+    read("src/components/admin/editorial-record-editor.tsx"),
   ]);
   assert.match(server, /mode === "update" && !input\.contentId\?\.trim\(\)/);
   assert.match(server, /resolveEditorialRecord\(context\.supabase, contentType, input\.contentId!/);
   assert.doesNotMatch(articleForm, /mode="update"/);
   assert.doesNotMatch(alertForm, /mode="update"/);
   assert.doesNotMatch(reportForm, /mode="update"/);
-  assert.match(campaigns, /editingId \? \[\{ mode: "update"/);
-  assert.match(infrastructure, /mode: "update", provider: "grok"/);
+  assert.match(editor, /mode: "update"[\s\S]*provider: "grok"/);
 });
 
 test("validation diagnostics stay safe and preserve strict schema validation", async () => {

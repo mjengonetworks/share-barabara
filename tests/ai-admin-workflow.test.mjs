@@ -7,25 +7,25 @@ const read = (path) => fs.readFileSync(new URL(path, root), "utf8");
 
 test("admin Alert add and edit flows expose Generate and Auto-Populate", () => {
   const form = read("src/components/site/alert-form.tsx");
-  const edit = read("src/routes/_authenticated/admin/alerts.tsx");
+  const edit = read("src/components/admin/editorial-record-editor.tsx");
   assert.ok(form.includes("const { canReview } = useRoles()"));
   assert.ok(form.includes('contentType="alert"'));
   assert.ok(form.includes("mode={mode}"));
   assert.match(form, /provider=\{mode === "autopopulate" \? "groq" : "grok"\}/);
   assert.match(form, /mode="autopopulate"[\s\S]*provider="grok"/);
-  assert.ok(edit.includes('mode="update"'));
+  assert.match(edit, /mode: "update"/);
 });
 
 test("admin Accident Report add and edit flows expose Generate and Auto-Populate", () => {
   const form = read("src/components/site/report-form.tsx");
-  const edit = read("src/routes/_authenticated/admin/reports.tsx");
+  const edit = read("src/components/admin/editorial-record-editor.tsx");
   assert.ok(form.includes("const { canReview } = useRoles()"));
   // Editorial AI is mounted by the authenticated admin editor wrapper, not
   // the public contributor form.
-  assert.ok(edit.includes('contentType="report"'));
-  assert.match(edit, /mode: "autopopulate", provider: "groq"/);
-  assert.ok(edit.includes('contentType="report"'));
-  assert.ok(edit.includes('mode="update"'));
+  assert.ok(edit.includes('type === "report"'));
+  assert.match(edit, /provider: "groq"/);
+  assert.ok(edit.includes('type === "report"'));
+  assert.match(edit, /mode: "update"/);
 });
 
 test("report publishing is role-authoritative and public submissions remain pending", () => {
@@ -54,9 +54,6 @@ test("existing Infrastructure Issues and Campaigns use the shared Editorial AI c
   assert.ok(source.includes('"article" | "alert" | "report" | "campaign" | "infrastructure"'));
   assert.ok(source.includes('contentType === "infrastructure"'));
   assert.ok(source.includes('contentType === "campaign"'));
-  assert.match(read("src/routes/_authenticated/admin/campaigns.tsx"), /contentType="campaign"/);
-  assert.match(
-    read("src/routes/_authenticated/admin/infrastructure-issues.tsx"),
-    /contentType="infrastructure"/,
-  );
+  assert.match(read("src/components/admin/editorial-record-editor.tsx"), /type === "campaign"/);
+  assert.match(read("src/components/admin/editorial-record-editor.tsx"), /infrastructure/);
 });

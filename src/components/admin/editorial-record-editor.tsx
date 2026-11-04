@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,9 @@ import { submitAccidentReport } from "@/lib/report.functions";
 import { IncidentRelationshipPanel } from "@/components/site/incident-relationship-panel";
 import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { LocationButton } from "@/components/site/location-button";
+import { CategoryMultiSelect } from "@/components/site/category-multi-select";
+import { useNewsCategories } from "@/hooks/useTaxonomy";
+import { buildArticlePersistencePayload, resolveArticleStatus } from "@/lib/article-persistence";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -38,19 +41,20 @@ const CONFIG: Record<EditorialRecordType, { table: string; label: string; back: 
 
 type RecordValue = Record<string, any>;
 
-function safePersistenceMessage(error: unknown) {
+function safePersistenceMessage(error: unknown, context: { requestId: string; operation: string; contentType: EditorialRecordType }) {
   const message = error instanceof Error ? error.message : String(error ?? "");
   const normalized = message.toLocaleLowerCase();
+  const diagnostic = `Request ID ${context.requestId}; operation=${context.operation}; contentType=${context.contentType}.`;
   if (/column .*does not exist|schema cache|could not find the .*column|unknown column/.test(normalized)) {
-    return "CMS persistence failed: the production database does not support one of the submitted fields. No changes were saved; contact an administrator.";
+    return `CMS persistence failed: the database schema rejected a submitted field. No changes were saved. ${diagnostic}`;
   }
   if (/duplicate|unique constraint|already exists/.test(normalized)) {
-    return "CMS persistence failed: this record conflicts with an existing record. No changes were saved; review the values and retry.";
+    return `CMS persistence failed: this record conflicts with an existing value. No changes were saved. ${diagnostic}`;
   }
   if (/permission|not authorized|row-level security|rls/.test(normalized)) {
-    return "CMS persistence failed: your session is not authorized to save this record. No changes were saved; sign in again or contact an administrator.";
+    return `CMS persistence failed: your session is not authorized to save this record. No changes were saved. ${diagnostic}`;
   }
-  return "CMS persistence failed: the record could not be saved. No changes were saved; retry and contact an administrator if the problem persists.";
+  return `CMS persistence failed: the record could not be saved. No changes were saved; retry without rerunning AI. ${diagnostic}`;
 }
 
 function stringValue(record: RecordValue, key: string) {
@@ -66,10 +70,11 @@ function initialForm(type: EditorialRecordType, record: RecordValue): RecordValu
     image_alt: stringValue(record, "image_alt"),
     image_caption: stringValue(record, "image_caption"),
     image_credit: stringValue(record, "image_credit"),
+    source: stringValue(record, "source"),
     status: stringValue(record, "status") || "draft",
     featured: Boolean(record.featured),
   };
-  if (type === "article") return { ...common, category: stringValue(record, "category"), categories: Array.isArray(record.categories) ? record.categories : [], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
+  if (type === "article") return { ...common, category: stringValue(record, "category"), categories: Array.isArray(record.categories) && record.categories.length ? record.categories : [stringValue(record, "category") || "News"], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
   if (type === "report") return { ...common, summary: stringValue(record, "summary"), county: stringValue(record, "county"), road: stringValue(record, "road"), incident_type: stringValue(record, "incident_type"), severity: stringValue(record, "severity"), occurred_at: stringValue(record, "occurred_at"), latitude: typeof record.latitude === "number" ? record.latitude : null, longitude: typeof record.longitude === "number" ? record.longitude : null, vehicles_involved: record.vehicles_involved ?? null, casualties: record.casualties ?? null, fatalities: record.fatalities ?? null, parties_involved: Array.isArray(record.parties_involved) ? record.parties_involved : [], casualty_breakdown: (record.casualty_breakdown ?? {}) as CasualtyBreakdown, attachments: (Array.isArray(record.attachments) ? record.attachments : []) as Attachment[], seo_title: stringValue(record, "seo_title"), seo_description: stringValue(record, "seo_description"), seo_keywords: stringValue(record, "seo_keywords") };
   if (type === "alert") return { ...common, alert_status: stringValue(record, "status"), summary: stringValue(record, "summary"), description: stringValue(record, "description"), county: stringValue(record, "county"), road: stringValue(record, "road"), hazard_type: stringValue(record, "hazard_type"), severity: stringValue(record, "severity") };
   if (type === "infrastructure") return { ...common, road_name: stringValue(record, "road_name"), road_scope: stringValue(record, "road_scope") || "county", county: stringValue(record, "county"), authority: stringValue(record, "authority"), structure_type: stringValue(record, "structure_type"), latitude: typeof record.latitude === "number" ? record.latitude : null, longitude: typeof record.longitude === "number" ? record.longitude : null };
@@ -79,9 +84,12 @@ function initialForm(type: EditorialRecordType, record: RecordValue): RecordValu
 export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType; id?: string }) {
   const config = CONFIG[type];
   const isEditing = Boolean(id);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { canReview } = useRoles();
   const { identity } = useActiveIdentity();
+  const { data: categories = [] } = useNewsCategories();
   const [form, setForm] = useState<RecordValue | null>(() => isEditing ? null : initialForm(type, {}));
   const recordQuery = useQuery({
     queryKey: ["admin-editorial-record", type, id],
@@ -129,7 +137,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   });
 
   const save = useMutation({
-    mutationFn: async (requestedStatus?: "draft" | "approved") => {
+    mutationFn: async ({ requestedStatus, requestId }: { requestedStatus?: "draft" | "pending_review" | "published" | "approved"; requestId: string }) => {
       if (!form) throw new Error("Record is still loading");
       if (type === "report" && !form.title.trim()) throw new Error("Report title is required");
       if (type === "report" && !form.body.trim()) throw new Error("Incident description is required");
@@ -141,14 +149,9 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       }
       let payload: RecordValue;
       if (type === "article") {
-        payload = {
-          title: form.title, summary: form.summary, body: form.body,
-          image_url: form.image_url.trim() || null, image_alt: form.image_alt.trim() || null,
-          image_caption: form.image_caption.trim() || null, image_credit: form.image_credit.trim() || null,
-          category: form.category, categories: form.categories,
-          featured: form.featured,
-          seo_title: form.seo_title, seo_description: form.seo_description, seo_keywords: form.seo_keywords,
-        };
+        if (!form.title.trim()) throw new Error("Article title is required");
+        if (!form.body.trim()) throw new Error("Article body is required");
+        payload = buildArticlePersistencePayload(form, resolveArticleStatus(requestedStatus, canReview), user?.id ?? null, isEditing);
       } else if (type === "report") {
         payload = {
           title: form.title, ...(summarySupported ? { summary: form["summary"].trim() || null } : {}), description: form.body, county: form.county, road: form.road,
@@ -187,7 +190,11 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           image_credit: form.image_credit.trim() || null,
         };
       }
-      const status = requestedStatus === "approved" && canReview ? "approved" : undefined;
+      const status = type === "article"
+        ? payload.status
+        : requestedStatus === "approved" && canReview
+          ? "approved"
+          : undefined;
       if (isEditing) {
         const patch = status ? { ...payload, status } : payload;
         const { error } = await (supabase.from(config.table) as any).update(patch).eq("id", id);
@@ -223,15 +230,26 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       } else {
         const insertPayload = {
           ...payload,
-          user_id: user?.id ?? null,
-          ...(type === "alert" ? { status: form.alert_status || null } : { status: status === "approved" ? "approved" : "pending" }),
+          ...(type === "article"
+            ? { author_id: user?.id ?? null, status }
+            : type === "alert"
+              ? { user_id: user?.id ?? null, status: form.alert_status || null }
+              : { user_id: user?.id ?? null, status: status === "approved" ? "approved" : "pending" }),
         };
         const { error } = await (supabase.from(config.table) as any).insert(insertPayload);
         if (error) throw error;
       }
     },
-    onSuccess: () => toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created as a draft.`),
-    onError: (error: Error) => toast.error(safePersistenceMessage(error)),
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [`admin-${type === "report" ? "reports" : type === "infrastructure" ? "infrastructure-issues" : `${type}s`}`] }),
+        queryClient.invalidateQueries({ queryKey: [type === "article" ? "my-articles" : `${type}s`] }),
+        queryClient.invalidateQueries({ queryKey: ["my-content"] }),
+      ]);
+      toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created with status ${String(variables.requestedStatus ?? "draft").replace("_", " ")}.`);
+      await navigate({ to: config.back });
+    },
+    onError: (error: Error, variables) => toast.error(safePersistenceMessage(error, { requestId: variables.requestId, operation: isEditing ? "update" : "create", contentType: type })),
   });
 
   if (isEditing && recordQuery.error) return <p className="rounded-lg border border-destructive/30 p-6 text-destructive">Unable to load this {config.label.toLowerCase()}.</p>;
@@ -253,6 +271,18 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         <h2 id="editorial-ai-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial AI</h2>
         {aiActions.map(({ mode, provider }) => <EditorialAIButton key={`${mode}-${provider}`} contentType={type} mode={mode} provider={provider} contentId={id} current={aiCurrent} source="" onDraft={applyDraft} />)}
       </section>
+      {type === "article" ? <section className="space-y-3 rounded border border-border bg-muted/30 p-3" aria-labelledby="article-status-heading">
+        <Label id="article-status-heading" htmlFor="article-status">Article Status</Label>
+        <Select value={form.status || "draft"} onValueChange={(value) => set("status", value)}>
+          <SelectTrigger id="article-status"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="pending_review">Pending review</SelectItem>
+            <SelectItem value="published" disabled={!canReview}>Published</SelectItem>
+          </SelectContent>
+        </Select>
+        {!canReview ? <p className="text-xs text-muted-foreground">Published is available only to editors and administrators.</p> : null}
+      </section> : null}
       {type === "article" || type === "report" || type === "alert" ? (
         <section className="rounded border border-dashed border-border bg-muted/30 p-3" aria-labelledby="editorial-selection-heading">
           <h2 id="editorial-selection-heading" className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Editorial selection</h2>
@@ -272,7 +302,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         <div className="sm:col-span-2"><Label htmlFor="editor-title">Title</Label><Input id="editor-title" value={form.title} onChange={(e) => set("title", e.target.value)} /></div>
         {type === "article" || type === "infrastructure" || type === "report" || type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-summary">Editorial summary</Label>{type === "report" || type === "alert" ? <p className="mb-1 text-xs text-muted-foreground">{summarySupported ? "Saved independently from the full content." : "Summary storage activates after the reviewed summary migration is applied; other fields remain safe to save."}</p> : null}<Textarea id="editor-summary" disabled={!summarySupported} maxLength={240} placeholder="Concise factual summary (normally 20 words or fewer)" value={form["summary"]} onChange={(e) => set("summary", e.target.value)} /></div> : null}
         {type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-description">Advisory content</Label><RichTextEditor id="editor-description" value={form.description} onChange={(value) => set("description", value)} /></div> : <div className="sm:col-span-2"><Label htmlFor="editor-body">Full content</Label><RichTextEditor id="editor-body" value={form.body} onChange={(value) => set("body", value)} /></div>}
-        {type === "article" ? <><div><Label>Category</Label><Input value={form.category} onChange={(e) => set("category", e.target.value)} /></div><div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div></> : null}
+        {type === "article" ? <><div><Label>Categories</Label><CategoryMultiSelect categories={categories} value={form.categories ?? []} onChange={(value) => { set("categories", value); set("category", value[0] ?? "News"); }} /></div><div><Label>Source / credit</Label><Input value={form.source} onChange={(e) => set("source", e.target.value)} placeholder="Source publication or reporting credit" /></div><div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div></> : null}
         {type === "alert" || type === "report" ? <><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road / location</Label><Input value={form.road} onChange={(e) => set("road", e.target.value)} /></div><div><Label>Severity</Label><Input value={form.severity} onChange={(e) => set("severity", e.target.value)} /></div>{type === "alert" ? <div><Label>Lifecycle status</Label><Select value={form.alert_status || "none"} onValueChange={(value) => set("alert_status", value === "none" ? "" : value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">No status selected</SelectItem><SelectItem value="active">Active</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="resolved">Resolved</SelectItem><SelectItem value="under_resolution">In Progress (legacy)</SelectItem></SelectContent></Select></div> : null}</> : null}
         {type === "report" ? <>
           <div className="sm:col-span-2 border-t border-border pt-4"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Incident details</h2></div>
@@ -292,7 +322,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
       {isEditing && (type === "report" || type === "alert") ? <IncidentRelationshipPanel /> : null}
       {isEditing ? <CrossContentEditor sourceType={type} sourceId={id!} sourceRecord={recordQuery.data ?? {}} /> : null}
-      <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => save.mutate("draft")} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Save changes" : "Save draft"}</Button>{canReview ? <Button type="button" onClick={() => save.mutate("approved")} disabled={save.isPending}>{isEditing ? "Save & publish" : "Publish report"}</Button> : null}</div></section>
+      <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><div className="flex flex-wrap gap-2">{type === "article" ? <Button type="button" onClick={() => save.mutate({ requestedStatus: form.status as "draft" | "pending_review" | "published", requestId: crypto.randomUUID() })} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Update article" : "Create article"}</Button> : <><Button type="button" variant="outline" onClick={() => save.mutate({ requestedStatus: "draft", requestId: crypto.randomUUID() })} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Save changes" : "Save draft"}</Button>{canReview ? <Button type="button" onClick={() => save.mutate({ requestedStatus: "approved", requestId: crypto.randomUUID() })} disabled={save.isPending}>{isEditing ? "Save & publish" : "Publish report"}</Button> : null}</>}</div></section>
     </div>
   </div>;
 }

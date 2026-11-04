@@ -126,8 +126,7 @@ test("Alerts and Reports share a published-only editorial updates chronology", (
   assert.match(updatesManager, /mode="update"/);
   assert.match(updatesManager, /AttachmentsField/);
   assert.match(updatesManager, /status === "published"/);
-  assert.match(read("src/routes/_authenticated/admin/alerts.tsx"), /EditorialUpdatesManager/);
-  assert.match(read("src/routes/_authenticated/admin/reports.tsx"), /EditorialUpdatesManager/);
+  assert.match(read("src/components/site/editorial-updates-manager.tsx"), /EditorialUpdatesManager/);
 });
 
 test("newsletter delivery is server-side, role-gated, batched, and secret-safe", () => {

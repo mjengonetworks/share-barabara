@@ -1,22 +1,8 @@
-import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, MoreVertical, Newspaper, Pencil, Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RichTextEditor } from "@/components/site/rich-text-editor";
-import { ImageUploadField } from "@/components/site/image-upload-field";
-import { CategoryMultiSelect } from "@/components/site/category-multi-select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,9 +15,7 @@ import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { useAuth } from "@/hooks/useAuth";
 import { useRoles } from "@/hooks/useRoles";
 import { useCanWriteArticles } from "@/hooks/useCanWriteArticles";
-import { ArticleForm } from "@/components/site/article-form";
 import { dateTime } from "@/lib/format";
-import { useNewsCategories } from "@/hooks/useTaxonomy";
 
 export const Route = createFileRoute("/_authenticated/admin/my-articles")({
   head: () => ({ meta: [{ title: "My Articles: Share Barabara Admin" }] }),
@@ -45,29 +29,13 @@ const STATUS_STYLE: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
 };
 
-type Draft = {
-  title: string;
-  summary: string;
-  body: string;
-  categories: string[];
-  image_url: string;
-  image_alt: string;
-  image_caption: string;
-  image_credit: string;
-  seo_title: string;
-  seo_description: string;
-  seo_keywords: string;
-};
-
 function MyArticlesPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (/^\/admin\/my-articles\/new\/?$/.test(pathname)) return <Outlet />;
   const { user } = useAuth();
-  const { keepsArticleRightsAfterPublish, canPublishArticles, canEditSeo } = useRoles();
+  const { keepsArticleRightsAfterPublish, canPublishArticles } = useRoles();
   const canWrite = useCanWriteArticles();
   const queryClient = useQueryClient();
-  const { data: categories = [] } = useNewsCategories();
-  const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
 
   const { data: articles = [], isLoading } = useQuery({
     enabled: !!user,
@@ -84,36 +52,11 @@ function MyArticlesPage() {
   });
 
   const save = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-      draft,
-    }: {
+    mutationFn: async ({ id, status }: {
       id: string;
       status?: "draft" | "pending_review" | "published";
-      draft?: Draft;
     }) => {
       const patch = {
-        ...(draft
-          ? {
-              title: draft.title,
-              summary: draft.summary,
-              body: draft.body,
-              category: draft.categories[0] ?? "News",
-              categories: draft.categories,
-              image_url: draft.image_url.trim() || null,
-              image_alt: draft.image_alt.trim() || null,
-              image_caption: draft.image_caption.trim() || null,
-              image_credit: draft.image_credit.trim() || null,
-              ...(canEditSeo
-                ? {
-                    seo_title: draft.seo_title.trim() || null,
-                    seo_description: draft.seo_description.trim() || null,
-                    seo_keywords: draft.seo_keywords.trim() || null,
-                  }
-                : {}),
-            }
-          : {}),
         ...(status ? { status } : {}),
         ...(status === "published"
           ? {
@@ -128,7 +71,6 @@ function MyArticlesPage() {
     },
     onSuccess: (_data, vars) => {
       toast.success(vars.status === "published" ? "Article published" : "Saved");
-      setEditingId(null);
       queryClient.invalidateQueries({ queryKey: ["my-articles"] });
       queryClient.invalidateQueries({ queryKey: ["news"] });
     },
@@ -159,19 +101,7 @@ function MyArticlesPage() {
 
       <div className="mt-6">
         {canWrite ? (
-          <Dialog open={creating} onOpenChange={setCreating}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-1.5 size-4" /> New article
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>New article</DialogTitle>
-              </DialogHeader>
-              <ArticleForm editorial onDone={() => setCreating(false)} />
-            </DialogContent>
-          </Dialog>
+          <a className={buttonVariants()} href="/admin/my-articles/new"><Plus className="mr-1.5 size-4" /> New article</a>
         ) : (
           <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted-foreground">
             Writing articles is a subscriber perk.{" "}
@@ -193,22 +123,6 @@ function MyArticlesPage() {
       <ul className="mt-6 space-y-4">
         {articles.map((a) => {
           const canEdit = a.status !== "published" || keepsArticleRightsAfterPublish;
-          const d: Draft = drafts[a.id] ?? {
-            title: a.title,
-            summary: a.summary,
-            body: a.body,
-            categories: a.categories?.length ? a.categories : [a.category],
-            image_url: a.image_url ?? "",
-            image_alt: a.image_alt ?? "",
-            image_caption: a.image_caption ?? "",
-            image_credit: a.image_credit ?? "",
-            seo_title: a.seo_title ?? "",
-            seo_description: a.seo_description ?? "",
-            seo_keywords: a.seo_keywords ?? "",
-          };
-          const set = (patch: Partial<Draft>) =>
-            setDrafts((prev) => ({ ...prev, [a.id]: { ...d, ...patch } }));
-
           return (
             <li key={a.id} className="rounded-lg border border-border bg-card p-5 card-elevated">
               <div className="flex items-center gap-3">
@@ -249,8 +163,8 @@ function MyArticlesPage() {
                       </Link>
                     </DropdownMenuItem>
                     {canEdit ? (
-                      <DropdownMenuItem onClick={() => setEditingId(a.id)}>
-                        <Pencil className="mr-2 size-4" /> Edit
+                      <DropdownMenuItem asChild>
+                        <a href={`/admin/articles/${a.id}/edit`}><Pencil className="mr-2 size-4" /> Edit</a>
                       </DropdownMenuItem>
                     ) : null}
                     {canPublishArticles && a.status !== "published" ? (
@@ -287,122 +201,6 @@ function MyArticlesPage() {
                 </DropdownMenu>
               </div>
 
-              {editingId === a.id ? (
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <Label htmlFor={`t-${a.id}`}>Headline</Label>
-                    <Input
-                      id={`t-${a.id}`}
-                      value={d.title}
-                      onChange={(e) => set({ title: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Categories</Label>
-                    <div className="mt-2">
-                      <CategoryMultiSelect
-                        categories={categories}
-                        value={d.categories}
-                        onChange={(v) => set({ categories: v })}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Featured image</Label>
-                    <div className="mt-2 space-y-2">
-                      <ImageUploadField
-                        value={d.image_url}
-                        onChange={(url) => set({ image_url: url })}
-                      />
-                      {canEditSeo ? (
-                        <>
-                          <Input
-                            value={d.image_alt}
-                            onChange={(e) => set({ image_alt: e.target.value })}
-                            placeholder="Alt text (describes the image for screen readers and search engines)"
-                          />
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            <Input
-                              value={d.image_caption}
-                              onChange={(e) => set({ image_caption: e.target.value })}
-                              placeholder="Caption (optional)"
-                            />
-                            <Input
-                              value={d.image_credit}
-                              onChange={(e) => set({ image_credit: e.target.value })}
-                              placeholder="Credit / source (optional)"
-                            />
-                          </div>
-                        </>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor={`s-${a.id}`}>Summary</Label>
-                    <Textarea
-                      id={`s-${a.id}`}
-                      rows={2}
-                      value={d.summary}
-                      onChange={(e) => set({ summary: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`b-${a.id}`}>Body</Label>
-                    <RichTextEditor
-                      id={`b-${a.id}`}
-                      rows={16}
-                      value={d.body}
-                      onChange={(v) => set({ body: v })}
-                    />
-                  </div>
-                  {canEditSeo ? (
-                    <div className="space-y-3 rounded border border-dashed border-border bg-muted/30 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        SEO (optional, overrides defaults)
-                      </p>
-                      <div>
-                        <Label htmlFor={`seo-t-${a.id}`}>SEO title</Label>
-                        <Input
-                          id={`seo-t-${a.id}`}
-                          value={d.seo_title}
-                          onChange={(e) => set({ seo_title: e.target.value })}
-                          placeholder={a.title}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`seo-d-${a.id}`}>SEO description</Label>
-                        <Textarea
-                          id={`seo-d-${a.id}`}
-                          rows={2}
-                          value={d.seo_description}
-                          onChange={(e) => set({ seo_description: e.target.value })}
-                          placeholder={a.summary}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`seo-k-${a.id}`}>SEO keywords</Label>
-                        <Input
-                          id={`seo-k-${a.id}`}
-                          value={d.seo_keywords}
-                          onChange={(e) => set({ seo_keywords: e.target.value })}
-                          placeholder="comma, separated, keywords"
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      disabled={save.isPending}
-                      onClick={() => save.mutate({ id: a.id, draft: d })}
-                    >
-                      Save
-                    </Button>
-                    <Button variant="ghost" onClick={() => setEditingId(null)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
             </li>
           );
         })}

@@ -84,7 +84,8 @@ test("editorial AI applies validated fields directly without auto-saving", async
   assert.match(button, /const proposed = result\.proposal\?\.proposed \?\? result\.draft/);
   assert.match(button, /onDraft\(safeDraft\)/);
   assert.match(button, /requestNumber !== requestRef\.current/);
-  assert.match(button, /JSON\.stringify\(latest\[field\]\) === JSON\.stringify\(snapshot\[field\]\)/);
+  assert.match(button, /filterUnchangedEditorialDraft/);
+  assert.match(button, /sameEditorialValue\(latest\[field\], snapshot\[field\]\)/);
   assert.doesNotMatch(button, /pendingDraft|Apply confirmed values|Source-grounded field preview/);
   assert.doesNotMatch(button, /onSave|onPublish|persist\(/);
 });

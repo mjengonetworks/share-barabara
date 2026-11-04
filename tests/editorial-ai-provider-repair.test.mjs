@@ -13,8 +13,7 @@ test("all supported editorial forms expose the approved provider matrix", async 
     read("src/routes/_authenticated/admin/alerts.tsx"),
     read("src/components/site/report-form.tsx"),
     read("src/routes/_authenticated/admin/reports.tsx"),
-    read("src/routes/_authenticated/admin/campaigns.tsx"),
-    read("src/routes/_authenticated/admin/infrastructure-issues.tsx"),
+    read("src/components/admin/editorial-record-editor.tsx"),
   ]);
   const source = files.join("\n");
   assert.ok((source.match(/provider="grok"|provider: "grok"/g) ?? []).length >= 5);
@@ -31,8 +30,7 @@ test("editorial source textareas start empty instead of receiving CMS draft labe
     read("src/routes/_authenticated/admin/articles.tsx"),
     read("src/routes/_authenticated/admin/alerts.tsx"),
     read("src/routes/_authenticated/admin/reports.tsx"),
-    read("src/routes/_authenticated/admin/campaigns.tsx"),
-    read("src/routes/_authenticated/admin/infrastructure-issues.tsx"),
+    read("src/components/admin/editorial-record-editor.tsx"),
   ]);
   for (const file of files) assert.doesNotMatch(file, /source=\{`(?:Title|Summary|Body):/);
   assert.match(files.join("\n"), /source=""/);
@@ -56,17 +54,16 @@ test("cross-device Editorial AI keeps source material separate and exposes safe 
 });
 
 test("Editorial AI panels are collapsed by default and Update is persisted-record only", async () => {
-  const [button, editorial, articleForm, campaign, infrastructure] = await Promise.all([
+  const [button, editorial, articleForm, editor] = await Promise.all([
     read("src/components/site/editorial-ai-button.tsx"),
     read("src/lib/ai/editorial.functions.ts"),
     read("src/components/site/article-form.tsx"),
-    read("src/routes/_authenticated/admin/campaigns.tsx"),
-    read("src/routes/_authenticated/admin/infrastructure-issues.tsx"),
+    read("src/components/admin/editorial-record-editor.tsx"),
   ]);
   assert.match(button, /useState\(false\)/);
   assert.doesNotMatch(articleForm, /mode="update"/);
-  assert.match(campaign, /editingId \? \[\{ mode: "update"/);
-  assert.match(infrastructure, /contentId=\{i\.id\}/);
+  assert.match(editor, /mode: "update"/);
+  assert.match(editor, /contentId=\{id\}/);
   assert.match(editorial, /mode === "update" && !input\.contentId\?\.trim\(\)/);
   assert.match(editorial, /mode !== "autopopulate" && provider !== "grok"/);
 });

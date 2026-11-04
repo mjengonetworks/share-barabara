@@ -104,9 +104,7 @@ test("all Article, Alert and Report editors render the editorial provider workfl
   const articleForm = await source("src/components/site/article-form.tsx");
   const alertForm = await source("src/components/site/alert-form.tsx");
   const reportForm = await source("src/components/site/report-form.tsx");
-  const articles = await source("src/routes/_authenticated/admin/articles.tsx");
-  const alerts = await source("src/routes/_authenticated/admin/alerts.tsx");
-  const reports = await source("src/routes/_authenticated/admin/reports.tsx");
+  const editor = await source("src/components/admin/editorial-record-editor.tsx");
 
   assert.match(articleForm, /generate/);
   assert.match(articleForm, /autopopulate/);
@@ -116,29 +114,19 @@ test("all Article, Alert and Report editors render the editorial provider workfl
     assert.match(protectedForm, /provider: "groq"|provider=\{mode === "autopopulate" \? "groq" : "grok"\}/);
     assert.match(protectedForm, /provider: "grok"|provider="grok"/);
   }
-  assert.match(articles, /generate/);
-  assert.match(articles, /autopopulate/);
-  assert.match(articles, /mode="update"/);
-  assert.match(alerts, /generate/);
-  assert.match(alerts, /autopopulate/);
-  assert.match(alerts, /mode="update"/);
-  assert.match(reports, /generate/);
-  assert.match(reports, /autopopulate/);
-  assert.match(reports, /mode="update"/);
+  assert.match(editor, /generate/);
+  assert.match(editor, /autopopulate/);
+  assert.match(editor, /mode: "update"/);
 });
 
 // The approved UX applies validated proposals directly to local form state; Save remains the normal persistence path.
 test("Editorial update panels populate forms without persisting them", async () => {
   const panel = await source("src/components/site/editorial-ai-button.tsx");
-  const articles = await source("src/routes/_authenticated/admin/articles.tsx");
-  const alerts = await source("src/routes/_authenticated/admin/alerts.tsx");
-  const reports = await source("src/routes/_authenticated/admin/reports.tsx");
+  const editor = await source("src/components/admin/editorial-record-editor.tsx");
   assert.match(panel, /onDraft\(safeDraft\)/);
   assert.doesNotMatch(panel, /Current vs Proposed|Apply proposed values to form/);
   assert.match(panel, /Nothing is saved or published automatically/);
-  assert.match(articles, /mode="update"/);
-  assert.match(alerts, /contentType="alert"[\s\S]*mode="update"/);
-  assert.match(reports, /contentType="report"[\s\S]*mode="update"/);
+  assert.match(editor, /mode: "update"/);
   assert.doesNotMatch(panel, /supabase\.from|\.update\(/);
 });
 
