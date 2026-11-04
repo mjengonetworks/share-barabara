@@ -183,7 +183,7 @@ function ArticlesQueuePage() {
         actions={<a className={buttonVariants({ size: "sm" })} href="/admin/articles/new"><Plus className="mr-1.5 size-4" /> Add New Article</a>}
       />
 
-      <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-3 grid gap-2 rounded-lg border border-border bg-card p-3 sm:grid-cols-3 lg:grid-cols-[minmax(10rem,1fr)_minmax(10rem,1fr)_minmax(16rem,2fr)]">
         <div>
           <Label>Status</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
@@ -215,7 +215,7 @@ function ArticlesQueuePage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="min-w-48 flex-1 sm:col-span-2 lg:col-span-4">
+        <div className="min-w-0">
           <Label htmlFor="article-search">Search</Label>
             <Input
             id="article-search"
@@ -272,7 +272,7 @@ function ArticlesQueuePage() {
 
           return (
             <li key={a.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid min-w-[1100px] grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)_auto] items-center gap-2 p-3 sm:p-4">
+              <div className="grid min-w-[980px] grid-cols-[auto_48px_minmax(10rem,2fr)_minmax(6rem,1fr)_minmax(5.5rem,1fr)_minmax(6.5rem,1fr)_minmax(4rem,auto)_minmax(6.5rem,auto)_minmax(7rem,auto)] items-center gap-2 px-3 py-2">
                 <input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {a.image_url ? (

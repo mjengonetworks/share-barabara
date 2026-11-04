@@ -174,14 +174,14 @@ function CampaignsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface>
-        <AdminListingHeader className="grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto]"><span>Image</span><span>Title</span><span>Location</span><span>Status</span><span>Dates</span><span>Actions</span></AdminListingHeader>
+        <AdminListingHeader className="grid-cols-[auto_48px_minmax(10rem,2fr)_minmax(7rem,1fr)_minmax(5.5rem,auto)_minmax(8rem,auto)_minmax(7rem,auto)]"><span>Image</span><span>Title</span><span>Location</span><span>Status</span><span>Dates</span><span>Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {visibleCampaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
           return (
             <li
               key={c.id}
-              className="grid min-w-[1100px] grid-cols-[auto_56px_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(6rem,auto)_minmax(9rem,auto)_auto] items-center gap-2 border-b border-border/70 px-3 py-3 odd:bg-background even:bg-muted/[0.18] last:border-b-0 sm:px-4"
+              className="grid min-w-[980px] grid-cols-[auto_48px_minmax(10rem,2fr)_minmax(7rem,1fr)_minmax(5.5rem,auto)_minmax(8rem,auto)_minmax(7rem,auto)] items-center gap-2 border-b border-border/70 px-3 py-2 odd:bg-background even:bg-muted/[0.18] last:border-b-0"
             >
               <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
               {c.image_url ? (

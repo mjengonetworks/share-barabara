@@ -211,7 +211,7 @@ function AlertsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface className="mt-0">
-        <Table className="min-w-[1100px]">
+        <Table className="min-w-[980px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-10"><span className="sr-only">Select</span></TableHead>

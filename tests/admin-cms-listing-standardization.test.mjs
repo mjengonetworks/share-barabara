@@ -38,9 +38,8 @@ test("admin listings use consistent compact thumbnails and place search after fi
   for (const source of sources.filter((_, index) => index !== 1)) {
     assert.match(source, /h-12 w-\[70px\]/);
   }
-  for (const source of sources.filter((_, index) => index !== 1)) {
-    assert.match(source, /sm:col-span-2 lg:col-span-4/);
-  }
+  assert.match(sources[0], /sm:grid-cols-3 lg:grid-cols-\[minmax\(10rem,1fr\)_minmax\(10rem,1fr\)_minmax\(16rem,2fr\)\]/);
+  for (const source of sources.slice(2)) assert.match(source, /lg:grid-cols/, "desktop filters remain compact");
 });
 
 test("shared listing primitives provide the deployed surface and mobile-safe boundaries", async () => {

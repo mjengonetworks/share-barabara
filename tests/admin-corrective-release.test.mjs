@@ -35,10 +35,10 @@ test("Article form has no incident location or mapping contract", () => {
 
 test("all admin listing surfaces retain a fixed complete table width on mobile", () => {
   const shared = read("src/components/admin/admin-listing-surface.tsx");
-  assert.match(shared, /min-w-\[1100px\]/);
+  assert.match(shared, /min-w-\[980px\]/);
   for (const file of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = read(`src/routes/_authenticated/admin/${file}`);
-    assert.match(source, /min-w-\[1100px\]/, file);
+    assert.match(source, /min-w-\[980px\]/, file);
     assert.doesNotMatch(source, /xl:hidden|hidden[^\n]*xl:(?:block|flex|inline-flex)/, `${file} hides table columns on mobile`);
   }
 });
@@ -123,11 +123,13 @@ test("My Content exposes owned destinations and a unified ownership-aware table"
   const source = read("src/routes/_authenticated/admin/my-content.tsx");
   assert.match(source, /\/admin\/my-articles/);
   for (const key of ["reports", "alerts", "campaigns", "infrastructure"]) assert.match(source, new RegExp(`key: "${key}"`), key);
-  assert.match(source, /My Quotes/);
-  assert.match(source, /No user-owned Quotes list is implemented/);
+  assert.match(source, /label: "Quotes"/);
+  assert.match(source, /quote_submissions/);
+  assert.match(source, /created_by/);
+  assert.match(source, /if \(error\) throw error/);
   assert.match(source, /\.eq\(source\.owner, user!\.id\)/);
   assert.match(source, /AdminListingSurface/);
-  assert.match(source, /min-w-\[1100px\]/);
+  assert.match(source, /min-w-\[980px\]/);
   assert.match(source, /Views order/);
   assert.match(source, /Previous/);
   assert.match(source, /Next/);
