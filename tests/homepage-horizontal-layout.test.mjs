@@ -30,3 +30,18 @@ test("homepage and public reference pages share responsive container gutters", a
   assert.match(reports, /max-w-\[1500px\] px-4 sm:px-6/);
   assert.match(alerts, /max-w-\[1500px\] px-4 sm:px-6/);
 });
+
+test("homepage previews opt out of nested narrow containers", async () => {
+  const [homepage, editorialPreview, mjengoPreviews] = await Promise.all([
+    read("src/routes/index.tsx"),
+    read("src/components/site/global-editorial-preview.tsx"),
+    read("src/components/site/mjengo-previews.tsx"),
+  ]);
+
+  assert.match(homepage, /<GlobalEditorialPreview destination="news" fullWidth \/>/);
+  assert.match(homepage, /<MjengoPreviews context="home" fullWidth \/>/);
+  assert.match(editorialPreview, /fullWidth = false/);
+  assert.match(editorialPreview, /fullWidth \? "w-full" : "mx-auto max-w-6xl px-4"/);
+  assert.match(mjengoPreviews, /fullWidth = false/);
+  assert.match(mjengoPreviews, /fullWidth \? "w-full" : "mx-auto w-full max-w-6xl px-4 sm:px-6"/);
+});

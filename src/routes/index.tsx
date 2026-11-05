@@ -535,8 +535,8 @@ function Index() {
               <TaxonomyDiscovery kind="reports" />
             </div>
           </div>
-          <GlobalEditorialPreview destination="news" />
-          <MjengoPreviews context="home" />
+          <GlobalEditorialPreview destination="news" fullWidth />
+          <MjengoPreviews context="home" fullWidth />
           <SisterPlatformPreviews />
         </div>
       </section>

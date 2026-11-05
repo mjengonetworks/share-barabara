@@ -11,6 +11,7 @@ type Props = {
   category?: string | null;
   topic?: string | null;
   destinations?: PreviewDestination[];
+  fullWidth?: boolean;
 };
 const meta: Record<PreviewDestination, { label: string; href: string }> = {
   news: { label: "News & Articles", href: "/news" },
@@ -169,6 +170,7 @@ export function GlobalEditorialPreview({
   category,
   topic,
   destinations,
+  fullWidth = false,
 }: Props) {
   const modules = destinations?.length
     ? destinations
@@ -257,7 +259,7 @@ export function GlobalEditorialPreview({
   if (cards.length === 0) return null;
   return (
     <section
-      className="mx-auto max-w-6xl space-y-4 px-4 pb-8"
+      className={`${fullWidth ? "w-full" : "mx-auto max-w-6xl px-4"} space-y-4 pb-8`}
       aria-label="Cross-content editorial previews"
     >
       {Array.from({ length: Math.ceil(cards.length / 3) }, (_, row) => {
