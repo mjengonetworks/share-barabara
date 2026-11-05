@@ -57,16 +57,21 @@ jobs:
           test "$(jq -r '.workflow_run.id' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_RUN_ID"
           test "$(jq -r '.name' <<<"$artifact_json")" = "homepage-worker-payload-${APP_CANDIDATE_SHA}"
           test "$(jq -r '.digest' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_DIGEST"
+          echo "Artifact metadata verified: id=$(jq -r '.id' <<<"$artifact_json") run=$(jq -r '.workflow_run.id' <<<"$artifact_json") digest=$(jq -r '.digest' <<<"$artifact_json")"
           gh api \
             "repos/${GITHUB_REPOSITORY}/actions/artifacts/${EXPECTED_ARTIFACT_ID}/zip" \
             > complete-payload.zip
           actual_digest="sha256:$(sha256sum complete-payload.zip | awk '{print $1}')"
+          echo "Downloaded artifact: bytes=$(stat -c '%s' complete-payload.zip) digest=${actual_digest}"
           test "$actual_digest" = "$EXPECTED_ARTIFACT_DIGEST"
           mkdir artifact-wrapper
+          unzip -tq complete-payload.zip
           unzip -q complete-payload.zip -d artifact-wrapper
           payload_tar="$(find artifact-wrapper -type f -name '*.tar.gz' -print -quit)"
+          echo "Payload archive: ${payload_tar}"
           test -n "$payload_tar"
           tar -xzf "$payload_tar"
+          echo "Payload paths: index=$(test -s .output/server/index.mjs && echo yes || echo no) wrangler=$(test -s .output/server/wrangler.json && echo yes || echo no) ssr=$(test -d .output/server/_ssr && echo yes || echo no) libs=$(test -d .output/server/_libs && echo yes || echo no) assets=$(test -d .output/public/assets && echo yes || echo no)"
           test -s .output/server/index.mjs
           test -s .output/server/wrangler.json
           test -d .output/server/_ssr
