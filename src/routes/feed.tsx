@@ -364,7 +364,7 @@ function FeedPage() {
           <p className="px-2 pb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Media &amp; Feed</p>
           <nav className="flex flex-wrap gap-2 lg:flex-col" aria-label="Media & Feed sections">
             {[['for_you', 'For You'], ['following', 'Following'], ['trending', 'Trending'], ['topics', 'Topics'], ['discussions', 'Discussions']].map(([value, label]) => (
-              <Link key={value} to="/feed" search={{ view: value as "for_you" | "following" | "trending" | "topics" | "discussions", sort, q, type }} className={`rounded-md px-3 py-2 text-sm font-semibold ${view === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
+              <Link key={value} to="/feed" search={{ sort, view: value as "for_you" | "following" | "trending" | "topics" | "discussions", q, type }} className={`rounded-md px-3 py-2 text-sm font-semibold ${view === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
                 {value === "trending" ? <TrendingUp className="mr-1 inline size-4" /> : null}{label}
               </Link>
             ))}
@@ -418,12 +418,12 @@ function FeedPage() {
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"><Filter className="size-3.5" /> Sort</span>
             {(["new", "top", "hot"] as const).map((value) => (
-              <Link key={value} to="/feed" search={{ view, sort: value, q, type }} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${sort === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
+              <Link key={value} to="/feed" search={{ sort: value, view, q, type }} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${sort === value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
                 {value === "hot" ? <TrendingUp className="mr-1 inline size-3.5" /> : null}{value[0].toUpperCase() + value.slice(1)}
               </Link>
             ))}
             {([['', 'All'], ['article', 'Articles'], ['alert', 'Alerts'], ['report', 'Reports'], ['campaign', 'Campaigns'], ['infrastructure', 'Infrastructure'], ['update', 'Admin updates'], ['community', 'Community']] as const).map(([value, label]) => (
-              <Link key={value || 'all'} to="/feed" search={{ view, sort, q, type: value }} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${type === value ? "bg-accent text-brand-navy" : "bg-muted text-muted-foreground hover:text-foreground"}`}>{label}</Link>
+              <Link key={value || 'all'} to="/feed" search={{ sort, view, q, type: value }} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${type === value ? "bg-accent text-brand-navy" : "bg-muted text-muted-foreground hover:text-foreground"}`}>{label}</Link>
             ))}
           </div>
           {view === "following" ? (

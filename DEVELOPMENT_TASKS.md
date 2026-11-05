@@ -68,9 +68,15 @@
   schema change or production data write is required for this implementation.
 - Full tests pass `578/578`; security tests pass `14/14`; the production build
   generated `.output/server/index.mjs` and `.output/server/wrangler.json`;
-  changed new-file lint and `git diff --check` pass. Local browser screenshots
-  could not be recaptured because no Playwright package or browser executable
-  is present in this worktree; visual verification remains open.
+  changed-file lint and `git diff --check` pass. Isolated Playwright 1.64.1
+  with the existing Chromium 1248 executable verified homepage and `/feed` at
+  360, 390, 412, 768, 1024, 1280, 1440 and 1920px. Sixteen screenshots are
+  retained under `%TEMP%\share-barabara-unified-feed\`; all widths had zero
+  horizontal overflow, zero failed responses and zero page errors. A feed
+  hydration warning caused by search-link property order was corrected and the
+  matrix rerun clean. Public read-only source counts were News 100, Alerts 15,
+  Reports 14, Videos 8, bridge entries 23; Infrastructure, Campaigns,
+  community posts and administrator updates returned zero eligible rows.
 
 ## Homepage horizontal margins — DEPLOYED / VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-05
 

@@ -25,8 +25,12 @@
   now use the same source; community attachments continue through the existing
   owner/server-signed media path. No migration or production write is required.
   Full `578/578` and security `14/14` pass, and the
-  production build passes. Browser screenshots remain pending because no
-  Playwright package or browser executable is present locally.
+  production build passes. Isolated Playwright 1.64.1 with the existing
+  Chromium 1248 executable captured homepage and `/feed` screenshots at all
+  eight required widths under `%TEMP%\share-barabara-unified-feed\`. There was
+  no horizontal overflow, failed response or page error; a feed hydration
+  warning from search-link property ordering was corrected and the rerun was
+  clean. Owner review and deployment approval remain pending.
 
 - **HOMEPAGE HORIZONTAL MARGINS — DEPLOYED / VERIFIED / OWNER ACCEPTANCE
   PENDING (2026-11-05).** Approved application candidate
