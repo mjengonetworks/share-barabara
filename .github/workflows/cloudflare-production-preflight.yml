@@ -1,0 +1,141 @@
+name: Cloudflare production preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API: https://api.cloudflare.com/client/v4
+      WORKER_NAME: share-barabara
+      EXPECTED_DEPLOYMENT_ID: a27e1959-4e15-4753-b9c7-0f2e86d6826f
+      EXPECTED_APPLICATION_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
+      EXPECTED_ARTIFACT_ID: 13403623435
+      EXPECTED_ARTIFACT_RUN_ID: 42005270770
+
+    steps:
+      - name: Check out preflight revision
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify candidate and GitHub artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "$(git rev-parse --is-shallow-repository)" = false
+          git cat-file -e "${EXPECTED_APPLICATION_SHA}^{commit}"
+          git merge-base --is-ancestor "$EXPECTED_APPLICATION_SHA" HEAD
+          changed_files="$(git diff --name-only "$EXPECTED_APPLICATION_SHA" HEAD)"
+          if [ -n "$changed_files" ] && [ "$changed_files" != ".github/workflows/cloudflare-production-preflight.yml" ]; then
+            echo "Unexpected files differ from the approved application candidate:" >&2
+            echo "$changed_files" >&2
+            exit 1
+          fi
+
+          run_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${EXPECTED_ARTIFACT_RUN_ID}")"
+          test "$(jq -r '.conclusion' <<<"$run_json")" = success
+          test "$(jq -r '.head_branch' <<<"$run_json")" = fix/homepage-horizontal-margins
+          run_sha="$(jq -r '.head_sha' <<<"$run_json")"
+          git cat-file -e "${run_sha}^{commit}"
+          test "$(git diff --name-only "$EXPECTED_APPLICATION_SHA" "$run_sha")" = ".github/workflows/homepage-release-verification.yml"
+
+          artifact_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${EXPECTED_ARTIFACT_RUN_ID}/artifacts")"
+          artifact="$(jq -c --arg id "$EXPECTED_ARTIFACT_ID" '.artifacts[] | select((.id|tostring) == $id)' <<<"$artifact_json")"
+          test -n "$artifact"
+          test "$(jq -r '.expired' <<<"$artifact")" = false
+          test "$(jq -r '.size_in_bytes' <<<"$artifact")" -gt 0
+          echo "Verified GitHub artifact ${EXPECTED_ARTIFACT_ID}: $(jq -r '.name' <<<"$artifact")"
+          echo "Artifact digest: $(jq -r '.digest' <<<"$artifact")"
+          echo "Application candidate: ${EXPECTED_APPLICATION_SHA}"
+
+      - name: Query Cloudflare production read-only state
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN is required}"
+          : "${CLOUDFLARE_ACCOUNT_ID:?CLOUDFLARE_ACCOUNT_ID is required}"
+
+          api_get() {
+            curl --fail-with-body --silent --show-error \
+              --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              --header 'Content-Type: application/json' \
+              "$1"
+          }
+
+          assert_success() {
+            if [ "$(jq -r '.success' <<<"$1")" != true ]; then
+              echo "Cloudflare API request failed" >&2
+              jq -c '.errors' <<<"$1" >&2
+              exit 1
+            fi
+          }
+
+          deployments="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments?per_page=100")"
+          assert_success "$deployments"
+          deployment_count="$(jq '.result.deployments | length' <<<"$deployments")"
+          test "$deployment_count" -ge 2
+          latest="$(jq -c '.result.deployments | sort_by(.created_on) | last' <<<"$deployments")"
+          previous="$(jq -c '.result.deployments | sort_by(.created_on) | .[-2]' <<<"$deployments")"
+          live_deployment_id="$(jq -r '.id' <<<"$latest")"
+          test "$live_deployment_id" = "$EXPECTED_DEPLOYMENT_ID"
+
+          live_versions="$(jq -c '.versions' <<<"$latest")"
+          traffic_total="$(jq '[.[].percentage] | add' <<<"$live_versions")"
+          test "$traffic_total" = 100
+          live_version_id="$(jq -r '.[0].version_id' <<<"$live_versions")"
+          test -n "$live_version_id"
+          rollback_version_id="$(jq -r '.versions[0].version_id' <<<"$previous")"
+          test -n "$rollback_version_id"
+          test "$rollback_version_id" != "$live_version_id"
+
+          zone="$(api_get "${CLOUDFLARE_API}/zones?name=sharebarabara.co.ke&status=active&per_page=1")"
+          assert_success "$zone"
+          zone_id="$(jq -r '.result[0].id // empty' <<<"$zone")"
+          test -n "$zone_id"
+
+          routes="$(api_get "${CLOUDFLARE_API}/zones/${zone_id}/workers/routes")"
+          assert_success "$routes"
+          route="$(jq -c --arg script "$WORKER_NAME" '.result[] | select(.pattern == "sharebarabara.co.ke" and .script == $script and (.enabled // true) == true)' <<<"$routes" | head -n 1)"
+          test -n "$route"
+
+          domains="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/domains?zone_name=sharebarabara.co.ke")"
+          assert_success "$domains"
+          domain="$(jq -c '.result[] | select(.hostname == "sharebarabara.co.ke" and (.enabled // true) == true)' <<<"$domains" | head -n 1)"
+          test -n "$domain"
+
+          settings="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/settings")"
+          assert_success "$settings"
+          binding_names="$(jq -r '.result.bindings[]?.name // empty' <<<"$settings" | sort -u)"
+          grep -qx 'ASSETS' <<<"$binding_names"
+          grep -qx 'AI_RATE_LIMITER' <<<"$binding_names"
+
+          schedules="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/schedules")"
+          assert_success "$schedules"
+          grep -q '"cron":"*/1 * * * *"' <<<"$schedules"
+
+          {
+            echo '## Cloudflare production preflight'
+            echo
+            echo "- Live deployment ID: ${live_deployment_id}"
+            echo "- Live version ID: ${live_version_id}"
+            echo "- Live traffic: ${live_versions} (total ${traffic_total}%)"
+            echo "- Rollback deployment ID: $(jq -r '.id' <<<"$previous")"
+            echo "- Rollback version ID: ${rollback_version_id}"
+            echo "- Route: $(jq -c '.' <<<"$route")"
+            echo "- Custom domain: $(jq -c '.' <<<"$domain")"
+            echo "- Binding names only: $(tr '\n' ',' <<<"$binding_names" | sed 's/,$//')"
+            echo "- Cron schedules: $(jq -c '.result.schedules' <<<"$schedules")"
+            echo '- Secret values: not requested or exposed'
+            echo '- Mutating Cloudflare API calls: none'
+            echo '- Deployment readiness: preflight passed; separate deployment approval required'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
