@@ -144,11 +144,13 @@ async function read<T>(
   return data ?? ([] as T);
 }
 
-export async function getUnifiedFeed(options: { limit?: number; offset?: number; query?: string } = {}) {
+export async function getUnifiedFeed(
+  options: { limit?: number; offset?: number; query?: string } = {},
+) {
   const limit = Math.min(Math.max(options.limit ?? 30, 1), SOURCE_LIMIT);
   const offset = Math.max(options.offset ?? 0, 0);
   const search = options.query?.trim();
-  const [articles, alerts, reports, infrastructure, campaigns, videos, posts, updates, postMedia] =
+  const [articles, alerts, reports, infrastructure, campaigns, videos, posts, updates] =
     await Promise.all([
       read(
         db
@@ -237,33 +239,9 @@ export async function getUnifiedFeed(options: { limit?: number; offset?: number;
           .limit(SOURCE_LIMIT),
         "administrator updates",
       ),
-      read(
-        db
-          .from("feed_post_media")
-          .select("id,post_id,media_type,storage_path,filename")
-          .limit(SOURCE_LIMIT * 2),
-        "community media",
-      ),
     ]);
 
   const today = new Date().toISOString().slice(0, 10);
-  const mediaByPost = new Map<string, UnifiedFeedItem["media"]>();
-  for (const media of postMedia as Array<{
-    id: string;
-    post_id: string;
-    media_type: "image" | "video";
-    storage_path: string;
-    filename: string;
-  }>) {
-    const existing = mediaByPost.get(media.post_id) ?? [];
-    existing.push({
-      id: media.id,
-      media_type: media.media_type,
-      storage_path: media.storage_path,
-      filename: media.filename,
-    });
-    mediaByPost.set(media.post_id, existing);
-  }
   const rows: UnifiedFeedItem[] = [
     ...(articles as FeedSourceRow[]).map((row) => item("article", row)),
     ...(alerts as FeedSourceRow[]).map((row) => item("alert", row)),
@@ -273,9 +251,7 @@ export async function getUnifiedFeed(options: { limit?: number; offset?: number;
       .filter((row) => row.end_date >= today || row.report_published === true)
       .map((row) => item("campaign", row)),
     ...(videos as FeedSourceRow[]).map((row) => item("video", row)),
-    ...(posts as FeedSourceRow[]).map((row) =>
-      item("community", { ...row, media: mediaByPost.get(row.id) ?? [] }),
-    ),
+    ...(posts as FeedSourceRow[]).map((row) => item("community", row)),
     ...(updates as FeedSourceRow[]).map((row) => item("update", row)),
   ];
   const normalized = search?.toLowerCase();

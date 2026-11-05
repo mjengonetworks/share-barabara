@@ -14,7 +14,6 @@ test("the shared feed reads every approved public activity source", async () => 
     'from("campaigns")',
     'from("videos")',
     'from("feed_posts")',
-    'from("feed_post_media")',
     'from("editorial_updates")',
   ]) {
     assert.match(source, new RegExp(table.replace(/[()]/g, "\\$&")), table);
@@ -44,6 +43,6 @@ test("shared feed preserves canonical source identity and media metadata", async
   assert.match(source, /imageUrl: row\.image_url/);
   assert.match(source, /mediaUrl: row\.video_url/);
   assert.match(source, /updatedAt: row\.updated_at/);
-  assert.match(source, /mediaByPost/);
+  assert.match(source, /media: Array/);
   assert.match(source, /slice\(offset, offset \+ limit\)/);
 });
