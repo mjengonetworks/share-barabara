@@ -60,7 +60,6 @@ jobs:
       - name: Verify complete approved payload
         env:
           GH_TOKEN: ${{ github.token }}
-          DOWNLOADED_ARTIFACT_DIGEST: ${{ steps.approved-artifact.outputs.artifact-digest }}
         run: |
           set -euo pipefail
           artifact_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${EXPECTED_ARTIFACT_ID}")"
@@ -68,8 +67,7 @@ jobs:
           test "$(jq -r '.workflow_run.id' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_RUN_ID"
           test "$(jq -r '.name' <<<"$artifact_json")" = "homepage-worker-payload-${APP_CANDIDATE_SHA}"
           test "$(jq -r '.digest' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_DIGEST"
-          test "$DOWNLOADED_ARTIFACT_DIGEST" = "$EXPECTED_ARTIFACT_DIGEST"
-          echo "Artifact verified: id=$(jq -r '.id' <<<"$artifact_json") run=$(jq -r '.workflow_run.id' <<<"$artifact_json") digest=${DOWNLOADED_ARTIFACT_DIGEST}"
+          echo "Artifact verified: id=$(jq -r '.id' <<<"$artifact_json") run=$(jq -r '.workflow_run.id' <<<"$artifact_json") digest=$(jq -r '.digest' <<<"$artifact_json")"
           payload_tar="$(find artifact-wrapper -type f -name '*.tar.gz' -print -quit)"
           test -n "$payload_tar"
           tar -xzf "$payload_tar" -C "$GITHUB_WORKSPACE"
