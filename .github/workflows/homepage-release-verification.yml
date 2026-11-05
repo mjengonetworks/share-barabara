@@ -12,10 +12,18 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      APP_CANDIDATE_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
+        with:
+          ref: 7b3054e070d77a8e721ec67b5de24a902e37f382
+          fetch-depth: 0
+
+      - name: Confirm exact candidate checkout
+        run: test "$(git rev-parse HEAD)" = "$APP_CANDIDATE_SHA"
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -42,12 +50,25 @@ jobs:
       - name: Run artifact-dependent test
         run: node --experimental-strip-types --experimental-loader ./tests/node-test-loader.mjs --test tests/ai-server-function-artifact.test.mjs
 
-      - name: Upload Worker artifacts
+      - name: Validate and package complete Worker payload
+        run: |
+          set -euo pipefail
+          test -s .output/server/index.mjs
+          test -s .output/server/wrangler.json
+          test -d .output/server/_ssr
+          test -d .output/server/_libs
+          test -d .output/public/assets
+          tar -czf "homepage-worker-payload-${APP_CANDIDATE_SHA}.tar.gz" .output
+          payload_files="$(tar -tzf "homepage-worker-payload-${APP_CANDIDATE_SHA}.tar.gz")"
+          grep -Fx '.output/server/index.mjs' <<<"$payload_files"
+          grep -Fx '.output/server/wrangler.json' <<<"$payload_files"
+          grep -q '^.output/server/_ssr/' <<<"$payload_files"
+          grep -q '^.output/public/assets/' <<<"$payload_files"
+
+      - name: Upload complete Worker payload
         uses: actions/upload-artifact@v4
         with:
-          name: homepage-worker-artifacts-${{ github.sha }}
-          path: |
-            .output/server/index.mjs
-            .output/server/wrangler.json
+          name: homepage-worker-payload-7b3054e070d77a8e721ec67b5de24a902e37f382
+          path: homepage-worker-payload-7b3054e070d77a8e721ec67b5de24a902e37f382.tar.gz
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 7
