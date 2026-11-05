@@ -1,5 +1,35 @@
 # Pending
 
+- **HOMEPAGE HORIZONTAL MARGINS — DEPLOYED / VERIFIED / OWNER ACCEPTANCE
+  PENDING (2026-11-05).** Approved application candidate
+  `7b3054e070d77a8e721ec67b5de24a902e37f382` is live at 100% as deployment
+  `83a2e339-7a67-4e08-bb01-a6a534d4e8a5`, Worker version
+  `e84cab4e-c770-442a-bb78-5c361faebf35`. Immediate previous deployment/version
+  `a5dfe779-8a9d-4836-8acc-df3f628afb03` /
+  `a27e1959-4e15-4753-b9c7-0f2e86d6826f` remains available for rollback. The
+  complete payload artifact `13441441227` has SHA-256
+  `ed8ba07d2d80564565c819571e7a76e35e381c13853752f3ec6dbd4a8e0e9b85`;
+  build run `42081943030` and deployment run `42086290967` passed. Fresh
+  read-only preflight, complete payload validation, full/security/artifact
+  gates, configuration preservation and public health checks passed. `/`,
+  `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues`
+  returned HTTP 200. No SQL or migration ran. Browser screenshots, responsive
+  visual/console inspection and owner visual acceptance remain pending because
+  browser automation was unavailable. Do not mark this task Owner Accepted or
+  Closed until that evidence is supplied.
+
+- **HOMEPAGE HORIZONTAL MARGINS — IMPLEMENTED / DEPLOYMENT BLOCKED
+  (2026-11-04).** Candidate `7b3054e070d77a8e721ec67b5de24a902e37f382`
+  standardizes the homepage on the existing 1500px public content frame with
+  16px mobile and 24px tablet/desktop gutters, replacing the homepage-only
+  `max-w-6xl` cap. Focused layout/reference tests pass `23/23`; security passes
+  `14/14`. Full tests are `573/574`, with only the deployable artifact test
+  failing because Windows native memory exhaustion stopped the final Nitro
+  Worker build before `.output/server/index.mjs` was emitted. No SQL or
+  migration ran. No browser surface was available, so screenshots and direct
+  responsive checks at the requested widths remain pending. Do not deploy
+  until build/artifact gates pass and the candidate is reviewed.
+
 - **CMS CORRECTIVE RELEASE — DEPLOYED / AUTHENTICATED ACCEPTANCE PENDING
   (2026-11-04).** Reviewed candidate
   `ef7af12a0307bb6e59ccf0d4aa2dac71b444ee47` is live as Worker

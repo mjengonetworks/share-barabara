@@ -1,23 +1,81 @@
 # Development tasks
 
-## CMS corrective release — DEPLOYED / AUTHENTICATED ACCEPTANCE PENDING — 2026-11-04
+## Homepage horizontal margins — DEPLOYED / VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-05
 
-- Reviewed candidate `ef7af12a0307bb6e59ccf0d4aa2dac71b444ee47` was deployed
-  through the existing production Wrangler script as Worker
-  `a27e1959-4e15-4753-b9c7-0f2e86d6826f` at 100% traffic on
-  `2026-11-04T13:56:01.302Z`.
-- The expected baseline Worker
-  `34264529-e64b-4d69-915b-bc5447d84dc0` was active immediately before
-  deployment and remains preserved as the rollback target. The custom domain,
-  production bindings, authentication configuration, route and `*/1 * * * *`
-  cron were preserved. No SQL or migration ran.
-- Pre-deployment gates passed: production build, Worker artifact test, full
-  source tests `572/572`, security tests `14/14`, changed-file ESLint and Git
-  diff checks. Public/admin smoke checks returned HTTP 200; `/feed` returned
-  its expected 307 redirect to the feed sort URL.
-- Authenticated browser verification remains pending because no browser surface
-  was available. Do not claim live Campaigns HTTP 400 resolution or responsive
-  layout acceptance without authenticated request and viewport evidence.
+- Approved application commit `7b3054e070d77a8e721ec67b5de24a902e37f382` was
+  deployed through the guarded Linux workflow at approximately
+  `2026-11-05T18:39:45Z`.
+- Previous production deployment/version: deployment
+  `a5dfe779-8a9d-4836-8acc-df3f628afb03`, version
+  `a27e1959-4e15-4753-b9c7-0f2e86d6826f`. New deployment/version:
+  `83a2e339-7a67-4e08-bb01-a6a534d4e8a5`, version
+  `e84cab4e-c770-442a-bb78-5c361faebf35`, at 100% traffic. The immediate
+  previous version remains identifiable for rollback.
+- Complete payload artifact `13441441227` has SHA-256
+  `ed8ba07d2d80564565c819571e7a76e35e381c13853752f3ec6dbd4a8e0e9b85`.
+  Build/deploy run: `42086290967`; build run: `42081943030`.
+- Fresh read-only preflight passed immediately before deployment. The
+  production custom domain, ASSETS and AI_RATE_LIMITER bindings, production
+  variables, secrets metadata and `*/1 * * * *` cron were preserved. No SQL,
+  migration, database, storage or unrelated application change was made.
+- Post-deployment HTTP checks passed for `/`, `/news`, `/alerts`, `/reports`,
+  `/campaigns` and `/infrastructure-issues` (all HTTP 200).
+- Browser screenshots, responsive visual inspection at 360, 390, 412, 768,
+  1024, 1280, 1440 and 1920px, console inspection and owner visual acceptance
+  remain pending because no browser surface was available.
+
+## Homepage horizontal margins — IMPLEMENTED / BUILD BLOCKED — 2026-11-04
+
+- Created dedicated branch `fix/homepage-horizontal-margins` from the current
+  production-line HEAD. Live production was reconciled first and is Worker
+  `a27e1959-4e15-4753-b9c7-0f2e86d6826f` at 100% traffic.
+- Root cause was the homepage applying `max-w-6xl` (1152px) and duplicated
+  section-level padding to every hero and content section, while the public
+  reference pages use wider public frames. The homepage now uses the existing
+  `public-content-container`: 1500px maximum width, 16px gutters below 640px
+  and 24px gutters from 640px upward. Hero visuals, content ordering and
+  controls were preserved.
+- Candidate commit: `7b3054e070d77a8e721ec67b5de24a902e37f382`.
+  Focused layout/reference tests pass `23/23`; security tests pass `14/14`;
+  changed-file diff checks pass. Full tests pass `573/574`; the only failure is
+  the build-artifact test because Windows native memory exhaustion prevented
+  the final Nitro Worker artifact from being emitted.
+- Browser/CUA inventory exposed no browser surface, so screenshots and direct
+  responsive checks at 360, 390, 412, 768, 1024, 1280, 1440 and 1920px remain
+  pending. The computed content starts are 16px at 360/390/412px, 24px at
+  768/1024/1280/1440px, and 234px at 1920px with the 1500px frame.
+- No SQL or migration ran. Do not deploy until a successful production build,
+  artifact test and owner review are complete.
+
+## CMS corrective release — BUILD VERIFIED / DEPLOYMENT AND AUTHENTICATED ACCEPTANCE PENDING — 2026-11-04
+
+- Candidate under verification: `ef7af12a0307bb6e59ccf0d4aa2dac71b444ee47`.
+  No deployment, migration, production data write or traffic change was made
+  during this verification pass.
+- `bun run build` passed for the Vite client, SSR output and Nitro Cloudflare
+  Worker output. Wrangler dry-run inspection passed without upload: 262 public
+  assets, 7,768.50 KiB upload / 1,533.19 KiB gzip, with `ASSETS`,
+  `AI_RATE_LIMITER`, production variables and the `*/1 * * * *` cron present.
+- Focused CMS, security, deployment-config and production-reconciliation tests
+  passed: **57/57**. Static inspection confirms Campaigns uses actual schema
+  fields and derives lifecycle status from `start_date`/`end_date`; My Content
+  applies authenticated owner predicates to every source, including
+  `quote_submissions.user_id`; and query errors are rendered as errors rather
+  than empty states.
+- Authenticated Wrangler deployment history shows Worker
+  `34264529-e64b-4d69-915b-bc5447d84dc0` at 100% on
+  `2026-11-04T10:39:48.948Z`, followed by a later Worker
+  `a27e1959-4e15-4753-b9c7-0f2e86d6826f` at 100% on
+  `2026-11-04T13:55:59.371Z`. This conflicts with the supplied current-Worker
+  assertion and must be reconciled by the owner before any deployment plan.
+- Public unauthenticated smoke checks returned HTTP 200 for `/campaigns` and
+  `/admin/campaigns`; no Campaigns HTTP 400 was reproduced. Authenticated
+  request-level reproduction remains open.
+- Browser acceptance is pending: no CUA browser surface was available, so
+  desktop/tablet/mobile checks for ownership, responsive widths, thumbnails,
+  sorting, filtering, pagination and authenticated Campaigns responses were
+  not performed. Do not request deployment approval until those checks pass and
+  the live Worker baseline conflict is resolved.
 
 ## CMS AI performance and post-save navigation — READY / NOT DEPLOYED — 2026-11-03
 
