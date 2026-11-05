@@ -1,13 +1,20 @@
 # Pending
 
-- **HOMEPAGE PREVIEW WIDTH CORRECTION — IMPLEMENTED / NOT DEPLOYED
-  (2026-11-05).** Candidate `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee`
-  makes the homepage preview components opt out of their nested `max-w-6xl`
-  frames while preserving constrained layouts on other routes. Focused tests
-  pass `3/3`, full tests `575/575`, security `14/14`, production build and
-  artifact verification pass, and `git diff --check` passes. No SQL,
-  migrations or deployment ran. Browser screenshots and responsive owner
-  acceptance remain pending.
+- **HOMEPAGE PREVIEW WIDTH CORRECTION — DEPLOYED / LIVE VERIFIED / OWNER
+  ACCEPTANCE PENDING (2026-11-06).** Candidate
+  `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` makes the homepage preview
+  components opt out of their nested `max-w-6xl` frames while preserving
+  constrained layouts on other routes. Focused tests pass `3/3`, full tests
+  `575/575`, security `14/14`, production build and artifact verification
+  pass. Deployment run `42113595621` used artifact `13449702199` with digest
+  `sha256:39e8ec605d39e05df30893836867a52fcb0a23db9948f3c361a2ec362490968d`
+  and deployed Worker version `a0119c87-aaf0-406e-939c-8f0b885b9dfd` at 100%
+  under deployment `1f757014-28ed-4638-b746-b186e11a82e0`. Required public
+  routes returned HTTP 200. Live Playwright screenshots and measurements at
+  360, 390, 412, 768, 1024, 1280, 1440 and 1920px are retained under
+  `%TEMP%\share-barabara-homepage-live\`; no overflow or console/page errors
+  were observed. Owner visual acceptance and authenticated CMS acceptance
+  remain pending. No SQL or migrations ran.
 
 - **UNIFIED MEDIA & FEED — DESIGN / SCHEMA VERIFICATION PENDING (2026-11-05).**
   The homepage and `/feed` do not yet consume one authoritative activity

@@ -1,6 +1,6 @@
 # Development tasks
 
-## Homepage preview width correction — IMPLEMENTED / NOT DEPLOYED — 2026-11-05
+## Homepage preview width correction — DEPLOYED / LIVE VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-06
 
 - Dedicated candidate `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` removes the
   redundant nested `max-w-6xl`, centering and horizontal padding only for the
@@ -21,8 +21,7 @@
   equalled the viewport width at all eight widths, so no page-level horizontal
   overflow was observed. Campaigns and Media & Feed remained in the available
   preview grid and stacked on mobile. The isolated homepage and `/news` route
-  produced no console or page errors in the captured run. Production deployment
-  and owner visual acceptance remain pending.
+  produced no console or page errors in the captured run.
 - Fresh read-only Cloudflare preflight passed in run
   `42104615821`:
   https://github.com/mjengonetworks/share-barabara/actions/runs/42104615821.
@@ -32,6 +31,19 @@
   `ASSETS` and `AI_RATE_LIMITER` bindings, secret-binding metadata, `*/1 * * * *`
   cron and rollback deployment `a5dfe779-8a9d-4836-8acc-df3f628afb03` /
   version `a27e1959-4e15-4753-b9c7-0f2e86d6826f` were confirmed.
+- Deployment run `42113595621` deployed application candidate
+  `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` using complete artifact
+  `13449702199` with digest
+  `sha256:39e8ec605d39e05df30893836867a52fcb0a23db9948f3c361a2ec362490968d`.
+  New deployment/version: `1f757014-28ed-4638-b746-b186e11a82e0` /
+  `a0119c87-aaf0-406e-939c-8f0b885b9dfd`, at 100% traffic. Public `/`,
+  `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues`
+  all returned HTTP 200. Live Playwright verification at all eight widths
+  produced screenshots under `%TEMP%\share-barabara-homepage-live\`; body width
+  equalled viewport width, preview sections measured 16px mobile gutters and
+  24px desktop gutters, with a centered 1500px layout at 1920px. No live
+  console/page errors were observed. Owner visual acceptance and authenticated
+  CMS acceptance remain pending; Task B remains separate and unmodified.
 
 ## Unified Media & Feed — DESIGN / MIGRATION APPROVAL PENDING — 2026-11-05
 
