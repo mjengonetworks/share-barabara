@@ -126,7 +126,10 @@ test("Alerts and Reports share a published-only editorial updates chronology", (
   assert.match(updatesManager, /mode="update"/);
   assert.match(updatesManager, /AttachmentsField/);
   assert.match(updatesManager, /status === "published"/);
-  assert.match(read("src/components/site/editorial-updates-manager.tsx"), /EditorialUpdatesManager/);
+  assert.match(
+    read("src/components/site/editorial-updates-manager.tsx"),
+    /EditorialUpdatesManager/,
+  );
 });
 
 test("newsletter delivery is server-side, role-gated, batched, and secret-safe", () => {
@@ -223,13 +226,17 @@ test("all public social-link surfaces share the HTTPS platform allowlist", () =>
   assert.match(social, /ALLOWED_SOCIAL_PLATFORMS/);
   assert.match(footer, /select\("id,label,icon_key,href,sort_order"\)/);
   assert.match(footer, /safeSocialUrl/);
-  assert.match(footer, /ALLOWED_SOCIAL_PLATFORMS\.has\(item\.icon_key\) && safeSocialUrl\(item\.href\)/);
+  assert.match(
+    footer,
+    /ALLOWED_SOCIAL_PLATFORMS\.has\(item\.icon_key\) && safeSocialUrl\(item\.href\)/,
+  );
 });
 
 test("Media & Feed surfaces existing featured videos without creating fake embeds", () => {
   const route = read("src/routes/feed.tsx");
-  assert.match(route, /from\("videos"\)/);
-  assert.match(route, /eq\("status", "featured"\)/);
+  const unifiedFeed = read("src/lib/unified-feed.ts");
+  assert.match(unifiedFeed, /from\("videos"\)/);
+  assert.match(unifiedFeed, /eq\("status", "featured"\)/);
   assert.match(route, /youtubeId/);
   assert.match(route, /Featured road-safety media/);
   assert.match(route, /Browse media/);

@@ -48,6 +48,7 @@ import { SocialFollowSection } from "@/components/site/social-follow-section";
 import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
 import { uploadFeedMediaAsset } from "@/lib/storage";
+import { getUnifiedFeed, type UnifiedFeedItem } from "@/lib/unified-feed";
 
 export const Route = createFileRoute("/feed")({
   head: () => ({
@@ -87,7 +88,7 @@ type Post = {
 };
 type AutoItem = {
   id: string;
-  kind: "alert" | "report" | "article" | "campaign" | "infrastructure";
+  kind: "alert" | "report" | "article" | "campaign" | "infrastructure" | "video" | "update";
   title: string;
   body: string;
   created_at: string;
@@ -120,149 +121,42 @@ function FeedPage() {
   const [reportReason, setReportReason] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
 
-  const {
-    data: posts = [],
-    isLoading,
-    error: feedError,
-  } = useQuery<Post[]>({
-    queryKey: ["feed-posts"],
-    queryFn: async () => {
-      const { data, error } = await (supabase.from("feed_posts") as any)
-        .select("id,author_id,body,hashtags,status,moderation_status,created_at,published_at")
-        .order("created_at", { ascending: false })
-        .limit(FEED_LIMIT);
-      if (error) {
-        const setupError = error.code === "42P01" || error.code === "PGRST205";
-        throw new Error(
-          setupError
-            ? "Feed storage is not enabled yet."
-            : "The community Feed is temporarily unavailable.",
-        );
-      }
-      return (data ?? []) as Post[];
-    },
+  const unified = useQuery<UnifiedFeedItem[]>({
+    queryKey: ["unified-feed", q],
+    queryFn: () => getUnifiedFeed({ limit: FEED_LIMIT, query: q }),
     staleTime: 30_000,
   });
-
-  const { data: automatic = [] } = useQuery<AutoItem[]>({
-    queryKey: ["feed-automatic-content"],
-    queryFn: async () => {
-      const [alerts, reports, articles, campaigns, infrastructure] = await Promise.all([
-        supabase
-          .from("alerts")
-          .select("id,title,description,county,road,created_at")
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(8),
-        supabase
-          .from("accident_reports")
-          .select("id,title,description,county,road,occurred_at")
-          .eq("status", "approved")
-          .order("occurred_at", { ascending: false })
-          .limit(8),
-        supabase
-          .from("news")
-          .select("id,slug,title,summary,published_at")
-          .eq("status", "published")
-          .order("published_at", { ascending: false })
-          .limit(8),
-        supabase
-          .from("campaigns")
-          .select("id,slug,title,description,start_date")
-          .order("start_date", { ascending: false })
-          .limit(8),
-        supabase
-          .from("infrastructure_issues")
-          .select("id,title,summary,road_name,created_at")
-          .eq("status", "approved")
-          .order("created_at", { ascending: false })
-          .limit(8),
-      ]);
-      return [
-        ...(alerts.data ?? []).map((item) => ({
-          id: item.id,
-          kind: "alert" as const,
-          title: item.title,
-          body: item.description ?? "",
-          location: [item.county, item.road].filter(Boolean).join(" · "),
-          created_at: item.created_at,
-          href: `/alerts/${item.id}`,
-        })),
-        ...(reports.data ?? []).map((item) => ({
-          id: item.id,
-          kind: "report" as const,
-          title: item.title,
-          body: item.description ?? "",
-          location: [item.county, item.road].filter(Boolean).join(" · "),
-          created_at: item.occurred_at,
-          href: `/reports/${item.id}`,
-        })),
-        ...(articles.data ?? []).map((item) => ({
-          id: item.id,
-          kind: "article" as const,
-          title: item.title,
-          body: item.summary ?? "",
-          created_at: item.published_at,
-          href: `/news/${item.slug}`,
-        })),
-        ...(campaigns.data ?? []).map((item) => ({
-          id: item.id,
-          kind: "campaign" as const,
-          title: item.title,
-          body: item.description ?? "",
-          location: null,
-          created_at: item.start_date,
-          href: `/campaigns/${item.slug}`,
-        })),
-        ...(infrastructure.data ?? []).map((item) => ({
-          id: item.id,
-          kind: "infrastructure" as const,
-          title: item.title,
-          body: item.summary ?? "",
-          location: item.road_name,
-          created_at: item.created_at,
-          href: `/infrastructure-issues/${item.id}`,
-        })),
-      ]
-        .sort((a, b) => b.created_at.localeCompare(a.created_at))
-        .slice(0, 12);
-    },
-    staleTime: 60_000,
-  });
-  const { data: trendingEditorial = [] } = useQuery<AutoItem[]>({
-    queryKey: ["feed-trending-editorial"],
-    enabled: view === "trending",
-    queryFn: async () => {
-      const [articles, alerts, reports] = await Promise.all([
-        (supabase.rpc("trending_news", { hours_back: 168, result_limit: 8 }) as any),
-        (supabase.rpc("trending_alerts", { hours_back: 168, result_limit: 8 }) as any),
-        (supabase.rpc("trending_reports", { hours_back: 168, result_limit: 8 }) as any),
-      ]);
-      if (articles.error || alerts.error || reports.error) return [];
-      return [
-        ...(articles.data ?? []).map((item: any, index: number) => ({ id: item.id, kind: "article" as const, title: item.title, body: item.summary ?? "", created_at: item.published_at, href: `/news/${item.slug}`, rank: index })),
-        ...(alerts.data ?? []).map((item: any, index: number) => ({ id: item.id, kind: "alert" as const, title: item.title, body: item.description ?? "", created_at: item.created_at, href: `/alerts/${item.id}`, rank: index })),
-        ...(reports.data ?? []).map((item: any, index: number) => ({ id: item.id, kind: "report" as const, title: item.title, body: item.description ?? "", created_at: item.occurred_at, href: `/reports/${item.id}`, rank: index })),
-      ];
-    },
-    staleTime: 60_000,
-  });
-  const { data: media = [] } = useQuery<MediaItem[]>({
-    queryKey: ["feed-featured-media"],
-    queryFn: async () => {
-      const { data, error } = await (supabase.from("videos") as any)
-        .select("id,title,description,video_url,created_at")
-        .eq("status", "featured")
-        .order("created_at", { ascending: false })
-        .limit(6);
-      if (error) {
-        if (error.code === "42P01" || error.code === "PGRST205") return [];
-        throw error;
-      }
-      return (data ?? []) as MediaItem[];
-    },
-    staleTime: 60_000,
-  });
+  const unifiedItems = unified.data ?? [];
+  const posts: Post[] = unifiedItems.filter((row) => row.kind === "community").map((row) => ({
+    id: row.sourceId,
+    author_id: row.authorId ?? "",
+    body: row.body,
+    hashtags: row.hashtags,
+    status: row.status ?? "published",
+    moderation_status: row.moderationStatus ?? "approved",
+    created_at: row.createdAt,
+    published_at: row.publishedAt,
+    media: row.media,
+  }));
+  const automatic: AutoItem[] = unifiedItems.filter((row) => row.kind !== "community" && row.kind !== "video").map((row) => ({
+    id: row.sourceId,
+    kind: row.kind as AutoItem["kind"],
+    title: row.title,
+    body: row.body,
+    location: row.location,
+    created_at: row.publishedAt ?? row.createdAt,
+    href: row.href,
+  }));
+  const trendingEditorial = automatic;
+  const media: MediaItem[] = unifiedItems.filter((row) => row.kind === "video").map((row) => ({
+    id: row.sourceId,
+    title: row.title,
+    description: row.body || null,
+    video_url: row.mediaUrl ?? "",
+    created_at: row.createdAt,
+  }));
+  const isLoading = unified.isLoading;
+  const feedError = unified.error;
 
   const postIds = posts.map((post) => post.id);
   const { scores, vote } = useVotes("feed_post", postIds);
@@ -528,7 +422,7 @@ function FeedPage() {
                 {value === "hot" ? <TrendingUp className="mr-1 inline size-3.5" /> : null}{value[0].toUpperCase() + value.slice(1)}
               </Link>
             ))}
-            {([['', 'All'], ['article', 'Articles'], ['alert', 'Alerts'], ['report', 'Reports'], ['campaign', 'Campaigns'], ['infrastructure', 'Infrastructure'], ['community', 'Community']] as const).map(([value, label]) => (
+            {([['', 'All'], ['article', 'Articles'], ['alert', 'Alerts'], ['report', 'Reports'], ['campaign', 'Campaigns'], ['infrastructure', 'Infrastructure'], ['update', 'Admin updates'], ['community', 'Community']] as const).map(([value, label]) => (
               <Link key={value || 'all'} to="/feed" search={{ view, sort, q, type: value }} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${type === value ? "bg-accent text-brand-navy" : "bg-muted text-muted-foreground hover:text-foreground"}`}>{label}</Link>
             ))}
           </div>
@@ -556,7 +450,7 @@ function FeedPage() {
               <Fragment key={entry.id}>
                 {(index + 1) % 4 === 0 ? <BannerAd placement={`feed-list-interval-${(index + 1) / 4}`} /> : null}
                 <a href={entry.item.href} className="block rounded-lg border border-border bg-card p-4 transition-colors hover:border-accent card-elevated">
-                  <div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">{entry.item.kind === "article" ? "News & Articles" : entry.item.kind === "alert" ? "Active alert" : entry.item.kind === "report" ? "Approved report" : entry.item.kind === "campaign" ? "Campaign" : "Infrastructure issue"}</span><span className="text-xs text-muted-foreground">{timeAgo(entry.item.created_at)}</span></div>
+                  <div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">{entry.item.kind === "article" ? "News & Articles" : entry.item.kind === "alert" ? "Active alert" : entry.item.kind === "report" ? "Approved report" : entry.item.kind === "campaign" ? "Campaign" : entry.item.kind === "update" ? "Administrator update" : "Infrastructure issue"}</span><span className="text-xs text-muted-foreground">{timeAgo(entry.item.created_at)}</span></div>
                   <h2 className="mt-2 font-bold">{entry.item.title}</h2>
                   {entry.item.location ? <p className="mt-1 text-xs text-muted-foreground">{entry.item.location}</p> : null}
                   <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{entry.item.body}</p>

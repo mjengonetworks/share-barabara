@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getUnifiedFeed } from "@/lib/unified-feed";
 import { BannerAd } from "@/components/site/banner-ad";
 import type { PreviewDestination, PreviewItem } from "@/lib/global-editorial-preview";
 
@@ -81,14 +82,6 @@ const mapStatistics = (item: any): PreviewItem => ({
   category: "Statistics",
   destination: "statistics",
 });
-const mapMedia = (item: any): PreviewItem => ({
-  id: item.id,
-  title: item.title,
-  href: "/videos",
-  category: "Media",
-  destination: "media",
-});
-
 function ItemLink({ item }: { item: PreviewItem }) {
   return (
     <a
@@ -178,7 +171,7 @@ export function GlobalEditorialPreview({
   const query = useQuery({
     queryKey: ["global-editorial-preview", destination, excludeId, excludeKeys, modules],
     queryFn: async () => {
-      const [news, alerts, reports, campaigns, infrastructure, statistics, media] =
+      const [news, alerts, reports, campaigns, infrastructure, statistics] =
         await Promise.all([
           supabase
             .from("news")
@@ -214,14 +207,10 @@ export function GlobalEditorialPreview({
             .eq("publication_status", "published")
             .order("last_verified_at", { ascending: false })
             .limit(18),
-          (supabase.from("videos") as any)
-            .select("id,title,created_at")
-            .eq("status", "featured")
-            .order("created_at", { ascending: false })
-            .limit(18),
         ]);
       for (const result of [news, alerts, reports, campaigns, infrastructure])
         if (result.error) throw result.error;
+      const unifiedFeed = await getUnifiedFeed({ limit: 18 });
       const pools: Record<PreviewDestination, PreviewItem[]> = {
         news: (news.data ?? []).map(mapArticle),
         alerts: (alerts.data ?? []).map(mapAlert),
@@ -229,7 +218,14 @@ export function GlobalEditorialPreview({
         campaigns: (campaigns.data ?? []).map(mapCampaign),
         infrastructure: (infrastructure.data ?? []).map(mapInfrastructure),
         statistics: statistics.error ? [] : (statistics.data ?? []).map(mapStatistics),
-        media: media.error ? [] : (media.data ?? []).map(mapMedia),
+        media: unifiedFeed.map((feedItem) => ({
+          id: feedItem.key,
+          title: feedItem.title,
+          href: feedItem.href,
+          imageUrl: feedItem.imageUrl,
+          category: feedItem.label,
+          destination: "media" as const,
+        })),
       };
       const used = new Set<string>();
       return modules.map((module) => {

@@ -16,11 +16,14 @@ test("Media & Feed exposes the compact reference structure and real navigation",
   assert.match(feed, /timeline\.map/);
   assert.match(feed, /Open canonical source/);
   assert.match(feed, /pass automated safety checks publish immediately/);
-  assert.doesNotMatch(feed, /Posts are reviewed for safety and community standards before publication/);
+  assert.doesNotMatch(
+    feed,
+    /Posts are reviewed for safety and community standards before publication/,
+  );
   assert.match(feed, /Attach photo\/video/);
   assert.match(feed, /Comments \(/);
   assert.match(feed, /Share/);
-  assert.match(feed, /trending_news/);
+  assert.match(feed, /getUnifiedFeed\(\{ limit: FEED_LIMIT, query: q \}/);
   assert.match(feed, /view === "discussions"/);
   assert.match(feed, /view === "topics"/);
   assert.match(feed, /Following.*follow relationship model/s);
@@ -107,7 +110,10 @@ test("private Feed media never falls back to public object URLs", () => {
   assert.doesNotMatch(storage, /feed-media[\s\S]*getPublicUrl/);
   assert.match(mediaFn, /from\("feed-media"\)[\s\S]*createSignedUrl/);
   assert.match(mediaFn, /SIGNED_URL_SECONDS = 15 \* 60/);
-  assert.match(mediaFn, /post\.status === "published" \|\| post\.author_id === userId \|\| moderator/);
+  assert.match(
+    mediaFn,
+    /post\.status === "published" \|\| post\.author_id === userId \|\| moderator/,
+  );
   assert.match(feed, /signedMedia\[media\.id\]\?\.signed_url/);
 });
 

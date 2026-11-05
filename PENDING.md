@@ -1,7 +1,7 @@
 # Pending
 
 - **HOMEPAGE PREVIEW WIDTH CORRECTION — DEPLOYED / LIVE VERIFIED / OWNER
-  ACCEPTANCE PENDING (2026-11-06).** Candidate
+  ACCEPTED (2026-11-06).** Candidate
   `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` makes the homepage preview
   components opt out of their nested `max-w-6xl` frames while preserving
   constrained layouts on other routes. Focused tests pass `3/3`, full tests
@@ -13,15 +13,19 @@
   routes returned HTTP 200. Live Playwright screenshots and measurements at
   360, 390, 412, 768, 1024, 1280, 1440 and 1920px are retained under
   `%TEMP%\share-barabara-homepage-live\`; no overflow or console/page errors
-  were observed. Owner visual acceptance and authenticated CMS acceptance
-  remain pending. No SQL or migrations ran.
+  were observed. Owner visual acceptance is recorded; authenticated CMS
+  acceptance remains pending. No SQL or migrations ran.
 
-- **UNIFIED MEDIA & FEED — DESIGN / SCHEMA VERIFICATION PENDING (2026-11-05).**
-  The homepage and `/feed` do not yet consume one authoritative activity
-  source. Live confirmation of `editorial_feed_entries` and migration
-  `20261030210000_editorial_feed_sources_review.sql` is required before any
-  feed implementation or database action. No migration or production change is
-  authorized in this workstream.
+- **UNIFIED MEDIA & FEED — IMPLEMENTED / DEPLOYMENT APPROVAL PENDING
+  (2026-11-06).** Read-only production inspection confirmed the canonical
+  source tables and active bridge rows. The shared `getUnifiedFeed` layer
+  covers published News, active Alerts, approved Reports and Infrastructure
+  Issues, eligible Campaigns, featured Videos, approved published community
+  posts with media metadata, and published administrator updates. `/feed` and
+  the homepage preview now use the same source; no migration or production
+  write is required. Full `578/578` and security `14/14` pass, and the
+  production build passes. Browser screenshots remain pending because no
+  Playwright package or browser executable is present locally.
 
 - **HOMEPAGE HORIZONTAL MARGINS — DEPLOYED / VERIFIED / OWNER ACCEPTANCE
   PENDING (2026-11-05).** Approved application candidate

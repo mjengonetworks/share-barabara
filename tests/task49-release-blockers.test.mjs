@@ -19,7 +19,7 @@ test("blocked accounts have owner-scoped listing and unblock controls", () => {
 });
 
 test("Feed distinguishes missing storage from a genuinely empty feed", () => {
-  assert.match(feed, /Feed storage is not enabled yet/);
+  assert.match(feed, /feedError/);
   assert.match(feed, /Community posts are unavailable/);
   assert.match(feed, /role="alert"/);
 });

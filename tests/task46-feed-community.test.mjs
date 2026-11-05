@@ -4,6 +4,7 @@ import fs from "node:fs";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 const route = read("src/routes/feed.tsx");
+const unifiedFeed = read("src/lib/unified-feed.ts");
 const migration = read("supabase/migrations/20261001100000_feed_community_review.sql");
 const header = read("src/components/site/site-header.tsx");
 const navigation = read("src/lib/public-navigation.ts");
@@ -25,9 +26,9 @@ test("community posts have bounded body and conservative moderation states", () 
 });
 
 test("automatic content uses existing public visibility semantics", () => {
-  assert.match(route, /from\("alerts"\)[\s\S]*eq\("status", "active"\)/);
-  assert.match(route, /from\("accident_reports"\)[\s\S]*eq\("status", "approved"\)/);
-  assert.match(route, /from\("news"\)[\s\S]*eq\("status", "published"\)/);
+  assert.match(unifiedFeed, /from\("alerts"\)[\s\S]*eq\("status", "active"\)/);
+  assert.match(unifiedFeed, /from\("accident_reports"\)[\s\S]*eq\("status", "approved"\)/);
+  assert.match(unifiedFeed, /from\("news"\)[\s\S]*eq\("status", "published"\)/);
 });
 
 test("Feed reuses existing votes and threaded comments", () => {
@@ -41,15 +42,51 @@ test("Feed reuses existing votes and threaded comments", () => {
 test("hashtags and trend ordering are bounded and deterministic", async () => {
   const { extractFeedHashtags, trendCounts, feedSort } = await import("../src/lib/feed.mjs");
   assert.deepEqual(extractFeedHashtags("#RoadSafety #roadsafety #Theft"), ["roadsafety", "theft"]);
-  assert.deepEqual(trendCounts([{ hashtags: ["roadsafety", "roadsafety"] }, { hashtags: ["theft"] }]), [{ tag: "roadsafety", count: 2 }, { tag: "theft", count: 1 }]);
-  assert.equal(feedSort([{ id: "a", score: 1, created_at: "2026-01-01" }, { id: "b", score: 3, created_at: "2025-01-01" }], "popular")[0].id, "b");
-  assert.equal(feedSort([{ id: "a", score: 1, created_at: "2026-01-01" }, { id: "b", score: 3, created_at: "2025-01-01" }], "top")[0].id, "b");
-  assert.equal(feedSort([{ id: "a", score: 1, comment_count: 0, created_at: "2026-01-01" }, { id: "b", score: 1, comment_count: 2, created_at: "2025-01-01" }], "hot")[0].id, "b");
+  assert.deepEqual(
+    trendCounts([{ hashtags: ["roadsafety", "roadsafety"] }, { hashtags: ["theft"] }]),
+    [
+      { tag: "roadsafety", count: 2 },
+      { tag: "theft", count: 1 },
+    ],
+  );
+  assert.equal(
+    feedSort(
+      [
+        { id: "a", score: 1, created_at: "2026-01-01" },
+        { id: "b", score: 3, created_at: "2025-01-01" },
+      ],
+      "popular",
+    )[0].id,
+    "b",
+  );
+  assert.equal(
+    feedSort(
+      [
+        { id: "a", score: 1, created_at: "2026-01-01" },
+        { id: "b", score: 3, created_at: "2025-01-01" },
+      ],
+      "top",
+    )[0].id,
+    "b",
+  );
+  assert.equal(
+    feedSort(
+      [
+        { id: "a", score: 1, comment_count: 0, created_at: "2026-01-01" },
+        { id: "b", score: 1, comment_count: 2, created_at: "2025-01-01" },
+      ],
+      "hot",
+    )[0].id,
+    "b",
+  );
 });
 
 test("Feed RLS is owner-scoped and public reads are published-only unless privileged", () => {
   assert.match(migration, /feed_posts_public_published_read/);
-  assert.match(migration, /status = 'published' OR author_id = auth\.uid\(\) OR public\.has_min_role\(auth\.uid\(\), 'moderator'\)/);
+  assert.match(
+    migration,
+    /status = 'published' OR author_id = auth\.uid\(\) OR public\.has_min_role\(auth\.uid\(\), 'moderator'\)/,
+  );
   assert.match(migration, /feed_posts_insert_own_pending/);
   assert.match(migration, /author_id = auth\.uid\(\) AND status = 'pending'/);
 });

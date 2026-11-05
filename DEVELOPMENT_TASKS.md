@@ -1,6 +1,6 @@
 # Development tasks
 
-## Homepage preview width correction — DEPLOYED / LIVE VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-06
+## Homepage preview width correction — DEPLOYED / LIVE VERIFIED / OWNER ACCEPTED — 2026-11-06
 
 - Dedicated candidate `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` removes the
   redundant nested `max-w-6xl`, centering and horizontal padding only for the
@@ -45,15 +45,30 @@
   console/page errors were observed. Owner visual acceptance and authenticated
   CMS acceptance remain pending; Task B remains separate and unmodified.
 
-## Unified Media & Feed — DESIGN / MIGRATION APPROVAL PENDING — 2026-11-05
+## Unified Media & Feed — IMPLEMENTED / DEPLOYMENT APPROVAL PENDING — 2026-11-06
 
-- The homepage preview and `/feed` still use separate client-side source
-  queries. A shared authoritative retrieval design is required before changing
-  either surface.
-- No feed migration, schema change or production query was executed. Production
-  presence of `editorial_feed_entries` and migration
-  `20261030210000_editorial_feed_sources_review.sql` still requires live
-  schema/history confirmation and owner-approved architecture.
+- Read-only production inspection confirmed `feed_posts`, `feed_post_media`,
+  `editorial_updates`, `editorial_feed_entries`, `videos`, `news`, `alerts`,
+  `accident_reports`, `infrastructure_issues` and `campaigns` are queryable.
+  Public results included 23 active bridge entries, 100 published News rows,
+  15 active Alerts, 14 approved Reports and 8 featured Videos; public
+  `feed_posts` and `editorial_updates` were empty at inspection time.
+- The repository migration `20261030210000_editorial_feed_sources_review.sql`
+  defines the existing bridge and its triggers; its presence and active rows
+  strongly indicate it is applied, but the publishable-key inspection cannot
+  read the catalog to prove trigger/policy names. The bridge does not cover
+  Videos, community posts or administrator updates.
+- A shared read-only `getUnifiedFeed` layer now aggregates canonical source
+  rows with their actual publication rules, preserves source identity,
+  canonical links, labels, timestamps and community media metadata, dedupes by
+  source kind/id, and applies deterministic ordering and bounded results.
+  Both `/feed` and the homepage Media & Feed preview consume it. No migration,
+  schema change or production data write is required for this implementation.
+- Full tests pass `578/578`; security tests pass `14/14`; the production build
+  generated `.output/server/index.mjs` and `.output/server/wrangler.json`;
+  changed new-file lint and `git diff --check` pass. Local browser screenshots
+  could not be recaptured because no Playwright package or browser executable
+  is present in this worktree; visual verification remains open.
 
 ## Homepage horizontal margins — DEPLOYED / VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-05
 
