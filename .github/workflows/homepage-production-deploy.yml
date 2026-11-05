@@ -57,11 +57,9 @@ jobs:
           test "$(jq -r '.workflow_run.id' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_RUN_ID"
           test "$(jq -r '.name' <<<"$artifact_json")" = "homepage-worker-payload-${APP_CANDIDATE_SHA}"
           test "$(jq -r '.digest' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_DIGEST"
-          download_url="$(jq -r '.archive_download_url' <<<"$artifact_json")"
-          curl --location --fail-with-body --silent --show-error \
-            --header "Authorization: Bearer ${GH_TOKEN}" \
-            --header 'Accept: application/vnd.github+json' \
-            "$download_url" --output complete-payload.zip
+          gh api \
+            "repos/${GITHUB_REPOSITORY}/actions/artifacts/${EXPECTED_ARTIFACT_ID}/zip" \
+            > complete-payload.zip
           actual_digest="sha256:$(sha256sum complete-payload.zip | awk '{print $1}')"
           test "$actual_digest" = "$EXPECTED_ARTIFACT_DIGEST"
           mkdir artifact-wrapper
