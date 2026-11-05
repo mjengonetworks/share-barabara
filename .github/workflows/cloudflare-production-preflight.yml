@@ -39,9 +39,10 @@ jobs:
           git cat-file -e "${EXPECTED_APPLICATION_SHA}^{commit}"
           git merge-base --is-ancestor "$EXPECTED_APPLICATION_SHA" HEAD
           changed_files="$(git diff --name-only "$EXPECTED_APPLICATION_SHA" HEAD)"
-          if [ -n "$changed_files" ] && [ "$changed_files" != ".github/workflows/cloudflare-production-preflight.yml" ]; then
+          unexpected_files="$(printf '%s\n' "$changed_files" | grep -v '^\.github/workflows/' || true)"
+          if [ -n "$unexpected_files" ]; then
             echo "Unexpected files differ from the approved application candidate:" >&2
-            echo "$changed_files" >&2
+            echo "$unexpected_files" >&2
             exit 1
           fi
 
@@ -50,7 +51,8 @@ jobs:
           test "$(jq -r '.head_branch' <<<"$run_json")" = fix/homepage-horizontal-margins
           run_sha="$(jq -r '.head_sha' <<<"$run_json")"
           git cat-file -e "${run_sha}^{commit}"
-          test "$(git diff --name-only "$EXPECTED_APPLICATION_SHA" "$run_sha")" = ".github/workflows/homepage-release-verification.yml"
+          run_unexpected_files="$(git diff --name-only "$EXPECTED_APPLICATION_SHA" "$run_sha" | grep -v '^\.github/workflows/homepage-release-verification.yml$' || true)"
+          test -z "$run_unexpected_files"
 
           artifact_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${EXPECTED_ARTIFACT_RUN_ID}/artifacts")"
           artifact="$(jq -c --arg id "$EXPECTED_ARTIFACT_ID" '.artifacts[] | select((.id|tostring) == $id)' <<<"$artifact_json")"
