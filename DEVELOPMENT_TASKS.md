@@ -10,9 +10,28 @@
   `575/575`; security tests pass `14/14`; the production build passed and
   generated `.output/server/index.mjs` and `.output/server/wrangler.json`.
   `git diff --check` passed. No SQL, migrations or deployment ran.
-- Browser screenshots and direct responsive inspection at 360, 390, 412, 768,
-  1024, 1280, 1440 and 1920px remain pending because browser tooling is not
-  available in this environment.
+- Responsive browser verification completed locally with Playwright 1.64.1 and
+  the installed Chromium 1248 executable against the isolated Vite preview at
+  900px height. Full-page screenshots are retained at
+  `%TEMP%\share-barabara-homepage-visual\homepage-{360,390,412,768,1024,1280,1440,1920}.png`.
+  At 360/390/412px the preview sections measured x=16 with widths 328/358/380;
+  at 768px x=24 width=720; at 1024px x=24 width=976; at 1280px x=24
+  width=1232; at 1440px x=24 width=1392; and at 1920px x=234 width=1452
+  inside the centered 1500px public container. `document.body.scrollWidth`
+  equalled the viewport width at all eight widths, so no page-level horizontal
+  overflow was observed. Campaigns and Media & Feed remained in the available
+  preview grid and stacked on mobile. The isolated homepage and `/news` route
+  produced no console or page errors in the captured run. Production deployment
+  and owner visual acceptance remain pending.
+- Fresh read-only Cloudflare preflight passed in run
+  `42104615821`:
+  https://github.com/mjengonetworks/share-barabara/actions/runs/42104615821.
+  Production remains application `7b3054e070d77a8e721ec67b5de24a902e37f382`,
+  deployment `83a2e339-7a67-4e08-bb01-a6a534d4e8a5`, Worker version
+  `e84cab4e-c770-442a-bb78-5c361faebf35` at 100%; the active custom domain,
+  `ASSETS` and `AI_RATE_LIMITER` bindings, secret-binding metadata, `*/1 * * * *`
+  cron and rollback deployment `a5dfe779-8a9d-4836-8acc-df3f628afb03` /
+  version `a27e1959-4e15-4753-b9c7-0f2e86d6826f` were confirmed.
 
 ## Unified Media & Feed — DESIGN / MIGRATION APPROVAL PENDING — 2026-11-05
 
