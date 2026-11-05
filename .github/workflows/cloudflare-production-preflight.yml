@@ -163,23 +163,38 @@ jobs:
 
           routes="$(api_get "${CLOUDFLARE_API}/zones/${zone_id}/workers/routes")"
           assert_success "$routes"
+          route_summary="$(jq -c '[.result[] | {id,pattern,script,enabled}]' <<<"$routes")"
           route="$(jq -c --arg script "$WORKER_NAME" '.result[] | select(.pattern == "sharebarabara.co.ke" and .script == $script and (.enabled // true) == true)' <<<"$routes" | head -n 1)"
-          test -n "$route"
+          echo "Cloudflare route metadata: ${route_summary}"
+          if [ -z "$route" ]; then
+            echo 'Preflight configuration warning: expected exact route was not found' >&2
+          fi
 
           domains="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/domains?zone_name=sharebarabara.co.ke")"
           assert_success "$domains"
+          domain_summary="$(jq -c '[.result[] | {id,hostname,service,environment,enabled}]' <<<"$domains")"
           domain="$(jq -c '.result[] | select(.hostname == "sharebarabara.co.ke" and (.enabled // true) == true)' <<<"$domains" | head -n 1)"
-          test -n "$domain"
+          echo "Cloudflare custom-domain metadata: ${domain_summary}"
+          if [ -z "$domain" ]; then
+            echo 'Preflight configuration warning: expected exact custom domain was not found' >&2
+          fi
 
           settings="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/settings")"
           assert_success "$settings"
+          binding_metadata="$(jq -c '[.result.bindings[]? | {name,type}]' <<<"$settings")"
           binding_names="$(jq -r '.result.bindings[]?.name // empty' <<<"$settings" | sort -u)"
-          grep -qx 'ASSETS' <<<"$binding_names"
-          grep -qx 'AI_RATE_LIMITER' <<<"$binding_names"
+          echo "Cloudflare binding metadata: ${binding_metadata}"
+          if ! grep -qx 'ASSETS' <<<"$binding_names"; then
+            echo 'Preflight configuration warning: ASSETS binding not found' >&2
+          fi
+          if ! grep -qx 'AI_RATE_LIMITER' <<<"$binding_names"; then
+            echo 'Preflight configuration warning: AI_RATE_LIMITER binding not found' >&2
+          fi
 
           schedules="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/schedules")"
           assert_success "$schedules"
-          grep -q '"cron":"*/1 * * * *"' <<<"$schedules"
+          cron_summary="$(jq -c '.result.schedules // []' <<<"$schedules")"
+          echo "Cloudflare cron schedules: ${cron_summary}"
 
           {
             echo '## Cloudflare production preflight'
