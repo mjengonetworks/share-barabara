@@ -25,7 +25,10 @@
   now use the same source; community attachments continue through the existing
   owner/server-signed media path. No migration or production write is required.
   Full `578/578` and security `14/14` pass, and the
-  production build passes. Isolated Playwright 1.64.1 with the existing
+  production build passes. The follow-up preview correction uses full-width
+  singleton rows, a balanced internal three-card layout, compact no-image
+  fallbacks and real YouTube thumbnails where available. Isolated Playwright
+  1.64.1 with the existing
   Chromium 1248 executable captured homepage and `/feed` screenshots at all
   eight required widths under `%TEMP%\share-barabara-unified-feed\`. There was
   no horizontal overflow, failed response or page error; a feed hydration

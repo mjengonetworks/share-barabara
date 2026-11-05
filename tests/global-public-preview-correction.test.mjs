@@ -35,7 +35,8 @@ test("News keeps detail summaries and places latest, featured and trending befor
 
 test("global discovery keeps three section cards with lead-plus-compact stories", () => {
   const preview = read("src/components/site/global-editorial-preview.tsx");
-  assert.match(preview, /grid gap-4 md:grid-cols-3/);
+  assert.match(preview, /rowCards.length === 1/);
+  assert.match(preview, /sm:grid-cols-2 lg:grid-cols-3/);
   assert.match(preview, /items\.slice\(1, 3\)/);
   assert.match(preview, /ItemLink item=\{items\[0\]\}/);
   assert.match(preview, /BannerAd/);

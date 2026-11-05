@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getUnifiedFeed } from "@/lib/unified-feed";
+import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
 import type { PreviewDestination, PreviewItem } from "@/lib/global-editorial-preview";
 
@@ -97,19 +98,22 @@ function ItemLink({ item }: { item: PreviewItem }) {
         />
       ) : (
         <span
-          className="flex aspect-video w-full items-center justify-center bg-primary/5 text-primary/50"
+          className="flex min-h-20 w-full items-center gap-3 bg-gradient-to-br from-primary/10 via-background to-accent/15 px-4 py-3 text-primary/60"
           aria-hidden="true"
         >
-          <Newspaper className="size-8" />
+          <Newspaper className="size-7 shrink-0" />
+          <span className="text-xs font-semibold uppercase tracking-wider">
+            Share Barabara update
+          </span>
         </span>
       )}
-      <span className="flex min-h-28 flex-1 flex-col p-3">
+      <span className="flex min-h-24 flex-1 flex-col p-3">
         {item.category ? (
           <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
             {item.category}
           </span>
         ) : null}
-        <span className="mt-1 line-clamp-3 font-bold leading-snug text-brand-navy group-hover:underline">
+        <span className="mt-1 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">
           {item.title}
         </span>
         <span className="mt-auto pt-3 text-xs font-bold text-brand-blue underline underline-offset-4">
@@ -122,35 +126,76 @@ function ItemLink({ item }: { item: PreviewItem }) {
 
 function CompactItemLink({ item }: { item: PreviewItem }) {
   return (
-    <a href={item.href} className="group flex min-w-0 items-center gap-3 border-t border-border/70 py-3 first:border-t-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    <a
+      href={item.href}
+      className="group flex min-w-0 items-center gap-3 border-t border-border/70 py-3 first:border-t-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <span className="w-24 shrink-0 overflow-hidden rounded bg-primary/5">
-        {item.imageUrl ? <img src={item.imageUrl} alt="" loading="lazy" className="aspect-video w-full object-cover" /> : <span className="flex aspect-video items-center justify-center"><Newspaper className="size-5 text-muted-foreground" aria-hidden="true" /></span>}
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt=""
+            loading="lazy"
+            className="aspect-video w-full object-cover"
+          />
+        ) : (
+          <span className="flex aspect-video items-center justify-center">
+            <Newspaper className="size-5 text-muted-foreground" aria-hidden="true" />
+          </span>
+        )}
       </span>
       <span className="min-w-0">
-        {item.category ? <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-accent-foreground">{item.category}</span> : null}
-        <span className="mt-1 block line-clamp-2 text-sm font-bold leading-snug text-brand-navy group-hover:underline">{item.title}</span>
+        {item.category ? (
+          <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
+            {item.category}
+          </span>
+        ) : null}
+        <span className="mt-1 block line-clamp-2 text-sm font-bold leading-snug text-brand-navy group-hover:underline">
+          {item.title}
+        </span>
       </span>
     </a>
   );
 }
 
-export function EditorialTripleCard({ title, items }: { title: string; items: PreviewItem[] }) {
+export function EditorialTripleCard({
+  title,
+  items,
+  wide = false,
+}: {
+  title: string;
+  items: PreviewItem[];
+  wide?: boolean;
+}) {
   const href = items[0] ? meta[items[0].destination].href : undefined;
   return (
     <article className="rounded-xl border border-border bg-card p-4 card-elevated">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h3 className="truncate text-sm font-extrabold text-brand-navy">{title}</h3>
         {href ? (
-          <a href={href} className="shrink-0 text-xs font-bold text-brand-blue underline underline-offset-4">
+          <a
+            href={href}
+            className="shrink-0 text-xs font-bold text-brand-blue underline underline-offset-4"
+          >
             View all
           </a>
         ) : null}
       </div>
       {items.length ? (
-        <div className="space-y-1">
-          <ItemLink item={items[0]} />
-          {items.slice(1, 3).map((item) => <CompactItemLink key={item.id} item={item} />)}
-        </div>
+        wide ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item) => (
+              <ItemLink key={item.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-1">
+            <ItemLink item={items[0]} />
+            {items.slice(1, 3).map((item) => (
+              <CompactItemLink key={item.id} item={item} />
+            ))}
+          </div>
+        )
       ) : null}
     </article>
   );
@@ -171,43 +216,42 @@ export function GlobalEditorialPreview({
   const query = useQuery({
     queryKey: ["global-editorial-preview", destination, excludeId, excludeKeys, modules],
     queryFn: async () => {
-      const [news, alerts, reports, campaigns, infrastructure, statistics] =
-        await Promise.all([
-          supabase
-            .from("news")
-            .select("id, slug, title, category, image_url, published_at")
-            .eq("status", "published")
-            .order("published_at", { ascending: false })
-            .limit(18),
-          supabase
-            .from("alerts")
-            .select("id, title, hazard_type, image_url, created_at")
-            .eq("status", "active")
-            .order("created_at", { ascending: false })
-            .limit(18),
-          supabase
-            .from("accident_reports")
-            .select("id, title, incident_type, occurred_at, image_url")
-            .eq("status", "approved")
-            .order("occurred_at", { ascending: false })
-            .limit(18),
-          supabase
-            .from("campaigns")
-            .select("id, slug, title, image_url, start_date")
-            .order("start_date", { ascending: false })
-            .limit(18),
-          supabase
-            .from("infrastructure_issues")
-            .select("id, title, structure_type, image_url, created_at")
-            .eq("status", "approved")
-            .order("created_at", { ascending: false })
-            .limit(18),
-          (supabase.from("statistics_datasets") as any)
-            .select("id,title,last_verified_at")
-            .eq("publication_status", "published")
-            .order("last_verified_at", { ascending: false })
-            .limit(18),
-        ]);
+      const [news, alerts, reports, campaigns, infrastructure, statistics] = await Promise.all([
+        supabase
+          .from("news")
+          .select("id, slug, title, category, image_url, published_at")
+          .eq("status", "published")
+          .order("published_at", { ascending: false })
+          .limit(18),
+        supabase
+          .from("alerts")
+          .select("id, title, hazard_type, image_url, created_at")
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(18),
+        supabase
+          .from("accident_reports")
+          .select("id, title, incident_type, occurred_at, image_url")
+          .eq("status", "approved")
+          .order("occurred_at", { ascending: false })
+          .limit(18),
+        supabase
+          .from("campaigns")
+          .select("id, slug, title, image_url, start_date")
+          .order("start_date", { ascending: false })
+          .limit(18),
+        supabase
+          .from("infrastructure_issues")
+          .select("id, title, structure_type, image_url, created_at")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
+          .limit(18),
+        (supabase.from("statistics_datasets") as any)
+          .select("id,title,last_verified_at")
+          .eq("publication_status", "published")
+          .order("last_verified_at", { ascending: false })
+          .limit(18),
+      ]);
       for (const result of [news, alerts, reports, campaigns, infrastructure])
         if (result.error) throw result.error;
       const unifiedFeed = await getUnifiedFeed({ limit: 18 });
@@ -222,7 +266,11 @@ export function GlobalEditorialPreview({
           id: feedItem.key,
           title: feedItem.title,
           href: feedItem.href,
-          imageUrl: feedItem.imageUrl,
+          imageUrl:
+            feedItem.imageUrl ??
+            (feedItem.mediaUrl && youtubeId(feedItem.mediaUrl)
+              ? `https://i.ytimg.com/vi/${youtubeId(feedItem.mediaUrl)}/hqdefault.jpg`
+              : null),
           category: feedItem.label,
           destination: "media" as const,
         })),
@@ -262,9 +310,22 @@ export function GlobalEditorialPreview({
         const rowCards = cards.slice(row * 3, row * 3 + 3);
         return (
           <div key={`discovery-row-${row}`} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div
+              className={`grid gap-4 ${
+                rowCards.length === 1
+                  ? "md:grid-cols-1"
+                  : rowCards.length === 2
+                    ? "md:grid-cols-2"
+                    : "md:grid-cols-3"
+              }`}
+            >
               {rowCards.map(({ module, items }) => (
-                <EditorialTripleCard key={module} title={meta[module].label} items={items} />
+                <EditorialTripleCard
+                  key={module}
+                  title={meta[module].label}
+                  items={items}
+                  wide={rowCards.length === 1}
+                />
               ))}
             </div>
             <BannerAd placement={`global-editorial-discovery-row-${row + 1}`} />

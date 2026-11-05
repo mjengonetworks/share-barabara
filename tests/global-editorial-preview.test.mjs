@@ -90,7 +90,10 @@ test("shared discovery cards keep canonical destinations and the approved respon
   assert.doesNotMatch(source, /Keep exploring|More from Share Barabara/);
   assert.match(source, /statistics_datasets/);
   assert.match(source, /getUnifiedFeed\(\{ limit: 18 \}/);
-  assert.match(source, /grid gap-4 md:grid-cols-3/);
+  assert.match(source, /rowCards.length === 1/);
+  assert.match(source, /rowCards.length === 2/);
+  assert.match(source, /wide=\{rowCards.length === 1\}/);
+  assert.match(source, /i.ytimg.com\/vi/);
   assert.match(source, /slice\(0, 3\)/);
   assert.match(source, /Math\.ceil\(cards\.length \/ 3\)/);
   assert.match(source, /excludeKeys/);
@@ -149,6 +152,6 @@ test("trending navigation targets the dedicated filtered News collection", async
   assert.match(sidebar, /search=\{\{ sort: "trending" \}\}/);
   assert.match(news, /search\.sort === "trending"/);
   assert.match(news, /title="Trending News"/);
-    assert.match(news, /TrendingNewsView/);
-    assert.match(news, /Last 24 hours/);
+  assert.match(news, /TrendingNewsView/);
+  assert.match(news, /Last 24 hours/);
 });
