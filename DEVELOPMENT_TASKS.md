@@ -1,5 +1,29 @@
 # Development tasks
 
+## Homepage preview width correction — IMPLEMENTED / NOT DEPLOYED — 2026-11-05
+
+- Dedicated candidate `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` removes the
+  redundant nested `max-w-6xl`, centering and horizontal padding only for the
+  homepage uses of `GlobalEditorialPreview` and `MjengoPreviews`. Other routes
+  retain their existing constrained presentation.
+- Focused homepage layout coverage passes `3/3`; full source tests pass
+  `575/575`; security tests pass `14/14`; the production build passed and
+  generated `.output/server/index.mjs` and `.output/server/wrangler.json`.
+  `git diff --check` passed. No SQL, migrations or deployment ran.
+- Browser screenshots and direct responsive inspection at 360, 390, 412, 768,
+  1024, 1280, 1440 and 1920px remain pending because browser tooling is not
+  available in this environment.
+
+## Unified Media & Feed — DESIGN / MIGRATION APPROVAL PENDING — 2026-11-05
+
+- The homepage preview and `/feed` still use separate client-side source
+  queries. A shared authoritative retrieval design is required before changing
+  either surface.
+- No feed migration, schema change or production query was executed. Production
+  presence of `editorial_feed_entries` and migration
+  `20261030210000_editorial_feed_sources_review.sql` still requires live
+  schema/history confirmation and owner-approved architecture.
+
 ## Homepage horizontal margins — DEPLOYED / VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-05
 
 - Approved application commit `7b3054e070d77a8e721ec67b5de24a902e37f382` was

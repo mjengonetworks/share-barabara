@@ -1,5 +1,21 @@
 # Pending
 
+- **HOMEPAGE PREVIEW WIDTH CORRECTION — IMPLEMENTED / NOT DEPLOYED
+  (2026-11-05).** Candidate `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee`
+  makes the homepage preview components opt out of their nested `max-w-6xl`
+  frames while preserving constrained layouts on other routes. Focused tests
+  pass `3/3`, full tests `575/575`, security `14/14`, production build and
+  artifact verification pass, and `git diff --check` passes. No SQL,
+  migrations or deployment ran. Browser screenshots and responsive owner
+  acceptance remain pending.
+
+- **UNIFIED MEDIA & FEED — DESIGN / SCHEMA VERIFICATION PENDING (2026-11-05).**
+  The homepage and `/feed` do not yet consume one authoritative activity
+  source. Live confirmation of `editorial_feed_entries` and migration
+  `20261030210000_editorial_feed_sources_review.sql` is required before any
+  feed implementation or database action. No migration or production change is
+  authorized in this workstream.
+
 - **HOMEPAGE HORIZONTAL MARGINS — DEPLOYED / VERIFIED / OWNER ACCEPTANCE
   PENDING (2026-11-05).** Approved application candidate
   `7b3054e070d77a8e721ec67b5de24a902e37f382` is live at 100% as deployment
