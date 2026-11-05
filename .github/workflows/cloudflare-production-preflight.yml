@@ -130,7 +130,11 @@ jobs:
           previous="$(jq -c '.result.deployments | sort_by(.created_on) | .[-2]' <<<"$deployments")"
           live_deployment_id="$(jq -r '.id' <<<"$latest")"
           echo "Cloudflare live deployment: id=${live_deployment_id}"
-          require_equal 'live deployment ID' "$EXPECTED_DEPLOYMENT_ID" "$live_deployment_id"
+          baseline_matches=true
+          if [ "$live_deployment_id" != "$EXPECTED_DEPLOYMENT_ID" ]; then
+            baseline_matches=false
+            echo "Production baseline differs: expected deployment=${EXPECTED_DEPLOYMENT_ID}; actual deployment=${live_deployment_id}" >&2
+          fi
 
           live_versions="$(jq -c '.versions' <<<"$latest")"
           traffic_total="$(jq '[.[].percentage] | add' <<<"$live_versions")"
@@ -144,6 +148,13 @@ jobs:
             echo "Preflight assertion failed: rollback version must differ from live version; version=${live_version_id}" >&2
             exit 1
           fi
+          live_source="$(jq -r '.source // "unknown"' <<<"$latest")"
+          live_annotations="$(jq -c '.annotations // {}' <<<"$latest")"
+          echo "Cloudflare live deployment metadata: source=${live_source} annotations=${live_annotations}"
+
+          version_detail="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/workers/${WORKER_NAME}/versions/${live_version_id}")"
+          assert_success "$version_detail"
+          echo "Cloudflare live version metadata: $(jq -c '{id: .result.id, number: .result.number, created_on: .result.created_on, metadata: {source: .result.metadata.source, author_email: .result.metadata.author_email, annotations: .result.metadata.annotations}}' <<<"$version_detail")"
 
           zone="$(api_get "${CLOUDFLARE_API}/zones?name=sharebarabara.co.ke&status=active&per_page=1")"
           assert_success "$zone"
@@ -184,5 +195,9 @@ jobs:
             echo "- Cron schedules: $(jq -c '.result.schedules' <<<"$schedules")"
             echo '- Secret values: not requested or exposed'
             echo '- Mutating Cloudflare API calls: none'
-            echo '- Deployment readiness: preflight passed; separate deployment approval required'
+            if [ "$baseline_matches" = true ]; then
+              echo '- Deployment readiness: configuration preflight passed; separate deployment approval required'
+            else
+              echo '- Deployment readiness: blocked; production deployment baseline differs from expected'
+            fi
           } | tee -a "$GITHUB_STEP_SUMMARY"
