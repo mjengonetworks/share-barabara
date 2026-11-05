@@ -60,8 +60,10 @@
   Videos, community posts or administrator updates.
 - A shared read-only `getUnifiedFeed` layer now aggregates canonical source
   rows with their actual publication rules, preserves source identity,
-  canonical links, labels, timestamps and community media metadata, dedupes by
-  source kind/id, and applies deterministic ordering and bounded results.
+  canonical links, labels and timestamps, dedupes by source kind/id, and
+  applies deterministic ordering and bounded results. Community attachments
+  remain on the existing owner/server-signed media augmentation path because
+  production deliberately denies public client reads from `feed_post_media`.
   Both `/feed` and the homepage Media & Feed preview consume it. No migration,
   schema change or production data write is required for this implementation.
 - Full tests pass `578/578`; security tests pass `14/14`; the production build

@@ -21,9 +21,10 @@
   source tables and active bridge rows. The shared `getUnifiedFeed` layer
   covers published News, active Alerts, approved Reports and Infrastructure
   Issues, eligible Campaigns, featured Videos, approved published community
-  posts with media metadata, and published administrator updates. `/feed` and
-  the homepage preview now use the same source; no migration or production
-  write is required. Full `578/578` and security `14/14` pass, and the
+  posts and published administrator updates. `/feed` and the homepage preview
+  now use the same source; community attachments continue through the existing
+  owner/server-signed media path. No migration or production write is required.
+  Full `578/578` and security `14/14` pass, and the
   production build passes. Browser screenshots remain pending because no
   Playwright package or browser executable is present locally.
 
