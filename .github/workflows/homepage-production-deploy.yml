@@ -2,6 +2,9 @@ name: Approved homepage production deployment
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - fix/homepage-horizontal-margins
 
 permissions:
   contents: read
@@ -9,6 +12,7 @@ permissions:
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-approved-homepage]')
     runs-on: ubuntu-latest
     env:
       APP_CANDIDATE_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
