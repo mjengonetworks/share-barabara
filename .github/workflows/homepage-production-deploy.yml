@@ -58,7 +58,7 @@ jobs:
           test "$(jq -r '.name' <<<"$artifact_json")" = "homepage-worker-payload-${APP_CANDIDATE_SHA}"
           test "$(jq -r '.digest' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_DIGEST"
           download_url="$(jq -r '.archive_download_url' <<<"$artifact_json")"
-          curl --fail-with-body --silent --show-error \
+          curl --location --fail-with-body --silent --show-error \
             --header "Authorization: Bearer ${GH_TOKEN}" \
             --header 'Accept: application/vnd.github+json' \
             "$download_url" --output complete-payload.zip
