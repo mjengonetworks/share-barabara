@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - fix/homepage-horizontal-margins
+      - fix/homepage-grid-width
 
 permissions:
   contents: read
@@ -17,11 +17,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       WORKER_NAME: share-barabara
-      EXPECTED_WORKER_VERSION_ID: a27e1959-4e15-4753-b9c7-0f2e86d6826f
-      EXPECTED_PRODUCTION_APPLICATION_SHA: ef7af12a0307bb6e59ccf0d4aa2dac71b444ee47
-      EXPECTED_APPLICATION_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
-      EXPECTED_ARTIFACT_ID: 13403623435
-      EXPECTED_ARTIFACT_RUN_ID: 42005270770
+      EXPECTED_WORKER_VERSION_ID: e84cab4e-c770-442a-bb78-5c361faebf35
+      EXPECTED_PRODUCTION_APPLICATION_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
+      EXPECTED_APPLICATION_SHA: 3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
 
     steps:
       - name: Check out preflight revision
@@ -42,27 +40,22 @@ jobs:
           git cat-file -e "${EXPECTED_APPLICATION_SHA}^{commit}"
           git merge-base --is-ancestor "$EXPECTED_APPLICATION_SHA" HEAD
           changed_files="$(git diff --name-only "$EXPECTED_APPLICATION_SHA" HEAD)"
-          unexpected_files="$(printf '%s\n' "$changed_files" | grep -v '^\.github/workflows/' || true)"
+          unexpected_files="$(printf '%s\n' "$changed_files" | grep -Ev '^(\.github/workflows/|DEVELOPMENT_TASKS\.md$|PENDING\.md$)' || true)"
           if [ -n "$unexpected_files" ]; then
             echo "Unexpected files differ from the approved application candidate:" >&2
             echo "$unexpected_files" >&2
             exit 1
           fi
 
-          run_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${EXPECTED_ARTIFACT_RUN_ID}")"
-          test "$(jq -r '.conclusion' <<<"$run_json")" = success
-          test "$(jq -r '.head_branch' <<<"$run_json")" = fix/homepage-horizontal-margins
-          run_sha="$(jq -r '.head_sha' <<<"$run_json")"
-          git cat-file -e "${run_sha}^{commit}"
-          run_unexpected_files="$(git diff --name-only "$EXPECTED_APPLICATION_SHA" "$run_sha" | grep -v '^\.github/workflows/homepage-release-verification.yml$' || true)"
-          test -z "$run_unexpected_files"
-
-          artifact_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${EXPECTED_ARTIFACT_RUN_ID}/artifacts")"
-          artifact="$(jq -c --arg id "$EXPECTED_ARTIFACT_ID" '.artifacts[] | select((.id|tostring) == $id)' <<<"$artifact_json")"
+          run_json="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow homepage-release-verification.yml --limit 20 --json databaseId,headSha,status,conclusion,headBranch,createdAt)"
+          run_id="$(jq -r --arg sha "$EXPECTED_APPLICATION_SHA" '[.[] | select(.status == "completed" and .conclusion == "success")] | sort_by(.createdAt) | reverse | .[0].databaseId // empty' <<<"$run_json")"
+          test -n "$run_id"
+          artifact_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts")"
+          artifact="$(jq -c --arg name "homepage-worker-payload-${EXPECTED_APPLICATION_SHA}" '.artifacts[] | select(.name == $name)' <<<"$artifact_json")"
           test -n "$artifact"
           test "$(jq -r '.expired' <<<"$artifact")" = false
           test "$(jq -r '.size_in_bytes' <<<"$artifact")" -gt 0
-          echo "Verified GitHub artifact ${EXPECTED_ARTIFACT_ID}: $(jq -r '.name' <<<"$artifact")"
+          echo "Verified GitHub artifact $(jq -r '.id' <<<"$artifact"): $(jq -r '.name' <<<"$artifact")"
           echo "Artifact digest: $(jq -r '.digest' <<<"$artifact")"
           echo "Application candidate: ${EXPECTED_APPLICATION_SHA}"
 

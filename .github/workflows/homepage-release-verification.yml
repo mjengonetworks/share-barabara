@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - fix/homepage-horizontal-margins
+      - fix/homepage-grid-width
 
 permissions:
   contents: read
@@ -13,13 +13,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
+      APP_CANDIDATE_SHA: 3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: 7b3054e070d77a8e721ec67b5de24a902e37f382
+          ref: 3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
@@ -68,7 +68,7 @@ jobs:
       - name: Upload complete Worker payload
         uses: actions/upload-artifact@v4
         with:
-          name: homepage-worker-payload-7b3054e070d77a8e721ec67b5de24a902e37f382
-          path: homepage-worker-payload-7b3054e070d77a8e721ec67b5de24a902e37f382.tar.gz
+          name: homepage-worker-payload-3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
+          path: homepage-worker-payload-3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee.tar.gz
           if-no-files-found: error
           retention-days: 7
