@@ -17,7 +17,8 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       WORKER_NAME: share-barabara
-      EXPECTED_DEPLOYMENT_ID: a27e1959-4e15-4753-b9c7-0f2e86d6826f
+      EXPECTED_WORKER_VERSION_ID: a27e1959-4e15-4753-b9c7-0f2e86d6826f
+      EXPECTED_PRODUCTION_APPLICATION_SHA: ef7af12a0307bb6e59ccf0d4aa2dac71b444ee47
       EXPECTED_APPLICATION_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
       EXPECTED_ARTIFACT_ID: 13403623435
       EXPECTED_ARTIFACT_RUN_ID: 42005270770
@@ -36,6 +37,8 @@ jobs:
           set -euo pipefail
 
           test "$(git rev-parse --is-shallow-repository)" = false
+          git cat-file -e "${EXPECTED_PRODUCTION_APPLICATION_SHA}^{commit}"
+          git merge-base --is-ancestor "$EXPECTED_PRODUCTION_APPLICATION_SHA" "$EXPECTED_APPLICATION_SHA"
           git cat-file -e "${EXPECTED_APPLICATION_SHA}^{commit}"
           git merge-base --is-ancestor "$EXPECTED_APPLICATION_SHA" HEAD
           changed_files="$(git diff --name-only "$EXPECTED_APPLICATION_SHA" HEAD)"
@@ -130,18 +133,13 @@ jobs:
           previous="$(jq -c '.result.deployments | sort_by(.created_on) | .[-2]' <<<"$deployments")"
           live_deployment_id="$(jq -r '.id' <<<"$latest")"
           echo "Cloudflare live deployment: id=${live_deployment_id}"
-          baseline_matches=true
-          if [ "$live_deployment_id" != "$EXPECTED_DEPLOYMENT_ID" ]; then
-            baseline_matches=false
-            echo "Production baseline differs: expected deployment=${EXPECTED_DEPLOYMENT_ID}; actual deployment=${live_deployment_id}" >&2
-          fi
-
           live_versions="$(jq -c '.versions' <<<"$latest")"
           traffic_total="$(jq '[.[].percentage] | add' <<<"$live_versions")"
           echo "Cloudflare live traffic: versions=${live_versions} total=${traffic_total}%"
           require_equal 'live traffic total' 100 "$traffic_total"
           live_version_id="$(jq -r '.[0].version_id' <<<"$live_versions")"
           require_nonempty 'live version ID' "$live_version_id"
+          require_equal 'live Worker version ID' "$EXPECTED_WORKER_VERSION_ID" "$live_version_id"
           rollback_version_id="$(jq -r '.versions[0].version_id' <<<"$previous")"
           require_nonempty 'rollback version ID' "$rollback_version_id"
           if [ "$rollback_version_id" = "$live_version_id" ]; then
@@ -156,28 +154,12 @@ jobs:
           assert_success "$version_detail"
           echo "Cloudflare live version metadata: $(jq -c '{id: .result.id, number: .result.number, created_on: .result.created_on, metadata: {source: .result.metadata.source, author_email: .result.metadata.author_email, annotations: .result.metadata.annotations}}' <<<"$version_detail")"
 
-          zone="$(api_get "${CLOUDFLARE_API}/zones?name=sharebarabara.co.ke&status=active&per_page=1")"
-          assert_success "$zone"
-          zone_id="$(jq -r '.result[0].id // empty' <<<"$zone")"
-          test -n "$zone_id"
-
-          routes="$(api_get "${CLOUDFLARE_API}/zones/${zone_id}/workers/routes")"
-          assert_success "$routes"
-          route_summary="$(jq -c '[.result[] | {id,pattern,script,enabled}]' <<<"$routes")"
-          route="$(jq -c --arg script "$WORKER_NAME" '.result[] | select(.pattern == "sharebarabara.co.ke" and .script == $script and (.enabled // true) == true)' <<<"$routes" | head -n 1)"
-          echo "Cloudflare route metadata: ${route_summary}"
-          if [ -z "$route" ]; then
-            echo 'Preflight configuration warning: expected exact route was not found' >&2
-          fi
-
           domains="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/domains?zone_name=sharebarabara.co.ke")"
           assert_success "$domains"
           domain_summary="$(jq -c '[.result[] | {id,hostname,service,environment,enabled}]' <<<"$domains")"
           domain="$(jq -c '.result[] | select(.hostname == "sharebarabara.co.ke" and (.enabled // true) == true)' <<<"$domains" | head -n 1)"
           echo "Cloudflare custom-domain metadata: ${domain_summary}"
-          if [ -z "$domain" ]; then
-            echo 'Preflight configuration warning: expected exact custom domain was not found' >&2
-          fi
+          require_nonempty 'active production custom domain' "$domain"
 
           settings="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/settings")"
           assert_success "$settings"
@@ -185,16 +167,19 @@ jobs:
           binding_names="$(jq -r '.result.bindings[]?.name // empty' <<<"$settings" | sort -u)"
           echo "Cloudflare binding metadata: ${binding_metadata}"
           if ! grep -qx 'ASSETS' <<<"$binding_names"; then
-            echo 'Preflight configuration warning: ASSETS binding not found' >&2
+            echo 'Preflight assertion failed: ASSETS binding not found' >&2
+            exit 1
           fi
           if ! grep -qx 'AI_RATE_LIMITER' <<<"$binding_names"; then
-            echo 'Preflight configuration warning: AI_RATE_LIMITER binding not found' >&2
+            echo 'Preflight assertion failed: AI_RATE_LIMITER binding not found' >&2
+            exit 1
           fi
 
           schedules="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/schedules")"
           assert_success "$schedules"
           cron_summary="$(jq -c '.result.schedules // []' <<<"$schedules")"
           echo "Cloudflare cron schedules: ${cron_summary}"
+          grep -q '"cron":"*/1 * * * *"' <<<"$schedules"
 
           {
             echo '## Cloudflare production preflight'
@@ -204,15 +189,10 @@ jobs:
             echo "- Live traffic: ${live_versions} (total ${traffic_total}%)"
             echo "- Rollback deployment ID: $(jq -r '.id' <<<"$previous")"
             echo "- Rollback version ID: ${rollback_version_id}"
-            echo "- Route: $(jq -c '.' <<<"$route")"
             echo "- Custom domain: $(jq -c '.' <<<"$domain")"
             echo "- Binding names only: $(tr '\n' ',' <<<"$binding_names" | sed 's/,$//')"
             echo "- Cron schedules: $(jq -c '.result.schedules' <<<"$schedules")"
             echo '- Secret values: not requested or exposed'
             echo '- Mutating Cloudflare API calls: none'
-            if [ "$baseline_matches" = true ]; then
-              echo '- Deployment readiness: configuration preflight passed; separate deployment approval required'
-            else
-              echo '- Deployment readiness: blocked; production deployment baseline differs from expected'
-            fi
+            echo '- Deployment readiness: configuration preflight passed; separate deployment approval required'
           } | tee -a "$GITHUB_STEP_SUMMARY"
