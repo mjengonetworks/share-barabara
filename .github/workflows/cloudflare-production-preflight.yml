@@ -71,10 +71,43 @@ jobs:
           : "${CLOUDFLARE_ACCOUNT_ID:?CLOUDFLARE_ACCOUNT_ID is required}"
 
           api_get() {
-            curl --fail-with-body --silent --show-error \
+            local url="$1" response_file http_status body
+            response_file="$(mktemp)"
+            http_status="$(curl --silent --show-error \
+              --output "$response_file" \
+              --write-out '%{http_code}' \
               --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
               --header 'Content-Type: application/json' \
-              "$1"
+              "$url")" || {
+                echo "Cloudflare request transport failure: endpoint=$url http_status=${http_status:-unknown}" >&2
+                jq -c '{success,errors,messages}' "$response_file" >&2 || true
+                rm -f "$response_file"
+                return 1
+              }
+            body="$(cat "$response_file")"
+            rm -f "$response_file"
+            if [ "$http_status" -lt 200 ] || [ "$http_status" -ge 300 ]; then
+              echo "Cloudflare request failed: endpoint=$url http_status=$http_status" >&2
+              jq -c '{success,errors,messages}' <<<"$body" >&2 || true
+              return 1
+            fi
+            printf '%s' "$body"
+          }
+
+          require_equal() {
+            local label="$1" expected="$2" actual="$3"
+            if [ "$actual" != "$expected" ]; then
+              echo "Preflight assertion failed: ${label}; expected=${expected}; actual=${actual}" >&2
+              return 1
+            fi
+          }
+
+          require_nonempty() {
+            local label="$1" actual="$2"
+            if [ -z "$actual" ] || [ "$actual" = null ]; then
+              echo "Preflight assertion failed: ${label}; actual=${actual:-empty}" >&2
+              return 1
+            fi
           }
 
           assert_success() {
@@ -88,20 +121,29 @@ jobs:
           deployments="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments?per_page=100")"
           assert_success "$deployments"
           deployment_count="$(jq '.result.deployments | length' <<<"$deployments")"
-          test "$deployment_count" -ge 2
+          echo "Cloudflare deployments response: count=${deployment_count}"
+          if [ "$deployment_count" -lt 2 ]; then
+            echo "Preflight assertion failed: at least two deployments required; actual=${deployment_count}" >&2
+            exit 1
+          fi
           latest="$(jq -c '.result.deployments | sort_by(.created_on) | last' <<<"$deployments")"
           previous="$(jq -c '.result.deployments | sort_by(.created_on) | .[-2]' <<<"$deployments")"
           live_deployment_id="$(jq -r '.id' <<<"$latest")"
-          test "$live_deployment_id" = "$EXPECTED_DEPLOYMENT_ID"
+          echo "Cloudflare live deployment: id=${live_deployment_id}"
+          require_equal 'live deployment ID' "$EXPECTED_DEPLOYMENT_ID" "$live_deployment_id"
 
           live_versions="$(jq -c '.versions' <<<"$latest")"
           traffic_total="$(jq '[.[].percentage] | add' <<<"$live_versions")"
-          test "$traffic_total" = 100
+          echo "Cloudflare live traffic: versions=${live_versions} total=${traffic_total}%"
+          require_equal 'live traffic total' 100 "$traffic_total"
           live_version_id="$(jq -r '.[0].version_id' <<<"$live_versions")"
-          test -n "$live_version_id"
+          require_nonempty 'live version ID' "$live_version_id"
           rollback_version_id="$(jq -r '.versions[0].version_id' <<<"$previous")"
-          test -n "$rollback_version_id"
-          test "$rollback_version_id" != "$live_version_id"
+          require_nonempty 'rollback version ID' "$rollback_version_id"
+          if [ "$rollback_version_id" = "$live_version_id" ]; then
+            echo "Preflight assertion failed: rollback version must differ from live version; version=${live_version_id}" >&2
+            exit 1
+          fi
 
           zone="$(api_get "${CLOUDFLARE_API}/zones?name=sharebarabara.co.ke&status=active&per_page=1")"
           assert_success "$zone"
