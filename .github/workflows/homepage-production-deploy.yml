@@ -1,0 +1,177 @@
+name: Approved homepage production deployment
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      APP_CANDIDATE_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
+      EXPECTED_PRODUCTION_APPLICATION_SHA: ef7af12a0307bb6e59ccf0d4aa2dac71b444ee47
+      EXPECTED_DEPLOYMENT_ID: a5dfe779-8a9d-4836-8acc-df3f628afb03
+      EXPECTED_WORKER_VERSION_ID: a27e1959-4e15-4753-b9c7-0f2e86d6826f
+      EXPECTED_ARTIFACT_ID: 13441441227
+      EXPECTED_ARTIFACT_RUN_ID: 42081943030
+      EXPECTED_ARTIFACT_DIGEST: sha256:ed8ba07d2d80564565c819571e7a76e35e381c13853752f3ec6dbd4a8e0e9b85
+      WORKER_NAME: share-barabara
+      CLOUDFLARE_API: https://api.cloudflare.com/client/v4
+
+    steps:
+      - name: Check out approved application candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 7b3054e070d77a8e721ec67b5de24a902e37f382
+          fetch-depth: 0
+
+      - name: Confirm candidate ancestry
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$APP_CANDIDATE_SHA"
+          git cat-file -e "${EXPECTED_PRODUCTION_APPLICATION_SHA}^{commit}"
+          git merge-base --is-ancestor "$EXPECTED_PRODUCTION_APPLICATION_SHA" "$APP_CANDIDATE_SHA"
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.0"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Download and verify complete approved payload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          artifact_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${EXPECTED_ARTIFACT_ID}")"
+          test "$(jq -r '.expired' <<<"$artifact_json")" = false
+          test "$(jq -r '.workflow_run.id' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_RUN_ID"
+          test "$(jq -r '.name' <<<"$artifact_json")" = "homepage-worker-payload-${APP_CANDIDATE_SHA}"
+          test "$(jq -r '.digest' <<<"$artifact_json")" = "$EXPECTED_ARTIFACT_DIGEST"
+          download_url="$(jq -r '.archive_download_url' <<<"$artifact_json")"
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'Accept: application/vnd.github+json' \
+            "$download_url" --output complete-payload.zip
+          actual_digest="sha256:$(sha256sum complete-payload.zip | awk '{print $1}')"
+          test "$actual_digest" = "$EXPECTED_ARTIFACT_DIGEST"
+          mkdir artifact-wrapper
+          unzip -q complete-payload.zip -d artifact-wrapper
+          payload_tar="$(find artifact-wrapper -type f -name '*.tar.gz' -print -quit)"
+          test -n "$payload_tar"
+          tar -xzf "$payload_tar"
+          test -s .output/server/index.mjs
+          test -s .output/server/wrangler.json
+          test -d .output/server/_ssr
+          test -d .output/server/_libs
+          test -d .output/public/assets
+          echo "Verified complete payload artifact ${EXPECTED_ARTIFACT_ID}"
+
+      - name: Run full release gates on approved candidate
+        run: |
+          bun run test
+          bun run test:security
+          node --experimental-strip-types --experimental-loader ./tests/node-test-loader.mjs --test tests/ai-server-function-artifact.test.mjs
+
+      - name: Read-only production preflight
+        env:
+          CLOUDFLARE_READ_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${CLOUDFLARE_READ_TOKEN:?CLOUDFLARE_API_TOKEN is required}"
+          : "${CLOUDFLARE_ACCOUNT_ID:?CLOUDFLARE_ACCOUNT_ID is required}"
+          api_get() {
+            curl --fail-with-body --silent --show-error \
+              --header "Authorization: Bearer ${CLOUDFLARE_READ_TOKEN}" \
+              --header 'Content-Type: application/json' "$1"
+          }
+          assert_success() {
+            test "$(jq -r '.success' <<<"$1")" = true || { jq -c '.errors' <<<"$1" >&2; exit 1; }
+          }
+          deployments="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments?per_page=100")"
+          assert_success "$deployments"
+          latest="$(jq -c '.result.deployments | sort_by(.created_on) | last' <<<"$deployments")"
+          previous="$(jq -c '.result.deployments | sort_by(.created_on) | .[-2]' <<<"$deployments")"
+          live_deployment_id="$(jq -r '.id' <<<"$latest")"
+          test "$live_deployment_id" = "$EXPECTED_DEPLOYMENT_ID"
+          live_versions="$(jq -c '.versions' <<<"$latest")"
+          test "$(jq '[.[].percentage] | add' <<<"$live_versions")" = 100
+          live_version_id="$(jq -r '.[0].version_id' <<<"$live_versions")"
+          test "$live_version_id" = "$EXPECTED_WORKER_VERSION_ID"
+          rollback_version_id="$(jq -r '.versions[0].version_id' <<<"$previous")"
+          test -n "$rollback_version_id" -a "$rollback_version_id" != "$live_version_id"
+          domains="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/domains?zone_name=sharebarabara.co.ke")"
+          assert_success "$domains"
+          domain="$(jq -c '.result[] | select(.hostname == "sharebarabara.co.ke" and .service == "share-barabara" and (.enabled // true) == true)' <<<"$domains" | head -n 1)"
+          test -n "$domain"
+          settings="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/settings")"
+          assert_success "$settings"
+          binding_names="$(jq -r '.result.bindings[]?.name // empty' <<<"$settings" | sort -u)"
+          grep -qx ASSETS <<<"$binding_names"
+          grep -qx AI_RATE_LIMITER <<<"$binding_names"
+          schedules="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/schedules")"
+          assert_success "$schedules"
+          jq -e 'any(.result.schedules[]?; .cron == "*/1 * * * *")' <<<"$schedules" >/dev/null
+          {
+            echo "Pre-deployment deployment=${live_deployment_id} version=${live_version_id} traffic=${live_versions}"
+            echo "Pre-deployment rollback deployment=$(jq -r '.id' <<<"$previous") version=${rollback_version_id}"
+            echo "Pre-deployment application baseline=${EXPECTED_PRODUCTION_APPLICATION_SHA}"
+            echo 'Pre-deployment read-only checks passed; secrets not exposed'
+          } | tee predeployment-state.txt
+
+      - name: Validate effective production configuration
+        run: |
+          node --input-type=module -e '
+            import { readFile } from "node:fs/promises";
+            const c = JSON.parse(await readFile(".output/server/wrangler.json", "utf8"));
+            if (c.name !== "share-barabara") throw new Error("unexpected Worker name");
+            if (c.vars?.DEPLOYMENT_ENV !== "production") throw new Error("unexpected deployment environment");
+            if (!c.routes?.some((r) => r.pattern === "sharebarabara.co.ke" && r.custom_domain === true && r.enabled === true)) throw new Error("production custom domain missing");
+            if (!c.triggers?.crons?.includes("*/1 * * * *")) throw new Error("production cron missing");
+            if (c.assets?.binding !== "ASSETS" || c.ratelimits?.[0]?.name !== "AI_RATE_LIMITER") throw new Error("required binding metadata missing");
+            console.log("Effective production config validated: name, domain, ASSETS, AI_RATE_LIMITER, production vars and cron");
+          '
+
+      - name: Deploy approved payload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/deploy-production.mjs
+
+      - name: Verify deployment and public health
+        env:
+          CLOUDFLARE_READ_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          api_get() { curl --fail-with-body --silent --show-error --header "Authorization: Bearer ${CLOUDFLARE_READ_TOKEN}" --header 'Content-Type: application/json' "$1"; }
+          assert_success() { test "$(jq -r '.success' <<<"$1")" = true || { jq -c '.errors' <<<"$1" >&2; exit 1; }; }
+          deployments="$(api_get "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments?per_page=100")"
+          assert_success "$deployments"
+          latest="$(jq -c '.result.deployments | sort_by(.created_on) | last' <<<"$deployments")"
+          new_deployment_id="$(jq -r '.id' <<<"$latest")"
+          new_versions="$(jq -c '.versions' <<<"$latest")"
+          new_version_id="$(jq -r '.[0].version_id' <<<"$new_versions")"
+          test "$new_deployment_id" != "$EXPECTED_DEPLOYMENT_ID"
+          test "$new_version_id" != "$EXPECTED_WORKER_VERSION_ID"
+          test "$(jq '[.[].percentage] | add' <<<"$new_versions")" = 100
+          echo "Post-deployment deployment=${new_deployment_id} version=${new_version_id} traffic=${new_versions}"
+          for path in / /news /alerts /reports /campaigns /infrastructure-issues; do
+            code="$(curl --retry 2 --silent --show-error --output /dev/null --write-out '%{http_code}' "https://sharebarabara.co.ke${path}")"
+            test "$code" = 200
+            echo "Health ${path}: HTTP ${code}"
+          done
+          echo 'Browser visual/responsive and console acceptance: pending; no browser surface is available in this workflow'
+          {
+            echo "Post-deployment deployment=${new_deployment_id} version=${new_version_id} traffic=${new_versions}"
+            echo 'Public health checks: / /news /alerts /reports /campaigns /infrastructure-issues all HTTP 200'
+            echo 'Browser visual/responsive acceptance: pending owner verification'
+          } | tee deployment-result.txt
