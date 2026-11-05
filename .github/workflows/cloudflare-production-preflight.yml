@@ -179,7 +179,7 @@ jobs:
           assert_success "$schedules"
           cron_summary="$(jq -c '.result.schedules // []' <<<"$schedules")"
           echo "Cloudflare cron schedules: ${cron_summary}"
-          grep -q '"cron":"*/1 * * * *"' <<<"$schedules"
+          jq -e 'any(.result.schedules[]?; .cron == "*/1 * * * *")' <<<"$schedules" >/dev/null
 
           {
             echo '## Cloudflare production preflight'
