@@ -110,6 +110,26 @@
   defect. Final focused coverage passes `34/34`, full tests pass `578/578`,
   security passes `14/14`, the production build and artifact check pass, and
   browser captures are clean at the existing eight widths.
+- Release verification for application candidate
+  `11db6b623791d78123fe38d32e8df6dd9e740df9` passed in run `42197749466`:
+  https://github.com/mjengonetworks/share-barabara/actions/runs/42197749466.
+  Complete artifact `13492228489` has digest
+  `sha256:551cd4252c74f933df0042dabe58b4962868fdfbdbd9d504854366c924cce96c`
+  and passed build, full `578/578`, security `14/14` and artifact checks.
+  Workflow-only release preparation commits are `13048de` and `a6be0f8`;
+  application files remain at the approved candidate SHA.
+- Fresh read-only Cloudflare preflight passed in run `42197908467`:
+  https://github.com/mjengonetworks/share-barabara/actions/runs/42197908467.
+  Live deployment/version remain `1f757014-28ed-4638-b746-b186e11a82e0` /
+  `a0119c87-aaf0-406e-939c-8f0b885b9dfd` at 100%; rollback is deployment
+  `83a2e339-7a67-4e08-bb01-a6a534d4e8a5` / version
+  `e84cab4e-c770-442a-bb78-5c361faebf35`. The production custom domain,
+  `ASSETS` and `AI_RATE_LIMITER` bindings, secret/variable metadata and
+  `*/1 * * * *` cron passed. Cloudflare version metadata does not expose an
+  application SHA (`source: null`); the live application baseline is therefore
+  tied to the previously verified deployment metadata and matching Worker
+  version, not inferred from the Cloudflare ID. Deployment remains separately
+  unauthorized pending final owner authorization.
 
 ## Homepage horizontal margins — DEPLOYED / VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-05
 

@@ -62,6 +62,19 @@
   build, artifact verification and `git diff --check` pass. Updated screenshots
   remain under
   `C:\Users\phabi\share-barabara\review-artifacts\homepage-unified-feed-2026-11-06\`.
+- **FINAL RELEASE PREPARATION — VERIFIED / DEPLOYMENT AUTHORIZATION PENDING.**
+  Application candidate
+  `11db6b623791d78123fe38d32e8df6dd9e740df9` was pushed unchanged on
+  `feat/unified-media-feed`. Linux verification run
+  `42197749466` passed the complete build/test gates and uploaded artifact
+  `13492228489` with digest
+  `sha256:551cd4252c74f933df0042dabe58b4962868fdfbdbd9d504854366c924cce96c`.
+  Fresh read-only preflight `42197908467` passed with live deployment
+  `1f757014-28ed-4638-b746-b186e11a82e0`, Worker version
+  `a0119c87-aaf0-406e-939c-8f0b885b9dfd` at 100%, active domain and required
+  bindings/cron, with rollback target `83a2e339-7a67-4e08-bb01-a6a534d4e8a5` /
+  `e84cab4e-c770-442a-bb78-5c361faebf35`. No deployment, SQL or migration ran;
+  authenticated CMS acceptance remains pending.
 
 - **HOMEPAGE HORIZONTAL MARGINS — DEPLOYED / VERIFIED / OWNER ACCEPTANCE
   PENDING (2026-11-05).** Approved application candidate
