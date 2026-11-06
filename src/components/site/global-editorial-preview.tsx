@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useProfileAvatars, useProfileNames, useProfileUsernames } from "@/lib/profiles";
 import { Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getUnifiedFeed } from "@/lib/unified-feed";
 import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
 import type { PreviewDestination, PreviewItem } from "@/lib/global-editorial-preview";
+import { UnifiedFeedActivity } from "@/components/site/unified-feed-activity";
 
 type Props = {
   destination: PreviewDestination;
@@ -111,7 +113,40 @@ function MediaImage({ src, compact = false }: { src?: string | null; compact?: b
   );
 }
 
-function ItemLink({ item }: { item: PreviewItem }) {
+function ItemLink({
+  item,
+  identity,
+}: {
+  item: PreviewItem;
+  identity?: { name?: string | null; username?: string | null; avatar?: string | null };
+}) {
+  if (item.activity) {
+    return (
+      <a
+        href={item.href}
+        className="block min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <UnifiedFeedActivity
+          item={{
+            ...item.activity,
+            key: item.id,
+            sourceId: item.id,
+            title: item.title,
+            href: item.href,
+            imageUrl: item.imageUrl ?? null,
+            label: item.category ?? "Media & Feed",
+            location: null,
+            status: null,
+            moderationStatus: null,
+            hashtags: [],
+            media: [],
+            updatedAt: null,
+          }}
+          identity={identity}
+        />
+      </a>
+    );
+  }
   return (
     <a
       href={item.href}
@@ -135,7 +170,41 @@ function ItemLink({ item }: { item: PreviewItem }) {
   );
 }
 
-function CompactItemLink({ item }: { item: PreviewItem }) {
+function CompactItemLink({
+  item,
+  identity,
+}: {
+  item: PreviewItem;
+  identity?: { name?: string | null; username?: string | null; avatar?: string | null };
+}) {
+  if (item.activity) {
+    return (
+      <a
+        href={item.href}
+        className="block min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <UnifiedFeedActivity
+          compact
+          item={{
+            ...item.activity,
+            key: item.id,
+            sourceId: item.id,
+            title: item.title,
+            href: item.href,
+            imageUrl: item.imageUrl ?? null,
+            label: item.category ?? "Media & Feed",
+            location: null,
+            status: null,
+            moderationStatus: null,
+            hashtags: [],
+            media: [],
+            updatedAt: null,
+          }}
+          identity={identity}
+        />
+      </a>
+    );
+  }
   return (
     <a
       href={item.href}
@@ -166,6 +235,10 @@ export function EditorialTripleCard({
   title: string;
   items: PreviewItem[];
   hideHeading?: boolean;
+  identities?: Record<
+    string,
+    { name?: string | null; username?: string | null; avatar?: string | null }
+  >;
 }) {
   const href = items[0] ? meta[items[0].destination].href : undefined;
   return (
@@ -185,9 +258,9 @@ export function EditorialTripleCard({
       ) : null}
       {items.length ? (
         <div className="space-y-1">
-          <ItemLink item={items[0]} />
+          <ItemLink item={items[0]} identity={identities?.[items[0].id]} />
           {items.slice(1, 3).map((item) => (
-            <CompactItemLink key={item.id} item={item} />
+            <CompactItemLink key={item.id} item={item} identity={identities?.[item.id]} />
           ))}
         </div>
       ) : null}
@@ -275,6 +348,7 @@ export function GlobalEditorialPreview({
               : null),
           category: feedItem.label,
           destination: "media" as const,
+          activity: feedItem,
         })),
       };
       return modules.map((module, moduleIndex) => {
@@ -305,6 +379,22 @@ export function GlobalEditorialPreview({
       });
     },
   });
+  const mediaItems = (query.data ?? [])
+    .flatMap((card) => card.items)
+    .filter((item) => item.activity)
+    .map((item) => item.activity!);
+  const authorIds = mediaItems
+    .map((item) => item.authorId)
+    .filter((id): id is string => Boolean(id));
+  const { data: authorNames = {} } = useProfileNames(authorIds);
+  const { data: authorUsernames = {} } = useProfileUsernames(authorIds);
+  const { data: authorAvatars = {} } = useProfileAvatars(authorIds);
+  const identities = Object.fromEntries(
+    authorIds.map((id) => [
+      id,
+      { name: authorNames[id], username: authorUsernames[id], avatar: authorAvatars[id] },
+    ]),
+  );
   const cards = (query.data ?? []).filter((card) => card.items.length > 0);
   if (cards.length === 0) return null;
   return (
@@ -335,6 +425,7 @@ export function GlobalEditorialPreview({
                   title={meta[module].label}
                   items={items}
                   hideHeading={isMediaRow}
+                  identities={identities}
                 />
               ))}
             </div>

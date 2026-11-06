@@ -10,6 +10,14 @@ export type PreviewItem = {
   destination: PreviewDestination;
   categoryKey?: string | null;
   recordedViewRank?: number;
+  activity?: {
+    kind: UnifiedFeedItem["kind"];
+    body: string;
+    authorId: string | null;
+    createdAt: string;
+    publishedAt: string | null;
+    mediaUrl: string | null;
+  };
 };
 
 export type PreviewCard = {
@@ -75,3 +83,4 @@ export function buildPreviewCards(
   }
   return cards;
 }
+import type { UnifiedFeedItem } from "@/lib/unified-feed";

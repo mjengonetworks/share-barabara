@@ -49,14 +49,19 @@ test("detail routes share editorial shell, sidebar and discovery parity", async 
   assert.match(campaign, /image_caption|image_credit/);
 });
 
-test("report and alert detail recommendations use compact editorial sidebar rows", async () => {
+test("report and alert detail recommendations use the shared community feed presentation", async () => {
   const report = await source("src/routes/reports.$reportId.tsx");
   const alert = await source("src/routes/alerts.$alertId.tsx");
-  const compact = await source("src/components/site/compact-editorial-list.tsx");
-  assert.match(report, /CompactEditorialList/);
-  assert.match(alert, /CompactEditorialList/);
-  assert.match(compact, /size-16/);
-  assert.match(compact, /line-clamp-3/);
+  const [sidebar, activity] = await Promise.all([
+    source("src/components/site/editorial-sidebar.tsx"),
+    source("src/components/site/unified-feed-activity.tsx"),
+  ]);
+  assert.match(report, /EditorialSidebar/);
+  assert.match(alert, /EditorialSidebar/);
+  assert.match(sidebar, /UnifiedFeedList/);
+  assert.match(activity, /UserAvatar/);
+  assert.match(activity, /timeAgo/);
+  assert.match(activity, /Community Post/);
 });
 
 test("listing hierarchy retains three columns with three records per logical group", async () => {

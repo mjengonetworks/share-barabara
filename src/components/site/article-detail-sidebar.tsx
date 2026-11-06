@@ -21,7 +21,7 @@ import {
   SisterPlatformPreviews,
 } from "@/components/site/discovery-sections";
 import { publicCategoryBadgeClass } from "@/components/site/public-ui";
-import { CompactEditorialList } from "@/components/site/compact-editorial-list";
+import { UnifiedFeedList } from "@/components/site/unified-feed-list";
 import { getUnifiedFeed } from "@/lib/unified-feed";
 
 export type ArticleSidebarArticle = {
@@ -211,15 +211,7 @@ export function ArticleSidebar({
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             Latest Media &amp; Feed
           </h2>
-          <CompactEditorialList
-            items={latestFeed.map((item) => ({
-              id: item.key,
-              title: item.title,
-              href: item.href,
-              imageUrl: item.imageUrl,
-              meta: item.label,
-            }))}
-          />
+          <UnifiedFeedList items={latestFeed} />
           <Link
             to="/feed"
             className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
