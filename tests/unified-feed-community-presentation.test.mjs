@@ -23,6 +23,7 @@ test("community presentation preserves real attribution, relative time and compa
   assert.match(activity, /timeAgo\(timestamp\)/);
   assert.match(activity, /item\.authorId/);
   assert.match(activity, /Share Barabara activity/);
+  assert.match(activity, /onError=\{\(\) => setImageFailed\(true\)\}/);
   assert.match(list, /useProfileNames/);
   assert.match(list, /useProfileAvatars/);
   assert.match(profiles, /from\("profiles"\)/);

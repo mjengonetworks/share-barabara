@@ -1,4 +1,5 @@
 import { MessageCircle, Radio } from "lucide-react";
+import { useState } from "react";
 import { UserAvatar } from "@/components/site/user-avatar";
 import { timeAgo } from "@/lib/format";
 import type { UnifiedFeedItem } from "@/lib/unified-feed";
@@ -33,7 +34,8 @@ export function UnifiedFeedActivity({
     identity?.name ?? (item.authorId ? "Share Barabara contributor" : "Share Barabara");
   const kind = kindLabel[item.kind];
   const timestamp = item.publishedAt ?? item.createdAt;
-  const hasMedia = Boolean(item.imageUrl || item.mediaUrl);
+  const [imageFailed, setImageFailed] = useState(false);
+  const hasMedia = Boolean((item.imageUrl && !imageFailed) || item.mediaUrl);
 
   if (compact) {
     return (
@@ -52,11 +54,12 @@ export function UnifiedFeedActivity({
             {item.title}
           </span>
         </span>
-        {item.imageUrl ? (
+        {item.imageUrl && !imageFailed ? (
           <img
             src={item.imageUrl}
             alt=""
             loading="lazy"
+            onError={() => setImageFailed(true)}
             className="size-12 shrink-0 rounded-md object-cover"
           />
         ) : (
@@ -72,13 +75,27 @@ export function UnifiedFeedActivity({
     <span className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-background/70 transition-colors hover:border-accent">
       {hasMedia ? (
         <span className="relative block aspect-[16/9] overflow-hidden bg-muted">
-          {item.imageUrl ? (
-            <img src={item.imageUrl} alt="" loading="lazy" className="size-full object-cover" />
+          {item.imageUrl && !imageFailed ? (
+            <img
+              src={item.imageUrl}
+              alt=""
+              loading="lazy"
+              onError={() => setImageFailed(true)}
+              className="size-full object-cover"
+            />
           ) : null}
-          {!item.imageUrl && item.mediaUrl ? (
+          {(!item.imageUrl || imageFailed) && item.mediaUrl ? (
             <span className="flex size-full items-center justify-center text-primary/70">
               <Radio className="size-8" aria-hidden="true" />
               <span className="sr-only">Video activity</span>
+            </span>
+          ) : null}
+          {imageFailed && !item.mediaUrl ? (
+            <span className="flex size-full items-center gap-3 bg-gradient-to-br from-primary/10 via-background to-accent/15 px-4 text-primary/70">
+              <Radio className="size-6 shrink-0" aria-hidden="true" />
+              <span className="text-xs font-bold uppercase tracking-wider">
+                Share Barabara activity
+              </span>
             </span>
           ) : null}
         </span>

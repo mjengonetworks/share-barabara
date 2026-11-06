@@ -231,6 +231,7 @@ export function EditorialTripleCard({
   title,
   items,
   hideHeading = false,
+  identities,
 }: {
   title: string;
   items: PreviewItem[];
