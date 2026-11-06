@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - fix/homepage-grid-width
+      - feat/unified-media-feed
 
 permissions:
   contents: read
@@ -13,7 +13,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
+      APP_CANDIDATE_SHA: 11db6b623791d78123fe38d32e8df6dd9e740df9
 
     steps:
       - name: Check out candidate
@@ -68,7 +68,7 @@ jobs:
       - name: Upload complete Worker payload
         uses: actions/upload-artifact@v4
         with:
-          name: homepage-worker-payload-3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
-          path: homepage-worker-payload-3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee.tar.gz
+          name: homepage-worker-payload-11db6b623791d78123fe38d32e8df6dd9e740df9
+          path: homepage-worker-payload-11db6b623791d78123fe38d32e8df6dd9e740df9.tar.gz
           if-no-files-found: error
           retention-days: 7

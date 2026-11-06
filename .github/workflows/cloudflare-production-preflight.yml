@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - fix/homepage-grid-width
+      - feat/unified-media-feed
 
 permissions:
   contents: read
@@ -17,9 +17,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       WORKER_NAME: share-barabara
-      EXPECTED_WORKER_VERSION_ID: e84cab4e-c770-442a-bb78-5c361faebf35
-      EXPECTED_PRODUCTION_APPLICATION_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
-      EXPECTED_APPLICATION_SHA: 3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
+      EXPECTED_WORKER_VERSION_ID: a0119c87-aaf0-406e-939c-8f0b885b9dfd
+      EXPECTED_PRODUCTION_APPLICATION_SHA: 3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
+      EXPECTED_APPLICATION_SHA: 11db6b623791d78123fe38d32e8df6dd9e740df9
 
     steps:
       - name: Check out preflight revision
