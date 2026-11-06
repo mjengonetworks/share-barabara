@@ -82,6 +82,16 @@
   items. No singleton-card or placeholder-fill redesign is used. Image-less
   items use compact branded fallbacks; YouTube-backed videos use their real
   thumbnail URL when available. Rows collapse to one card at a time on mobile.
+- Candidate-only navigation refinement now gives every primary desktop menu
+  button the logo accent outline, removes the former solid yellow Media & Feed
+  fill, and uses only a light accent tint for the active state. The compact
+  newsletter and emergency sections were already present in the production
+  baseline and were not changed in this workstream; both were captured in the
+  candidate review screenshots.
+- Candidate review screenshots are available at
+  `C:\Users\phabi\share-barabara\review-artifacts\homepage-unified-feed-2026-11-06\`.
+  They are isolated candidate evidence only; production remains application
+  `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` and has not been changed.
 
 ## Homepage horizontal margins — DEPLOYED / VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-05
 

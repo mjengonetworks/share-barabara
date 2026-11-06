@@ -18,7 +18,8 @@ test("Media & Feed has branded navigation, correct ordering, and no contributor 
     navigation,
     /to: "\/statistics", label: "Statistics"[\s\S]*to: "\/feed", label: "Media & Feed"[\s\S]*to: "\/campaigns", label: "Campaigns"/,
   );
-  assert.match(header, /item\.to === "\/feed"/);
+  assert.match(header, /border-accent bg-card\/70/);
+  assert.doesNotMatch(header, /bg-amber-300/);
   assert.doesNotMatch(navigation, /to: "\/contributors"/);
 });
 

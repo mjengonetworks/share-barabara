@@ -34,7 +34,15 @@
   eight required widths under `%TEMP%\share-barabara-unified-feed\`. There was
   no horizontal overflow, failed response or page error; a feed hydration
   warning from search-link property ordering was corrected and the rerun was
-  clean. Owner review and deployment approval remain pending.
+ clean. Owner review and deployment approval remain pending.
+
+- Candidate-only navigation review is complete: primary menu buttons use the
+  logo accent outline with no solid yellow fill, while the newsletter and
+  emergency layouts remain the already-implemented compact baseline sections.
+  Review screenshots are available at
+  `C:\Users\phabi\share-barabara\review-artifacts\homepage-unified-feed-2026-11-06\`.
+  Production remains at application
+  `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee`; the candidate is not deployed.
 
 - **HOMEPAGE HORIZONTAL MARGINS — DEPLOYED / VERIFIED / OWNER ACCEPTANCE
   PENDING (2026-11-05).** Approved application candidate

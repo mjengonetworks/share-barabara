@@ -98,9 +98,9 @@ export function SiteHeader() {
             <Link
               key={item.to}
               to={item.to}
-              className={`inline-flex whitespace-nowrap rounded-md border px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:text-sm ${item.to === "/feed" ? "border-amber-400 bg-amber-300 text-brand-navy shadow-sm hover:bg-amber-200" : "border-border/80 bg-card/70 text-foreground hover:border-brand-blue hover:bg-brand-blue/5"}`}
+              className="inline-flex whitespace-nowrap rounded-md border border-accent bg-card/70 px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:text-sm"
               activeProps={{
-                      className: `inline-flex whitespace-nowrap rounded-md border px-2.5 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:text-sm ${item.to === "/feed" ? "border-amber-400 bg-amber-300 text-brand-navy shadow-sm" : "border-brand-blue bg-brand-blue/10 text-brand-navy"}`,
+                      className: "inline-flex whitespace-nowrap rounded-md border border-accent bg-accent/10 px-2.5 py-1.5 text-xs font-bold text-brand-navy transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:text-sm",
               }}
             >
               {item.label}
