@@ -19,7 +19,7 @@ jobs:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: 3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
+          ref: 11db6b623791d78123fe38d32e8df6dd9e740df9
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
