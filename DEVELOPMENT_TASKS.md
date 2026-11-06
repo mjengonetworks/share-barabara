@@ -1498,3 +1498,12 @@ unfinished application changes are not merged here.
 - **Verification:** focused presentation/artifact tests `8/8`, full suite `586/586`, security suite `14/14`, staging-preview build, `.output/server/index.mjs`, `.output/server/wrangler.json` and `git diff --check` pass.
 - **Browser/staging:** no browser screenshots are claimed because CUA browser assets remain unavailable. Existing staging remains on deployment `77304b31-cb93-4999-a952-8757b1772a6c` / version `d105c33f-2a64-4d14-9cdf-4aea31493e00`; this candidate was not deployed.
 - **Status:** Implemented — pending owner visual review and separate staging deployment approval.
+
+## MEDIA & FEED VISUAL SYSTEM — STAGING DEPLOYED (2026-11-06)
+
+- **Deployed candidate:** `4ef987b78afc70397d2804db81d645c4f20ac9a9` to the existing `share-barabara-staging` Worker using the guarded preview deployment script. Production Worker, Supabase, SQL, migrations and secrets were unchanged.
+- **Rollback preserved:** prior deployment `77304b31-cb93-4999-a952-8757b1772a6c`, Worker version `d105c33f-2a64-4d14-9cdf-4aea31493e00`, 100% traffic.
+- **New staging deployment:** deployment `c0d9ce8d-303d-45ef-a9d6-f73c1b74d653`, Worker version `9bbe7a7f-5887-4e18-89ff-7f09b66f9c52`, 100% traffic. Existing staging custom domain remained active; `ASSETS` and `AI_RATE_LIMITER` remained present; `DEPLOYMENT_ENV=staging-preview`, web push disabled and no cron trigger deployed.
+- **Live checks:** `/staging-media-feed-preview` returned HTTP 200 with the synthetic banner, Media & Feed content and visual-system markers. `/`, `/feed`, `/api/web-push-config` and `/api/unknown` returned HTTP 404. Sampled JavaScript and image assets returned HTTP 200.
+- **Browser acceptance:** Chrome/Playwright remains unavailable because CUA browser assets could not initialize. No responsive visual, console or browser-network acceptance is claimed.
+- **Status:** Staging deployed — owner visual acceptance pending; production remains unchanged.
