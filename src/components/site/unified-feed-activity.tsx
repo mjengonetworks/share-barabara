@@ -1,4 +1,4 @@
-import { MessageCircle, Radio } from "lucide-react";
+import { ArrowUpRight, MessageCircle, Radio } from "lucide-react";
 import { useState } from "react";
 import { UserAvatar } from "@/components/site/user-avatar";
 import { timeAgo } from "@/lib/format";
@@ -39,20 +39,25 @@ export function UnifiedFeedActivity({
 
   if (compact) {
     return (
-      <span className="group flex min-w-0 items-center gap-2.5 border-t border-border/70 py-3 first:border-t-0">
-        <UserAvatar url={identity?.avatar} name={displayName} className="size-8" />
+      <span className="group flex min-w-0 gap-2.5 border-t border-border/70 py-3 first:border-t-0">
+        <UserAvatar url={identity?.avatar} name={displayName} className="size-8 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             <span className="truncate">{displayName}</span>
             <span aria-hidden="true">·</span>
             <span className="shrink-0">{timeAgo(timestamp)}</span>
           </span>
-          <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
+          <span className="mt-1 inline-flex max-w-full rounded-full bg-accent/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-accent-foreground">
             {kind}
           </span>
-          <span className="mt-0.5 block line-clamp-2 text-sm font-bold leading-snug text-brand-navy group-hover:underline">
+          <span className="mt-1 block line-clamp-2 text-sm font-bold leading-snug text-brand-navy group-hover:underline">
             {item.title}
           </span>
+          {item.body ? (
+            <span className="mt-1 block line-clamp-2 text-xs leading-5 text-muted-foreground">
+              {item.body}
+            </span>
+          ) : null}
         </span>
         {item.imageUrl && !imageFailed ? (
           <img
@@ -60,10 +65,10 @@ export function UnifiedFeedActivity({
             alt=""
             loading="lazy"
             onError={() => setImageFailed(true)}
-            className="size-12 shrink-0 rounded-md object-cover"
+            className="size-14 shrink-0 rounded-md object-cover"
           />
         ) : (
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-primary/5 text-primary/60">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-md bg-primary/5 text-primary/60">
             <Radio className="size-4" aria-hidden="true" />
           </span>
         )}
@@ -73,6 +78,21 @@ export function UnifiedFeedActivity({
 
   return (
     <span className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-background/70 transition-colors hover:border-accent">
+      <span className="flex items-start gap-2.5 border-b border-border/70 p-4 pb-3">
+        <UserAvatar url={identity?.avatar} name={displayName} className="size-9 shrink-0" />
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-semibold text-foreground">
+            <span className="truncate">{displayName}</span>
+            {identity?.username ? (
+              <span className="truncate text-muted-foreground">{identity.username}</span>
+            ) : null}
+          </span>
+          <span className="mt-0.5 block text-[11px] text-muted-foreground">{timeAgo(timestamp)}</span>
+        </span>
+        <span className="shrink-0 rounded-full bg-accent/15 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-accent-foreground">
+          {kind}
+        </span>
+      </span>
       {hasMedia ? (
         <span className="relative block aspect-[16/9] overflow-hidden bg-muted">
           {item.imageUrl && !imageFailed ? (
@@ -100,36 +120,29 @@ export function UnifiedFeedActivity({
           ) : null}
         </span>
       ) : (
-        <span className="flex min-h-16 items-center gap-3 bg-gradient-to-br from-primary/10 via-background to-accent/15 px-4 py-3 text-primary/70">
-          <Radio className="size-6 shrink-0" aria-hidden="true" />
-          <span className="text-xs font-bold uppercase tracking-wider">
-            Share Barabara activity
-          </span>
+        <span className="flex min-h-14 items-center gap-3 border-b border-border/70 bg-gradient-to-br from-primary/10 via-background to-accent/15 px-4 py-3 text-primary/70">
+          <Radio className="size-5 shrink-0" aria-hidden="true" />
+          <span className="text-xs font-semibold">Share Barabara community activity</span>
         </span>
       )}
-      <span className="flex min-h-28 flex-1 flex-col p-3">
-        <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <UserAvatar url={identity?.avatar} name={displayName} className="size-6" />
-          <span className="min-w-0 truncate font-semibold text-foreground">{displayName}</span>
-          <span aria-hidden="true">·</span>
-          <span className="shrink-0">{timeAgo(timestamp)}</span>
-        </span>
-        <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
-          {kind}
-        </span>
-        <span className="mt-1 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">
+      <span className="flex flex-1 flex-col p-4 pt-3">
+        <span className="line-clamp-2 text-base font-extrabold leading-snug text-brand-navy group-hover:underline">
           {item.title}
         </span>
         {item.body ? (
-          <span className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+          <span className="mt-2 line-clamp-3 text-sm leading-5 text-muted-foreground">
             {item.body}
           </span>
         ) : null}
-        <span className="mt-auto flex items-center gap-3 pt-3 text-[11px] font-semibold text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <MessageCircle className="size-3.5" aria-hidden="true" />{" "}
-            {item.kind === "community" ? "Join the discussion" : "View activity"}
+        <span className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/70 pt-3 text-[11px] font-semibold text-muted-foreground">
+          <span className="inline-flex items-center gap-1" aria-label="Open activity">
+            <ArrowUpRight className="size-3.5" aria-hidden="true" /> Open activity
           </span>
+          {item.kind === "community" ? (
+            <span className="inline-flex items-center gap-1" aria-label="Join discussion">
+              <MessageCircle className="size-3.5" aria-hidden="true" /> Discussion
+            </span>
+          ) : null}
         </span>
       </span>
     </span>

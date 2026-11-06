@@ -259,9 +259,13 @@ export function EditorialTripleCard({
       ) : null}
       {items.length ? (
         <div className="space-y-1">
-          <ItemLink item={items[0]} identity={identities?.[items[0].id]} />
+          <ItemLink item={items[0]} identity={identities?.[items[0].activity?.authorId ?? items[0].id]} />
           {items.slice(1, 3).map((item) => (
-            <CompactItemLink key={item.id} item={item} identity={identities?.[item.id]} />
+            <CompactItemLink
+              key={item.id}
+              item={item}
+              identity={identities?.[item.activity?.authorId ?? item.id]}
+            />
           ))}
         </div>
       ) : null}

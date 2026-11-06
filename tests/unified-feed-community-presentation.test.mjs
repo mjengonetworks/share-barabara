@@ -22,6 +22,9 @@ test("community presentation preserves real attribution, relative time and compa
   assert.match(activity, /UserAvatar/);
   assert.match(activity, /timeAgo\(timestamp\)/);
   assert.match(activity, /item\.authorId/);
+  assert.match(activity, /Discussion/);
+  assert.match(activity, /Open activity/);
+  assert.match(activity, /identity\?\.username/);
   assert.match(activity, /Share Barabara activity/);
   assert.match(activity, /onError=\{\(\) => setImageFailed\(true\)\}/);
   assert.match(list, /useProfileNames/);
@@ -38,4 +41,10 @@ test("article and editorial sidebars use the same unified feed list", async () =
   assert.match(editorial, /UnifiedFeedList items=\{feedItems\}/);
   assert.match(article, /getUnifiedFeed\(\{ limit: 3 \}/);
   assert.match(editorial, /getUnifiedFeed\(\{ limit: 3 \}/);
+});
+
+test("homepage preview resolves identities by the unified activity author", async () => {
+  const source = await read("src/components/site/global-editorial-preview.tsx");
+  assert.match(source, /identities\?\.\[items\[0\]\.activity\?\.authorId \?\? items\[0\]\.id\]/);
+  assert.match(source, /identities\?\.\[item\.activity\?\.authorId \?\? item\.id\]/);
 });
