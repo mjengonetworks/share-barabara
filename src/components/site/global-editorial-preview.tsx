@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getUnifiedFeed } from "@/lib/unified-feed";
@@ -83,30 +84,40 @@ const mapStatistics = (item: any): PreviewItem => ({
   category: "Statistics",
   destination: "statistics",
 });
+function MediaImage({ src, compact = false }: { src?: string | null; compact?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) {
+    return compact ? (
+      <span className="flex aspect-video items-center justify-center bg-primary/5">
+        <Newspaper className="size-5 text-muted-foreground" aria-hidden="true" />
+      </span>
+    ) : (
+      <span className="flex min-h-20 w-full items-center gap-3 bg-gradient-to-br from-primary/10 via-background to-accent/15 px-4 py-3 text-primary/60">
+        <Newspaper className="size-7 shrink-0" aria-hidden="true" />
+        <span className="text-xs font-semibold uppercase tracking-wider">
+          Share Barabara update
+        </span>
+      </span>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      loading={compact ? "lazy" : "eager"}
+      onError={() => setFailed(true)}
+      className={compact ? "aspect-video w-full object-cover" : "aspect-video w-full object-cover"}
+    />
+  );
+}
+
 function ItemLink({ item }: { item: PreviewItem }) {
   return (
     <a
       href={item.href}
       className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-background/70 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      {item.imageUrl ? (
-        <img
-          src={item.imageUrl}
-          alt=""
-          loading="lazy"
-          className="aspect-video w-full object-cover"
-        />
-      ) : (
-        <span
-          className="flex min-h-20 w-full items-center gap-3 bg-gradient-to-br from-primary/10 via-background to-accent/15 px-4 py-3 text-primary/60"
-          aria-hidden="true"
-        >
-          <Newspaper className="size-7 shrink-0" />
-          <span className="text-xs font-semibold uppercase tracking-wider">
-            Share Barabara update
-          </span>
-        </span>
-      )}
+      <MediaImage src={item.imageUrl} />
       <span className="flex min-h-24 flex-1 flex-col p-3">
         {item.category ? (
           <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
@@ -131,18 +142,7 @@ function CompactItemLink({ item }: { item: PreviewItem }) {
       className="group flex min-w-0 items-center gap-3 border-t border-border/70 py-3 first:border-t-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <span className="w-24 shrink-0 overflow-hidden rounded bg-primary/5">
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt=""
-            loading="lazy"
-            className="aspect-video w-full object-cover"
-          />
-        ) : (
-          <span className="flex aspect-video items-center justify-center">
-            <Newspaper className="size-5 text-muted-foreground" aria-hidden="true" />
-          </span>
-        )}
+        <MediaImage src={item.imageUrl} compact />
       </span>
       <span className="min-w-0">
         {item.category ? (
@@ -158,21 +158,31 @@ function CompactItemLink({ item }: { item: PreviewItem }) {
   );
 }
 
-export function EditorialTripleCard({ title, items }: { title: string; items: PreviewItem[] }) {
+export function EditorialTripleCard({
+  title,
+  items,
+  hideHeading = false,
+}: {
+  title: string;
+  items: PreviewItem[];
+  hideHeading?: boolean;
+}) {
   const href = items[0] ? meta[items[0].destination].href : undefined;
   return (
     <article className="rounded-xl border border-border bg-card p-4 card-elevated">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="truncate text-sm font-extrabold text-brand-navy">{title}</h3>
-        {href ? (
-          <a
-            href={href}
-            className="shrink-0 text-xs font-bold text-brand-blue underline underline-offset-4"
-          >
-            View all
-          </a>
-        ) : null}
-      </div>
+      {!hideHeading ? (
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="truncate text-sm font-extrabold text-brand-navy">{title}</h3>
+          {href ? (
+            <a
+              href={href}
+              className="shrink-0 text-xs font-bold text-brand-blue underline underline-offset-4"
+            >
+              View all
+            </a>
+          ) : null}
+        </div>
+      ) : null}
       {items.length ? (
         <div className="space-y-1">
           <ItemLink item={items[0]} />
@@ -304,14 +314,27 @@ export function GlobalEditorialPreview({
     >
       {Array.from({ length: Math.ceil(cards.length / 3) }, (_, row) => {
         const rowCards = cards.slice(row * 3, row * 3 + 3);
+        const isMediaRow = rowCards.length > 0 && rowCards.every((card) => card.module === "media");
         return (
           <div key={`discovery-row-${row}`} className="space-y-4">
+            {isMediaRow ? (
+              <div className="flex items-end justify-between gap-3">
+                <h2 className="text-lg font-extrabold text-brand-navy">Media &amp; Feed</h2>
+                <a
+                  href="/feed"
+                  className="text-sm font-bold text-brand-blue underline underline-offset-4"
+                >
+                  View all
+                </a>
+              </div>
+            ) : null}
             <div className="grid gap-4 md:grid-cols-3">
               {rowCards.map(({ module, items }, cardIndex) => (
                 <EditorialTripleCard
                   key={`${module}-${row * 3 + cardIndex}`}
                   title={meta[module].label}
                   items={items}
+                  hideHeading={isMediaRow}
                 />
               ))}
             </div>

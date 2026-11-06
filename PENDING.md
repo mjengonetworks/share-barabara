@@ -53,6 +53,15 @@
   and eight-width browser checks pass. Screenshots remain at
   `C:\Users\phabi\share-barabara\review-artifacts\homepage-unified-feed-2026-11-06\`.
   Production is unchanged and deployment remains blocked pending owner review.
+- **MEDIA & FEED VISUAL POLISH — IMPLEMENTED / OWNER REVIEW PENDING.** The
+  three-card homepage row now has one section heading and one View all link.
+  Canonical featured media loads eagerly and failed/absent images use compact
+  branded fallbacks. Homepage and `/feed` rendered the same latest-first title
+  sequence in the browser comparison; the shared sidebar retrieval remains
+  `getUnifiedFeed({ limit: 3 })`. Full `578/578`, security `14/14`, production
+  build, artifact verification and `git diff --check` pass. Updated screenshots
+  remain under
+  `C:\Users\phabi\share-barabara\review-artifacts\homepage-unified-feed-2026-11-06\`.
 
 - **HOMEPAGE HORIZONTAL MARGINS — DEPLOYED / VERIFIED / OWNER ACCEPTANCE
   PENDING (2026-11-05).** Approved application candidate

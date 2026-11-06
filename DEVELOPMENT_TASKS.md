@@ -98,6 +98,10 @@
   section repetition is allowed; only duplicate source representations within
   `getUnifiedFeed` are removed. The generic and article-detail sidebars now
   consume `getUnifiedFeed({ limit: 3 })` as well.
+- The Media & Feed row now has one section heading and one View all link above
+  its three cards. Featured images load eagerly from canonical feed media
+  metadata; failed or absent images collapse to compact branded fallbacks
+  instead of leaving an empty image frame.
 - Newsletter spacing is reduced and its gold form becomes horizontal from the
   small breakpoint upward; the emergency section uses a tighter aligned grid
   without changing its verified contacts. Chrome scroll inspection confirmed

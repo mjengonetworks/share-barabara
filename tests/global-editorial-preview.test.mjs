@@ -95,6 +95,9 @@ test("shared discovery cards keep canonical destinations and the approved respon
   assert.match(source, /slice\(/);
   assert.match(source, /Math\.ceil\(cards\.length \/ 3\)/);
   assert.match(source, /excludeKeys/);
+  assert.match(source, /hideHeading/);
+  assert.match(source, /Media &amp; Feed/);
+  assert.match(source, /onError=\{\(\) => setFailed\(true\)\}/);
 });
 
 test("discovery supports every genuine public source and page-level composite exclusions", async () => {
