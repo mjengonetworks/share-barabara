@@ -1420,3 +1420,10 @@ unfinished application changes are not merged here.
 - **Populated browser evidence:** homepage, `/feed`, article detail and report detail were captured against the candidate at 390px and 1440px. All final captures reported no horizontal overflow, failed responses or console errors. The homepage preview showed one Media & Feed heading/View All and three populated activity cards using the latest unified activity records; both detail sidebars showed the same latest-first feed, including the currently open article when eligible.
 - **Responsive evidence:** homepage captures were run at 360, 390, 412, 768, 1024, 1280, 1440 and 1920px. All reported no horizontal overflow. The 360px run produced one existing React hydration warning related to server/client caret-color styling; no runtime or network failure occurred. This warning is not introduced by the feed presentation change.
 - **Status:** Implemented — Pending Owner Visual Review; not deployed and no SQL/migrations executed.
+## MEDIA & FEED COMMUNITY PRESENTATION — STAGING DEPLOYMENT BLOCKED (2026-11-06)
+
+- **Candidate:** `788f2f2d0467055ae7e4172d962ef499b64ba846` on `feat/media-feed-community-presentation`.
+- **Staging availability:** established isolated Worker/domain path exists: `share-barabara-staging` / `staging.sharebarabara.co.ke`; DNS resolves and the deploy script removes cron triggers, sets `DEPLOYMENT_ENV=staging`, disables web push and applies noindex protection.
+- **Blocker:** staging shares the production Supabase project and the current environment gate does not make application writes read-only. Community posts, votes/comments, subscriptions and authenticated editorial mutations remain potentially writable. Per release safety requirements, no staging deployment was performed.
+- **Required minimal prerequisite:** an owner-approved isolated Supabase project/database, or a reviewed application-level read-only staging guard covering every mutation path. No SQL or migration was executed.
+- **Status:** Pending safe staging isolation; production unchanged.
