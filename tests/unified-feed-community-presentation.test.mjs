@@ -48,3 +48,16 @@ test("homepage preview resolves identities by the unified activity author", asyn
   assert.match(source, /identities\?\.\[items\[0\]\.activity\?\.authorId \?\? items\[0\]\.id\]/);
   assert.match(source, /identities\?\.\[item\.activity\?\.authorId \?\? item\.id\]/);
 });
+
+test("Media & Feed uses shared alternating surfaces and yellow activity pills", async () => {
+  const [activity, preview] = await Promise.all([
+    read("src/components/site/unified-feed-activity.tsx"),
+    read("src/components/site/global-editorial-preview.tsx"),
+  ]);
+  for (const token of ["#FFFFFF", "#EAF3FF", "#102653", "#F5B51B", "#101F43"]) {
+    assert.match(`${activity}\n${preview}`, new RegExp(token.replace("#", "\\#")));
+  }
+  assert.match(preview, /\["white", "blue", "navy"\]/);
+  assert.match(activity, /FeedSurfaceTone/);
+  assert.match(activity, /identity\?\.username/);
+});

@@ -36,7 +36,7 @@ export function StagingMediaFeedPreview() {
       <section aria-labelledby="preview-feed-heading">
         <h2 id="preview-feed-heading" className="sr-only">Media &amp; Feed preview cards</h2>
         <div className="grid gap-5 lg:grid-cols-3">
-          {cards.map((items, index) => <EditorialTripleCard key={index} title="Media & Feed" hideHeading items={items.map((item) => ({ id: item.key, title: item.title, href: item.href, imageUrl: item.imageUrl, category: item.label, destination: "media" as const, activity: item }))} identities={stagingPreviewIdentities} />)}
+          {cards.map((items, index) => <EditorialTripleCard key={index} title="Media & Feed" hideHeading tone={(["white", "blue", "navy"] as const)[index]} items={items.map((item) => ({ id: item.key, title: item.title, href: item.href, imageUrl: item.imageUrl, category: item.label, destination: "media" as const, activity: item }))} identities={stagingPreviewIdentities} />)}
         </div>
       </section>
       <section className="mt-8 grid gap-5 lg:grid-cols-2" aria-label="Detail sidebar previews">

@@ -10,6 +10,29 @@ type Identity = {
   avatar?: string | null;
 };
 
+export type FeedSurfaceTone = "white" | "blue" | "navy";
+
+const toneStyles: Record<FeedSurfaceTone, { text: string; secondary: string; border: string; fallback: string }> = {
+  white: {
+    text: "text-[#102653]",
+    secondary: "text-slate-600",
+    border: "border-slate-200",
+    fallback: "from-slate-50 via-white to-[#EAF3FF] text-[#102653]/70",
+  },
+  blue: {
+    text: "text-[#102653]",
+    secondary: "text-slate-600",
+    border: "border-[#c7dcf5]",
+    fallback: "from-[#dcecff] via-[#EAF3FF] to-white text-[#102653]/70",
+  },
+  navy: {
+    text: "text-white",
+    secondary: "text-blue-100",
+    border: "border-white/20",
+    fallback: "from-[#18376e] via-[#102653] to-[#0b1a3c] text-blue-100",
+  },
+};
+
 const kindLabel: Record<UnifiedFeedItem["kind"], string> = {
   article: "Article",
   alert: "Alert",
@@ -25,10 +48,12 @@ export function UnifiedFeedActivity({
   item,
   identity,
   compact = false,
+  tone = "white",
 }: {
   item: UnifiedFeedItem;
   identity?: Identity;
   compact?: boolean;
+  tone?: FeedSurfaceTone;
 }) {
   const displayName =
     identity?.name ?? (item.authorId ? "Share Barabara contributor" : "Share Barabara");
@@ -36,25 +61,26 @@ export function UnifiedFeedActivity({
   const timestamp = item.publishedAt ?? item.createdAt;
   const [imageFailed, setImageFailed] = useState(false);
   const hasMedia = Boolean((item.imageUrl && !imageFailed) || item.mediaUrl);
+  const styles = toneStyles[tone];
 
   if (compact) {
     return (
-      <span className="group flex min-w-0 gap-2.5 border-t border-border/70 py-3 first:border-t-0">
+      <span className={`group flex min-w-0 gap-2.5 border-t ${styles.border} py-3 first:border-t-0`}>
         <UserAvatar url={identity?.avatar} name={displayName} className="size-8 shrink-0" />
         <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <span className={`flex items-center gap-1.5 text-[11px] font-semibold ${styles.secondary}`}>
             <span className="truncate">{displayName}</span>
             <span aria-hidden="true">·</span>
             <span className="shrink-0">{timeAgo(timestamp)}</span>
           </span>
-          <span className="mt-1 inline-flex max-w-full rounded-full bg-accent/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-accent-foreground">
+          <span className="mt-1 inline-flex max-w-full rounded-full bg-[#F5B51B] px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#101F43]">
             {kind}
           </span>
-          <span className="mt-1 block line-clamp-2 text-sm font-bold leading-snug text-brand-navy group-hover:underline">
+          <span className={`mt-1 block line-clamp-2 text-sm font-bold leading-snug ${styles.text} group-hover:underline`}>
             {item.title}
           </span>
           {item.body ? (
-            <span className="mt-1 block line-clamp-2 text-xs leading-5 text-muted-foreground">
+            <span className={`mt-1 block line-clamp-2 text-xs leading-5 ${styles.secondary}`}>
               {item.body}
             </span>
           ) : null}
@@ -68,7 +94,7 @@ export function UnifiedFeedActivity({
             className="size-14 shrink-0 rounded-md object-cover"
           />
         ) : (
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-md bg-primary/5 text-primary/60">
+          <span className={`flex size-14 shrink-0 items-center justify-center rounded-md bg-black/5 ${styles.secondary}`}>
             <Radio className="size-4" aria-hidden="true" />
           </span>
         )}
@@ -77,24 +103,24 @@ export function UnifiedFeedActivity({
   }
 
   return (
-    <span className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-background/70 transition-colors hover:border-accent">
-      <span className="flex items-start gap-2.5 border-b border-border/70 p-4 pb-3">
+    <span className={`group flex min-w-0 flex-col overflow-hidden rounded-lg border ${styles.border} bg-transparent transition-colors hover:border-[#F5B51B]`}>
+      <span className={`flex items-start gap-3 border-b ${styles.border} p-4 pb-3`}>
         <UserAvatar url={identity?.avatar} name={displayName} className="size-9 shrink-0" />
         <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-semibold text-foreground">
-            <span className="truncate">{displayName}</span>
+          <span className={`flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-bold ${styles.text}`}>
+            <span className="min-w-0 max-w-full truncate">{displayName}</span>
             {identity?.username ? (
-              <span className="truncate text-muted-foreground">{identity.username}</span>
+              <span className={`min-w-0 max-w-full truncate text-xs font-normal ${styles.secondary}`}>{identity.username}</span>
             ) : null}
           </span>
-          <span className="mt-0.5 block text-[11px] text-muted-foreground">{timeAgo(timestamp)}</span>
+          <span className={`mt-0.5 block text-xs ${styles.secondary}`}>{timeAgo(timestamp)}</span>
         </span>
-        <span className="shrink-0 rounded-full bg-accent/15 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-accent-foreground">
+        <span className="max-w-[42%] shrink-0 rounded-full bg-[#F5B51B] px-2.5 py-1 text-center text-[9px] font-extrabold uppercase leading-tight tracking-[0.08em] text-[#101F43]">
           {kind}
         </span>
       </span>
       {hasMedia ? (
-        <span className="relative block aspect-[16/9] overflow-hidden bg-muted">
+          <span className={`relative block aspect-[16/9] overflow-hidden ${tone === "navy" ? "bg-[#18376e]" : "bg-slate-100"}`}>
           {item.imageUrl && !imageFailed ? (
             <img
               src={item.imageUrl}
@@ -105,36 +131,36 @@ export function UnifiedFeedActivity({
             />
           ) : null}
           {(!item.imageUrl || imageFailed) && item.mediaUrl ? (
-            <span className="flex size-full items-center justify-center text-primary/70">
+            <span className={`flex size-full items-center justify-center ${styles.secondary}`}>
               <Radio className="size-8" aria-hidden="true" />
               <span className="sr-only">Video activity</span>
             </span>
           ) : null}
           {imageFailed && !item.mediaUrl ? (
-            <span className="flex size-full items-center gap-3 bg-gradient-to-br from-primary/10 via-background to-accent/15 px-4 text-primary/70">
+            <span className={`flex size-full items-center gap-3 bg-gradient-to-br ${styles.fallback} px-4`}>
               <Radio className="size-6 shrink-0" aria-hidden="true" />
-              <span className="text-xs font-bold uppercase tracking-wider">
+              <span className="text-xs font-semibold">
                 Share Barabara activity
               </span>
             </span>
           ) : null}
         </span>
       ) : (
-        <span className="flex min-h-14 items-center gap-3 border-b border-border/70 bg-gradient-to-br from-primary/10 via-background to-accent/15 px-4 py-3 text-primary/70">
+        <span className={`flex min-h-14 items-center gap-3 border-b ${styles.border} bg-gradient-to-br ${styles.fallback} px-4 py-3`}>
           <Radio className="size-5 shrink-0" aria-hidden="true" />
           <span className="text-xs font-semibold">Share Barabara community activity</span>
         </span>
       )}
       <span className="flex flex-1 flex-col p-4 pt-3">
-        <span className="line-clamp-2 text-base font-extrabold leading-snug text-brand-navy group-hover:underline">
+        <span className={`line-clamp-2 text-base font-extrabold leading-snug ${styles.text} group-hover:underline`}>
           {item.title}
         </span>
         {item.body ? (
-          <span className="mt-2 line-clamp-3 text-sm leading-5 text-muted-foreground">
+          <span className={`mt-2 line-clamp-3 text-sm leading-5 ${styles.secondary}`}>
             {item.body}
           </span>
         ) : null}
-        <span className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/70 pt-3 text-[11px] font-semibold text-muted-foreground">
+        <span className={`mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t ${styles.border} pt-3 text-[11px] font-semibold ${styles.secondary}`}>
           <span className="inline-flex items-center gap-1" aria-label="Open activity">
             <ArrowUpRight className="size-3.5" aria-hidden="true" /> Open activity
           </span>

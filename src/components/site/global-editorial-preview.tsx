@@ -7,7 +7,7 @@ import { getUnifiedFeed } from "@/lib/unified-feed";
 import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
 import type { PreviewDestination, PreviewItem } from "@/lib/global-editorial-preview";
-import { UnifiedFeedActivity } from "@/components/site/unified-feed-activity";
+import { UnifiedFeedActivity, type FeedSurfaceTone } from "@/components/site/unified-feed-activity";
 
 type Props = {
   destination: PreviewDestination;
@@ -232,6 +232,7 @@ export function EditorialTripleCard({
   items,
   hideHeading = false,
   identities,
+  tone = "white",
 }: {
   title: string;
   items: PreviewItem[];
@@ -240,10 +241,19 @@ export function EditorialTripleCard({
     string,
     { name?: string | null; username?: string | null; avatar?: string | null }
   >;
+  tone?: FeedSurfaceTone;
 }) {
   const href = items[0] ? meta[items[0].destination].href : undefined;
   return (
-    <article className="rounded-xl border border-border bg-card p-4 card-elevated">
+    <article
+      className={`rounded-xl border p-4 card-elevated ${
+        tone === "navy"
+          ? "border-[#234276] bg-[#102653]"
+          : tone === "blue"
+            ? "border-[#c7dcf5] bg-[#EAF3FF]"
+            : "border-slate-200 bg-[#FFFFFF]"
+      }`}
+    >
       {!hideHeading ? (
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="truncate text-sm font-extrabold text-brand-navy">{title}</h3>
@@ -425,12 +435,13 @@ export function GlobalEditorialPreview({
             ) : null}
             <div className="grid gap-4 md:grid-cols-3">
               {rowCards.map(({ module, items }, cardIndex) => (
-                <EditorialTripleCard
+                  <EditorialTripleCard
                   key={`${module}-${row * 3 + cardIndex}`}
                   title={meta[module].label}
                   items={items}
                   hideHeading={isMediaRow}
                   identities={identities}
+                  tone={isMediaRow ? (["white", "blue", "navy"] as const)[cardIndex % 3] : "white"}
                 />
               ))}
             </div>

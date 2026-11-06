@@ -1489,3 +1489,12 @@ unfinished application changes are not merged here.
 - **Live checks:** `/staging-media-feed-preview` returned HTTP 200 and rendered synthetic preview markers, nine activity content and community labels. `/`, `/feed`, `/api/web-push-config` and `/api/unknown` returned HTTP 404 as required. Sampled preview JavaScript/CSS/image assets returned HTTP 200.
 - **Browser acceptance:** Chrome/Playwright remains unavailable because the CUA browser kernel could not initialize. No responsive visual, console or browser-network acceptance is claimed.
 - **Status:** Deployed to staging — owner visual acceptance pending; production remains unchanged.
+
+## MEDIA & FEED VISUAL SYSTEM — REVIEW CANDIDATE (2026-11-06)
+
+- **Scope:** focused visual correction on branch `feat/media-feed-visual-system`, based on deployed preview application `8335a1e7163ea31f5cff9376c6f95eb0e7f49db9`. No feed query, ordering, publication security, interaction permissions, Supabase object, SQL or migration changed.
+- **Design system:** Media & Feed surfaces now share explicit white / `#EAF3FF` / `#102653` card tones, with the repeating sequence applied to the three homepage cards. Activity pills consistently use `#F5B51B` with `#101F43` text. Shared typography and tone-aware borders, fallbacks, metadata, headlines and compact rows are centralized in `UnifiedFeedActivity`.
+- **Preserved behavior:** Pattern B remains three cards with one featured and two compact activities; sidebars adapt the same compact component; `/feed` retains its existing real voting, comments and sharing controls. Unrelated News, Alerts, Reports and Campaigns cards are not recolored.
+- **Verification:** focused presentation/artifact tests `8/8`, full suite `586/586`, security suite `14/14`, staging-preview build, `.output/server/index.mjs`, `.output/server/wrangler.json` and `git diff --check` pass.
+- **Browser/staging:** no browser screenshots are claimed because CUA browser assets remain unavailable. Existing staging remains on deployment `77304b31-cb93-4999-a952-8757b1772a6c` / version `d105c33f-2a64-4d14-9cdf-4aea31493e00`; this candidate was not deployed.
+- **Status:** Implemented — pending owner visual review and separate staging deployment approval.
