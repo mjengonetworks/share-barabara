@@ -158,15 +158,7 @@ function CompactItemLink({ item }: { item: PreviewItem }) {
   );
 }
 
-export function EditorialTripleCard({
-  title,
-  items,
-  wide = false,
-}: {
-  title: string;
-  items: PreviewItem[];
-  wide?: boolean;
-}) {
+export function EditorialTripleCard({ title, items }: { title: string; items: PreviewItem[] }) {
   const href = items[0] ? meta[items[0].destination].href : undefined;
   return (
     <article className="rounded-xl border border-border bg-card p-4 card-elevated">
@@ -182,20 +174,12 @@ export function EditorialTripleCard({
         ) : null}
       </div>
       {items.length ? (
-        wide ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <ItemLink key={item.id} item={item} />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-1">
-            <ItemLink item={items[0]} />
-            {items.slice(1, 3).map((item) => (
-              <CompactItemLink key={item.id} item={item} />
-            ))}
-          </div>
-        )
+        <div className="space-y-1">
+          <ItemLink item={items[0]} />
+          {items.slice(1, 3).map((item) => (
+            <CompactItemLink key={item.id} item={item} />
+          ))}
+        </div>
       ) : null}
     </article>
   );
@@ -310,22 +294,9 @@ export function GlobalEditorialPreview({
         const rowCards = cards.slice(row * 3, row * 3 + 3);
         return (
           <div key={`discovery-row-${row}`} className="space-y-4">
-            <div
-              className={`grid gap-4 ${
-                rowCards.length === 1
-                  ? "md:grid-cols-1"
-                  : rowCards.length === 2
-                    ? "md:grid-cols-2"
-                    : "md:grid-cols-3"
-              }`}
-            >
+            <div className="grid gap-4 md:grid-cols-3">
               {rowCards.map(({ module, items }) => (
-                <EditorialTripleCard
-                  key={module}
-                  title={meta[module].label}
-                  items={items}
-                  wide={rowCards.length === 1}
-                />
+                <EditorialTripleCard key={module} title={meta[module].label} items={items} />
               ))}
             </div>
             <BannerAd placement={`global-editorial-discovery-row-${row + 1}`} />

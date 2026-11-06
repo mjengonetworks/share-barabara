@@ -77,13 +77,11 @@
   matrix rerun clean. Public read-only source counts were News 100, Alerts 15,
   Reports 14, Videos 8, bridge entries 23; Infrastructure, Campaigns,
   community posts and administrator updates returned zero eligible rows.
-- The follow-up preview correction addresses the remaining layout issue:
-  singleton rows now use the full available width, while a singleton card uses
-  an internal responsive three-item grid instead of one oversized featured
-  card. Image-less items use compact branded fallbacks; YouTube-backed videos
-  use their real thumbnail URL when available. The final browser run passed all
-  eight widths with no overflow, console errors, page errors or failed
-  responses. Screenshots remain under `%TEMP%\share-barabara-unified-feed\`.
+- The approved Pattern B remains three separate cards per desktop row, with
+  three real items inside each card: one featured item followed by two compact
+  items. No singleton-card or placeholder-fill redesign is used. Image-less
+  items use compact branded fallbacks; YouTube-backed videos use their real
+  thumbnail URL when available. Rows collapse to one card at a time on mobile.
 
 ## Homepage horizontal margins — DEPLOYED / VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-05
 

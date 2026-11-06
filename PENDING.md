@@ -25,9 +25,10 @@
   now use the same source; community attachments continue through the existing
   owner/server-signed media path. No migration or production write is required.
   Full `578/578` and security `14/14` pass, and the
-  production build passes. The follow-up preview correction uses full-width
-  singleton rows, a balanced internal three-card layout, compact no-image
-  fallbacks and real YouTube thumbnails where available. Isolated Playwright
+  production build passes. The approved Pattern B remains three separate cards
+  per desktop row, each with one featured item and two compact items; no
+  singleton-card or placeholder-fill redesign is used. Compact no-image
+  fallbacks and real YouTube thumbnails are used where available. Isolated Playwright
   1.64.1 with the existing
   Chromium 1248 executable captured homepage and `/feed` screenshots at all
   eight required widths under `%TEMP%\share-barabara-unified-feed\`. There was
