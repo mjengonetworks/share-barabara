@@ -1427,3 +1427,9 @@ unfinished application changes are not merged here.
 - **Blocker:** staging shares the production Supabase project and the current environment gate does not make application writes read-only. Community posts, votes/comments, subscriptions and authenticated editorial mutations remain potentially writable. Per release safety requirements, no staging deployment was performed.
 - **Required minimal prerequisite:** an owner-approved isolated Supabase project/database, or a reviewed application-level read-only staging guard covering every mutation path. No SQL or migration was executed.
 - **Status:** Pending safe staging isolation; production unchanged.
+## MEDIA & FEED COMMUNITY PRESENTATION — READ-ONLY STAGING AUDIT (2026-11-06)
+
+- **Audit result:** staging infrastructure exists, but the application exposes the shared Supabase publishable credential to the browser. Direct browser REST, storage and auth requests can bypass any JavaScript-only mutation guard.
+- **Mutation surface confirmed:** direct client writes include feed posts/media, comments/reports, votes, view tracking, newsletter subscriptions, alerts/reports, partner enquiries, notifications/preferences, settings, ratings, uploads and multiple admin/editorial tables. Server functions and service-role paths additionally cover feed, comments, alerts, reports, newsletter, AI persistence and incident discovery.
+- **Safety decision:** no staging guard or deployment was claimed as safe. A Worker-level method guard would not stop direct browser-to-Supabase writes; a client fetch wrapper would not be a security boundary. Production RLS, credentials, database objects and data were not changed.
+- **Required prerequisite:** provide a genuinely read-only Supabase/API identity or an isolated staging Supabase project, or approve a complete server-side read-only data proxy that removes direct browser Supabase access. Until then, staging deployment remains blocked.
