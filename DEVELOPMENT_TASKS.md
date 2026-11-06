@@ -1460,3 +1460,13 @@ unfinished application changes are not merged here.
 - **Evidence:** focused preview/security tests pass `3/3`; preview production build passes and generated `.output/server/index.mjs` plus `.output/server/wrangler.json` exist. No Supabase host, publishable key or service-role value was found in generated server/public output. `git diff --check` passes. Full lint remains noisy because the existing repository-wide CRLF/Prettier configuration reports unrelated line-ending diagnostics.
 - **Deployment:** `scripts/deploy-staging-preview.mjs` targets only the existing `share-barabara-staging` Worker/domain and refuses to run unless `STAGING_PREVIEW_DEPLOY=1` is explicitly set. It was not run. Current staging deployment remains the rollback point.
 - **Status:** **Prepared — pending owner approval of this preview build and deployment plan.**
+
+## FREE-PLAN ISOLATED MEDIA & FEED PREVIEW — DEPLOYED TO STAGING (2026-11-06)
+
+- **Deployed application:** `a104d9f0d8f981bb0cbea985c505dac58bbc0ce9`, based on approved application `788f2f2d0467055ae7e4172d962ef499b64ba846`.
+- **Rollback captured before deployment:** deployment `6b6a28dc-aadb-40f4-9fa8-4869aa139251`, Worker version `e6e87490-ef4a-4f70-b0f1-669048655bd1`, 100% traffic.
+- **New staging deployment:** deployment `eff5c471-a727-4f5f-8119-76f5474d81c1`, Worker version `b51033eb-c5af-419f-aa2b-2bb6d6174a8e`, 100% traffic; message `synthetic-media-feed-preview`.
+- **Configuration:** existing Worker `share-barabara-staging` and custom domain `staging.sharebarabara.co.ke` preserved. `ASSETS` and `AI_RATE_LIMITER` remained present; `DEPLOYMENT_ENV=staging-preview`, `WEB_PUSH_ENABLED=false`; no cron trigger was deployed.
+- **Live isolation checks:** preview route rendered nine synthetic records and both sidebar previews. `/`, `/feed`, `/admin`, `/api/web-push-config` and an arbitrary `/api` path returned 404. Production `/`, `/news` and `/feed` remained HTTP 200.
+- **Browser acceptance:** CUA/Chrome initialization failed because browser kernel assets were unavailable in this environment. Responsive screenshots, console errors and browser-network inspection remain pending; no visual acceptance is claimed.
+- **Status:** **Deployed to staging — owner visual/browser acceptance pending.** No production deployment, Supabase change, SQL or migration was performed.
