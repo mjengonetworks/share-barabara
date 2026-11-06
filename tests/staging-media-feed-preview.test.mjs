@@ -21,7 +21,7 @@ test("preview build strips Supabase credentials and locks the Worker to the prev
   const build = await read("scripts/build-staging-preview.mjs");
   const server = await read("src/server.ts");
   const deploy = await read("scripts/deploy-staging-preview.mjs");
-  assert.match(build, /delete env\[key\]/);
+  assert.match(build, /env\[key\] = ""/);
   assert.match(build, /VITE_SUPABASE_URL/);
   assert.match(build, /staging-preview/);
   assert.match(server, /isIsolatedPreviewRuntime/);
