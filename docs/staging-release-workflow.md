@@ -37,9 +37,10 @@ staging candidate.
   so it cannot run the Incident Source scheduler or push dispatcher.
 - Staging disables web-push dispatch. Other application writes and integrations
   must be reviewed per candidate.
-- Staging initially uses the same Supabase project as production. Database and
-  mutable data are **not isolated**: staging writes can affect real production
-  data. Do not create test records or run destructive/admin actions casually.
+- Staging must use a separate Supabase project. The previous shared-project
+  configuration is unsafe and is not deployable for visual acceptance. No
+  production Supabase URL, publishable key or service-role credential may be
+  placed in staging.
 - No Supabase migrations are part of a staging deployment.
 - Staging emits `noindex, nofollow`, serves a disallow-all `robots.txt`, and
   shows `STAGING · SHARED DATA`. Production has none of these staging markers.

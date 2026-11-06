@@ -1433,3 +1433,10 @@ unfinished application changes are not merged here.
 - **Mutation surface confirmed:** direct client writes include feed posts/media, comments/reports, votes, view tracking, newsletter subscriptions, alerts/reports, partner enquiries, notifications/preferences, settings, ratings, uploads and multiple admin/editorial tables. Server functions and service-role paths additionally cover feed, comments, alerts, reports, newsletter, AI persistence and incident discovery.
 - **Safety decision:** no staging guard or deployment was claimed as safe. A Worker-level method guard would not stop direct browser-to-Supabase writes; a client fetch wrapper would not be a security boundary. Production RLS, credentials, database objects and data were not changed.
 - **Required prerequisite:** provide a genuinely read-only Supabase/API identity or an isolated staging Supabase project, or approve a complete server-side read-only data proxy that removes direct browser Supabase access. Until then, staging deployment remains blocked.
+## ISOLATED STAGING ENVIRONMENT — PREPARATION (2026-11-06)
+
+- **Candidate:** `788f2f2d0467055ae7e4172d962ef499b64ba846`; dedicated branch `chore/isolated-staging-preparation`.
+- **Findings:** existing Cloudflare staging Worker/domain and deployment script are reusable, but the current staging configuration points at the shared Supabase project. The repository has 87 ordered migrations, no versioned Storage bucket creation, and seed-heavy migrations that require a new empty project and review.
+- **Prepared:** isolated staging requirements, migration handling, synthetic dataset plan, required secrets and security checklist in `docs/isolated-staging-environment-plan.md`. Existing staging workflow documentation now explicitly rejects the shared production Supabase configuration.
+- **Owner actions:** create the separate Supabase project, configure staging-only URL/keys/secrets/Auth redirects/buckets, approve synthetic seed data and provide credentials through the approved secret channel.
+- **Status:** Prepared — blocked pending isolated Supabase project; no migrations, production changes or staging deployment performed.
