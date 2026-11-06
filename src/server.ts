@@ -10,7 +10,25 @@ type ServerEntry = {
 };
 
 function isStagingRuntime(): boolean {
-  return serverEnv("DEPLOYMENT_ENV") === "staging";
+  return ["staging", "staging-preview"].includes(serverEnv("DEPLOYMENT_ENV") ?? "");
+}
+
+function isIsolatedPreviewRuntime(): boolean {
+  return serverEnv("DEPLOYMENT_ENV") === "staging-preview";
+}
+
+function isAllowedPreviewPath(pathname: string): boolean {
+  return (
+    pathname === "/staging-media-feed-preview" ||
+    pathname === "/robots.txt" ||
+    pathname === "/favicon.png" ||
+    pathname === "/icon-192.png" ||
+    pathname === "/icon-512.png" ||
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/sw.js" ||
+    pathname === "/mockServiceWorker.js" ||
+    pathname.startsWith("/assets/")
+  );
 }
 
 function withStagingProtection(response: Response): Response {
@@ -87,6 +105,11 @@ export default {
       // every request, not only scheduled push dispatches.
       (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
       const requestUrl = new URL(request.url);
+      if (isIsolatedPreviewRuntime() && !isAllowedPreviewPath(requestUrl.pathname)) {
+        return withStagingProtection(
+          new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } }),
+        );
+      }
       if (isStagingRuntime() && requestUrl.pathname === "/robots.txt") {
         return new Response("User-agent: *\nDisallow: /\n", {
           headers: {

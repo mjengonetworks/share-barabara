@@ -21,7 +21,7 @@ import { InstallAppPrompt } from "../components/site/install-app-prompt";
 import { MockApiBadge } from "../components/site/mock-api-badge";
 import { BackToTop } from "../components/site/back-to-top";
 import { QuoteOfTheDay } from "../components/site/quote-of-the-day";
-import { isStaging } from "../lib/deployment-env";
+import { isIsolatedStagingPreview, isStaging } from "../lib/deployment-env";
 
 function NotFoundComponent() {
   return (
@@ -101,7 +101,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Share Barabara" },
       { name: "twitter:card", content: "summary_large_image" },
-      ...(isStaging ? [{ name: "robots", content: "noindex, nofollow" }] : []),
+      ...(isStaging || isIsolatedStagingPreview
+        ? [{ name: "robots", content: "noindex, nofollow" }]
+        : []),
       { name: "theme-color", content: "#000837" },
     ],
     links: [
@@ -125,16 +127,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Public+Sans:wght@400;500;600;700&display=swap",
       },
     ],
-    scripts: [
-      {
+    scripts: isIsolatedStagingPreview
+      ? []
+      : [
+          {
         tag: "script",
         attrs: {
           async: true,
           src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3450370806251490",
           crossOrigin: "anonymous",
         },
-      },
-    ],
+          },
+        ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -161,6 +165,23 @@ function RootComponent() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isAdminApp = pathname === "/admin" || pathname.startsWith("/admin/");
   const showSharedQuote = !isAdminApp && pathname !== "/" && !pathname.startsWith("/merch") && pathname !== "/partner-with-us";
+
+  if (isIsolatedStagingPreview) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <div className="min-h-screen bg-background">
+          <div
+            className="border-b border-amber-300 bg-amber-100 px-3 py-2 text-center text-xs font-bold tracking-wide text-amber-950"
+            role="status"
+            aria-label="Read-only staging preview using synthetic data"
+          >
+            STAGING · SYNTHETIC READ-ONLY PREVIEW
+          </div>
+          <main className="flex-1"><Outlet /></main>
+        </div>
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

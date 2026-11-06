@@ -7,6 +7,7 @@
     "dev": "vite dev",
     "build": "vite build --mode static",
     "build:staging": "node scripts/build-staging.mjs",
+    "build:staging-preview": "node scripts/build-staging-preview.mjs",
     "deploy:staging": "node scripts/deploy-staging.mjs",
     "deploy:production": "node scripts/deploy-production.mjs",
     "build:dev": "vite build --mode development",

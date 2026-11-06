@@ -38,7 +38,8 @@ staging candidate.
 - Staging disables web-push dispatch. Other application writes and integrations
   must be reviewed per candidate.
 - Staging must use a separate Supabase project. The previous shared-project
-  configuration is unsafe and is not deployable for visual acceptance. No
+  configuration is the same Supabase project as production, is unsafe and is
+  not deployable for visual acceptance. No
   production Supabase URL, publishable key or service-role credential may be
   placed in staging.
 - No Supabase migrations are part of a staging deployment.
