@@ -44,13 +44,15 @@ export function PublicNewsletterCard({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-300 via-amber-200 to-orange-100 p-5 text-slate-950 shadow-sm ${className}`}
+      className={`rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-300 via-amber-200 to-orange-100 p-4 text-slate-950 shadow-sm ${className}`}
     >
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-700">
-        Share Barabara newsletter
-      </p>
-      <h2 className="mt-2 text-xl font-bold text-slate-950">{title}</h2>
-      <p className="mt-2 text-sm text-slate-800/80">{description}</p>
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-700">
+          Share Barabara newsletter
+        </p>
+        <h2 className="mt-1 text-xl font-bold text-slate-950">{title}</h2>
+        <p className="mt-1 text-sm text-slate-800/80">{description}</p>
+      </div>
       {children ?? <NewsletterForm className="mt-4" variant="gold" />}
     </section>
   );

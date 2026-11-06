@@ -43,9 +43,7 @@ test("banner placement failures fall back without retry storms", async () => {
 
 test("public incident sidebars read latest eligible canonical Feed posts", async () => {
   const sidebar = await read("src/components/site/editorial-sidebar.tsx");
-  assert.match(sidebar, /from\("feed_posts"\)/);
-  assert.match(sidebar, /status.*published/);
-  assert.match(sidebar, /moderation_status.*approved/);
+  assert.match(sidebar, /getUnifiedFeed\(\{ limit: 3 \}/);
   assert.match(sidebar, /Latest Media &amp; Feed/);
 });
 
@@ -58,7 +56,9 @@ test("road matching never creates a record and supports reviewed aliases", async
 });
 
 test("Road Registry migration is additive and review-only", async () => {
-  const migration = await read("supabase/migrations/20261030200000_canonical_road_registry_review.sql");
+  const migration = await read(
+    "supabase/migrations/20261030200000_canonical_road_registry_review.sql",
+  );
   assert.match(migration, /ADD COLUMN IF NOT EXISTS geometry JSONB/);
   assert.match(migration, /road_registry_history/);
   assert.match(migration, /external_geo_id/);

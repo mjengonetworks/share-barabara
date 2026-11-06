@@ -37,13 +37,20 @@ import { GlobalEditorialPreview } from "@/components/site/global-editorial-previ
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns" },
+      {
+        title:
+          "Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns",
+      },
       {
         name: "description",
         content:
           "Live road hazard alerts, crash statistics, articles and safety guidance for Kenya's roads. Report hazards, file accident reports and join the conversation.",
       },
-      { property: "og:title", content: "Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns" },
+      {
+        property: "og:title",
+        content:
+          "Share Barabara - Share the Road: Live Hazard Alerts, Accident Reports, and Road Safety Campaigns",
+      },
       {
         property: "og:description",
         content: "Live hazard alerts, crash data and safety guidance for every Kenyan road user.",
@@ -108,8 +115,14 @@ function Index() {
         .select("id, duplicate_of_report_id, deleted_at")
         .eq("status", "approved")
         .is("deleted_at", null);
-      if (!current.error) return current.data.filter((report) => !report.duplicate_of_report_id).length;
-      if (!/duplicate_of_report_id|deleted_at|column .* does not exist|schema cache/i.test(current.error.message ?? "")) throw current.error;
+      if (!current.error)
+        return current.data.filter((report) => !report.duplicate_of_report_id).length;
+      if (
+        !/duplicate_of_report_id|deleted_at|column .* does not exist|schema cache/i.test(
+          current.error.message ?? "",
+        )
+      )
+        throw current.error;
       const legacy = await supabase.from("accident_reports").select("id").eq("status", "approved");
       if (legacy.error) throw legacy.error;
       return legacy.data.length;
@@ -137,19 +150,30 @@ function Index() {
     queryKey: ["home-official-statistics"],
     queryFn: async () => {
       const { data, error } = await (supabase.from("statistics_datasets") as any)
-        .select("id,title,metric_type,unit,source_organization,source_url,reporting_period_start,reporting_period_end,last_verified_at,statistics_observations(value,record_status,verification_status,period_start,period_end)")
+        .select(
+          "id,title,metric_type,unit,source_organization,source_url,reporting_period_start,reporting_period_end,last_verified_at,statistics_observations(value,record_status,verification_status,period_start,period_end)",
+        )
         .eq("publication_status", "published")
         .eq("geography_level", "national")
         .order("reporting_period_end", { ascending: false })
         .limit(24);
       if (error) {
-        if (/statistics_datasets|statistics_observations|relation|schema cache|does not exist/i.test(error.message ?? "")) return [];
+        if (
+          /statistics_datasets|statistics_observations|relation|schema cache|does not exist/i.test(
+            error.message ?? "",
+          )
+        )
+          return [];
         throw error;
       }
       return (data ?? [])
         .map((dataset: any) => {
           const observation = (dataset.statistics_observations ?? [])
-            .filter((row: any) => row.record_status === "published" && ["provisional", "final"].includes(row.verification_status))
+            .filter(
+              (row: any) =>
+                row.record_status === "published" &&
+                ["provisional", "final"].includes(row.verification_status),
+            )
             .sort((a: any, b: any) => String(b.period_end).localeCompare(String(a.period_end)))[0];
           return observation ? { ...dataset, observation } : null;
         })
@@ -158,8 +182,11 @@ function Index() {
     staleTime: 60_000,
   });
 
-  const officialMetric = (metric: string) => officialMetrics.find((item) =>
-    item.metric_type === metric || (metric === "deaths" && item.metric_type === "fatalities"));
+  const officialMetric = (metric: string) =>
+    officialMetrics.find(
+      (item) =>
+        item.metric_type === metric || (metric === "deaths" && item.metric_type === "fatalities"),
+    );
 
   return (
     <div>
@@ -212,12 +239,33 @@ function Index() {
             </Button>
           </div>
           <div className="mt-7 grid max-w-4xl gap-3 sm:grid-cols-3">
-            <Link to="/statistics" className="rounded-lg border border-accent/70 bg-card/95 p-3 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-              <Stat value={recordedAccidentsError ? "—" : recordedAccidents === undefined ? "…" : num(recordedAccidents)} label="recorded road accidents" danger />
-              <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Approved, deduplicated road reports</span>
+            <Link
+              to="/statistics"
+              className="rounded-lg border border-accent/70 bg-card/95 p-3 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <Stat
+                value={
+                  recordedAccidentsError
+                    ? "—"
+                    : recordedAccidents === undefined
+                      ? "…"
+                      : num(recordedAccidents)
+                }
+                label="recorded road accidents"
+                danger
+              />
+              <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Approved, deduplicated road reports
+              </span>
             </Link>
-            <OfficialMetricCard metric={officialMetric("deaths")} fallback="Official fatalities pending verification" />
-            <OfficialMetricCard metric={officialMetric("serious_injuries")} fallback="Official serious injuries pending verification" />
+            <OfficialMetricCard
+              metric={officialMetric("deaths")}
+              fallback="Official fatalities pending verification"
+            />
+            <OfficialMetricCard
+              metric={officialMetric("serious_injuries")}
+              fallback="Official serious injuries pending verification"
+            />
           </div>
         </div>
       </section>
@@ -377,7 +425,13 @@ function Index() {
               to="/statistics"
               cta="View statistics"
               icon={BarChart3}
-              stat={recordedAccidentsError ? undefined : recordedAccidents === undefined ? "…" : num(recordedAccidents)}
+              stat={
+                recordedAccidentsError
+                  ? undefined
+                  : recordedAccidents === undefined
+                    ? "…"
+                    : num(recordedAccidents)
+              }
               statLabel="recorded accidents"
             />
             <PreviewCard
@@ -440,32 +494,32 @@ function Index() {
           <PublicNewsletterCard
             title="Get the Share Barabara newsletter"
             description="Hazard trends, new campaigns and top stories, straight to your inbox."
-            className="flex flex-wrap items-center justify-between gap-6"
+            className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
           >
-            <div className="w-full sm:w-auto sm:min-w-[20rem]">
+            <div className="w-full sm:w-auto sm:min-w-[22rem] sm:max-w-[34rem]">
               <NewsletterForm variant="gold" />
             </div>
           </PublicNewsletterCard>
         </div>
       </section>
 
-      <section className="public-content-container py-10">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <h2 className="text-[1.44375rem] font-bold">In an emergency</h2>
-            <p className="mt-3 text-muted-foreground">
+      <section className="public-content-container py-8">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
+          <div className="min-w-0">
+            <h2 className="text-[1.35rem] font-bold">In an emergency</h2>
+            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
               Save these numbers now. Minutes matter after a crash: the first hour decides whether
               an injury becomes a fatality.
             </p>
-            <Button asChild className="mt-6" variant="outline">
+            <Button asChild className="mt-4" variant="outline">
               <Link to="/campaigns" hash="emergency">
                 What to do at a crash scene
               </Link>
             </Button>
           </div>
-          <ul className="divide-y divide-border rounded-lg border border-border bg-card px-6">
+          <ul className="divide-y divide-border rounded-lg border border-border bg-card px-4">
             {EMERGENCY_CONTACTS.map((c) => (
-              <li key={c.name} className="flex items-center justify-between py-4">
+              <li key={c.name} className="flex items-center justify-between gap-4 py-3">
                 <span className="text-sm">{c.name}</span>
                 <span className="font-display text-lg font-bold">{c.number}</span>
               </li>
@@ -544,12 +598,26 @@ function Index() {
   );
 }
 
-function OfficialMetricCard({ metric, fallback }: { metric?: Record<string, any>; fallback: string }) {
+function OfficialMetricCard({
+  metric,
+  fallback,
+}: {
+  metric?: Record<string, any>;
+  fallback: string;
+}) {
   return (
-    <Link to="/statistics" className="rounded-lg border border-border bg-card/95 p-3 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-      <Stat value={metric ? num(metric.observation.value) : "—"} label={metric ? `Official national ${metric.metric_type.replaceAll("_", " ")}` : fallback} />
+    <Link
+      to="/statistics"
+      className="rounded-lg border border-border bg-card/95 p-3 backdrop-blur transition-colors hover:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
+      <Stat
+        value={metric ? num(metric.observation.value) : "—"}
+        label={metric ? `Official national ${metric.metric_type.replaceAll("_", " ")}` : fallback}
+      />
       <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {metric ? `${metric.source_organization} · as of ${metric.observation.period_end}` : "Source and reporting period required"}
+        {metric
+          ? `${metric.source_organization} · as of ${metric.observation.period_end}`
+          : "Source and reporting period required"}
       </span>
     </Link>
   );

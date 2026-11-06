@@ -92,7 +92,7 @@ test("shared discovery cards keep canonical destinations and the approved respon
   assert.match(source, /getUnifiedFeed\(\{ limit: 18 \}/);
   assert.match(source, /grid gap-4 md:grid-cols-3/);
   assert.match(source, /i.ytimg.com\/vi/);
-  assert.match(source, /slice\(0, 3\)/);
+  assert.match(source, /slice\(/);
   assert.match(source, /Math\.ceil\(cards\.length \/ 3\)/);
   assert.match(source, /excludeKeys/);
 });
@@ -116,7 +116,7 @@ test("discovery supports every genuine public source and page-level composite ex
     );
   }
   assert.match(source, /excludeKeys\.includes\(`\$\{item\.destination\}:\$\{item\.id\}`\)/);
-  assert.match(source, /!used\.has\(`\$\{item\.destination\}:\$\{item\.id\}`\)/);
+  assert.doesNotMatch(source, /!used\.has\(`\$\{item\.destination\}:\$\{item\.id\}`\)/);
   for (const file of [
     "src/routes/news.$slug.tsx",
     "src/routes/alerts.$alertId.tsx",

@@ -59,7 +59,7 @@ export function NewsletterForm({
 
   return (
     <form
-      className={`${variant === "sidebar" || variant === "gold" ? "flex flex-col items-stretch gap-3" : "flex flex-wrap items-center gap-2"} ${className}`}
+      className={`${variant === "sidebar" ? "flex flex-col items-stretch gap-3" : variant === "gold" ? "flex flex-col items-stretch gap-2 sm:flex-row sm:items-center" : "flex flex-wrap items-center gap-2"} ${className}`}
       onSubmit={(e) => {
         e.preventDefault();
         if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email.trim())) {
@@ -80,7 +80,7 @@ export function NewsletterForm({
           variant === "sidebar"
             ? "w-full border-white/20 bg-white/10 text-primary-foreground placeholder:text-primary-foreground/60"
             : variant === "gold"
-              ? "w-full border-slate-900/15 bg-white/75 text-slate-950 placeholder:text-slate-700/60"
+              ? "w-full border-slate-900/15 bg-white/75 text-slate-950 placeholder:text-slate-700/60 sm:min-w-64"
               : "max-w-xs bg-background"
         }
         aria-invalid={Boolean(validationError)}
@@ -88,7 +88,7 @@ export function NewsletterForm({
       <Button
         type="submit"
         disabled={subscribe.isPending}
-        className={`${variant === "gold" ? "w-full bg-brand-blue text-white hover:bg-brand-navy" : "bg-accent text-accent-foreground hover:bg-accent/90"} ${variant === "sidebar" || variant === "gold" ? "w-full" : ""}`}
+        className={`${variant === "gold" ? "w-full bg-brand-blue text-white hover:bg-brand-navy sm:w-auto" : "bg-accent text-accent-foreground hover:bg-accent/90"} ${variant === "sidebar" ? "w-full" : ""}`}
       >
         <Mail className="mr-1 size-4" />
         {subscribe.isPending ? "Subscribing…" : "Subscribe"}

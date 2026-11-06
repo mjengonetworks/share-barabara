@@ -92,6 +92,20 @@
   `C:\Users\phabi\share-barabara\review-artifacts\homepage-unified-feed-2026-11-06\`.
   They are isolated candidate evidence only; production remains application
   `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` and has not been changed.
+- Final visual corrections keep the accepted outer margins and Pattern B while
+  expanding the homepage Media & Feed module into three same-source cards,
+  each showing one latest-first featured item plus two compact items. Cross-
+  section repetition is allowed; only duplicate source representations within
+  `getUnifiedFeed` are removed. The generic and article-detail sidebars now
+  consume `getUnifiedFeed({ limit: 3 })` as well.
+- Newsletter spacing is reduced and its gold form becomes horizontal from the
+  small breakpoint upward; the emergency section uses a tighter aligned grid
+  without changing its verified contacts. Chrome scroll inspection confirmed
+  the header remains at `y=0`; the apparent mid-page header in a full-page
+  screenshot is the browser's sticky-element capture behavior, not a stacking
+  defect. Final focused coverage passes `34/34`, full tests pass `578/578`,
+  security passes `14/14`, the production build and artifact check pass, and
+  browser captures are clean at the existing eight widths.
 
 ## Homepage horizontal margins — DEPLOYED / VERIFIED / OWNER ACCEPTANCE PENDING — 2026-11-05
 

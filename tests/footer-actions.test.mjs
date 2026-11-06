@@ -9,7 +9,10 @@ async function source(path) {
 test("newsletter Subscribe uses the existing light-blue hover color by default", async () => {
   const newsletter = await source("src/components/site/newsletter-form.tsx");
   const button = await source("src/components/ui/button.tsx");
-  assert.match(newsletter, /variant === "gold" \? "w-full bg-brand-blue text-white hover:bg-brand-navy"/);
+  assert.match(
+    newsletter,
+    /variant === "gold" \? "w-full bg-brand-blue text-white hover:bg-brand-navy sm:w-auto"/,
+  );
   assert.match(newsletter, /<Button[\s\S]*type="submit"/);
   assert.match(button, /focus-visible:ring/);
   assert.match(newsletter, /newsletter_subscribers/);
@@ -20,7 +23,10 @@ test("newsletter Subscribe uses the existing light-blue hover color by default",
 test("footer keeps one premium action and places submission actions under emergency numbers", async () => {
   const footer = await source("src/components/site/site-footer.tsx");
   assert.equal((footer.match(/Subscribe to Premium/g) ?? []).length, 1);
-  assert.match(footer, /Emergency numbers[\s\S]*Subscribe to Premium[\s\S]*Submit an Alert[\s\S]*Submit a Report/);
+  assert.match(
+    footer,
+    /Emergency numbers[\s\S]*Subscribe to Premium[\s\S]*Submit an Alert[\s\S]*Submit a Report/,
+  );
   assert.match(footer, /w-full justify-start bg-accent text-accent-foreground/);
   assert.match(footer, /w-full justify-start border border-caution\/60/);
   assert.match(footer, /w-full justify-start border border-brand-blue\/60/);

@@ -43,6 +43,16 @@
   `C:\Users\phabi\share-barabara\review-artifacts\homepage-unified-feed-2026-11-06\`.
   Production remains at application
   `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee`; the candidate is not deployed.
+- **FINAL HOMEPAGE PREVIEW CORRECTIONS — IMPLEMENTED / OWNER VISUAL REVIEW
+  PENDING.** Media & Feed now renders three same-source Pattern B cards with
+  up to nine latest eligible records, while preserving cross-section repetition
+  and in-feed deduplication. Homepage and article sidebars use the shared
+  `getUnifiedFeed` ordering. Newsletter and emergency layouts are compacted
+  without changing subscription behavior or emergency contacts. Focused tests
+  `34/34`, full tests `578/578`, security `14/14`, build, artifact verification
+  and eight-width browser checks pass. Screenshots remain at
+  `C:\Users\phabi\share-barabara\review-artifacts\homepage-unified-feed-2026-11-06\`.
+  Production is unchanged and deployment remains blocked pending owner review.
 
 - **HOMEPAGE HORIZONTAL MARGINS — DEPLOYED / VERIFIED / OWNER ACCEPTANCE
   PENDING (2026-11-05).** Approved application candidate

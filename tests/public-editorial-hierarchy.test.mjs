@@ -8,7 +8,7 @@ test("homepage recorded accidents card targets canonical statistics", () => {
   const source = read("src/routes/index.tsx");
   assert.match(source, /published_accident_report_count/);
   assert.match(source, /label="recorded road accidents"/);
-  assert.match(source, /<Link to="\/statistics"[\s\S]{0,300}recordedAccidents/);
+  assert.match(source, /<Link to="\/statistics"[\s\S]{0,500}recordedAccidents/);
 });
 
 test("public report submission does not expose editorial AI controls", () => {

@@ -194,9 +194,17 @@ export function GlobalEditorialPreview({
   destinations,
   fullWidth = false,
 }: Props) {
-  const modules = destinations?.length
+  const requestedModules = destinations?.length
     ? destinations
     : [destination, ...allDestinations.filter((item) => item !== destination)];
+  // The homepage uses the same unified activity source for three independent
+  // Pattern B cards. Other route previews retain their single Media & Feed
+  // card while still using the same latest-first feed.
+  const modules = fullWidth
+    ? requestedModules.flatMap((module) =>
+        module === "media" ? (["media", "media", "media"] as PreviewDestination[]) : [module],
+      )
+    : requestedModules;
   const query = useQuery({
     queryKey: ["global-editorial-preview", destination, excludeId, excludeKeys, modules],
     queryFn: async () => {
@@ -259,12 +267,14 @@ export function GlobalEditorialPreview({
           destination: "media" as const,
         })),
       };
-      const used = new Set<string>();
-      return modules.map((module) => {
+      return modules.map((module, moduleIndex) => {
+        const mediaCardIndex =
+          module === "media"
+            ? modules.slice(0, moduleIndex).filter((item) => item === "media").length
+            : 0;
         const items = pools[module]
           .filter((item) => item.id !== excludeId)
           .filter((item) => !excludeKeys.includes(`${item.destination}:${item.id}`))
-          .filter((item) => !used.has(`${item.destination}:${item.id}`))
           .filter(
             (item) =>
               module !== destination ||
@@ -277,8 +287,10 @@ export function GlobalEditorialPreview({
               !topic ||
               item.category?.toLowerCase() === topic.toLowerCase(),
           )
-          .slice(0, 3);
-        items.forEach((item) => used.add(`${item.destination}:${item.id}`));
+          .slice(
+            module === "media" ? mediaCardIndex * 3 : 0,
+            module === "media" ? mediaCardIndex * 3 + 3 : 3,
+          );
         return { module, items };
       });
     },
@@ -295,8 +307,12 @@ export function GlobalEditorialPreview({
         return (
           <div key={`discovery-row-${row}`} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
-              {rowCards.map(({ module, items }) => (
-                <EditorialTripleCard key={module} title={meta[module].label} items={items} />
+              {rowCards.map(({ module, items }, cardIndex) => (
+                <EditorialTripleCard
+                  key={`${module}-${row * 3 + cardIndex}`}
+                  title={meta[module].label}
+                  items={items}
+                />
               ))}
             </div>
             <BannerAd placement={`global-editorial-discovery-row-${row + 1}`} />

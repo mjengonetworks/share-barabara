@@ -25,13 +25,19 @@ test("the shared feed reads every approved public activity source", async () => 
 });
 
 test("feed and homepage preview consume the same retrieval layer", async () => {
-  const [feed, preview] = await Promise.all([
+  const [feed, preview, sidebar, articleSidebar] = await Promise.all([
     read("src/routes/feed.tsx"),
     read("src/components/site/global-editorial-preview.tsx"),
+    read("src/components/site/editorial-sidebar.tsx"),
+    read("src/components/site/article-detail-sidebar.tsx"),
   ]);
   assert.match(feed, /getUnifiedFeed\(\{ limit: FEED_LIMIT, query: q \}/);
   assert.match(preview, /getUnifiedFeed\(\{ limit: 18 \}/);
   assert.match(preview, /destination: \"media\"/);
+  assert.match(preview, /module === \"media\"/);
+  assert.doesNotMatch(preview, /used\.has/);
+  assert.match(sidebar, /queryFn: \(\) => getUnifiedFeed\(\{ limit: 3 \}/);
+  assert.match(articleSidebar, /queryFn: \(\) => getUnifiedFeed\(\{ limit: 3 \}/);
   assert.match(feed, /Administrator update/);
 });
 

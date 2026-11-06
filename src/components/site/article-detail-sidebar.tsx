@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   BarChart3,
   Construction,
@@ -20,6 +21,8 @@ import {
   SisterPlatformPreviews,
 } from "@/components/site/discovery-sections";
 import { publicCategoryBadgeClass } from "@/components/site/public-ui";
+import { CompactEditorialList } from "@/components/site/compact-editorial-list";
+import { getUnifiedFeed } from "@/lib/unified-feed";
 
 export type ArticleSidebarArticle = {
   id: string;
@@ -88,6 +91,11 @@ export function ArticleSidebar({
   contextualReports,
   contextualAlerts,
 }: ArticleSidebarProps) {
+  const { data: latestFeed = [] } = useQuery({
+    queryKey: ["article-detail-feed-sidebar"],
+    queryFn: () => getUnifiedFeed({ limit: 3 }),
+    staleTime: 30_000,
+  });
   const hasRoadContext = contextualReports.length > 0 || contextualAlerts.length > 0;
   const sectionPreviews = [
     {
@@ -194,6 +202,29 @@ export function ArticleSidebar({
             className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
           >
             Read more
+          </Link>
+        </PublicSidebarSection>
+      ) : null}
+
+      {latestFeed.length > 0 ? (
+        <PublicSidebarSection>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Latest Media &amp; Feed
+          </h2>
+          <CompactEditorialList
+            items={latestFeed.map((item) => ({
+              id: item.key,
+              title: item.title,
+              href: item.href,
+              imageUrl: item.imageUrl,
+              meta: item.label,
+            }))}
+          />
+          <Link
+            to="/feed"
+            className="mt-4 inline-block text-sm font-semibold text-brand-blue underline"
+          >
+            View all
           </Link>
         </PublicSidebarSection>
       ) : null}
