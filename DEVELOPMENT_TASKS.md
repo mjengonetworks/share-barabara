@@ -1480,3 +1480,12 @@ unfinished application changes are not merged here.
 - **Verification:** focused community-presentation and isolated-preview tests pass 15/15; full suite 585/585; security suite 14/14; isolated preview build passed and generated `.output/server/index.mjs` plus `.output/server/wrangler.json`; `git diff --check` passes.
 - **Browser/staging:** browser automation remains unavailable in this environment, so no responsive screenshots or live console/network evidence is claimed. Existing staging deployment/version `eff5c471-a727-4f5f-8119-76f5474d81c1` / `b51033eb-c5af-419f-aa2b-2bb6d6174a8e` remains untouched, with rollback `6b6a28dc-aadb-40f4-9fa8-4869aa139251` / `e6e87490-ef4a-4f70-b0f1-669048655bd1`.
 - **Status:** Implemented — new isolated staging-preview candidate pending owner visual review and separate staging deployment approval.
+
+## MEDIA & FEED COMMUNITY PRESENTATION — REBUILT PREVIEW DEPLOYED TO STAGING (2026-11-06)
+
+- **Deployed candidate:** `8335a1e7163ea31f5cff9376c6f95eb0e7f49db9` to the existing `share-barabara-staging` Worker using `STAGING_PREVIEW_DEPLOY=1`; production Worker and Supabase were unchanged.
+- **Rollback preserved:** previous deployment `eff5c471-a727-4f5f-8119-76f5474d81c1`, Worker version `b51033eb-c5af-419f-aa2b-2bb6d6174a8e`, 100% traffic.
+- **New staging deployment:** deployment `77304b31-cb93-4999-a952-8757b1772a6c`, Worker version `d105c33f-2a64-4d14-9cdf-4aea31493e00`, 100% traffic. Existing custom domain `staging.sharebarabara.co.ke` remained active; `ASSETS` and `AI_RATE_LIMITER` bindings remained present; `DEPLOYMENT_ENV=staging-preview`, `WEB_PUSH_ENABLED=false`, and no cron trigger were deployed.
+- **Live checks:** `/staging-media-feed-preview` returned HTTP 200 and rendered synthetic preview markers, nine activity content and community labels. `/`, `/feed`, `/api/web-push-config` and `/api/unknown` returned HTTP 404 as required. Sampled preview JavaScript/CSS/image assets returned HTTP 200.
+- **Browser acceptance:** Chrome/Playwright remains unavailable because the CUA browser kernel could not initialize. No responsive visual, console or browser-network acceptance is claimed.
+- **Status:** Deployed to staging — owner visual acceptance pending; production remains unchanged.
