@@ -71,7 +71,7 @@ jobs:
       - name: Upload complete Worker payload
         uses: actions/upload-artifact@v4
         with:
-          name: homepage-worker-payload-c9f2f2697c5c49324825f112249e556c0c185c2d
-          path: homepage-worker-payload-c9f2f2697c5c49324825f112249e556c0c185c2d.tar.gz
+          name: homepage-worker-payload-${{ env.APP_CANDIDATE_SHA }}
+          path: homepage-worker-payload-${{ env.APP_CANDIDATE_SHA }}.tar.gz
           if-no-files-found: error
           retention-days: 7
