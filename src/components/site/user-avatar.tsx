@@ -6,10 +6,12 @@ export function UserAvatar({
   url,
   name,
   className = "size-10",
+  tone = "light",
 }: {
   url?: string | null | undefined;
   name?: string | null | undefined;
   className?: string;
+  tone?: "light" | "navy";
 }) {
   if (url) {
     return (
@@ -22,7 +24,7 @@ export function UserAvatar({
   }
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground ${className}`}
+      className={`flex shrink-0 items-center justify-center rounded-full ${tone === "navy" ? "bg-white/15 text-white" : "bg-[#EAF3FF] text-[#142B56]"} ${className}`}
     >
       <CircleUserRound className="size-2/3" />
     </span>

@@ -12,27 +12,33 @@ type Identity = {
 
 export type FeedSurfaceTone = "white" | "blue" | "navy";
 
-const toneStyles: Record<
+export const feedSurfaceTokens: Record<
   FeedSurfaceTone,
-  { text: string; secondary: string; border: string; fallback: string }
+  { text: string; secondary: string; link: string; icon: string; border: string; fallback: string }
 > = {
   white: {
-    text: "text-[#102653]",
-    secondary: "text-slate-600",
+    text: "text-[#142B56]",
+    secondary: "text-[#52647D]",
+    link: "text-[#142B56]",
+    icon: "text-[#142B56]",
     border: "border-slate-200",
-    fallback: "from-slate-50 via-white to-[#EAF3FF] text-[#102653]/70",
+    fallback: "from-slate-50 via-white to-[#EAF3FF] text-[#52647D]",
   },
   blue: {
-    text: "text-[#102653]",
-    secondary: "text-slate-600",
+    text: "text-[#142B56]",
+    secondary: "text-[#52647D]",
+    link: "text-[#142B56]",
+    icon: "text-[#142B56]",
     border: "border-[#c7dcf5]",
-    fallback: "from-[#dcecff] via-[#EAF3FF] to-white text-[#102653]/70",
+    fallback: "from-[#dcecff] via-[#EAF3FF] to-white text-[#52647D]",
   },
   navy: {
     text: "text-white",
-    secondary: "text-blue-100",
+    secondary: "text-[#D5E4FA]",
+    link: "text-white",
+    icon: "text-white",
     border: "border-white/20",
-    fallback: "from-[#18376e] via-[#102653] to-[#0b1a3c] text-blue-100",
+    fallback: "from-[#18376e] via-[#102653] to-[#0b1a3c] text-[#D5E4FA]",
   },
 };
 
@@ -64,14 +70,19 @@ export function UnifiedFeedActivity({
   const timestamp = item.publishedAt ?? item.createdAt;
   const [imageFailed, setImageFailed] = useState(false);
   const hasMedia = Boolean((item.imageUrl && !imageFailed) || item.mediaUrl);
-  const styles = toneStyles[tone];
+  const styles = feedSurfaceTokens[tone];
 
   if (compact) {
     return (
       <span
         className={`group flex min-w-0 gap-2.5 border-t ${styles.border} py-3 first:border-t-0`}
       >
-        <UserAvatar url={identity?.avatar} name={displayName} className="size-8 shrink-0" />
+        <UserAvatar
+          url={identity?.avatar}
+          name={displayName}
+          tone={tone === "navy" ? "navy" : "light"}
+          className="size-8 shrink-0"
+        />
         <span className="min-w-0 flex-1">
           <span
             className={`flex items-center gap-1.5 text-[11px] font-semibold ${styles.secondary}`}
@@ -106,7 +117,7 @@ export function UnifiedFeedActivity({
           <span
             className={`flex size-14 shrink-0 items-center justify-center rounded-md bg-black/5 ${styles.secondary}`}
           >
-            <Radio className="size-4" aria-hidden="true" />
+            <Radio className={`size-4 ${styles.icon}`} aria-hidden="true" />
           </span>
         )}
       </span>
@@ -118,7 +129,12 @@ export function UnifiedFeedActivity({
       className={`group flex min-w-0 flex-col overflow-hidden rounded-lg border ${styles.border} bg-transparent transition-colors hover:border-[#F5B51B]`}
     >
       <span className={`flex items-start gap-3 border-b ${styles.border} p-4 pb-3`}>
-        <UserAvatar url={identity?.avatar} name={displayName} className="size-9 shrink-0" />
+        <UserAvatar
+          url={identity?.avatar}
+          name={displayName}
+          tone={tone === "navy" ? "navy" : "light"}
+          className="size-9 shrink-0"
+        />
         <span className="min-w-0 flex-1">
           <span
             className={`flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-bold ${styles.text}`}
@@ -153,7 +169,7 @@ export function UnifiedFeedActivity({
           ) : null}
           {(!item.imageUrl || imageFailed) && item.mediaUrl ? (
             <span className={`flex size-full items-center justify-center ${styles.secondary}`}>
-              <Radio className="size-8" aria-hidden="true" />
+              <Radio className={`size-8 ${styles.icon}`} aria-hidden="true" />
               <span className="sr-only">Video activity</span>
             </span>
           ) : null}
@@ -161,7 +177,7 @@ export function UnifiedFeedActivity({
             <span
               className={`flex size-full items-center gap-3 bg-gradient-to-br ${styles.fallback} px-4`}
             >
-              <Radio className="size-6 shrink-0" aria-hidden="true" />
+              <Radio className={`size-6 shrink-0 ${styles.icon}`} aria-hidden="true" />
               <span className="text-xs font-semibold">Share Barabara activity</span>
             </span>
           ) : null}
@@ -170,7 +186,7 @@ export function UnifiedFeedActivity({
         <span
           className={`flex min-h-14 items-center gap-3 border-b ${styles.border} bg-gradient-to-br ${styles.fallback} px-4 py-3`}
         >
-          <Radio className="size-5 shrink-0" aria-hidden="true" />
+          <Radio className={`size-5 shrink-0 ${styles.icon}`} aria-hidden="true" />
           <span className="text-xs font-semibold">Share Barabara community activity</span>
         </span>
       )}
@@ -189,11 +205,11 @@ export function UnifiedFeedActivity({
           className={`mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t ${styles.border} pt-3 text-[11px] font-semibold ${styles.secondary}`}
         >
           <span className="inline-flex items-center gap-1" aria-label="Open activity">
-            <ArrowUpRight className="size-3.5" aria-hidden="true" /> Open activity
+            <ArrowUpRight className={`size-3.5 ${styles.icon}`} aria-hidden="true" /> Open activity
           </span>
           {item.kind === "community" ? (
             <span className="inline-flex items-center gap-1" aria-label="Join discussion">
-              <MessageCircle className="size-3.5" aria-hidden="true" /> Discussion
+              <MessageCircle className={`size-3.5 ${styles.icon}`} aria-hidden="true" /> Discussion
             </span>
           ) : null}
         </span>

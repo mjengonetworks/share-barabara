@@ -62,6 +62,42 @@ test("Media & Feed uses shared alternating surfaces and yellow activity pills", 
   assert.match(activity, /identity\?\.username/);
 });
 
+test("shared Media & Feed tokens protect navy headings, links and nested activity text", async () => {
+  const [activity, preview, list, avatar] = await Promise.all([
+    read("src/components/site/unified-feed-activity.tsx"),
+    read("src/components/site/global-editorial-preview.tsx"),
+    read("src/components/site/unified-feed-list.tsx"),
+    read("src/components/site/user-avatar.tsx"),
+  ]);
+  assert.match(activity, /navy: \{[\s\S]*text: "text-white"/);
+  assert.match(activity, /secondary: "text-\[#D5E4FA\]"/);
+  assert.match(activity, /link: "text-white"/);
+  assert.match(activity, /icon: "text-white"/);
+  assert.match(avatar, /bg-white\/15 text-white/);
+  assert.match(preview, /styles\.text/);
+  assert.match(preview, /styles\.link/);
+  assert.match(preview, /View all/);
+  assert.match(preview, /feedSurfaceTokens/);
+  assert.match(list, /UnifiedFeedActivity/);
+});
+
+test("Media & Feed call sites use the shared preview or feed components", async () => {
+  const files = [
+    "src/routes/index.tsx",
+    "src/routes/news.$slug.tsx",
+    "src/routes/reports.$reportId.tsx",
+    "src/routes/alerts.$alertId.tsx",
+    "src/routes/campaigns.$slug.tsx",
+    "src/routes/infrastructure-issues.$issueId.tsx",
+    "src/routes/feed.tsx",
+  ];
+  const sources = await Promise.all(files.map(read));
+  assert.match(sources[0], /GlobalEditorialPreview/);
+  for (const source of sources.slice(1, 6)) assert.match(source, /GlobalEditorialPreview/);
+  assert.match(sources[6], /getUnifiedFeed/);
+  assert.doesNotMatch(sources.join("\n"), /<EditorialTripleCard[^>]*className/);
+});
+
 test("windowed Media & Feed ranking is latest-first, bounded and deduplicated", async () => {
   const { buildMediaFeedGroups } = await import("../src/lib/media-feed-ranking.ts");
   const item = (key, publishedAt) => ({

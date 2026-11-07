@@ -7,7 +7,11 @@ import { getUnifiedFeed } from "@/lib/unified-feed";
 import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
 import type { PreviewDestination, PreviewItem } from "@/lib/global-editorial-preview";
-import { UnifiedFeedActivity, type FeedSurfaceTone } from "@/components/site/unified-feed-activity";
+import {
+  feedSurfaceTokens,
+  UnifiedFeedActivity,
+  type FeedSurfaceTone,
+} from "@/components/site/unified-feed-activity";
 
 type Props = {
   destination: PreviewDestination;
@@ -122,6 +126,7 @@ function ItemLink({
   identity?: { name?: string | null; username?: string | null; avatar?: string | null };
   tone?: FeedSurfaceTone;
 }) {
+  const styles = feedSurfaceTokens[tone];
   if (item.activity) {
     return (
       <a
@@ -153,19 +158,25 @@ function ItemLink({
   return (
     <a
       href={item.href}
-      className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-background/70 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={`group flex min-w-0 flex-col overflow-hidden rounded-lg border ${styles.border} bg-transparent transition-colors hover:border-[#F5B51B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
     >
       <MediaImage src={item.imageUrl} />
       <span className="flex min-h-24 flex-1 flex-col p-3">
         {item.category ? (
-          <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
+          <span
+            className={`block truncate text-[10px] font-bold uppercase tracking-wider ${styles.secondary}`}
+          >
             {item.category}
           </span>
         ) : null}
-        <span className="mt-1 line-clamp-2 font-bold leading-snug text-brand-navy group-hover:underline">
+        <span
+          className={`mt-1 line-clamp-2 font-bold leading-snug ${styles.text} group-hover:underline`}
+        >
           {item.title}
         </span>
-        <span className="mt-auto pt-3 text-xs font-bold text-brand-blue underline underline-offset-4">
+        <span
+          className={`mt-auto pt-3 text-xs font-bold ${styles.link} underline underline-offset-4`}
+        >
           Read more
         </span>
       </span>
@@ -182,6 +193,7 @@ function CompactItemLink({
   identity?: { name?: string | null; username?: string | null; avatar?: string | null };
   tone?: FeedSurfaceTone;
 }) {
+  const styles = feedSurfaceTokens[tone];
   if (item.activity) {
     return (
       <a
@@ -214,18 +226,22 @@ function CompactItemLink({
   return (
     <a
       href={item.href}
-      className="group flex min-w-0 items-center gap-3 border-t border-border/70 py-3 first:border-t-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={`group flex min-w-0 items-center gap-3 border-t ${styles.border} py-3 first:border-t-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
     >
       <span className="w-24 shrink-0 overflow-hidden rounded bg-primary/5">
         <MediaImage src={item.imageUrl} compact />
       </span>
       <span className="min-w-0">
         {item.category ? (
-          <span className="block truncate text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
+          <span
+            className={`block truncate text-[10px] font-bold uppercase tracking-wider ${styles.secondary}`}
+          >
             {item.category}
           </span>
         ) : null}
-        <span className="mt-1 block line-clamp-2 text-sm font-bold leading-snug text-brand-navy group-hover:underline">
+        <span
+          className={`mt-1 block line-clamp-2 text-sm font-bold leading-snug ${styles.text} group-hover:underline`}
+        >
           {item.title}
         </span>
       </span>
@@ -250,6 +266,7 @@ export function EditorialTripleCard({
   tone?: FeedSurfaceTone;
 }) {
   const href = items[0] ? meta[items[0].destination].href : undefined;
+  const styles = feedSurfaceTokens[tone];
   return (
     <article
       className={`rounded-xl border p-4 card-elevated ${
@@ -262,11 +279,11 @@ export function EditorialTripleCard({
     >
       {!hideHeading ? (
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="truncate text-sm font-extrabold text-brand-navy">{title}</h3>
+          <h3 className={`truncate text-sm font-extrabold ${styles.text}`}>{title}</h3>
           {href ? (
             <a
               href={href}
-              className="shrink-0 text-xs font-bold text-brand-blue underline underline-offset-4"
+              className={`shrink-0 text-xs font-bold ${styles.link} underline underline-offset-4`}
             >
               View all
             </a>
@@ -442,7 +459,7 @@ export function GlobalEditorialPreview({
             ) : null}
             <div className="grid gap-4 md:grid-cols-3">
               {rowCards.map(({ module, items }, cardIndex) => (
-                  <EditorialTripleCard
+                <EditorialTripleCard
                   key={`${module}-${row * 3 + cardIndex}`}
                   title={meta[module].label}
                   items={items}
