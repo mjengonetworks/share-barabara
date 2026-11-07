@@ -1,4 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { StagingMediaFeedPreview } from "@/components/site/staging-media-feed-preview";
+import { lazy } from "react";
 
-export const Route = createFileRoute("/staging-media-feed-preview")({ component: StagingMediaFeedPreview });
+const PreviewComponent =
+  import.meta.env.VITE_DEPLOYMENT_ENV === "staging-preview"
+    ? lazy(() =>
+        import("@/components/site/staging-media-feed-preview").then((module) => ({
+          default: module.StagingMediaFeedPreview,
+        })),
+      )
+    : () => null;
+
+export const Route = createFileRoute("/staging-media-feed-preview")({
+  component: PreviewComponent,
+});

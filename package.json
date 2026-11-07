@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build --mode static",
+    "build": "node scripts/build-production.mjs",
     "build:staging": "node scripts/build-staging.mjs",
     "build:staging-preview": "node scripts/build-staging-preview.mjs",
     "deploy:staging": "node scripts/deploy-staging.mjs",

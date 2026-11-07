@@ -31,6 +31,10 @@ function isAllowedPreviewPath(pathname: string): boolean {
   );
 }
 
+function isPreviewRoute(pathname: string): boolean {
+  return pathname === "/staging-media-feed-preview";
+}
+
 function withStagingProtection(response: Response): Response {
   if (!isStagingRuntime()) return response;
   const headers = new Headers(response.headers);
@@ -105,6 +109,11 @@ export default {
       // every request, not only scheduled push dispatches.
       (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
       const requestUrl = new URL(request.url);
+      // Deny by default outside the isolated preview runtime. This remains
+      // effective even if a production build accidentally contains the file route.
+      if (isPreviewRoute(requestUrl.pathname) && !isIsolatedPreviewRuntime()) {
+        return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
+      }
       if (isIsolatedPreviewRuntime() && !isAllowedPreviewPath(requestUrl.pathname)) {
         return withStagingProtection(
           new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } }),

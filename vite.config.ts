@@ -5,8 +5,37 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { fileURLToPath } from "node:url";
+
+const productionPreviewStub = fileURLToPath(
+  new URL("./src/components/site/staging-media-feed-preview.disabled.tsx", import.meta.url),
+);
 
 export default defineConfig({
+  vite: {
+    plugins:
+      process.env.VITE_DEPLOYMENT_ENV === "production"
+        ? [
+            {
+              name: "exclude-staging-preview-from-production",
+              enforce: "pre",
+              resolveId(source: string) {
+                return source === "@/components/site/staging-media-feed-preview"
+                  ? productionPreviewStub
+                  : undefined;
+              },
+            },
+          ]
+        : undefined,
+    resolve: {
+      alias:
+        process.env.VITE_DEPLOYMENT_ENV === "production"
+          ? {
+              "@/components/site/staging-media-feed-preview": productionPreviewStub,
+            }
+          : undefined,
+    },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
@@ -16,9 +45,10 @@ export default defineConfig({
     // Nitro's Cloudflare preset emits POSIX `npx`; Windows resolves the
     // executable through the `.cmd` shim instead.
     commands: {
-      preview: process.platform === "win32"
-        ? "cmd.exe /d /s /c npx.cmd wrangler --cwd ./ dev"
-        : "npx wrangler --cwd ./ dev",
+      preview:
+        process.platform === "win32"
+          ? "cmd.exe /d /s /c npx.cmd wrangler --cwd ./ dev"
+          : "npx wrangler --cwd ./ dev",
     },
   },
 });

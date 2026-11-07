@@ -49,7 +49,9 @@ jobs:
         run: bun run test:security
 
       - name: Run artifact-dependent test
-        run: node --experimental-strip-types --experimental-loader ./tests/node-test-loader.mjs --test tests/ai-server-function-artifact.test.mjs
+        run: |
+          node --experimental-strip-types --experimental-loader ./tests/node-test-loader.mjs --test tests/ai-server-function-artifact.test.mjs
+          RUN_PRODUCTION_ARTIFACT_GATE=1 node --experimental-strip-types --experimental-loader ./tests/node-test-loader.mjs --test tests/production-preview-exclusion-artifact.test.mjs
 
       - name: Validate and package complete Worker payload
         run: |
