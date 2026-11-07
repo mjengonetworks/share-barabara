@@ -1527,6 +1527,14 @@ unfinished application changes are not merged here.
 - **Browser/staging:** Browser automation remains unavailable because the CUA browser kernel could not initialize; no computed-style screenshots are claimed. No staging or production deployment was performed for this correction; the previously deployed staging preview remains the rollback/reference environment.
 - **Status:** Implemented — pending browser-based visual confirmation and owner review. No SQL, migration or production configuration change.
 
+## MEDIA & FEED GLOBAL CONTRAST CORRECTION — STAGING DEPLOYED (2026-11-07)
+
+- **Deployed application:** `c9f2f2697c5c49324825f112249e556c0c185c2d` to the existing `share-barabara-staging` Worker.
+- **Deployment:** `0d7e2e6c-86c7-46aa-8dac-b13c85bb0d0b`, Worker version `ce02b5e5-8620-406e-bea7-d0d07c466261`, 100% traffic. Immediate rollback is deployment `b15f87f3-87c7-4a75-855f-ae56d1bbc15f`, Worker version `0d5cfc26-c7b1-4476-a56a-e2d9852ff851`.
+- **Live checks:** `https://staging.sharebarabara.co.ke/staging-media-feed-preview` returned HTTP 200 with synthetic preview content and Latest / Most Viewed · Last 12 Hours / Most Viewed · Last 24 Hours markers. `/`, `/feed` and `/api/unknown` returned HTTP 404. `ASSETS` and `AI_RATE_LIMITER` remained present; `DEPLOYMENT_ENV=staging-preview`, web push disabled and no cron triggers remained in effect.
+- **Browser acceptance:** Chrome/Playwright remains unavailable; no computed-style or responsive visual acceptance is claimed. Owner review remains pending.
+- **Status:** Deployed to isolated staging only. Production, Supabase, SQL, migrations and secrets were unchanged.
+
 ## MEDIA & FEED WINDOWED RANKING AND CONTRAST — REVIEW CANDIDATE (2026-11-07)
 
 - **Scope:** Candidate branch `feat/media-feed-visual-system` adds explicit Media & Feed contrast tokens and a fail-closed ranking seam for the isolated preview. No production deployment, Supabase change, SQL or migration was performed.
