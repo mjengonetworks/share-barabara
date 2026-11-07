@@ -15,13 +15,13 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-approved-homepage]')
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
-      EXPECTED_PRODUCTION_APPLICATION_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
-      EXPECTED_DEPLOYMENT_ID: 83a2e339-7a67-4e08-bb01-a6a534d4e8a5
-      EXPECTED_WORKER_VERSION_ID: e84cab4e-c770-442a-bb78-5c361faebf35
-      EXPECTED_ARTIFACT_ID: 13449702199
-      EXPECTED_ARTIFACT_RUN_ID: 42100786470
-      EXPECTED_ARTIFACT_DIGEST: sha256:39e8ec605d39e05df30893836867a52fcb0a23db9948f3c361a2ec362490968d
+      APP_CANDIDATE_SHA: c9f2f2697c5c49324825f112249e556c0c185c2d
+      EXPECTED_PRODUCTION_APPLICATION_SHA: 11db6b623791d78123fe38d32e8df6dd9e740df9
+      EXPECTED_DEPLOYMENT_ID: 1780944b-9887-4d82-a537-e3eb894b2bcb
+      EXPECTED_WORKER_VERSION_ID: 2cc91d3c-b419-43e0-991e-9bcc1c0b2023
+      EXPECTED_ARTIFACT_ID: 13569278481
+      EXPECTED_ARTIFACT_RUN_ID: 42361274580
+      EXPECTED_ARTIFACT_DIGEST: sha256:ab6d01aee7b50deef0656447d9209530d884744b87ca17987c51a66f43d2f99f
       WORKER_NAME: share-barabara
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
 
@@ -29,7 +29,7 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: 7b3054e070d77a8e721ec67b5de24a902e37f382
+          ref: c9f2f2697c5c49324825f112249e556c0c185c2d
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
