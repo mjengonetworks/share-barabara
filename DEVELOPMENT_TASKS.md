@@ -1535,6 +1535,15 @@ unfinished application changes are not merged here.
 - **Browser acceptance:** Chrome/Playwright remains unavailable; no computed-style or responsive visual acceptance is claimed. Owner review remains pending.
 - **Status:** Deployed to isolated staging only. Production, Supabase, SQL, migrations and secrets were unchanged.
 
+## MEDIA & FEED CONTRAST — PRODUCTION RELEASE ROLLED BACK (2026-11-07)
+
+- **Attempted release:** Application `c9f2f2697c5c49324825f112249e556c0c185c2d`, workflow `42361418025`, artifact `13569278481`, digest `sha256:ab6d01aee7b50deef0656447d9209530d884744b87ca17987c51a66f43d2f99f`.
+- **Deployment:** `bb10e89a-d0dd-4bf5-9f5a-060ab64a14d9`, Worker version `49304497-e7d2-4c5b-9cb7-9548060f2889`, initially 100% traffic. Release gates, read-only preflight, effective configuration validation and required public route checks passed.
+- **Critical defect:** Production `/staging-media-feed-preview` returned HTTP 200 with synthetic preview content. The production build included the staging route; production configuration alone did not exclude the application route.
+- **Rollback:** Supported Wrangler rollback restored version `2cc91d3c-b419-43e0-991e-9bcc1c0b2023` at 100% via rollback deployment `6756a146-b9ab-4225-b7e5-527b02868d9c`. Immediate pre-release deployment `1780944b-9887-4d82-a537-e3eb894b2bcb` remains identifiable.
+- **Post-rollback checks:** All required public routes returned HTTP 200; `/staging-media-feed-preview` returned HTTP 404. No SQL, migration, Supabase or binding changes were made.
+- **Status:** Rolled back. Production visual release is blocked until a reviewed production-only exclusion/guard prevents the staging preview route and synthetic data from entering production. Browser visual and console verification remain pending.
+
 ## MEDIA & FEED WINDOWED RANKING AND CONTRAST — REVIEW CANDIDATE (2026-11-07)
 
 - **Scope:** Candidate branch `feat/media-feed-visual-system` adds explicit Media & Feed contrast tokens and a fail-closed ranking seam for the isolated preview. No production deployment, Supabase change, SQL or migration was performed.
