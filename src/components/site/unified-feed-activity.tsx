@@ -12,7 +12,10 @@ type Identity = {
 
 export type FeedSurfaceTone = "white" | "blue" | "navy";
 
-const toneStyles: Record<FeedSurfaceTone, { text: string; secondary: string; border: string; fallback: string }> = {
+const toneStyles: Record<
+  FeedSurfaceTone,
+  { text: string; secondary: string; border: string; fallback: string }
+> = {
   white: {
     text: "text-[#102653]",
     secondary: "text-slate-600",
@@ -65,10 +68,14 @@ export function UnifiedFeedActivity({
 
   if (compact) {
     return (
-      <span className={`group flex min-w-0 gap-2.5 border-t ${styles.border} py-3 first:border-t-0`}>
+      <span
+        className={`group flex min-w-0 gap-2.5 border-t ${styles.border} py-3 first:border-t-0`}
+      >
         <UserAvatar url={identity?.avatar} name={displayName} className="size-8 shrink-0" />
         <span className="min-w-0 flex-1">
-          <span className={`flex items-center gap-1.5 text-[11px] font-semibold ${styles.secondary}`}>
+          <span
+            className={`flex items-center gap-1.5 text-[11px] font-semibold ${styles.secondary}`}
+          >
             <span className="truncate">{displayName}</span>
             <span aria-hidden="true">·</span>
             <span className="shrink-0">{timeAgo(timestamp)}</span>
@@ -76,7 +83,9 @@ export function UnifiedFeedActivity({
           <span className="mt-1 inline-flex max-w-full rounded-full bg-[#F5B51B] px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#101F43]">
             {kind}
           </span>
-          <span className={`mt-1 block line-clamp-2 text-sm font-bold leading-snug ${styles.text} group-hover:underline`}>
+          <span
+            className={`mt-1 block line-clamp-2 text-sm font-bold leading-snug ${styles.text} group-hover:underline`}
+          >
             {item.title}
           </span>
           {item.body ? (
@@ -94,7 +103,9 @@ export function UnifiedFeedActivity({
             className="size-14 shrink-0 rounded-md object-cover"
           />
         ) : (
-          <span className={`flex size-14 shrink-0 items-center justify-center rounded-md bg-black/5 ${styles.secondary}`}>
+          <span
+            className={`flex size-14 shrink-0 items-center justify-center rounded-md bg-black/5 ${styles.secondary}`}
+          >
             <Radio className="size-4" aria-hidden="true" />
           </span>
         )}
@@ -103,14 +114,22 @@ export function UnifiedFeedActivity({
   }
 
   return (
-    <span className={`group flex min-w-0 flex-col overflow-hidden rounded-lg border ${styles.border} bg-transparent transition-colors hover:border-[#F5B51B]`}>
+    <span
+      className={`group flex min-w-0 flex-col overflow-hidden rounded-lg border ${styles.border} bg-transparent transition-colors hover:border-[#F5B51B]`}
+    >
       <span className={`flex items-start gap-3 border-b ${styles.border} p-4 pb-3`}>
         <UserAvatar url={identity?.avatar} name={displayName} className="size-9 shrink-0" />
         <span className="min-w-0 flex-1">
-          <span className={`flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-bold ${styles.text}`}>
+          <span
+            className={`flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-bold ${styles.text}`}
+          >
             <span className="min-w-0 max-w-full truncate">{displayName}</span>
             {identity?.username ? (
-              <span className={`min-w-0 max-w-full truncate text-xs font-normal ${styles.secondary}`}>{identity.username}</span>
+              <span
+                className={`min-w-0 max-w-full truncate text-xs font-normal ${styles.secondary}`}
+              >
+                {identity.username}
+              </span>
             ) : null}
           </span>
           <span className={`mt-0.5 block text-xs ${styles.secondary}`}>{timeAgo(timestamp)}</span>
@@ -120,7 +139,9 @@ export function UnifiedFeedActivity({
         </span>
       </span>
       {hasMedia ? (
-          <span className={`relative block aspect-[16/9] overflow-hidden ${tone === "navy" ? "bg-[#18376e]" : "bg-slate-100"}`}>
+        <span
+          className={`relative block aspect-[16/9] overflow-hidden ${tone === "navy" ? "bg-[#18376e]" : "bg-slate-100"}`}
+        >
           {item.imageUrl && !imageFailed ? (
             <img
               src={item.imageUrl}
@@ -137,22 +158,26 @@ export function UnifiedFeedActivity({
             </span>
           ) : null}
           {imageFailed && !item.mediaUrl ? (
-            <span className={`flex size-full items-center gap-3 bg-gradient-to-br ${styles.fallback} px-4`}>
+            <span
+              className={`flex size-full items-center gap-3 bg-gradient-to-br ${styles.fallback} px-4`}
+            >
               <Radio className="size-6 shrink-0" aria-hidden="true" />
-              <span className="text-xs font-semibold">
-                Share Barabara activity
-              </span>
+              <span className="text-xs font-semibold">Share Barabara activity</span>
             </span>
           ) : null}
         </span>
       ) : (
-        <span className={`flex min-h-14 items-center gap-3 border-b ${styles.border} bg-gradient-to-br ${styles.fallback} px-4 py-3`}>
+        <span
+          className={`flex min-h-14 items-center gap-3 border-b ${styles.border} bg-gradient-to-br ${styles.fallback} px-4 py-3`}
+        >
           <Radio className="size-5 shrink-0" aria-hidden="true" />
           <span className="text-xs font-semibold">Share Barabara community activity</span>
         </span>
       )}
       <span className="flex flex-1 flex-col p-4 pt-3">
-        <span className={`line-clamp-2 text-base font-extrabold leading-snug ${styles.text} group-hover:underline`}>
+        <span
+          className={`line-clamp-2 text-base font-extrabold leading-snug ${styles.text} group-hover:underline`}
+        >
           {item.title}
         </span>
         {item.body ? (
@@ -160,7 +185,9 @@ export function UnifiedFeedActivity({
             {item.body}
           </span>
         ) : null}
-        <span className={`mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t ${styles.border} pt-3 text-[11px] font-semibold ${styles.secondary}`}>
+        <span
+          className={`mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t ${styles.border} pt-3 text-[11px] font-semibold ${styles.secondary}`}
+        >
           <span className="inline-flex items-center gap-1" aria-label="Open activity">
             <ArrowUpRight className="size-3.5" aria-hidden="true" /> Open activity
           </span>

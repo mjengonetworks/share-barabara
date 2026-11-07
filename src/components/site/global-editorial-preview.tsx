@@ -116,9 +116,11 @@ function MediaImage({ src, compact = false }: { src?: string | null; compact?: b
 function ItemLink({
   item,
   identity,
+  tone = "white",
 }: {
   item: PreviewItem;
   identity?: { name?: string | null; username?: string | null; avatar?: string | null };
+  tone?: FeedSurfaceTone;
 }) {
   if (item.activity) {
     return (
@@ -143,6 +145,7 @@ function ItemLink({
             updatedAt: null,
           }}
           identity={identity}
+          tone={tone}
         />
       </a>
     );
@@ -173,9 +176,11 @@ function ItemLink({
 function CompactItemLink({
   item,
   identity,
+  tone = "white",
 }: {
   item: PreviewItem;
   identity?: { name?: string | null; username?: string | null; avatar?: string | null };
+  tone?: FeedSurfaceTone;
 }) {
   if (item.activity) {
     return (
@@ -201,6 +206,7 @@ function CompactItemLink({
             updatedAt: null,
           }}
           identity={identity}
+          tone={tone}
         />
       </a>
     );
@@ -269,12 +275,13 @@ export function EditorialTripleCard({
       ) : null}
       {items.length ? (
         <div className="space-y-1">
-          <ItemLink item={items[0]} identity={identities?.[items[0].activity?.authorId ?? items[0].id]} />
+          <ItemLink item={items[0]} identity={identities?.[items[0].activity?.authorId ?? items[0].id]} tone={tone} />
           {items.slice(1, 3).map((item) => (
             <CompactItemLink
               key={item.id}
               item={item}
               identity={identities?.[item.activity?.authorId ?? item.id]}
+              tone={tone}
             />
           ))}
         </div>

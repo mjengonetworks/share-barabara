@@ -61,3 +61,54 @@ test("Media & Feed uses shared alternating surfaces and yellow activity pills", 
   assert.match(activity, /FeedSurfaceTone/);
   assert.match(activity, /identity\?\.username/);
 });
+
+test("windowed Media & Feed ranking is latest-first, bounded and deduplicated", async () => {
+  const { buildMediaFeedGroups } = await import("../src/lib/media-feed-ranking.ts");
+  const item = (key, publishedAt) => ({
+    key,
+    kind: "article",
+    title: key,
+    body: "",
+    publishedAt,
+    createdAt: publishedAt,
+  });
+  const items = Array.from({ length: 9 }, (_, index) =>
+    item(`item-${index + 1}`, `2026-11-07T0${index}:00:00.000Z`),
+  );
+  const events = [
+    ...Array.from({ length: 4 }, () => ({
+      activityKey: "item-4",
+      viewedAt: "2026-11-07T09:00:00.000Z",
+    })),
+    ...Array.from({ length: 2 }, () => ({
+      activityKey: "item-5",
+      viewedAt: "2026-11-07T08:00:00.000Z",
+    })),
+    ...Array.from({ length: 3 }, () => ({
+      activityKey: "item-6",
+      viewedAt: "2026-11-06T20:00:00.000Z",
+    })),
+  ];
+  const groups = buildMediaFeedGroups(items, events, "2026-11-07T10:00:00.000Z");
+  assert.deepEqual(
+    groups.latest.map((entry) => entry.key),
+    ["item-9", "item-8", "item-7"],
+  );
+  assert.deepEqual(
+    groups.twelveHours.map((entry) => entry.key),
+    ["item-4", "item-5"],
+  );
+  assert.deepEqual(
+    groups.twentyFourHours.map((entry) => entry.key),
+    ["item-6"],
+  );
+  assert.equal(
+    new Set(
+      [...groups.latest, ...groups.twelveHours, ...groups.twentyFourHours].map(
+        (entry) => entry.key,
+      ),
+    ).size,
+    6,
+  );
+  assert.deepEqual(buildMediaFeedGroups(items, null, "2026-11-07T10:00:00.000Z").twelveHours, []);
+});
