@@ -1568,3 +1568,10 @@ unfinished application changes are not merged here.
 - **Fresh preflight:** [42380195696](https://github.com/mjengonetworks/share-barabara/actions/runs/42380195696) passed. Live deployment `6756a146-b9ab-4225-b7e5-527b02868d9c`, Worker version `2cc91d3c-b419-43e0-991e-9bcc1c0b2023`, 100% traffic; `sharebarabara.co.ke`, ASSETS, AI_RATE_LIMITER, secret metadata, cron `*/1 * * * *` and rollback availability verified.
 - **Scope:** Media & Feed presentation plus production preview exclusion/route guard only. No SQL, migrations, analytics rollout, production data or configuration changes.
 - **Status:** Ready for explicit owner deployment approval. Do not deploy before approval. Browser visual and authenticated CMS acceptance remain pending.
+## MEDIA & FEED CONTRAST — PRODUCTION DEPLOYED (2026-11-08)
+
+- **Application:** `0e40f35571e9080e6f4b28bfd3f77dd8d12f3cd7`.
+- **Deployment workflow:** [42491416027](https://github.com/mjengonetworks/share-barabara/actions/runs/42491416027). Approved artifact `13576593861`, digest `sha256:170bd9e2a79a9e3b7316f03e09b121c362565f1022e7d532e3928cc06bdf0c57`.
+- **Production transition:** Previous deployment `6756a146-b9ab-4225-b7e5-527b02868d9c` / version `2cc91d3c-b419-43e0-991e-9bcc1c0b2023` preserved as the immediate rollback target. New deployment `b5f48b37-f572-4ee7-b89d-e232fc53a059` / version `98facc33-86fe-4157-b555-6bc70226d00f` receives 100% traffic.
+- **Health:** `/`, `/feed`, `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues` returned HTTP 200. `/staging-media-feed-preview` returned HTTP 404. Post-deploy preflight [42491604136](https://github.com/mjengonetworks/share-barabara/actions/runs/42491604136) confirmed the application candidate, deployment/version, bindings, secret metadata, domain, cron `*/1 * * * *` and rollback availability.
+- **Status:** Deployed and technically verified. Browser visual/console checks and authenticated CMS acceptance remain pending; analytics rollout remains intentionally out of scope. No SQL, migrations or production data changes.
