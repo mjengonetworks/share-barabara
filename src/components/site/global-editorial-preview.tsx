@@ -125,7 +125,7 @@ export function HomepageMediaFeedPreview() {
     staleTime: 60_000,
   });
   const groups = buildMediaFeedGroups(query.data ?? [], null, new Date().toISOString());
-  const items = [...groups.latest, ...groups.twelveHours, ...groups.twentyFourHours];
+  const items = groups.latest;
   const authorIds = items.map((item) => item.authorId).filter((id): id is string => Boolean(id));
   const { data: names = {} } = useProfileNames(authorIds);
   const { data: usernames = {} } = useProfileUsernames(authorIds);
@@ -142,14 +142,14 @@ export function HomepageMediaFeedPreview() {
     destination: "media",
     activity: item,
   });
-  const groupsForDisplay = [
-    { title: "Latest", items: groups.latest, tone: "white" as const },
-    { title: "Most Viewed · Last 12 Hours", items: groups.twelveHours, tone: "blue" as const },
-    { title: "Most Viewed · Last 24 Hours", items: groups.twentyFourHours, tone: "navy" as const },
-  ];
+  const groupsForDisplay = Array.from({ length: 3 }, (_, index) => ({
+    title: `Latest${index + 1}`,
+    items: groups.latest.slice(index * 3, index * 3 + 3),
+    tone: (["white", "blue", "navy"] as const)[index],
+  })).filter((group) => group.items.length);
   return (
     <section
-      className="public-content-container py-10"
+      className="public-content-container py-4 sm:py-5"
       aria-labelledby="homepage-media-feed-heading"
     >
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -160,31 +160,11 @@ export function HomepageMediaFeedPreview() {
           View all
         </a>
       </div>
+      <p className="mt-1 text-xs text-muted-foreground">Latest platform activity. Most Viewed rankings will return when approved rolling analytics are available.</p>
       <div className="mt-5 grid gap-4 md:grid-cols-3">
-        {groupsForDisplay.map(({ title, items: groupItems, tone }) =>
-          groupItems.length ? (
-            <EditorialTripleCard
-              key={title}
-              title={title}
-              items={groupItems.map(toPreview)}
-              identities={identities}
-              tone={tone}
-            />
-          ) : (
-            <article
-              key={title}
-              className={`rounded-xl border p-5 ${tone === "navy" ? "border-[#234276] bg-[#102653] text-white" : tone === "blue" ? "border-[#c7dcf5] bg-[#EAF3FF] text-[#142B56]" : "border-slate-200 bg-white text-[#142B56]"}`}
-            >
-              <h3 className="font-bold">{title}</h3>
-              <p
-                className={`mt-3 text-sm ${tone === "navy" ? "text-[#D5E4FA]" : "text-[#52647D]"}`}
-              >
-                Windowed view analytics is not available yet. This group will appear after approved
-                activity-view analytics is deployed.
-              </p>
-            </article>
-          ),
-        )}
+        {groupsForDisplay.map(({ title, items: groupItems, tone }) => (
+          <EditorialTripleCard key={title} title="Latest" hideHeading items={groupItems.map(toPreview)} identities={identities} tone={tone} />
+        ))}
       </div>
     </section>
   );

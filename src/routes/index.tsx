@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Building2, CarFront, Megaphone } from "lucide-react";
+import { ArrowRight, CarFront, Megaphone } from "lucide-react";
 import heroRoad from "@/assets/hero-road.jpg";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,7 @@ import { EMERGENCY_CONTACTS } from "@/lib/constants";
 import { BannerAd } from "@/components/site/banner-ad";
 import { SearchBar } from "@/components/site/search-bar";
 import { QuoteOfTheDay } from "@/components/site/quote-of-the-day";
-import { FeaturedPageCard, FeaturedProfileCard } from "@/components/site/featured-cards";
-import { useFeaturedPagesList } from "@/hooks/useFeatured";
+import { FeaturedPageCard } from "@/components/site/featured-cards";
 import { PublicNewsletterCard } from "@/components/site/public-ui";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import {
@@ -23,6 +22,7 @@ import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { HomepageMediaFeedPreview } from "@/components/site/global-editorial-preview";
 import { HomepageContentPreviews } from "@/components/site/homepage-content-previews";
 import { TaxonomyStrip, type TaxonomyStripItem } from "@/components/site/taxonomy-strip";
+import { HomepageDirectoryDiscovery } from "@/components/site/homepage-directory-discovery";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -176,8 +176,6 @@ function Index() {
     staleTime: 60_000,
   });
 
-  const { data: pages = [] } = useFeaturedPagesList();
-
   const { data: officialMetrics = [] } = useQuery({
     queryKey: ["home-official-statistics"],
     queryFn: async () => {
@@ -229,7 +227,7 @@ function Index() {
           className="absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
-        <div className="relative public-content-container py-10 sm:py-6">
+        <div className="relative public-content-container py-6 sm:py-5">
           <div className="flex flex-wrap gap-2">
             <a
               href="https://mjengohub.co.ke"
@@ -302,7 +300,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="public-content-container py-10">
+      <section className="public-content-container py-4 sm:py-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="text-[1.44375rem] font-bold">Latest hazard alerts</h2>
           <div className="flex gap-3">
@@ -331,12 +329,10 @@ function Index() {
         <TaxonomyDiscovery kind="alerts" items={homepageTaxonomy.alerts} />
       </section>
 
-      <section className="public-content-container py-10">
-        <FeaturedProfileCard slot="home_profile" />
-      </section>
+      <HomepageDirectoryDiscovery />
 
       <section className="border-y border-border bg-secondary/40">
-        <div className="public-content-container py-10">
+        <div className="public-content-container py-4 sm:py-5">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-[1.44375rem] font-bold">News &amp; Articles</h2>
             <div className="flex gap-3">
@@ -370,7 +366,7 @@ function Index() {
         <BannerAd placement="homepage-between-news-reports" />
       </section>
 
-      <section className="public-content-container py-10">
+      <section className="public-content-container py-4 sm:py-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="flex items-center gap-2 text-[1.44375rem] font-bold">
             <CarFront className="size-7 text-accent" /> Accident reports
@@ -401,45 +397,6 @@ function Index() {
         <TaxonomyDiscovery kind="reports" items={homepageTaxonomy.reports} />
       </section>
 
-      {pages.length > 0 ? (
-        <section className="public-content-container py-10">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="flex items-center gap-2 text-[1.44375rem] font-bold">
-              <Building2 className="size-7 text-accent" /> Pages
-            </h2>
-            <Link to="/pages" className="text-sm font-semibold text-brand-blue underline">
-              View all pages
-            </Link>
-          </div>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {pages.map((p) => (
-              <Link
-                key={p.id}
-                to="/pages/$slug"
-                params={{ slug: p.slug }}
-                className="group flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-colors card-elevated hover:border-accent"
-              >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded bg-accent/20 text-accent-foreground">
-                  <Building2 className="size-5" />
-                </span>
-                <div className="min-w-0">
-                  <p className="flex items-center gap-1 truncate font-semibold text-brand-blue group-hover:underline">
-                    {p.name}
-                    {p.verified ? (
-                      <BadgeCheck
-                        className="size-4 shrink-0 text-accent"
-                        aria-label="Verified page"
-                      />
-                    ) : null}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{p.category}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
       <HomepageContentPreviews infrastructureTaxonomy={homepageTaxonomy.infrastructure} />
       <HomepageMediaFeedPreview />
 
@@ -447,7 +404,7 @@ function Index() {
         <BannerAd placement="homepage-support-partner" />
       </section>
 
-      <section className="public-content-container py-10">
+      <section className="public-content-container py-4 sm:py-5">
         <div className="grid gap-6 lg:grid-cols-2">
           <QuoteOfTheDay />
           <div className="flex flex-col justify-center rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
@@ -464,7 +421,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="py-10">
+      <section className="py-4 sm:py-5">
         <div className="public-content-container">
           <PublicNewsletterCard
             title="Get the Share Barabara newsletter"
@@ -478,7 +435,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="public-content-container py-8">
+      <section className="public-content-container py-4 sm:py-5">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
           <div className="min-w-0">
             <h2 className="text-[1.35rem] font-bold">In an emergency</h2>
@@ -503,12 +460,12 @@ function Index() {
         </div>
       </section>
 
-      <section className="public-content-container py-10">
+      <section className="public-content-container py-4 sm:py-5">
         <FeaturedPageCard slot="home_page" />
       </section>
 
       <section className="border-t border-border bg-secondary/40">
-        <div className="public-content-container space-y-8 py-10">
+        <div className="public-content-container space-y-4 py-4 sm:py-5">
           <MjengoPreviews context="home" fullWidth />
         </div>
       </section>

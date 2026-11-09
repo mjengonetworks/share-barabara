@@ -35,13 +35,14 @@ test("homepage content previews use the authoritative eligible feed and honest e
   assert.match(previews, /youtubeId/);
 });
 
-test("homepage Media & Feed preserves one latest group and honest analytics-unavailable groups", async () => {
+test("homepage Media & Feed uses latest activity only until analytics is available", async () => {
   const preview = await read("src/components/site/global-editorial-preview.tsx");
   assert.match(preview, /buildMediaFeedGroups\(query\.data \?\? \[\], null/);
-  assert.match(preview, /title: "Latest"/);
-  assert.match(preview, /title: "Most Viewed · Last 12 Hours"/);
-  assert.match(preview, /title: "Most Viewed · Last 24 Hours"/);
-  assert.match(preview, /Windowed view analytics is not available yet/);
+  assert.match(preview, /const items = groups\.latest/);
+  assert.match(preview, /Array\.from\(\{ length: 3 \}/);
+  assert.match(preview, /Most Viewed rankings will return/);
+  assert.doesNotMatch(preview, /Most Viewed · Last 12 Hours/);
+  assert.doesNotMatch(preview, /Most Viewed · Last 24 Hours/);
   assert.match(preview, /<h2 id="homepage-media-feed-heading"/);
   assert.match(preview, /href="\/feed"/);
 });
