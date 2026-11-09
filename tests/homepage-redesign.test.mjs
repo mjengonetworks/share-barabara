@@ -24,6 +24,15 @@ test("homepage uses content-driven previews and keeps taxonomy beside its source
   assert.doesNotMatch(homepage, /<GlobalEditorialPreview/);
 });
 
+test("homepage places community discovery after report taxonomy and before later modules", async () => {
+  const homepage = await read("src/routes/index.tsx");
+  const reports = homepage.indexOf('<TaxonomyDiscovery kind="reports"');
+  const community = homepage.indexOf("<HomepageDirectoryDiscovery />");
+  const mostViewed = homepage.indexOf("<HomepageMostViewed />");
+  assert.ok(reports >= 0 && community > reports && mostViewed > community);
+  assert.doesNotMatch(homepage.slice(0, reports), /<HomepageDirectoryDiscovery \/>/);
+});
+
 test("homepage content previews use the authoritative eligible feed and honest empty states", async () => {
   const previews = await read("src/components/site/homepage-content-previews.tsx");
   assert.match(previews, /getUnifiedFeed\(\{ limit: 60 \}\)/);

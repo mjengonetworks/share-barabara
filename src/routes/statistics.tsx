@@ -34,6 +34,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { num } from "@/lib/format";
 import { BannerAd } from "@/components/site/banner-ad";
+import { RoadDiscovery } from "@/components/site/road-discovery";
 import { displayReportCount } from "@/lib/report-metrics";
 import {
   groupIncidentRows,
@@ -47,6 +48,9 @@ import { loadLiveCanonicalIncidents, type LiveIncidentRow } from "@/lib/canonica
 import { StatisticsIncidentMap } from "@/components/site/statistics-incident-map";
 
 export const Route = createFileRoute("/statistics")({
+  validateSearch: (search: Record<string, unknown>): { road?: string } => ({
+    road: typeof search.road === "string" && search.road ? search.road : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Kenya Road Crash Statistics: Share Barabara" },
@@ -374,6 +378,7 @@ function usePublishedStatisticsProvenance() {
 }
 
 function StatisticsPage() {
+  const searchParams = Route.useSearch();
   const navigate = useNavigate();
   const { data: hazardTypes = [] } = useHazardTypes();
   const { data: reportSeverities = [] } = useReportSeverities();
@@ -476,7 +481,7 @@ function StatisticsPage() {
   const [liveCounty, setLiveCounty] = useState("all");
   const [liveSeverity, setLiveSeverity] = useState("all");
   const [liveParty, setLiveParty] = useState("all");
-  const [liveRoad, setLiveRoad] = useState("all");
+  const [liveRoad, setLiveRoad] = useState(searchParams.road ?? "all");
   const [liveVehicle, setLiveVehicle] = useState("all");
   const [liveTransportMode, setLiveTransportMode] = useState("all");
   const { data: liveReports = [] } = useLiveYearReports(liveTransportMode, activeYear);
@@ -540,6 +545,8 @@ function StatisticsPage() {
         Reports without confirmed casualty totals are excluded from numeric sums rather than counted
         as zero.
       </p>
+
+      <RoadDiscovery compact />
 
       <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3" aria-label="Statistics year selector">
         <div>

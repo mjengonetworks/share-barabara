@@ -36,6 +36,7 @@ import { CommentSection } from "@/components/site/comment-section";
 import { BannerAd } from "@/components/site/banner-ad";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { RoadGeometryMap } from "@/components/site/road-geometry-map";
+import { RoadFilterLinks } from "@/components/site/road-discovery";
 import heroRoad from "@/assets/hero-road.jpg";
 import {
   IncidentEntityGroups,
@@ -294,6 +295,7 @@ function AlertsPage() {
               </div>
             ) : <div className="mt-5 max-w-xl">{hazardSubmissionCard}</div>}
 
+            <RoadFilterLinks kind="alerts" />
             <div className="mt-5"><BannerAd placement="alerts-list-interval-1" /></div>
             <EditorialBand tone="plain">
               <SectionHeader eyebrow="Verified locations only" title="Alert map" />

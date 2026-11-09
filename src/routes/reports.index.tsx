@@ -29,6 +29,7 @@ import { UserLink } from "@/components/site/user-link";
 import { ReportForm } from "@/components/site/report-form";
 import { ReportPreviewCard } from "@/components/site/discovery-sections";
 import { BannerAd } from "@/components/site/banner-ad";
+import { RoadFilterLinks } from "@/components/site/road-discovery";
 import { displayReportCount } from "@/lib/report-metrics";
 import { PublicPageHero } from "@/components/site/public-page-hero";
 import { useIncidentTaxonomy } from "@/hooks/useIncidentTaxonomy";
@@ -263,6 +264,7 @@ function ReportsPage() {
               <div className="mt-5 max-w-xl">{reportSubmissionCard}</div>
             )}
 
+            <RoadFilterLinks kind="reports" />
             <div className="mt-5"><BannerAd placement="reports-list-interval-1" /></div>
             <EditorialBand tone="plain">
               <SectionHeader

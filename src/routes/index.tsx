@@ -23,6 +23,7 @@ import { HomepageContentPreviews } from "@/components/site/homepage-content-prev
 import { TaxonomyStrip, type TaxonomyStripItem } from "@/components/site/taxonomy-strip";
 import { HomepageDirectoryDiscovery } from "@/components/site/homepage-directory-discovery";
 import { HomepageMostViewed } from "@/components/site/homepage-most-viewed";
+import { RoadDiscovery } from "@/components/site/road-discovery";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -116,11 +117,19 @@ function Index() {
       const eligibleReports = reports.data ?? [];
       const reportItems: TaxonomyStripItem[] = [];
       const eligibleSeverities = new Set(eligibleReports.map((row) => normalized(row.severity)).filter(Boolean));
+      const seenSeverities = new Set<string>();
       for (const severity of (reportSeverities.data ?? []).filter((row) => row.active !== false && eligibleSeverities.has(normalized(row.value)))) {
-        reportItems.push({ key: `severity:${severity.value}`, label: severity.label, to: "/reports", search: { severity: severity.value } });
+        const key = normalized(severity.value);
+        if (seenSeverities.has(key)) continue;
+        seenSeverities.add(key);
+        reportItems.push({ key: `severity:${key}`, label: `Severity · ${severity.label}`, to: "/reports", search: { severity: severity.value } });
       }
-      for (const incident of Array.from(new Set(eligibleReports.map((row) => String(row.incident_type ?? "").trim()).filter(Boolean)))) {
-        reportItems.push({ key: `incident:${incident}`, label: formatLabel(incident), to: "/reports", search: { incident } });
+      const seenIncidents = new Set<string>();
+      for (const incident of eligibleReports.map((row) => String(row.incident_type ?? "").trim()).filter(Boolean)) {
+        const key = normalized(incident);
+        if (seenIncidents.has(key)) continue;
+        seenIncidents.add(key);
+        reportItems.push({ key: `incident:${key}`, label: `Incident type · ${formatLabel(incident)}`, to: "/reports", search: { incident } });
       }
       const infrastructureItems: TaxonomyStripItem[] = Array.from(
         new Set((issues.data ?? []).map((row) => String(row.structure_type ?? "").trim()).filter(Boolean)),
@@ -329,8 +338,6 @@ function Index() {
         <TaxonomyDiscovery kind="alerts" items={homepageTaxonomy.alerts} />
       </section>
 
-      <HomepageDirectoryDiscovery />
-
       <section className="border-y border-border bg-secondary/40">
         <div className="public-content-container py-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -397,6 +404,8 @@ function Index() {
         <TaxonomyDiscovery kind="reports" items={homepageTaxonomy.reports} />
       </section>
 
+      <HomepageDirectoryDiscovery />
+      <RoadDiscovery />
       <HomepageMostViewed />
       <HomepageContentPreviews infrastructureTaxonomy={homepageTaxonomy.infrastructure} />
       <HomepageMediaFeedPreview />

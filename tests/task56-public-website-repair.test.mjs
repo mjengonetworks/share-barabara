@@ -72,9 +72,9 @@ test("article cards use accessible responsive 16:9 presentation", () => {
 });
 
 test("unsold ads use the Partner With Us CTA while paid ads remain untouched", () => {
-  assert.match(ads, /YOUR AD HERE/);
+  assert.match(ads, /Your ad here/);
   assert.match(ads, /to="\/partner-with-us"/);
-  assert.match(ads, /Visit Advertiser/);
+  assert.match(ads, /Advertise with us/);
 });
 
 test("related articles use the shared left-aligned editorial treatment and ecosystem language is accurate", () => {

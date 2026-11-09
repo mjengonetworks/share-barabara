@@ -46,7 +46,7 @@ test("social discovery is configuration-driven and does not invent a handle", ()
 });
 
 test("empty advertising inventory keeps the Partner With Us path and live ads intact", () => {
-  assert.match(ads, /YOUR AD HERE/);
+  assert.match(ads, /Your ad here/);
   assert.match(ads, /to="\/partner-with-us"/);
-  assert.match(ads, /Visit Advertiser/);
+  assert.match(ads, /Advertise with us/);
 });
