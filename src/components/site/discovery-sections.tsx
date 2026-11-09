@@ -15,6 +15,7 @@ import { useHazardTypes, useReportSeverities } from "@/hooks/useTaxonomy";
 import { SeverityBadge } from "@/components/site/severity-badge";
 import { displayReportCount, fatalityLabel } from "@/lib/report-metrics";
 import { BannerAd } from "@/components/site/banner-ad";
+import { TaxonomyStrip, type TaxonomyStripItem } from "@/components/site/taxonomy-strip";
 
 type Focus = "article" | "alert" | "report";
 
@@ -221,23 +222,26 @@ export function CampaignPreviewCard({ campaign }: { campaign: CampaignPreview })
   );
 }
 
-export function TaxonomyDiscovery({ kind }: { kind: "alerts" | "reports" }) {
+export function TaxonomyDiscovery({
+  kind,
+  items,
+}: {
+  kind: "alerts" | "reports";
+  items?: TaxonomyStripItem[];
+}) {
   const { data: hazards = [] } = useHazardTypes();
   const { data: severities = [] } = useReportSeverities();
-  const values = kind === "alerts" ? hazards : severities;
+  const fallback = (kind === "alerts" ? hazards : severities).map((value) => ({
+    key: value.value,
+    label: value.label,
+    to: kind === "alerts" ? "/alerts" : "/reports",
+    search: kind === "alerts" ? { hazard: value.value } : { severity: value.value },
+  }));
   return (
-    <div className="flex flex-wrap gap-2">
-      {values.map((value) => (
-        <Link
-          key={value.value}
-          to={kind === "alerts" ? "/alerts" : "/reports"}
-          search={kind === "alerts" ? { hazard: value.value } : { severity: value.value }}
-          className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-accent hover:bg-accent/10"
-        >
-          {value.label}
-        </Link>
-      ))}
-    </div>
+    <TaxonomyStrip
+      heading={kind === "alerts" ? "Browse alerts by type" : "Browse accident reports by severity/type"}
+      items={items ?? fallback}
+    />
   );
 }
 

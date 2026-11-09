@@ -38,7 +38,10 @@ test("homepage previews opt out of nested narrow containers", async () => {
     read("src/components/site/mjengo-previews.tsx"),
   ]);
 
-  assert.match(homepage, /<HomepageContentPreviews \/>/);
+  assert.match(
+    homepage,
+    /<HomepageContentPreviews(?:\s+infrastructureTaxonomy=\{homepageTaxonomy\.infrastructure\})? \/>/,
+  );
   assert.match(homepage, /<HomepageMediaFeedPreview \/>/);
   assert.doesNotMatch(homepage, /<GlobalEditorialPreview/);
   assert.match(homepage, /<MjengoPreviews context="home" fullWidth \/>/);

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Film, Megaphone, Wrench } from "lucide-react";
 import { getUnifiedFeed, type UnifiedFeedItem } from "@/lib/unified-feed";
 import { youtubeId } from "@/lib/video";
+import { TaxonomyStrip, type TaxonomyStripItem } from "@/components/site/taxonomy-strip";
 
 type PreviewKind = "infrastructure" | "campaign" | "video";
 const config: Record<
@@ -66,7 +67,15 @@ function PreviewCard({ item }: { item: UnifiedFeedItem }) {
   );
 }
 
-function ContentSection({ kind, items }: { kind: PreviewKind; items: UnifiedFeedItem[] }) {
+function ContentSection({
+  kind,
+  items,
+  taxonomyItems = [],
+}: {
+  kind: PreviewKind;
+  items: UnifiedFeedItem[];
+  taxonomyItems?: TaxonomyStripItem[];
+}) {
   const section = config[kind];
   const Icon = section.icon;
   return (
@@ -97,11 +106,18 @@ function ContentSection({ kind, items }: { kind: PreviewKind; items: UnifiedFeed
           {section.empty}
         </p>
       )}
+      {kind === "infrastructure" ? (
+        <TaxonomyStrip heading="Browse infrastructure issues by type" items={taxonomyItems} />
+      ) : null}
     </section>
   );
 }
 
-export function HomepageContentPreviews() {
+export function HomepageContentPreviews({
+  infrastructureTaxonomy = [],
+}: {
+  infrastructureTaxonomy?: TaxonomyStripItem[];
+}) {
   const { data: items = [] } = useQuery({
     queryKey: ["homepage-content-previews"],
     queryFn: () => getUnifiedFeed({ limit: 60 }),
@@ -114,6 +130,7 @@ export function HomepageContentPreviews() {
           key={kind}
           kind={kind}
           items={items.filter((item) => item.kind === kind).slice(0, 3)}
+          taxonomyItems={infrastructureTaxonomy}
         />
       ))}
     </>

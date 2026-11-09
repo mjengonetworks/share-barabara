@@ -6,11 +6,20 @@ const read = (path) => readFile(path, "utf8");
 
 test("homepage uses content-driven previews and keeps taxonomy beside its source section", async () => {
   const homepage = await read("src/routes/index.tsx");
-  assert.match(homepage, /<HomepageContentPreviews \/>/);
+  assert.match(
+    homepage,
+    /<HomepageContentPreviews(?:\s+infrastructureTaxonomy=\{homepageTaxonomy\.infrastructure\})? \/>/,
+  );
   assert.match(homepage, /<HomepageMediaFeedPreview \/>/);
-  assert.match(homepage, /<TaxonomyDiscovery kind="alerts" \/>/);
-  assert.match(homepage, /<TaxonomyDiscovery kind="reports" \/>/);
-  assert.match(homepage, /<ArticleCategoryPills/);
+  assert.match(homepage, /<TaxonomyDiscovery kind="alerts" items=\{homepageTaxonomy\.alerts\} \/>/);
+  assert.match(
+    homepage,
+    /<TaxonomyDiscovery kind="reports" items=\{homepageTaxonomy\.reports\} \/>/,
+  );
+  assert.match(
+    homepage,
+    /<TaxonomyStrip heading="Browse articles by category" items=\{homepageTaxonomy\.news\} \/>/,
+  );
   assert.doesNotMatch(homepage, /Browse live alert types|Browse report severities/);
   assert.doesNotMatch(homepage, /<GlobalEditorialPreview/);
 });

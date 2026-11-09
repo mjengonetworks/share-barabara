@@ -22,6 +22,7 @@ import {
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
 import { HomepageMediaFeedPreview } from "@/components/site/global-editorial-preview";
 import { HomepageContentPreviews } from "@/components/site/homepage-content-previews";
+import { TaxonomyStrip, type TaxonomyStripItem } from "@/components/site/taxonomy-strip";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -76,6 +77,62 @@ function Index() {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: homepageTaxonomy = { news: [], alerts: [], reports: [], infrastructure: [] } } = useQuery({
+    queryKey: ["home-published-taxonomy"],
+    queryFn: async () => {
+      const [articles, articleCategories, alerts, hazardTypes, reports, reportSeverities, issues] =
+        await Promise.all([
+          supabase.from("news").select("category, categories").eq("status", "published").limit(1000),
+          supabase.from("news_categories").select("name, label, active, sort_order").order("sort_order"),
+          supabase.from("alerts").select("hazard_type").eq("status", "active").limit(1000),
+          supabase.from("hazard_types").select("value, label, active, sort_order").order("sort_order"),
+          supabase.from("accident_reports").select("severity, incident_type").eq("status", "approved").limit(1000),
+          supabase.from("report_severities").select("value, label, active, sort_order").order("sort_order"),
+          supabase.from("infrastructure_issues").select("structure_type").eq("status", "approved").limit(1000),
+        ]);
+      for (const result of [articles, articleCategories, alerts, hazardTypes, reports, reportSeverities, issues]) {
+        if (result.error) throw result.error;
+      }
+      const normalized = (value: unknown) => String(value ?? "").trim().toLowerCase();
+      const formatLabel = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+      const articleValues = new Set(
+        (articles.data ?? []).flatMap((article) => [article.category, ...(article.categories ?? [])].map(normalized)).filter(Boolean),
+      );
+      const newsItems: TaxonomyStripItem[] = (articleCategories.data ?? [])
+        .filter((category) => category.active !== false)
+        .filter((category) => articleValues.has(normalized(category.name)) || articleValues.has(normalized(category.label)))
+        .map((category) => ({
+          key: category.name,
+          label: category.label ?? category.name,
+          to: "/news",
+          search: { category: category.name },
+        }));
+      const eligibleAlerts = new Set((alerts.data ?? []).map((row) => normalized(row.hazard_type)).filter(Boolean));
+      const alertItems: TaxonomyStripItem[] = (hazardTypes.data ?? [])
+        .filter((type) => type.active !== false && eligibleAlerts.has(normalized(type.value)))
+        .map((type) => ({ key: type.value, label: type.label, to: "/alerts", search: { hazard: type.value } }));
+      const eligibleReports = reports.data ?? [];
+      const reportItems: TaxonomyStripItem[] = [];
+      const eligibleSeverities = new Set(eligibleReports.map((row) => normalized(row.severity)).filter(Boolean));
+      for (const severity of (reportSeverities.data ?? []).filter((row) => row.active !== false && eligibleSeverities.has(normalized(row.value)))) {
+        reportItems.push({ key: `severity:${severity.value}`, label: severity.label, to: "/reports", search: { severity: severity.value } });
+      }
+      for (const incident of Array.from(new Set(eligibleReports.map((row) => String(row.incident_type ?? "").trim()).filter(Boolean)))) {
+        reportItems.push({ key: `incident:${incident}`, label: formatLabel(incident), to: "/reports", search: { incident } });
+      }
+      const infrastructureItems: TaxonomyStripItem[] = Array.from(
+        new Set((issues.data ?? []).map((row) => String(row.structure_type ?? "").trim()).filter(Boolean)),
+      ).map((structure) => ({
+        key: structure,
+        label: formatLabel(structure),
+        to: "/infrastructure-issues",
+        search: { structure },
+      }));
+      return { news: newsItems, alerts: alertItems, reports: reportItems, infrastructure: infrastructureItems };
+    },
+    staleTime: 60_000,
   });
 
   const { data: reports = [] } = useQuery({
@@ -271,7 +328,7 @@ function Index() {
             ))}
           </div>
         )}
-        <TaxonomyDiscovery kind="alerts" />
+        <TaxonomyDiscovery kind="alerts" items={homepageTaxonomy.alerts} />
       </section>
 
       <section className="public-content-container py-10">
@@ -305,9 +362,7 @@ function Index() {
               No published articles yet.
             </p>
           )}
-          <ArticleCategoryPills
-            categories={news.map((article) => article.category).filter(Boolean)}
-          />
+          <TaxonomyStrip heading="Browse articles by category" items={homepageTaxonomy.news} />
         </div>
       </section>
 
@@ -343,7 +398,7 @@ function Index() {
             ))}
           </div>
         )}
-        <TaxonomyDiscovery kind="reports" />
+        <TaxonomyDiscovery kind="reports" items={homepageTaxonomy.reports} />
       </section>
 
       {pages.length > 0 ? (
@@ -385,7 +440,7 @@ function Index() {
         </section>
       ) : null}
 
-      <HomepageContentPreviews />
+      <HomepageContentPreviews infrastructureTaxonomy={homepageTaxonomy.infrastructure} />
       <HomepageMediaFeedPreview />
 
       <section className="public-content-container py-6">
@@ -493,25 +548,6 @@ function Stat({ value, label, danger }: { value: string; label: string; danger?:
         {value}
       </p>
       <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-function ArticleCategoryPills({ categories }: { categories: string[] }) {
-  const values = Array.from(new Set(categories)).filter(Boolean);
-  if (!values.length) return null;
-  return (
-    <div className="mt-5 flex flex-wrap gap-2" aria-label="Article categories">
-      {values.map((category) => (
-        <Link
-          key={category}
-          to="/news"
-          search={{ category }}
-          className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:border-accent hover:bg-accent/10"
-        >
-          {category}
-        </Link>
-      ))}
     </div>
   );
 }

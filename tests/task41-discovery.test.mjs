@@ -21,7 +21,7 @@ test("Task 41 discovery uses existing taxonomy routes and safe sister links", ()
   assert.match(discovery, /useReportSeverities/);
   assert.match(
     discovery,
-    /search=\{kind === "alerts" \? \{ hazard: value\.value \} : \{ severity: value\.value \}\}/,
+    /search: kind === "alerts" \? \{ hazard: value\.value \} : \{ severity: value\.value \}/,
   );
   assert.match(discovery, /https:\/\/mjengohub\.co\.ke/);
   assert.match(discovery, /https:\/\/mjengonetworks\.co\.ke/);
@@ -42,7 +42,10 @@ test("Task 41 ad inventory exposes named placement identifiers", () => {
 
 test("Task 41 homepage discovery queries request bounded public preview fields", () => {
   assert.match(home, /select\("id, title, description, county, road, hazard_type, severity"\)/);
-  assert.match(home, /select\("id, slug, title, category, image_url, published_at, summary, county, road"\)/);
+  assert.match(
+    home,
+    /select\("id, slug, title, category, image_url, published_at, summary, county, road"\)/,
+  );
   assert.match(
     home,
     /select\(\s*"id, title, description, county, road, severity, occurred_at, image_url, vehicles_involved, casualties, fatalities"/s,
