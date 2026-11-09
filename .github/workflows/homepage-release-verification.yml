@@ -8,6 +8,7 @@ on:
       - feat/media-feed-visual-system
       - feat/homepage-redesign
       - fix/homepage-category-discovery
+      - fix/homepage-density-discovery
 
 permissions:
   contents: read
@@ -16,13 +17,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 0a20e4dba92d6c6a4cff2fa2c102242c453687c2
+      APP_CANDIDATE_SHA: 9ab103f0c1dc7fbbf23f6c69e1349edd77162da2
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: 0a20e4dba92d6c6a4cff2fa2c102242c453687c2
+          ref: 9ab103f0c1dc7fbbf23f6c69e1349edd77162da2
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
@@ -73,7 +74,7 @@ jobs:
       - name: Upload complete Worker payload
         uses: actions/upload-artifact@v4
         with:
-          name: homepage-worker-payload-0a20e4d
+          name: homepage-worker-payload-${{ env.APP_CANDIDATE_SHA }}
           path: homepage-worker-payload-${{ env.APP_CANDIDATE_SHA }}.tar.gz
           if-no-files-found: error
           retention-days: 7

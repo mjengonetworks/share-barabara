@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - fix/homepage-grid-width
+      - fix/homepage-density-discovery
 
 permissions:
   contents: read
@@ -17,9 +18,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       WORKER_NAME: share-barabara
-      EXPECTED_WORKER_VERSION_ID: e84cab4e-c770-442a-bb78-5c361faebf35
-      EXPECTED_PRODUCTION_APPLICATION_SHA: 7b3054e070d77a8e721ec67b5de24a902e37f382
-      EXPECTED_APPLICATION_SHA: 3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee
+      EXPECTED_WORKER_VERSION_ID: 90c0688a-5f05-409f-930a-9ea5a50974c9
+      EXPECTED_PRODUCTION_APPLICATION_SHA: 0a20e4dba92d6c6a4cff2fa2c102242c453687c2
+      EXPECTED_APPLICATION_SHA: 9ab103f0c1dc7fbbf23f6c69e1349edd77162da2
 
     steps:
       - name: Check out preflight revision
