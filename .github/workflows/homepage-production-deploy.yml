@@ -21,7 +21,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-approved-homepage]')
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 0a20e4dba92d6c6a4cff2fa2c102242c453687c2
+      APP_CANDIDATE_SHA: 9ab103f0c1dc7fbbf23f6c69e1349edd77162da2
       EXPECTED_PRODUCTION_APPLICATION_SHA: 0a20e4dba92d6c6a4cff2fa2c102242c453687c2
       EXPECTED_DEPLOYMENT_ID: d989b5fa-93e5-470b-89fe-6d9e5cee7fac
       EXPECTED_WORKER_VERSION_ID: 3ea808e1-e3b2-46f2-b315-5fadd269b5d0
