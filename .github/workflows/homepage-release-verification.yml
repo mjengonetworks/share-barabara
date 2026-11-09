@@ -7,6 +7,7 @@ on:
       - fix/homepage-grid-width
       - feat/media-feed-visual-system
       - feat/homepage-redesign
+      - fix/homepage-category-discovery
 
 permissions:
   contents: read
@@ -15,13 +16,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: a354e35524662f1cd77e8d5dbeb1e927927904da
+      APP_CANDIDATE_SHA: 0a20e4d
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: a354e35524662f1cd77e8d5dbeb1e927927904da
+          ref: 0a20e4d
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
@@ -72,7 +73,7 @@ jobs:
       - name: Upload complete Worker payload
         uses: actions/upload-artifact@v4
         with:
-          name: homepage-worker-payload-a354e35524662f1cd77e8d5dbeb1e927927904da
-          path: homepage-worker-payload-a354e35524662f1cd77e8d5dbeb1e927927904da.tar.gz
+          name: homepage-worker-payload-0a20e4d
+          path: homepage-worker-payload-0a20e4d.tar.gz
           if-no-files-found: error
           retention-days: 7

@@ -6,6 +6,7 @@ on:
     branches:
       - fix/homepage-horizontal-margins
       - feat/homepage-redesign
+      - fix/homepage-category-discovery
 
 permissions:
   contents: read
@@ -16,7 +17,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-approved-homepage]')
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: a354e35524662f1cd77e8d5dbeb1e927927904da
+      APP_CANDIDATE_SHA: 0a20e4d
       EXPECTED_PRODUCTION_APPLICATION_SHA: 0e40f35571e9080e6f4b28bfd3f77dd8d12f3cd7
       EXPECTED_DEPLOYMENT_ID: b5f48b37-f572-4ee7-b89d-e232fc53a059
       EXPECTED_WORKER_VERSION_ID: 98facc33-86fe-4157-b555-6bc70226d00f
@@ -30,7 +31,7 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: a354e35524662f1cd77e8d5dbeb1e927927904da
+          ref: 0a20e4d
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
