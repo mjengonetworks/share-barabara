@@ -1735,3 +1735,10 @@ unfinished application changes are not merged here.
 - **Hooks:** Split the Articles list from its child-route outlet so list hooks are no longer conditional after the route handoff.
 - **Verification:** Focused persistence/road/hook tests pass; production build generated `.output/server/index.mjs` and `.output/server/wrangler.json`; no production database write or migration was executed.
 - **Acceptance boundary:** Authenticated non-production create → reload → edit → reload, real provider calls, and live browser/map acceptance still require an authorized test database/session. Multi-road junction associations and advanced canonical geometry require the review-only migrations and are not claimed complete.
+
+## LOCAL SUPABASE ACCEPTANCE ENVIRONMENT — BLOCKED BY IMAGE FETCH (2026-11-09)
+
+- **Isolation:** A disposable workspace was initialized outside the repository at `C:\Users\phabi\sb-local-acceptance` with project id `sb-local-acceptance`; repository migrations were copied there only. The production-linked `supabase/config.toml`, linked project metadata and credentials were not used for local database commands.
+- **Tooling:** Docker Desktop is healthy (`desktop-linux`, 4 CPUs, approximately 3.8 GB assigned memory). Supabase CLI 3.1.0 was installed in a disposable tool directory. Optional local services were excluded; the acceptance stack was limited to Postgres, Auth, PostgREST and Kong.
+- **Blocker:** The required `public.ecr.aws/supabase/postgres:17.11.0.018` image did not complete download after repeated retries and was stopped safely. No local Supabase container became healthy, no migration was applied, no account was created and no acceptance write was attempted.
+- **Status:** Accident Report persistence, RLS, Road Admin geometry, Article SEO/road-tag and provider acceptance remain unexecuted. The candidate remains `ead265641955c182dcc8afa26a7e48791f9ec106`; production remains untouched.
