@@ -32,7 +32,10 @@ type ReportSubmission = {
   is_anonymous: boolean;
 };
 
-type PersistedReportFields = Omit<ReportSubmission, "requestedStatus" | "road" | "parties_involved" | "casualty_breakdown" | "attachments"> & {
+type PersistedReportFields = Omit<
+  ReportSubmission,
+  "requestedStatus" | "road" | "parties_involved" | "casualty_breakdown" | "attachments"
+> & {
   road: string | null;
   user_id: string;
 };
@@ -46,7 +49,10 @@ export function buildAccidentReportPayload(
   submission: ReportSubmission,
   userId: string,
   status: "pending" | "approved",
-  capabilities: { summary: boolean; incident_type: boolean } = { summary: true, incident_type: true },
+  capabilities: { summary: boolean; incident_type: boolean } = {
+    summary: true,
+    incident_type: true,
+  },
 ) {
   const fields: PersistedReportFields & Record<string, unknown> = {
     title: submission.title.trim(),
@@ -74,11 +80,17 @@ export function buildAccidentReportPayload(
     status,
   };
   if (capabilities.summary && submission.summary !== undefined) fields.summary = submission.summary;
-  if (capabilities.incident_type && submission.incident_type !== undefined) fields.incident_type = submission.incident_type;
+  if (capabilities.incident_type && submission.incident_type !== undefined)
+    fields.incident_type = submission.incident_type;
   return fields;
 }
 
-async function supportsColumn(supabase: SupabaseClient<Database>, column: "summary" | "incident_type") {
+async function supportsColumn(
+  supabase: SupabaseClient<Database>,
+  column: "summary" | "incident_type",
+) {
+  // The generated client types intentionally lag the reviewed optional columns.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase.from("accident_reports") as any).select(column).limit(1);
   return !error;
 }
@@ -122,7 +134,10 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
       ]);
       // The allowlisted builder writes user_id: context.userId and never trusts
       // a browser-supplied owner value.
-      const payload = buildAccidentReportPayload(data, context.userId, status, { summary, incident_type });
+      const payload = buildAccidentReportPayload(data, context.userId, status, {
+        summary,
+        incident_type,
+      });
 
       // The generated types still reflect the pre-nullability schema. Keep the
       // compatibility cast at this boundary until Supabase types are regenerated.
@@ -134,7 +149,17 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
       if (error) throw error;
       try {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        await suggestIncidentDuplicates(supabaseAdmin, { type: "report", id: report.id, title: report.title, body: report.description, county: report.county, road: report.road, occurredAt: report.occurred_at, latitude: report.latitude, longitude: report.longitude });
+        await suggestIncidentDuplicates(supabaseAdmin, {
+          type: "report",
+          id: report.id,
+          title: report.title,
+          body: report.description,
+          county: report.county,
+          road: report.road,
+          occurredAt: report.occurred_at,
+          latitude: report.latitude,
+          longitude: report.longitude,
+        });
       } catch {
         // Duplicate review is additive and must not reject a valid submission.
       }
