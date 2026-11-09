@@ -308,6 +308,7 @@ export function EditorialTripleCard({
   hideHeading = false,
   identities,
   tone = "white",
+  viewAllHref,
 }: {
   title: string;
   items: PreviewItem[];
@@ -317,8 +318,9 @@ export function EditorialTripleCard({
     { name?: string | null; username?: string | null; avatar?: string | null }
   >;
   tone?: FeedSurfaceTone;
+  viewAllHref?: string;
 }) {
-  const href = items[0] ? meta[items[0].destination].href : undefined;
+  const href = viewAllHref ?? (items[0] ? meta[items[0].destination].href : undefined);
   const styles = feedSurfaceTokens[tone];
   return (
     <article

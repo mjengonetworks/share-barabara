@@ -23,6 +23,7 @@ import { HomepageMediaFeedPreview } from "@/components/site/global-editorial-pre
 import { HomepageContentPreviews } from "@/components/site/homepage-content-previews";
 import { TaxonomyStrip, type TaxonomyStripItem } from "@/components/site/taxonomy-strip";
 import { HomepageDirectoryDiscovery } from "@/components/site/homepage-directory-discovery";
+import { HomepageMostViewed } from "@/components/site/homepage-most-viewed";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -397,6 +398,7 @@ function Index() {
         <TaxonomyDiscovery kind="reports" items={homepageTaxonomy.reports} />
       </section>
 
+      <HomepageMostViewed />
       <HomepageContentPreviews infrastructureTaxonomy={homepageTaxonomy.infrastructure} />
       <HomepageMediaFeedPreview />
 

@@ -10,14 +10,7 @@ export type PreviewItem = {
   destination: PreviewDestination;
   categoryKey?: string | null;
   recordedViewRank?: number;
-  activity?: {
-    kind: UnifiedFeedItem["kind"];
-    body: string;
-    authorId: string | null;
-    createdAt: string;
-    publishedAt: string | null;
-    mediaUrl: string | null;
-  };
+  activity?: UnifiedFeedItem;
 };
 
 export type PreviewCard = {
