@@ -1630,3 +1630,10 @@ unfinished application changes are not merged here.
 - **Verification:** `/`, `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues` returned HTTP 200; `/staging-media-feed-preview` returned HTTP 404. The workflow passed ancestry, artifact digest, full release gates, production configuration and Cloudflare preflight checks. The implementation and focused tests verify the four required headings, eligible-record taxonomy intersections, one-row overflow behavior and canonical filtered links.
 - **Configuration/rollback:** `sharebarabara.co.ke`, Worker `share-barabara`, bindings, variables/secrets metadata and cron were preserved. Immediate rollback target is deployment `be13a319-cb9d-4f46-8331-e8c03ea806d7` / version `90c0688a-5f05-409f-930a-9ea5a50974c9`.
 - **Pending:** Browser visual/responsive/console acceptance remains pending because browser automation was unavailable. Authenticated CMS acceptance remains unchanged. No SQL, migrations, Supabase changes or unrelated configuration changes were performed.
+
+## HOMEPAGE SPACING DEPLOYMENT PREFLIGHT — BLOCKED (2026-11-09)
+
+- **Application candidate:** `9ab103f0c1dc7fbbf23f6c69e1349edd77162da2`; workflow-only verification commit: `f284057eed211934e7c87a7e3dab0a0637ad4795`.
+- **Artifact verification:** Linux workflow `42605416589` passed the build, full suite, security suite, artifact gate and complete payload packaging. Artifact `13667213331` digest: `sha256:d471984f762c7733626842c2d172a95505f2699d88b58c7ed0db08a293851dd0`.
+- **Fresh production preflight:** `42605607576` stopped before deployment. Actual live deployment is `d989b5fa-93e5-470b-89fe-6d9e5cee7fac`, Worker version `3ea808e1-e3b2-46f2-b315-5fadd269b5d0`, at 100%; expected Worker version was `90c0688a-5f05-409f-930a-9ea5a50974c9`.
+- **Status:** Blocked by production drift. No deployment, SQL, migration, Supabase or configuration mutation was performed.
