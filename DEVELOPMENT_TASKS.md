@@ -1637,3 +1637,11 @@ unfinished application changes are not merged here.
 - **Artifact verification:** Linux workflow `42605416589` passed the build, full suite, security suite, artifact gate and complete payload packaging. Artifact `13667213331` digest: `sha256:d471984f762c7733626842c2d172a95505f2699d88b58c7ed0db08a293851dd0`.
 - **Fresh production preflight:** `42605607576` stopped before deployment. Actual live deployment is `d989b5fa-93e5-470b-89fe-6d9e5cee7fac`, Worker version `3ea808e1-e3b2-46f2-b315-5fadd269b5d0`, at 100%; expected Worker version was `90c0688a-5f05-409f-930a-9ea5a50974c9`.
 - **Status:** Blocked by production drift. No deployment, SQL, migration, Supabase or configuration mutation was performed.
+
+## HOMEPAGE SPACING DEPLOYMENT — DEPLOYED (2026-11-09)
+
+- **Application:** Approved candidate `9ab103f0c1dc7fbbf23f6c69e1349edd77162da`; it descends from the reconciled live application `0a20e4dba92d6c6a4cff2fa2c102242c453687c2` and retains taxonomy strips, Most Viewed, Trending, Pages, Profiles, Featured Profile and the spacing correction.
+- **Artifact:** Verification workflow `42605416589`; artifact `13667213331`; digest `sha256:d471984f762c7733626842c2d172a95505f2699d88b58c7ed0db08a293851dd0`.
+- **Deployment:** Production workflow `42607675659` succeeded. Previous deployment/version `d989b5fa-93e5-470b-89fe-6d9e5cee7fac` / `3ea808e1-e3b2-46f2-b315-5fadd269b5d0`; new deployment/version `51845494-1b72-47ec-8f21-1ae51cfdc45e` / `2109d622-05bc-486d-a6c2-d0a5285d44b3`; traffic is 100% on the new version.
+- **Verification:** `/`, `/feed`, `/trending`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/pages` and `/contributors` returned HTTP 200. `/staging-media-feed-preview` returned HTTP 404. Domain, bindings, secret/variable metadata and cron were preserved; immediate rollback is the previous deployment/version above.
+- **Pending:** Browser visual/responsive/console acceptance remains pending because browser automation was unavailable. Authenticated CMS verification and owner visual acceptance remain outstanding. No SQL, migrations, Supabase changes or analytics rollout were performed.
