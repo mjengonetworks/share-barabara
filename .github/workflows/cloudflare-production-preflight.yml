@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: share-barabara-production-preflight
+  cancel-in-progress: false
+
 jobs:
   preflight:
     runs-on: ubuntu-latest
@@ -18,7 +22,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       WORKER_NAME: share-barabara
-      EXPECTED_WORKER_VERSION_ID: 90c0688a-5f05-409f-930a-9ea5a50974c9
+      EXPECTED_WORKER_VERSION_ID: 3ea808e1-e3b2-46f2-b315-5fadd269b5d0
       EXPECTED_PRODUCTION_APPLICATION_SHA: 0a20e4dba92d6c6a4cff2fa2c102242c453687c2
       EXPECTED_APPLICATION_SHA: 9ab103f0c1dc7fbbf23f6c69e1349edd77162da2
 
