@@ -1571,6 +1571,14 @@ unfinished application changes are not merged here.
 - **Browser/release:** Browser automation is unavailable in this environment, so no screenshots, responsive measurements, console checks or visual acceptance are claimed. Latest previously verified production remains Worker version `98facc33-86fe-4157-b555-6bc70226d00f` / deployment `b5f48b37-f572-4ee7-b89d-e232fc53a059` at 100%; this branch has not deployed. Candidate remains pending owner visual review, authenticated CMS verification and a fresh release preflight.
 - **Status:** Implemented — pending owner review; Task B unified analytics remains separate and unapproved.
 
+## HOMEPAGE CATEGORY DISCOVERY — IMPLEMENTED (2026-11-09)
+
+- **Candidate:** Dedicated branch `fix/homepage-category-discovery`, application commit `0a20e4d` (`fix: show eligible homepage taxonomy discovery`), based on the live homepage redesign application.
+- **Correction:** Added the shared `TaxonomyStrip` with the required “Browse articles by category” heading, one non-wrapping horizontal row, touch/trackpad/mouse scrolling, keyboard focus and visible overflow affordance. News categories now come from active taxonomy rows intersected with all published article `category`/`categories` values, rather than the three homepage cards.
+- **Coverage:** Alerts intersect active hazard taxonomy with active alerts; reports intersect active severities and eligible incident types with approved accident reports; infrastructure types are derived from approved infrastructure issues. Empty datasets render no fabricated pills or placeholders. Filter links preserve `/news?category=`, `/alerts?hazard=`, `/reports?severity=`/`incident=` and `/infrastructure-issues?structure=` conventions.
+- **Verification:** Focused homepage/taxonomy regression tests `17/17`; full application suite `597/597`; security suite `14/14`; production build passed with `.output/server/index.mjs` and `.output/server/wrangler.json`; artifact gate `2/2`; changed/new files lint-clean relative to existing baseline diagnostics; `git diff --check` passed.
+- **Release status:** Not deployed. Owner review and separate deployment approval remain pending. No SQL, migrations, production data or configuration changes were made.
+
 ## HOMEPAGE REDESIGN — FINAL VERIFICATION (2026-11-09)
 
 - **Application candidate:** `a354e35524662f1cd77e8d5dbeb1e927927904da`; ancestry from production application `0e40f35571e9080e6f4b28bfd3f77dd8d12f3cd7` verified locally.
