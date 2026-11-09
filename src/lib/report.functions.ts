@@ -32,6 +32,57 @@ type ReportSubmission = {
   is_anonymous: boolean;
 };
 
+type PersistedReportFields = Omit<ReportSubmission, "requestedStatus" | "road" | "parties_involved" | "casualty_breakdown" | "attachments"> & {
+  road: string | null;
+  user_id: string;
+};
+
+/**
+ * Keep the database boundary explicit.  The form also carries editor-only
+ * values, so spreading the complete form object can make a valid report fail
+ * when a deployment is one migration behind.
+ */
+export function buildAccidentReportPayload(
+  submission: ReportSubmission,
+  userId: string,
+  status: "pending" | "approved",
+  capabilities: { summary: boolean; incident_type: boolean } = { summary: true, incident_type: true },
+) {
+  const fields: PersistedReportFields & Record<string, unknown> = {
+    title: submission.title.trim(),
+    description: submission.description.trim(),
+    county: submission.county.trim(),
+    road: submission.road?.trim() || null,
+    occurred_at: submission.occurred_at,
+    vehicles_involved: submission.vehicles_involved,
+    casualties: submission.casualties,
+    fatalities: submission.fatalities,
+    severity: submission.severity,
+    latitude: submission.latitude,
+    longitude: submission.longitude,
+    image_url: submission.image_url,
+    image_alt: submission.image_alt,
+    image_caption: submission.image_caption,
+    image_credit: submission.image_credit,
+    road_id: submission.road_id,
+    page_id: submission.page_id,
+    parties_involved: submission.parties_involved,
+    casualty_breakdown: submission.casualty_breakdown,
+    attachments: submission.attachments,
+    is_anonymous: submission.is_anonymous,
+    user_id: userId,
+    status,
+  };
+  if (capabilities.summary && submission.summary !== undefined) fields.summary = submission.summary;
+  if (capabilities.incident_type && submission.incident_type !== undefined) fields.incident_type = submission.incident_type;
+  return fields;
+}
+
+async function supportsColumn(supabase: SupabaseClient<Database>, column: "summary" | "incident_type") {
+  const { error } = await (supabase.from("accident_reports") as any).select(column).limit(1);
+  return !error;
+}
+
 const roleRank: Record<string, number> = {
   member: 0,
   guest_author: 1,
@@ -51,7 +102,7 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
       data: ReportSubmission;
       context: { supabase: SupabaseClient<Database>; userId: string };
     }) => {
-      const { requestedStatus = "pending", ...submission } = data;
+      const { requestedStatus = "pending" } = data;
       const { data: roles, error: rolesError } = await context.supabase
         .from("user_roles")
         .select("role")
@@ -61,16 +112,17 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
       const canPublish = (roles ?? []).some(
         (entry) => (roleRank[entry.role] ?? 0) >= roleRank.moderator,
       );
-      const payload = {
-        ...submission,
-        user_id: context.userId,
-        // Public callers cannot self-approve, even if they tamper with the
-        // client payload. Staff may publish directly; draft support remains
-        // blocked until the separately approved schema change is applied.
-        status: canPublish && requestedStatus === "approved"
-          ? requestedStatus
-          : "pending",
-      };
+      const statusPayload = {
+        status: canPublish && requestedStatus === "approved" ? "approved" : "pending",
+      } as const;
+      const status = statusPayload.status;
+      const [summary, incident_type] = await Promise.all([
+        supportsColumn(context.supabase, "summary"),
+        supportsColumn(context.supabase, "incident_type"),
+      ]);
+      // The allowlisted builder writes user_id: context.userId and never trusts
+      // a browser-supplied owner value.
+      const payload = buildAccidentReportPayload(data, context.userId, status, { summary, incident_type });
 
       // The generated types still reflect the pre-nullability schema. Keep the
       // compatibility cast at this boundary until Supabase types are regenerated.
@@ -86,6 +138,6 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
       } catch {
         // Duplicate review is additive and must not reject a valid submission.
       }
-      return { status: payload.status };
+      return { id: report.id, status: payload.status };
     },
   );

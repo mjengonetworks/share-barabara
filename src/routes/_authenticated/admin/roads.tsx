@@ -16,6 +16,7 @@ import {
   slugifyRoadName,
   isSchemaCapabilityError,
 } from "@/lib/roads";
+import { RoadGeometryEditor } from "@/components/site/road-geometry-editor";
 
 // The reviewed save action is intentionally editor-gated; this label is also
 // used by release regression checks to keep the registry workflow discoverable.
@@ -413,6 +414,9 @@ function RoadRegistryPage() {
               </div>
               <div>
                 <Label htmlFor="road-geometry">GeoJSON Point / LineString / MultiLineString</Label>
+                <div className="mb-3 mt-2">
+                  <RoadGeometryEditor value={draft.geometry} disabled={!canManage} onChange={(geometry) => set({ geometry })} />
+                </div>
                 <Textarea
                   id="road-geometry"
                   rows={8}

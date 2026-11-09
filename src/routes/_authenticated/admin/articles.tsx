@@ -70,6 +70,10 @@ type Status = "draft" | "pending_review" | "published" | "rejected";
 function ArticlesQueuePage() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   if (/^\/admin\/articles\/(?:new|[^/]+\/edit)\/?$/.test(pathname)) return <Outlet />;
+  return <ArticlesQueueListPage />;
+}
+
+function ArticlesQueueListPage() {
   const { user } = useAuth();
   const { canPublishArticles } = useRoles();
   const queryClient = useQueryClient();

@@ -197,8 +197,9 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           : undefined;
       if (isEditing) {
         const patch = status ? { ...payload, status } : payload;
-        const { error } = await (supabase.from(config.table) as any).update(patch).eq("id", id);
+        const { data: saved, error } = await (supabase.from(config.table) as any).update(patch).eq("id", id).select("id").single();
         if (error) throw error;
+        if (!saved?.id) throw new Error("The database did not confirm the updated record.");
       } else if (type === "report") {
         const road_id = await findExistingRoad(form.road);
         await submitAccidentReport({ data: {

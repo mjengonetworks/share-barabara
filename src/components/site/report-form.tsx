@@ -97,7 +97,6 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
           }),
           attachments,
           occurred_at: new Date(form.occurred_at).toISOString(),
-          user_id: user.id,
           page_id: identity.type === "page" ? identity.pageId : null,
           is_anonymous: identity.type === "profile" && anonymous,
         },
