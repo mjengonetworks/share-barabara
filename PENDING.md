@@ -34,7 +34,7 @@
   eight required widths under `%TEMP%\share-barabara-unified-feed\`. There was
   no horizontal overflow, failed response or page error; a feed hydration
   warning from search-link property ordering was corrected and the rerun was
- clean. Owner review and deployment approval remain pending.
+  clean. Owner review and deployment approval remain pending.
 
 - Candidate-only navigation review is complete: primary menu buttons use the
   logo accent outline with no solid yellow fill, while the newsletter and
@@ -258,8 +258,7 @@
   `14/14`, focused correction tests `16/16`, build and diff checks pass. Latest
   production is Worker `d8ce8556-73ee-44cd-be4d-8cbf93a9c902` from application
   commit `747b44820098b9d4351022ddd9086ede4179faea`; previous Worker was
-  `778300c3-f7c8-499f-823b-735c239145f9`. Public smoke routes returned HTTP
-  200. Project `yhqoggbntunxvlbcatwj` was confirmed. Fresh scoped backup
+  `778300c3-f7c8-499f-823b-735c239145f9`. Public smoke routes returned HTTP 200. Project `yhqoggbntunxvlbcatwj` was confirmed. Fresh scoped backup
   `E:\sb2-production-backup-20261030-featured-scope.dump` is 58,573 bytes with
   SHA-256 `4A646A6EA955116C6CEB988380AED191C9A54090AC99881B4ED0C01B96D30449`;
   `pg_restore --list` passed with 117 entries. Pre/post counts remained 15
@@ -993,6 +992,7 @@ non-sensitive UI diagnostic marker and no `Title: Summary: Body:` scaffold. Auth
 reproduction and real Grok/Groq calls remain pending because no authorized browser/provider session was
 available. No migration, public UI, advertisement, Task 70, unrelated AI/authentication, or SearXNG change
 was made.
+
 # Global Editorial Discovery Final Corrections — DEPLOYED / VISUAL ACCEPTANCE PENDING
 
 The independently verified pre-deployment production baseline was Git `053ce19cf4a4a3620c19f05cfc2090b35d1db7d2` with active Worker `e69cd270-9006-4f0e-8b9f-50ffdfaceefe`. Candidate commit `9170e13` included that baseline and was deployed as Worker `dfa7cb6f-195e-4c60-b4ca-f883443f147c` at 100%; rollback target is `e69cd270-9006-4f0e-8b9f-50ffdfaceefe`.
@@ -1008,7 +1008,7 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
 - Candidate `integration/sb2-canonical-incident-release` remains not deployed.
 - Active production Worker rechecked: `c193a8dd-725d-403e-9334-0446d1c86236`,
   100% traffic. Wrangler reports `Unknown (deployment)` / `Unknown
-  (version_upload)` and provides no Git SHA, tag or message.
+(version_upload)` and provides no Git SHA, tag or message.
 - Application-only compatibility is code-verified: Statistics and the admin
   relationship panel retry legacy `accident_reports` reads when
   `duplicate_of_report_id` is absent. This does not replace live PostgreSQL
@@ -1467,3 +1467,4 @@ Focused tests passed `21/21`; full suite passed `385/388`, with the three unchan
   authenticated CMS acceptance remain pending; genuine road-level 24-hour
   analytics remains unavailable. No SQL, migrations or Supabase changes ran.
 
+- **ROAD MANAGEMENT AND ARTICLE CMS REPAIRS — IN PROGRESS (2026-11-09).** Dedicated branch `feat/full-road-management-article-cms-repairs` adds Admin Roads CRUD/search and reviewed GeoJSON metadata, canonical public road detail hierarchy, and Article canonical road tagging while preserving existing SEO/Grok/Groq paths. No deployment or production write was performed. Multi-road associations and fully interactive geometry persistence require the review-only additive road relationship/canonical-road migrations to be approved and applied. Browser/authenticated CMS/map/provider acceptance remains pending.

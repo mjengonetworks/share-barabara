@@ -407,7 +407,6 @@ This extends the existing Task 70 record; no duplicate task was created.
   none was merged or overwritten. A schema extension is required before generic
   relationship persistence can be implemented safely and needs separate review.
 
-
 ## Task 70 / SB 2 — Reports, Alerts and view-count correction — DEPLOYED / DATABASE VERIFIED / LIVE ACCEPTANCE PENDING — 2026-10-29
 
 This extends the existing Task 70 record; no duplicate task was created.
@@ -580,20 +579,20 @@ Acceptance criteria remain open until evidence is collected:
 
 Audit matrix for this corrected candidate:
 
-| Requirement | Result | Evidence |
-|---|---|---|
-| News hero/category navigation and Latest → Featured → Trending → Categories | PASS | `src/routes/news.index.tsx`, `CategoryEntityGrid` |
-| News Latest, Featured and Trending are separate three-card rows | PASS | `ArticleGridWithAds`, each capped at three, centered Read more links |
-| News category columns are three stories per category | PASS | `CategoryEntityCard`: one lead plus two compact stories and View more |
-| Reports Latest, Featured and Trending are separate three-card rows | PASS | `src/routes/reports.index.tsx`, `ReportPreviewCard` |
-| Alerts Latest and Most Viewed are separate three-card rows | PASS | `src/routes/alerts.index.tsx`, `AlertPreviewCard` |
-| Genuine Trending/Most Viewed source | PASS | Existing `trending_news`, `trending_reports` and `trending_alerts` RPCs remain the data source |
-| Homepage 11-accident Statistics destination and compact stat cards | PASS | `src/routes/index.tsx` canonical count RPC and `/statistics` link |
-| Public Reports has no administrative Editorial AI panels | PASS | `src/components/site/report-form.tsx` role/embedded-editor gate |
-| Unknown-versus-zero report values | PASS | Existing nullable display contract retained and covered by suite |
-| Mjengo Hub/Networks centered placement | PASS | `src/components/site/mjengo-previews.tsx` shared max-width container |
-| Responsive visual parity at 320–1440px | NOT VERIFIED | No browser/screenshot surface is available in this environment |
-| Authenticated editor, map and live production visual acceptance | NOT VERIFIED | Requires owner test account and browser/live review |
+| Requirement                                                                 | Result       | Evidence                                                                                       |
+| --------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------- |
+| News hero/category navigation and Latest → Featured → Trending → Categories | PASS         | `src/routes/news.index.tsx`, `CategoryEntityGrid`                                              |
+| News Latest, Featured and Trending are separate three-card rows             | PASS         | `ArticleGridWithAds`, each capped at three, centered Read more links                           |
+| News category columns are three stories per category                        | PASS         | `CategoryEntityCard`: one lead plus two compact stories and View more                          |
+| Reports Latest, Featured and Trending are separate three-card rows          | PASS         | `src/routes/reports.index.tsx`, `ReportPreviewCard`                                            |
+| Alerts Latest and Most Viewed are separate three-card rows                  | PASS         | `src/routes/alerts.index.tsx`, `AlertPreviewCard`                                              |
+| Genuine Trending/Most Viewed source                                         | PASS         | Existing `trending_news`, `trending_reports` and `trending_alerts` RPCs remain the data source |
+| Homepage 11-accident Statistics destination and compact stat cards          | PASS         | `src/routes/index.tsx` canonical count RPC and `/statistics` link                              |
+| Public Reports has no administrative Editorial AI panels                    | PASS         | `src/components/site/report-form.tsx` role/embedded-editor gate                                |
+| Unknown-versus-zero report values                                           | PASS         | Existing nullable display contract retained and covered by suite                               |
+| Mjengo Hub/Networks centered placement                                      | PASS         | `src/components/site/mjengo-previews.tsx` shared max-width container                           |
+| Responsive visual parity at 320–1440px                                      | NOT VERIFIED | No browser/screenshot surface is available in this environment                                 |
+| Authenticated editor, map and live production visual acceptance             | NOT VERIFIED | Requires owner test account and browser/live review                                            |
 
 Verification record for this candidate: focused hierarchy checks passed 29/29;
 full suite passed 476/476; security suite passed 14/14; production build and
@@ -911,8 +910,7 @@ unfinished application changes are not merged here.
 
 - **Worker allocation — PASSED:** `62c8fedb-494c-4e3f-bf4e-5b2efb2815cb` is
   confirmed at 100% traffic with production bindings and secrets names intact.
-- **Public runtime health — PASSED:** the deployed public routes returned HTTP
-  200. Live SSR markers include the homepage recorded-accident/statistics
+- **Public runtime health — PASSED:** the deployed public routes returned HTTP 200. Live SSR markers include the homepage recorded-accident/statistics
   surface and Partner With Us route.
 - **Relationship/statistics live acceptance — PENDING:** current database
   schema and authenticated editorial sessions were not used; the relationship
@@ -1406,6 +1404,7 @@ unfinished application changes are not merged here.
 - **Configuration:** custom domain, `ASSETS`, `AI_RATE_LIMITER`, production variables, secrets, authentication, existing content and cron `*/1 * * * *` were preserved. No SQL or migration was executed.
 - **Smoke tests:** `/admin/my-articles/new`, `/admin/articles/new`, all other CMS creation routes, the two parent admin routes and public `/`, `/news`, `/reports`, `/alerts`, `/campaigns`, `/infrastructure-issues` all returned HTTP 200.
 - **Acceptance:** the parent `<Outlet />` handoff and direct route registration are covered by tests. Authenticated My Articles → Add New interaction, refresh/back navigation, mobile touch, console and network verification remain pending because browser automation is unavailable.
+
 ## MEDIA & FEED COMMUNITY PRESENTATION — REVIEW CANDIDATE (2026-11-06)
 
 - **Scope:** dedicated non-deployment redesign work based on production application `11db6b623791d78123fe38d32e8df6dd9e740df9`. The existing `getUnifiedFeed` source, latest-first ordering, source deduplication, publication filters, canonical links and protected-media boundaries remain unchanged.
@@ -1413,6 +1412,7 @@ unfinished application changes are not merged here.
 - **Verification:** focused presentation tests pass; full suite 581/581, security suite 14/14, production build and `.output/server/index.mjs` / `.output/server/wrangler.json` generation pass; changed-file lint has no new diagnostics beyond the existing `statistics_datasets` explicit-`any` diagnostic in `global-editorial-preview.tsx`; `git diff --check` passes.
 - **Browser review:** local Chrome/Playwright captured homepage and `/feed` screenshots at 390px and 1440px. Both captured routes reported no horizontal overflow, console errors or failed responses. The isolated environment returned no eligible feed records, so real source attribution, populated nine-item presentation and article/report sidebar content remain blocked pending an authorized data-backed browser session.
 - **Status:** Implemented — Pending Owner Visual Review; not deployed and no SQL/migrations executed.
+
 ## MEDIA & FEED COMMUNITY PRESENTATION — DATA-BACKED VERIFICATION (2026-11-06)
 
 - **Read-only data verification:** candidate was rendered locally using the existing `.env` Supabase publishable configuration; no records were inserted or changed. Source availability was confirmed as 100 published Articles, 15 active Alerts, 14 approved Accident Reports and 8 featured Videos. Community `feed_posts` and `editorial_updates` returned zero eligible public rows; Infrastructure Issues and Campaigns returned zero eligible rows under their current public filters.
@@ -1420,6 +1420,7 @@ unfinished application changes are not merged here.
 - **Populated browser evidence:** homepage, `/feed`, article detail and report detail were captured against the candidate at 390px and 1440px. All final captures reported no horizontal overflow, failed responses or console errors. The homepage preview showed one Media & Feed heading/View All and three populated activity cards using the latest unified activity records; both detail sidebars showed the same latest-first feed, including the currently open article when eligible.
 - **Responsive evidence:** homepage captures were run at 360, 390, 412, 768, 1024, 1280, 1440 and 1920px. All reported no horizontal overflow. The 360px run produced one existing React hydration warning related to server/client caret-color styling; no runtime or network failure occurred. This warning is not introduced by the feed presentation change.
 - **Status:** Implemented — Pending Owner Visual Review; not deployed and no SQL/migrations executed.
+
 ## MEDIA & FEED COMMUNITY PRESENTATION — STAGING DEPLOYMENT BLOCKED (2026-11-06)
 
 - **Candidate:** `788f2f2d0467055ae7e4172d962ef499b64ba846` on `feat/media-feed-community-presentation`.
@@ -1427,12 +1428,14 @@ unfinished application changes are not merged here.
 - **Blocker:** staging shares the production Supabase project and the current environment gate does not make application writes read-only. Community posts, votes/comments, subscriptions and authenticated editorial mutations remain potentially writable. Per release safety requirements, no staging deployment was performed.
 - **Required minimal prerequisite:** an owner-approved isolated Supabase project/database, or a reviewed application-level read-only staging guard covering every mutation path. No SQL or migration was executed.
 - **Status:** Pending safe staging isolation; production unchanged.
+
 ## MEDIA & FEED COMMUNITY PRESENTATION — READ-ONLY STAGING AUDIT (2026-11-06)
 
 - **Audit result:** staging infrastructure exists, but the application exposes the shared Supabase publishable credential to the browser. Direct browser REST, storage and auth requests can bypass any JavaScript-only mutation guard.
 - **Mutation surface confirmed:** direct client writes include feed posts/media, comments/reports, votes, view tracking, newsletter subscriptions, alerts/reports, partner enquiries, notifications/preferences, settings, ratings, uploads and multiple admin/editorial tables. Server functions and service-role paths additionally cover feed, comments, alerts, reports, newsletter, AI persistence and incident discovery.
 - **Safety decision:** no staging guard or deployment was claimed as safe. A Worker-level method guard would not stop direct browser-to-Supabase writes; a client fetch wrapper would not be a security boundary. Production RLS, credentials, database objects and data were not changed.
 - **Required prerequisite:** provide a genuinely read-only Supabase/API identity or an isolated staging Supabase project, or approve a complete server-side read-only data proxy that removes direct browser Supabase access. Until then, staging deployment remains blocked.
+
 ## ISOLATED STAGING ENVIRONMENT — PREPARATION (2026-11-06)
 
 - **Candidate:** `788f2f2d0467055ae7e4172d962ef499b64ba846`; dedicated branch `chore/isolated-staging-preparation`.
@@ -1553,6 +1556,7 @@ unfinished application changes are not merged here.
 - **Verification:** Full suite `587/587`, security suite `14/14`, focused ranking/presentation/preview tests `9/9`, staging-preview production build passed, `.output/server/index.mjs` and `.output/server/wrangler.json` generated, artifact-dependent checks passed, and `git diff --check` passed.
 - **Browser/staging:** Browser automation is unavailable because the CUA browser kernel could not initialize; no responsive screenshots or live console evidence are claimed. Existing staging remains on deployment `c0d9ce8d-303d-45ef-a9d6-f73c1b74d653` / version `9bbe7a7f-5887-4e18-89ff-7f09b66f9c52`; this candidate was not deployed.
 - **Status:** Contrast and synthetic preview ranking implemented. Production rolling rankings remain blocked pending an approved unified activity-view analytics capability and schema/RPC design.
+
 ## MEDIA & FEED CONTRAST RELEASE — PRODUCTION PREVIEW EXCLUSION (2026-11-07)
 
 - **Root cause:** `src/routes/staging-media-feed-preview.tsx` was a normal file-based route imported into the generated route tree, and `src/server.ts` only denied non-preview paths when the runtime was already `staging-preview`. Production therefore resolved the staging route and exposed its synthetic records. `DEPLOYMENT_ENV=production` alone did not remove the route.
@@ -1710,3 +1714,14 @@ unfinished application changes are not merged here.
   authenticated CMS verification and genuine rolling road-view analytics remain
   outstanding. No SQL, migrations, Supabase changes or unrelated configuration
   changes were made.
+
+## ROAD MANAGEMENT AND ARTICLE CMS REPAIRS — IMPLEMENTED ON DEVELOPMENT BRANCH (2026-11-09)
+
+- **Branch:** `feat/full-road-management-article-cms-repairs`, based on production-derived `f03f3f94437cdc21b9ee74cfb69612f2f13faae4`; not deployed.
+- **Admin Roads:** Added editor-gated create/edit/search, canonical name/slug, county/class/authority/surface, aliases, description, GeoJSON Point/LineString/MultiLineString, source/confidence fields and public preview, with a safe legacy-schema fallback. Free text and AI never create roads automatically.
+- **Public road page:** Reordered into road identity/map, latest alerts, accident reports, news, nearby roads and Explore Share Barabara. Unknown casualties remain unknown; geometry is labelled and no endpoint-to-line inference is performed.
+- **Article CMS:** Existing SEO Description/Keywords storage and public metadata path are preserved. The editor now exposes canonical road association and persists the existing singular `news.road_id` relationship without silently overwriting it.
+- **Migration boundary:** The current schema has no multi-road junction tables and the reviewed canonical-road extension is not confirmed applied in production. `supabase/migrations/20261109120000_road_content_associations_review.sql` is a review-only additive proposal; it was not executed. Interactive point/start-end/waypoint persistence beyond reviewed GeoJSON remains blocked until the canonical-road extension is approved/applied.
+- **AI:** Existing server-side Grok Generate/Auto-Populate/Update and Groq Auto-Populate paths remain action-specific, role-gated and non-destructive; no live provider call or production CMS save was performed.
+- **Verification:** Focused road/location regression `22/22`; full suite `609/609` passed with `RUN_PRODUCTION_ARTIFACT_GATE=1`; security suite `14/14`; production build passed and generated `.output/server/index.mjs` and `.output/server/wrangler.json`; production artifact exclusion gate `2/2`; `git diff --check` passed. Changed-file lint has no new diagnostics in the road files; the existing Articles route retains its pre-existing conditional-hook diagnostics.
+- **Pending:** No deployment, SQL, migration, Supabase or Cloudflare configuration change. Browser visual/authenticated CRUD, map editing and live Grok/Groq acceptance remain pending.
