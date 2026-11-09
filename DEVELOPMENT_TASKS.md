@@ -1598,6 +1598,15 @@ unfinished application changes are not merged here.
 - **Configuration/rollback:** `sharebarabara.co.ke`, Worker `share-barabara`, `ASSETS`, `AI_RATE_LIMITER`, production variable/secret metadata and cron `*/1 * * * *` were preserved. Immediate rollback target is deployment `b5f48b37-f572-4ee7-b89d-e232fc53a059` / version `98facc33-86fe-4157-b555-6bc70226d00f`.
 - **Pending:** Browser visual/responsive/console acceptance and authenticated CMS verification remain pending because browser automation was unavailable. Rolling 12-hour/24-hour analytics rankings remain intentionally unavailable pending approved genuine analytics. Task is Deployed/Operationally Verified; owner acceptance remains outstanding.
 
+## HOMEPAGE DENSITY, MEDIA & FEED AND PROFILE DISCOVERY — IMPLEMENTED (2026-11-09)
+
+- **Candidate:** Dedicated branch `fix/homepage-density-discovery`, application commit `d30e12c` (`fix: compact homepage feed and discovery`), based on production application `0a20e4dba92d6c6a4cff2fa2c102242c453687c2`.
+- **Media & Feed:** Removed the two full-size unavailable ranking panels. Latest eligible unified-feed activity is split into up to three community-styled cards, three activities per card, with one compact note preserving the analytics backlog. No Most Viewed label or fabricated metrics are rendered.
+- **Density:** Homepage section wrappers use compact responsive spacing tokens (`py-4 sm:py-5`); empty Campaigns/Videos/Infrastructure preview sections are suppressed rather than rendered as oversized panels. Internal card readability and advertising separation remain intact.
+- **Discovery:** Added compact Pages and Profiles discovery using public page records and unsuspended public profiles, with a distinct real featured profile and duplicate exclusion. Canonical page/profile links and existing public data visibility are preserved.
+- **Verification:** Focused homepage tests `14/14`; full suite `600 passed, 1 skipped` (the existing source-only artifact skip); security `14/14`; production build passed; artifact exclusion checks `2/2`; `git diff --check` passed. Browser responsive/console verification remains pending because browser automation is unavailable.
+- **Release status:** Not deployed. Owner review and separate production approval remain pending. No SQL, migrations, Supabase changes or unrelated configuration changes were made.
+
 ## HOMEPAGE CATEGORY DISCOVERY — DEPLOYED (2026-11-09)
 
 - **Application:** Candidate `0a20e4dba92d6c6a4cff2fa2c102242c453687c2` deployed from `fix/homepage-category-discovery`. Workflow-only release commits were `ea07dd6`, `336e8c7` and `47ed1f9`; application code remained unchanged after the candidate commit.
