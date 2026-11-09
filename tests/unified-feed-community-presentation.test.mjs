@@ -92,7 +92,7 @@ test("Media & Feed call sites use the shared preview or feed components", async 
     "src/routes/feed.tsx",
   ];
   const sources = await Promise.all(files.map(read));
-  assert.match(sources[0], /GlobalEditorialPreview/);
+  assert.match(sources[0], /HomepageMediaFeedPreview/);
   for (const source of sources.slice(1, 6)) assert.match(source, /GlobalEditorialPreview/);
   assert.match(sources[6], /getUnifiedFeed/);
   assert.doesNotMatch(sources.join("\n"), /<EditorialTripleCard[^>]*className/);

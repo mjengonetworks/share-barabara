@@ -37,7 +37,7 @@ test("global discovery keeps three section cards with lead-plus-compact stories"
   const preview = read("src/components/site/global-editorial-preview.tsx");
   assert.match(preview, /grid gap-4 md:grid-cols-3/);
   assert.match(preview, /items\.slice\(1, 3\)/);
-  assert.match(preview, /ItemLink item=\{items\[0\]\}/);
+  assert.match(preview, /<ItemLink[\s\S]*items\[0\]/);
   assert.match(preview, /BannerAd/);
   assert.doesNotMatch(preview, /Keep exploring|More from Share Barabara/);
   assert.match(preview, /Math\.ceil\(cards\.length \/ 3\)/);

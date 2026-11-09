@@ -34,6 +34,6 @@ test("alert images flow through public query and preview rendering", () => {
 
 test("shared cross-content sections use one lead and two compact records", () => {
   const preview = read("src/components/site/global-editorial-preview.tsx");
-  assert.match(preview, /ItemLink item=\{items\[0\]\}/);
+  assert.match(preview, /<ItemLink[\s\S]*items\[0\]/);
   assert.match(preview, /items\.slice\(1, 3\)/);
 });

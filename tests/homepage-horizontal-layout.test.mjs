@@ -10,7 +10,7 @@ test("homepage uses the shared wide public content frame for every section", asy
     read("src/styles.css"),
   ]);
 
-  assert.equal((homepage.match(/public-content-container/g) ?? []).length, 16);
+  assert.equal((homepage.match(/public-content-container/g) ?? []).length, 13);
   assert.doesNotMatch(homepage, /max-w-6xl/);
   assert.match(styles, /max-width: 93\.75rem/);
   assert.match(styles, /padding-inline: 1rem/);
@@ -38,7 +38,9 @@ test("homepage previews opt out of nested narrow containers", async () => {
     read("src/components/site/mjengo-previews.tsx"),
   ]);
 
-  assert.match(homepage, /<GlobalEditorialPreview destination="news" fullWidth \/>/);
+  assert.match(homepage, /<HomepageContentPreviews \/>/);
+  assert.match(homepage, /<HomepageMediaFeedPreview \/>/);
+  assert.doesNotMatch(homepage, /<GlobalEditorialPreview/);
   assert.match(homepage, /<MjengoPreviews context="home" fullWidth \/>/);
   assert.match(editorialPreview, /fullWidth = false/);
   assert.match(editorialPreview, /fullWidth \? "w-full" : "mx-auto max-w-6xl px-4"/);

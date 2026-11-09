@@ -30,9 +30,8 @@ test("Task 41 discovery uses existing taxonomy routes and safe sister links", ()
 
 test("Task 41 homepage filters public alerts and exposes platform previews", () => {
   assert.match(home, /from\("alerts"\)[\s\S]*eq\("status", "active"\)/);
-  assert.match(home, /SisterPlatformPreviews/);
+  assert.match(home, /<MjengoPreviews context="home" fullWidth \/>/);
   assert.match(home, /TaxonomyDiscovery kind="alerts"/);
-  assert.match(home, /to="\/merch"/);
   assert.match(home, /to="\/partner-with-us"/);
 });
 

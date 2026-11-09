@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useProfileAvatars, useProfileNames, useProfileUsernames } from "@/lib/profiles";
 import { Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getUnifiedFeed } from "@/lib/unified-feed";
+import { getUnifiedFeed, type UnifiedFeedItem } from "@/lib/unified-feed";
+import { buildMediaFeedGroups } from "@/lib/media-feed-ranking";
 import { youtubeId } from "@/lib/video";
 import { BannerAd } from "@/components/site/banner-ad";
 import type { PreviewDestination, PreviewItem } from "@/lib/global-editorial-preview";
@@ -114,6 +115,78 @@ function MediaImage({ src, compact = false }: { src?: string | null; compact?: b
       onError={() => setFailed(true)}
       className={compact ? "aspect-video w-full object-cover" : "aspect-video w-full object-cover"}
     />
+  );
+}
+
+export function HomepageMediaFeedPreview() {
+  const query = useQuery({
+    queryKey: ["homepage-media-feed-preview"],
+    queryFn: () => getUnifiedFeed({ limit: 60 }),
+    staleTime: 60_000,
+  });
+  const groups = buildMediaFeedGroups(query.data ?? [], null, new Date().toISOString());
+  const items = [...groups.latest, ...groups.twelveHours, ...groups.twentyFourHours];
+  const authorIds = items.map((item) => item.authorId).filter((id): id is string => Boolean(id));
+  const { data: names = {} } = useProfileNames(authorIds);
+  const { data: usernames = {} } = useProfileUsernames(authorIds);
+  const { data: avatars = {} } = useProfileAvatars(authorIds);
+  const identities = Object.fromEntries(
+    authorIds.map((id) => [id, { name: names[id], username: usernames[id], avatar: avatars[id] }]),
+  );
+  const toPreview = (item: UnifiedFeedItem): PreviewItem => ({
+    id: item.key,
+    title: item.title,
+    href: item.href,
+    imageUrl: item.imageUrl,
+    category: item.label,
+    destination: "media",
+    activity: item,
+  });
+  const groupsForDisplay = [
+    { title: "Latest", items: groups.latest, tone: "white" as const },
+    { title: "Most Viewed · Last 12 Hours", items: groups.twelveHours, tone: "blue" as const },
+    { title: "Most Viewed · Last 24 Hours", items: groups.twentyFourHours, tone: "navy" as const },
+  ];
+  return (
+    <section
+      className="public-content-container py-10"
+      aria-labelledby="homepage-media-feed-heading"
+    >
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h2 id="homepage-media-feed-heading" className="text-[1.44375rem] font-bold">
+          Media &amp; Feed
+        </h2>
+        <a href="/feed" className="text-sm font-semibold text-brand-blue underline">
+          View all
+        </a>
+      </div>
+      <div className="mt-5 grid gap-4 md:grid-cols-3">
+        {groupsForDisplay.map(({ title, items: groupItems, tone }) =>
+          groupItems.length ? (
+            <EditorialTripleCard
+              key={title}
+              title={title}
+              items={groupItems.map(toPreview)}
+              identities={identities}
+              tone={tone}
+            />
+          ) : (
+            <article
+              key={title}
+              className={`rounded-xl border p-5 ${tone === "navy" ? "border-[#234276] bg-[#102653] text-white" : tone === "blue" ? "border-[#c7dcf5] bg-[#EAF3FF] text-[#142B56]" : "border-slate-200 bg-white text-[#142B56]"}`}
+            >
+              <h3 className="font-bold">{title}</h3>
+              <p
+                className={`mt-3 text-sm ${tone === "navy" ? "text-[#D5E4FA]" : "text-[#52647D]"}`}
+              >
+                Windowed view analytics is not available yet. This group will appear after approved
+                activity-view analytics is deployed.
+              </p>
+            </article>
+          ),
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -292,7 +365,11 @@ export function EditorialTripleCard({
       ) : null}
       {items.length ? (
         <div className="space-y-1">
-          <ItemLink item={items[0]} identity={identities?.[items[0].activity?.authorId ?? items[0].id]} tone={tone} />
+          <ItemLink
+            item={items[0]}
+            identity={identities?.[items[0].activity?.authorId ?? items[0].id]}
+            tone={tone}
+          />
           {items.slice(1, 3).map((item) => (
             <CompactItemLink
               key={item.id}

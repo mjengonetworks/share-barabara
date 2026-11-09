@@ -71,7 +71,11 @@ test("all public editorial surfaces mount the shared bidirectional preview", asy
     "src/routes/campaigns.$slug.tsx",
     "src/routes/infrastructure-issues.$issueId.tsx",
   ];
-  for (const file of files) assert.match(await fs.readFile(file, "utf8"), /GlobalEditorialPreview/);
+  for (const file of files) {
+    const source = await fs.readFile(file, "utf8");
+    if (file === "src/routes/index.tsx") assert.match(source, /HomepageMediaFeedPreview/);
+    else assert.match(source, /GlobalEditorialPreview/);
+  }
 });
 
 test("shared discovery cards keep canonical destinations and the approved responsive hierarchy", async () => {

@@ -1,17 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  BadgeCheck,
-  BarChart3,
-  Building2,
-  CarFront,
-  Construction,
-  Film,
-  HandHeart,
-  Mail,
-  Megaphone,
-} from "lucide-react";
+import { ArrowRight, BadgeCheck, Building2, CarFront, Megaphone } from "lucide-react";
 import heroRoad from "@/assets/hero-road.jpg";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,11 +17,11 @@ import {
   AlertPreviewCard,
   ArticlePreviewCard,
   ReportPreviewCard,
-  SisterPlatformPreviews,
   TaxonomyDiscovery,
 } from "@/components/site/discovery-sections";
 import { MjengoPreviews } from "@/components/site/mjengo-previews";
-import { GlobalEditorialPreview } from "@/components/site/global-editorial-preview";
+import { HomepageMediaFeedPreview } from "@/components/site/global-editorial-preview";
+import { HomepageContentPreviews } from "@/components/site/homepage-content-previews";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -131,20 +120,6 @@ function Index() {
   });
 
   const { data: pages = [] } = useFeaturedPagesList();
-
-  const { data: videos = [] } = useQuery({
-    queryKey: ["home-videos"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("videos")
-        .select("id, title")
-        .eq("status", "featured")
-        .order("created_at", { ascending: false })
-        .limit(3);
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const { data: officialMetrics = [] } = useQuery({
     queryKey: ["home-official-statistics"],
@@ -296,6 +271,7 @@ function Index() {
             ))}
           </div>
         )}
+        <TaxonomyDiscovery kind="alerts" />
       </section>
 
       <section className="public-content-container py-10">
@@ -318,11 +294,20 @@ function Index() {
               </Link>
             </div>
           </div>
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {news.map((n) => (
-              <ArticlePreviewCard key={n.id} article={n} />
-            ))}
-          </div>
+          {news.length ? (
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              {news.map((n) => (
+                <ArticlePreviewCard key={n.id} article={n} />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-6 rounded border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+              No published articles yet.
+            </p>
+          )}
+          <ArticleCategoryPills
+            categories={news.map((article) => article.category).filter(Boolean)}
+          />
         </div>
       </section>
 
@@ -358,6 +343,7 @@ function Index() {
             ))}
           </div>
         )}
+        <TaxonomyDiscovery kind="reports" />
       </section>
 
       {pages.length > 0 ? (
@@ -399,74 +385,8 @@ function Index() {
         </section>
       ) : null}
 
-      <section className="public-content-container">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-dashed border-border bg-muted/30 p-6">
-          <div className="flex items-center gap-3">
-            <Construction className="size-8 shrink-0 text-accent" />
-            <div>
-              <p className="font-bold">See a road, bridge or drainage problem?</p>
-              <p className="text-sm text-muted-foreground">
-                Report infrastructure issues even if they aren't an immediate hazard yet.
-              </p>
-            </div>
-          </div>
-          <Button asChild variant="outline">
-            <Link to="/infrastructure-issues">Report an infrastructure issue</Link>
-          </Button>
-        </div>
-      </section>
-
-      <section className="border-y border-border bg-secondary/40">
-        <div className="public-content-container py-10">
-          <div className="grid gap-6 sm:grid-cols-3">
-            <PreviewCard
-              title="Crash statistics"
-              body="Open, indicative crash data for Kenya, by county, cause, vehicle type and time of day."
-              to="/statistics"
-              cta="View statistics"
-              icon={BarChart3}
-              stat={
-                recordedAccidentsError
-                  ? undefined
-                  : recordedAccidents === undefined
-                    ? "…"
-                    : num(recordedAccidents)
-              }
-              statLabel="recorded accidents"
-            />
-            <PreviewCard
-              title="Campaigns"
-              body="Share Barabara, our continuous road safety campaign, plus upcoming events and how to support them."
-              to="/campaigns"
-              cta="See campaigns"
-              icon={Megaphone}
-            />
-            <PreviewCard
-              title="Videos"
-              body="Short clips on defensive driving, first aid and road safety from the community."
-              to="/videos"
-              cta="Watch videos"
-              icon={Film}
-              stat={videos.length > 0 ? `${videos.length}+` : undefined}
-              statLabel={videos.length > 0 ? "featured clips" : undefined}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="public-content-container py-10">
-        <div className="rounded-lg border border-border bg-card p-8 text-center card-elevated">
-          <HandHeart className="mx-auto size-8 text-accent" />
-          <h2 className="mt-3 text-[1.155rem] font-bold">Support Share Barabara</h2>
-          <p className="mx-auto mt-2 max-w-lg text-sm text-muted-foreground">
-            Your support funds campaigns like the Share Barabara Walk and hospital visits to crash
-            victims.
-          </p>
-          <Button asChild className="mt-5">
-            <Link to="/campaigns">Donate / support Share Barabara</Link>
-          </Button>
-        </div>
-      </section>
+      <HomepageContentPreviews />
+      <HomepageMediaFeedPreview />
 
       <section className="public-content-container py-6">
         <BannerAd placement="homepage-support-partner" />
@@ -534,64 +454,7 @@ function Index() {
 
       <section className="border-t border-border bg-secondary/40">
         <div className="public-content-container space-y-8 py-10">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <PreviewCard
-              title="Share Barabara AI"
-              body="Ask questions about published road-safety content with answers grounded in the site's public evidence."
-              to="/news"
-              cta="Explore the newsroom"
-              icon={BadgeCheck}
-            />
-            <PreviewCard
-              title="Merch"
-              body="Support road-safety work with Share Barabara merchandise, where the public catalogue is available."
-              to="/merch"
-              cta="Browse merch"
-              icon={HandHeart}
-            />
-            <PreviewCard
-              title="Partner with us"
-              body="Reach Kenyan road users through responsible banner, campaign and content partnerships."
-              to="/partner-with-us"
-              cta="Start a partnership"
-              icon={Megaphone}
-            />
-          </div>
-          <div className="rounded-lg border border-border bg-card p-5">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h3 className="font-bold">Browse live alert types</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Use the existing alert taxonomy to find the situations that matter to you.
-                </p>
-              </div>
-              <Link to="/alerts" className="text-sm font-semibold text-brand-blue underline">
-                View all alerts
-              </Link>
-            </div>
-            <div className="mt-4">
-              <TaxonomyDiscovery kind="alerts" />
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-5">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h3 className="font-bold">Browse report severities</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Explore public accident reports using the existing report taxonomy.
-                </p>
-              </div>
-              <Link to="/reports" className="text-sm font-semibold text-brand-blue underline">
-                View all reports
-              </Link>
-            </div>
-            <div className="mt-4">
-              <TaxonomyDiscovery kind="reports" />
-            </div>
-          </div>
-          <GlobalEditorialPreview destination="news" fullWidth />
           <MjengoPreviews context="home" fullWidth />
-          <SisterPlatformPreviews />
         </div>
       </section>
     </div>
@@ -634,47 +497,21 @@ function Stat({ value, label, danger }: { value: string; label: string; danger?:
   );
 }
 
-function PreviewCard({
-  title,
-  body,
-  to,
-  search,
-  cta,
-  icon: Icon,
-  stat,
-  statLabel,
-}: {
-  title: string;
-  body: string;
-  to: string;
-  search?: Record<string, string>;
-  cta: string;
-  icon?: typeof Megaphone;
-  stat?: string | undefined;
-  statLabel?: string | undefined;
-}) {
+function ArticleCategoryPills({ categories }: { categories: string[] }) {
+  const values = Array.from(new Set(categories)).filter(Boolean);
+  if (!values.length) return null;
   return (
-    <Link
-      to={to}
-      {...(search ? { search } : {})}
-      className="group flex flex-col rounded-lg border border-border bg-card p-6 transition-shadow card-elevated hover:border-accent"
-    >
-      {Icon ? (
-        <span className="flex size-11 items-center justify-center rounded-full bg-accent/15 text-accent">
-          <Icon className="size-5" />
-        </span>
-      ) : null}
-      <h3 className="mt-3 text-lg font-bold">{title}</h3>
-      <p className="mt-1 line-clamp-3 flex-1 text-sm text-muted-foreground">{body}</p>
-      {stat ? (
-        <p className="mt-3">
-          <span className="font-display text-2xl font-extrabold">{stat}</span>{" "}
-          <span className="text-xs text-muted-foreground">{statLabel}</span>
-        </p>
-      ) : null}
-      <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-blue group-hover:underline">
-        {cta} <ArrowRight className="size-3.5" />
-      </span>
-    </Link>
+    <div className="mt-5 flex flex-wrap gap-2" aria-label="Article categories">
+      {values.map((category) => (
+        <Link
+          key={category}
+          to="/news"
+          search={{ category }}
+          className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:border-accent hover:bg-accent/10"
+        >
+          {category}
+        </Link>
+      ))}
+    </div>
   );
 }
