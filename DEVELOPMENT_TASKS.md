@@ -1631,6 +1631,14 @@ unfinished application changes are not merged here.
 - **Configuration/rollback:** `sharebarabara.co.ke`, Worker `share-barabara`, bindings, variables/secrets metadata and cron were preserved. Immediate rollback target is deployment `be13a319-cb9d-4f46-8331-e8c03ea806d7` / version `90c0688a-5f05-409f-930a-9ea5a50974c9`.
 - **Pending:** Browser visual/responsive/console acceptance remains pending because browser automation was unavailable. Authenticated CMS acceptance remains unchanged. No SQL, migrations, Supabase changes or unrelated configuration changes were performed.
 
+## HOMEPAGE AND TRENDING VISUAL ACCEPTANCE AUDIT — CODE/ROUTE VERIFIED (2026-11-09)
+
+- **Live release audited:** Application `9ab103f0c1dc7fbbf23f6c69e1349edd77162da`, Worker `2109d622-05bc-486d-a6c2-d0a5285d44b3`.
+- **Confirmed by source/tests:** Homepage wrappers use compact `py-4` spacing; Most Viewed follows Accident Reports taxonomy in the homepage source; the Latest Media & Feed surface retains the three-card featured-plus-compact structure; `/trending` contains content tabs, five time windows, populated taxonomy filters, featured rank and numbered results; Pages/Profile discovery uses public queries and canonical links.
+- **Live route checks:** `/`, `/feed`, `/trending`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/pages` and `/contributors` returned HTTP 200; `/staging-media-feed-preview` returned HTTP 404.
+- **Verification:** Focused suite `17/17`; deployed release gates `604 total, 603 passed, 1 skipped`; security `14/14`; production artifact gate `2/2`; build and `git diff --check` passed.
+- **Limitation:** Browser automation failed before exposing a browser window (`failed to write kernel assets; system cannot find the path specified`). No screenshots, computed-layout measurements, console inspection or responsive visual acceptance are claimed. No code fix was made because no defect was confirmable without the browser surface.
+
 ## HOMEPAGE SPACING DEPLOYMENT PREFLIGHT — BLOCKED (2026-11-09)
 
 - **Application candidate:** `9ab103f0c1dc7fbbf23f6c69e1349edd77162da2`; workflow-only verification commit: `f284057eed211934e7c87a7e3dab0a0637ad4795`.
