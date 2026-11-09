@@ -264,7 +264,6 @@ function ReportsPage() {
               <div className="mt-5 max-w-xl">{reportSubmissionCard}</div>
             )}
 
-            <RoadFilterLinks kind="reports" />
             <div className="mt-5"><BannerAd placement="reports-list-interval-1" /></div>
             <EditorialBand tone="plain">
               <SectionHeader
@@ -287,7 +286,6 @@ function ReportsPage() {
                 <Link to="/reports" className="text-sm font-bold text-brand-blue underline underline-offset-4">Read more</Link>
               </div>
             </EditorialBand>
-
             <GlobalEditorialPreview destination="reports" topic={incident !== "all" ? incident : null} />
             <EditorialDiscoveryRail exclude="reports" />
 
@@ -317,6 +315,8 @@ function ReportsPage() {
                 ))}
               </div>
             </EditorialBand>
+
+            <RoadFilterLinks kind="reports" />
 
             <div id="all-reports" className="mt-4 scroll-mt-24">
               <SectionHeader

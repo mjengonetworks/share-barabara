@@ -103,7 +103,6 @@ function RoadProfilePage() {
   const totalInjured = knownReportSum(reports.map((r) => r.casualties));
   const roadGeometry = (road as typeof road & { geometry?: unknown; geometry_source?: string | null }).geometry;
   const featuredReports = reports.filter((item: any) => item.featured === true).slice(0, 3);
-  const trendingReports = [...reports].sort((a: any, b: any) => (b.views_count ?? b.view_count ?? 0) - (a.views_count ?? a.view_count ?? 0)).slice(0, 3);
   const verifiedIncidentMarkers = [...reports, ...alerts].filter((item: any) => Number.isFinite(item.latitude) && Number.isFinite(item.longitude));
 
   return (
@@ -158,8 +157,8 @@ function RoadProfilePage() {
       </section>
 
       <section className="mt-8" aria-labelledby="road-trending-heading">
-        <h2 id="road-trending-heading" className="text-lg font-bold">Trending</h2>
-        {trendingReports.length ? <ol className="mt-3 space-y-2 text-sm">{trendingReports.map((item: any, index: number) => <li key={item.id}><span className="mr-2 font-bold text-muted-foreground">{index + 1}.</span><Link className="font-semibold text-brand-blue underline" to="/reports/$reportId" params={{ reportId: item.id }}>{item.title}</Link></li>)}</ol> : <p className="mt-2 text-sm text-muted-foreground">Trending is unavailable until verified view data exists.</p>}
+        <h2 id="road-trending-heading" className="text-lg font-bold">Most viewed road activity</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Road-level 24-hour view analytics is not available yet. This page does not substitute lifetime report views or recency for a popularity ranking.</p>
       </section>
 
       <section className="mt-8" aria-labelledby="road-markers-heading">

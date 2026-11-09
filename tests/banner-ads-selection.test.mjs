@@ -25,3 +25,12 @@ test("exact placement wins, then priority orders valid fallback inventory", () =
 test("unsafe destinations are excluded", () => {
   assert.equal(selectEligibleBannerAds([{ link_url: "javascript:alert(1)", placement: "home" }], "home", now).length, 0);
 });
+
+test("generic placeholder variants are excluded while real campaigns remain eligible", () => {
+  const selected = selectEligibleBannerAds([
+    { title: "Emergency Response, 24/7", advertiser: "Demo", link_url: "https://example.com", active: true },
+    { title: "Book Your Roadworthiness Test", advertiser: "Demo", link_url: "https://example.com", active: true },
+    { title: "Community road-safety campaign", advertiser: "Verified partner", link_url: "https://example.com", active: true },
+  ], "home");
+  assert.deepEqual(selected.map((ad) => ad.title), ["Community road-safety campaign"]);
+});

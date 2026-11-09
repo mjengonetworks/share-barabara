@@ -24,6 +24,7 @@ import {
   publicCategoryNavigationSelectedClass,
 } from "@/components/site/public-ui";
 import { EditorialDiscoveryRail } from "@/components/site/editorial-discovery";
+import { RoadFilterLinks } from "@/components/site/road-discovery";
 import { groupLatestByEntity } from "@/lib/category-entity";
 import {
   Dialog,
@@ -34,11 +35,12 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/news/")({
-  validateSearch: (search: Record<string, unknown>): { category?: string; sort?: "trending"; range?: TrendingRange } => {
+  validateSearch: (search: Record<string, unknown>): { category?: string; road?: string; sort?: "trending"; range?: TrendingRange } => {
     const category = typeof search.category === "string" ? search.category : undefined;
+    const road = typeof search.road === "string" ? search.road : undefined;
     const sort = search.sort === "trending" ? "trending" : undefined;
     const range = ["24h", "7d", "month", "year"].includes(String(search.range)) ? String(search.range) as TrendingRange : undefined;
-    return { ...(category ? { category } : {}), ...(sort ? { sort } : {}), ...(range ? { range } : {}) };
+    return { ...(category ? { category } : {}), ...(road ? { road } : {}), ...(sort ? { sort } : {}), ...(range ? { range } : {}) };
   },
   head: () => ({
     meta: [
@@ -116,6 +118,7 @@ type ArticleCard = {
   featured: boolean | null;
   image_url?: string | null;
   categories?: string[] | null;
+  road_id?: string | null;
 };
 type TrendingRange = "24h" | "7d" | "month" | "year";
 
@@ -193,7 +196,7 @@ function CategoryFilters({ categories, active }: { categories: string[]; active?
   );
 }
 const articleSelect =
-  "id, slug, title, summary, category, source, published_at, featured, image_url, categories";
+  "id, slug, title, summary, category, source, published_at, featured, image_url, categories, road_id";
 
 type NewsIndexLoaderData = {
   all: ArticleCard[];
@@ -225,17 +228,19 @@ function usePublishedQuery({
 }: {
   name: string;
   category?: string;
+  road?: string;
   limit?: number;
   initialData?: ArticleCard[];
 }) {
   return useQuery({
-    queryKey: ["news-task70", name, category, limit],
+    queryKey: ["news-task70", name, category, road, limit],
     initialData,
     queryFn: async () => {
       let query = supabase.from("news").select(articleSelect).eq("status", "published");
       if (category) {
         query = query.or(`category.eq.${category},categories.cs.{${category}}`);
       }
+      if (road) query = query.eq("road_id", road);
       const { data, error } = await query.order("published_at", { ascending: false }).limit(limit);
       if (error) throw error;
       return data as ArticleCard[];
@@ -283,27 +288,34 @@ function CategoryEntityGrid({ articles }: { articles: ArticleCard[] }) {
 function NewsIndex() {
   const { user } = useAuth();
   const canWrite = useCanWriteArticles();
-  const { category, sort, range = "7d" } = Route.useSearch();
+  const { category, road, sort, range = "7d" } = Route.useSearch();
   const loaderData = Route.useLoaderData();
   const { data: filtered = [], isLoading: filteredLoading } = usePublishedQuery({
     name: "category",
     category,
+    road,
     limit: 50,
     initialData: category
       ? loaderData.all.filter(
           (article) => article.category === category || article.categories?.includes(category),
         )
-      : undefined,
+      : road
+        ? loaderData.all.filter((article) => article.road_id === road)
+        : undefined,
   });
   const { data: latest = [] } = usePublishedQuery({
     name: "latest",
     limit: 12,
-    initialData: loaderData.latest,
+    road,
+    // initialData: loaderData.latest remains the SSR seed when no road filter is active.
+    initialData: road ? undefined : loaderData.latest,
   });
   const { data: all = [], isLoading: allLoading } = usePublishedQuery({
     name: "all",
+    road,
     limit: 50,
-    initialData: loaderData.all,
+    // initialData: loaderData.all remains the SSR seed when no road filter is active.
+    initialData: road ? undefined : loaderData.all,
   });
   const { data: relatedAlerts = [] } = useQuery({
     queryKey: ["news-task70-alerts"],
@@ -354,6 +366,7 @@ function NewsIndex() {
         </div>
       </PublicPageHero>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <RoadFilterLinks kind="news" />
         {user && canWrite ? (
           <div className="mt-4 flex justify-end">
             <WriteButton signedIn={!!user} canWrite={canWrite} />

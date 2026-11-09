@@ -100,12 +100,44 @@ export function RoadDiscovery({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function RoadFilterLinks({ kind }: { kind: "alerts" | "reports" }) {
-  const { data: roads = [], isLoading } = useLatestPublicRoads();
-  if (isLoading || roads.length === 0) return null;
+type RoadContentKind = "alerts" | "reports" | "news";
+
+function useRelevantRoads(kind: RoadContentKind) {
+  return useQuery({
+    queryKey: ["public-road-discovery", "relevant", kind],
+    queryFn: async () => {
+      const table = kind === "alerts" ? "alerts" : kind === "reports" ? "accident_reports" : "news";
+      const status = kind === "alerts" ? "active" : kind === "reports" ? "approved" : "published";
+      const { data: content, error: contentError } = await (supabase.from(table) as any)
+        .select("road_id")
+        .eq("status", status)
+        .not("road_id", "is", null)
+        .limit(200);
+      if (contentError) {
+        if (kind === "news" && /road_id|column .* does not exist|schema cache/i.test(String(contentError.message ?? contentError))) return [];
+        throw contentError;
+      }
+      const ids = Array.from(new Set((content ?? []).map((row: { road_id?: string | null }) => row.road_id).filter(Boolean)));
+      if (!ids.length) return [];
+      const { data: roads, error: roadsError } = await supabase
+        .from("roads")
+        .select("id,name,slug,county,road_class,created_at")
+        .in("id", ids)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (roadsError) throw roadsError;
+      return (roads ?? []) as PublicRoad[];
+    },
+    staleTime: 60_000,
+  });
+}
+
+export function RoadFilterLinks({ kind }: { kind: RoadContentKind }) {
+  const { data: roads = [], isLoading } = useRelevantRoads(kind);
+  const label = kind === "alerts" ? "alerts" : kind === "reports" ? "accident reports" : "articles";
   return (
     <section
-      className="mt-4 rounded-lg border border-border bg-card p-4"
+      className="mt-3 rounded-lg border border-border bg-card p-3"
       aria-labelledby={`${kind}-road-discovery-heading`}
     >
       <div className="flex flex-wrap items-end justify-between gap-2">
@@ -114,14 +146,16 @@ export function RoadFilterLinks({ kind }: { kind: "alerts" | "reports" }) {
             Verified associations
           </p>
           <h2 id={`${kind}-road-discovery-heading`} className="mt-1 text-lg font-bold">
-            Browse {kind} by road
+            Browse {label} by road
           </h2>
         </div>
         <Link to="/roads" className="text-sm font-semibold text-brand-blue underline">
-          View all roads
+          Browse all roads
         </Link>
       </div>
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label={`Browse ${kind} by road`}>
+      {isLoading ? <p className="mt-2 text-sm text-muted-foreground">Loading roads with published {label}…</p> : null}
+      {!isLoading && roads.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">No published {label} have a confirmed road association yet.</p> : null}
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label={`Browse ${label} by road`}>
         {roads.map((road) => (
           <Link
             key={road.id}
@@ -134,7 +168,7 @@ export function RoadFilterLinks({ kind }: { kind: "alerts" | "reports" }) {
         ))}
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Only records with a confirmed road association are included; unknown associations remain in
+        Only published records with a confirmed road association are included; unknown associations remain in
         the overall results.
       </p>
     </section>

@@ -295,7 +295,6 @@ function AlertsPage() {
               </div>
             ) : <div className="mt-5 max-w-xl">{hazardSubmissionCard}</div>}
 
-            <RoadFilterLinks kind="alerts" />
             <div className="mt-5"><BannerAd placement="alerts-list-interval-1" /></div>
             <EditorialBand tone="plain">
               <SectionHeader eyebrow="Verified locations only" title="Alert map" />
@@ -338,7 +337,6 @@ function AlertsPage() {
                 ))}
               </div>
             </EditorialBand>
-
             <GlobalEditorialPreview destination="alerts" topic={hazard !== "all" ? hazard : null} />
             <EditorialDiscoveryRail exclude="alerts" />
 
@@ -368,6 +366,8 @@ function AlertsPage() {
                 ))}
               </div>
             </EditorialBand>
+
+            <RoadFilterLinks kind="alerts" />
 
             <div id="all-alerts" className="mt-4 scroll-mt-24">
               <SectionHeader

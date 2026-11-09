@@ -23,7 +23,7 @@ import { HomepageContentPreviews } from "@/components/site/homepage-content-prev
 import { TaxonomyStrip, type TaxonomyStripItem } from "@/components/site/taxonomy-strip";
 import { HomepageDirectoryDiscovery } from "@/components/site/homepage-directory-discovery";
 import { HomepageMostViewed } from "@/components/site/homepage-most-viewed";
-import { RoadDiscovery } from "@/components/site/road-discovery";
+import { RoadFilterLinks } from "@/components/site/road-discovery";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -336,6 +336,7 @@ function Index() {
           </div>
         )}
         <TaxonomyDiscovery kind="alerts" items={homepageTaxonomy.alerts} />
+        <RoadFilterLinks kind="alerts" />
       </section>
 
       <section className="border-y border-border bg-secondary/40">
@@ -366,6 +367,7 @@ function Index() {
             </p>
           )}
           <TaxonomyStrip heading="Browse articles by category" items={homepageTaxonomy.news} />
+          <RoadFilterLinks kind="news" />
         </div>
       </section>
 
@@ -402,10 +404,10 @@ function Index() {
           </div>
         )}
         <TaxonomyDiscovery kind="reports" items={homepageTaxonomy.reports} />
+        <RoadFilterLinks kind="reports" />
       </section>
 
       <HomepageDirectoryDiscovery />
-      <RoadDiscovery />
       <HomepageMostViewed />
       <HomepageContentPreviews infrastructureTaxonomy={homepageTaxonomy.infrastructure} />
       <HomepageMediaFeedPreview />

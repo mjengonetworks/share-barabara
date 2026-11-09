@@ -11,8 +11,20 @@ export type BannerAdCandidate = {
 
 /** Known placeholder/demo creative that must never be presented as a paid ad. */
 export function isGenericHouseCreative(ad: Pick<BannerAdCandidate, "title" | "advertiser">) {
-  const value = `${ad.title ?? ""} ${ad.advertiser ?? ""}`.toLocaleLowerCase();
-  return value.includes("book your roadworthiness test");
+  const value = `${ad.title ?? ""} ${ad.advertiser ?? ""}`
+    .toLocaleLowerCase()
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+  return [
+    "book your roadworthiness test",
+    "emergency response, 24/7",
+    "emergency response 24/7",
+    "your ad here",
+    "demo ad",
+    "placeholder ad",
+    "sample advertisement",
+  ].some((marker) => value.includes(marker));
 }
 
 export function selectEligibleBannerAds(ads: BannerAdCandidate[], placement: string, now = Date.now()) {
