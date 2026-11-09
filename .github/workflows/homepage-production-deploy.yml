@@ -17,7 +17,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-approved-homepage]')
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 0a20e4d
+      APP_CANDIDATE_SHA: 0a20e4dba92d6c6a4cff2fa2c102242c453687c2
       EXPECTED_PRODUCTION_APPLICATION_SHA: 0e40f35571e9080e6f4b28bfd3f77dd8d12f3cd7
       EXPECTED_DEPLOYMENT_ID: b5f48b37-f572-4ee7-b89d-e232fc53a059
       EXPECTED_WORKER_VERSION_ID: 98facc33-86fe-4157-b555-6bc70226d00f
@@ -31,7 +31,7 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: 0a20e4d
+          ref: 0a20e4dba92d6c6a4cff2fa2c102242c453687c2
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
