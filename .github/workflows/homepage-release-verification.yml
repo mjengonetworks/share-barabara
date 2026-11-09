@@ -9,6 +9,7 @@ on:
       - feat/homepage-redesign
       - fix/homepage-category-discovery
       - fix/homepage-density-discovery
+      - feat/homepage-order-advertising-road-discovery
 
 permissions:
   contents: read
@@ -17,13 +18,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 9ab103f0c1dc7fbbf23f6c69e1349edd77162da2
+      APP_CANDIDATE_SHA: 9643a24
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: 9ab103f0c1dc7fbbf23f6c69e1349edd77162da2
+          ref: 9643a24
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
