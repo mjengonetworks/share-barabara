@@ -74,6 +74,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: homepage-worker-payload-0a20e4d
-          path: homepage-worker-payload-0a20e4d.tar.gz
+          path: homepage-worker-payload-${{ env.APP_CANDIDATE_SHA }}.tar.gz
           if-no-files-found: error
           retention-days: 7
