@@ -1607,6 +1607,14 @@ unfinished application changes are not merged here.
 - **Verification:** Focused homepage tests `14/14`; full suite `600 passed, 1 skipped` (the existing source-only artifact skip); security `14/14`; production build passed; artifact exclusion checks `2/2`; `git diff --check` passed. Browser responsive/console verification remains pending because browser automation is unavailable.
 - **Release status:** Not deployed. Owner review and separate production approval remain pending. No SQL, migrations, Supabase changes or unrelated configuration changes were made.
 
+## MOST VIEWED HOMEPAGE SECTION AND TRENDING PAGES — IMPLEMENTED (2026-11-09)
+
+- **Analytics audit:** Existing timestamped `news_views`, `alert_views` and `accident_report_views` tables and public `trending_news`, `trending_alerts` and `trending_reports` RPCs support genuine rolling-window rankings. No migration or production data change is required for this UI release. The existing model does not provide a unified ranking source for other content types; this task intentionally scopes rankings to Alerts, Articles and Accident Reports.
+- **Implementation:** Added a compact `Most Viewed — Last 12 Hours` homepage section immediately after Accident Reports taxonomy. It uses three established `EditorialTripleCard` surfaces—Most Viewed Alerts, Most Viewed Articles and Most Viewed Accident Reports—with real RPC-ranked records, community presentation, canonical detail links and `/trending` View More destinations.
+- **Trending route:** Added `/trending` with Alerts/Articles/Accident Reports tabs, 12-hour/24-hour/7-day/month/year filters, type-specific populated taxonomy filters, featured first rank, numbered results, empty states and canonical links.
+- **Safety:** Existing active/published/approved eligibility filters remain enforced; no synthetic rankings, SQL, migrations, production writes or configuration changes were made. Other homepage Media & Feed latest activity remains separate.
+- **Verification:** Focused ranking/navigation tests `3/3`; full suite `603 passed, 1 skipped`; security suite `14/14`; production build passed with `.output/server/index.mjs` and `.output/server/wrangler.json`; artifact gate `2/2`; changed-file lint and `git diff --check` passed. Browser responsive/console verification remains pending because browser automation is unavailable. Deployment is not authorized.
+
 ## HOMEPAGE CATEGORY DISCOVERY — DEPLOYED (2026-11-09)
 
 - **Application:** Candidate `0a20e4dba92d6c6a4cff2fa2c102242c453687c2` deployed from `fix/homepage-category-discovery`. Workflow-only release commits were `ea07dd6`, `336e8c7` and `47ed1f9`; application code remained unchanged after the candidate commit.
