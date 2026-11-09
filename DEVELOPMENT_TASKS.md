@@ -1683,3 +1683,30 @@ unfinished application changes are not merged here.
 - **Article CMS:** SEO description/keywords and Grok/Groq editor actions already exist in the current production-derived editor/provider path and remain covered by existing tests. A live provider call and authenticated CMS save were not performed; no article data was changed.
 - **Verification:** Focused follow-up tests `18/18`; full suite `608 passed, 1 skipped`; security `14/14`; production build passed with `.output/server/index.mjs` and `.output/server/wrangler.json`; artifact exclusion `2/2`; diff check passed with repository CRLF handling. Browser visual verification remains unavailable.
 - **Outstanding:** Full Road Administration create/edit workflow, interactive point/start-end/waypoint geometry editor, bidirectional content association UI, nearby-road spatial discovery and genuine road-view analytics remain pending. No SQL, migrations, Supabase or production changes were made.
+
+## HOMEPAGE ADVERTISING AND ROAD DISCOVERY FOLLOW-UP — DEPLOYED (2026-11-09)
+
+- **Application:** `f03f3f94437cdc21b9ee74cfb69612f2f13faae4`, deployed through
+  workflow [42654837842](https://github.com/mjengonetworks/share-barabara/actions/runs/42654837842).
+- **Artifact:** Verification workflow
+  [42653780581](https://github.com/mjengonetworks/share-barabara/actions/runs/42653780581),
+  artifact `13691372840`, digest
+  `sha256:07c83d41816307a2c5d41eb5e6eff1ad8457f5008518a4213955edbaf64ea0f6`.
+- **Pre-deployment baseline:** application `9643a2486a205348efa2e46750a0951a4a81331b`,
+  deployment `9c96d893-5b24-4d23-860f-61576b34b908`, Worker
+  `44ae1baf-1c93-457f-af63-edc88917c87e`, 100% traffic. Rollback preserved as
+  deployment `51845494-1b72-47ec-8f21-1ae51cfdc45e` / Worker
+  `2109d622-05bc-486d-a6c2-d0a5285d44b3`.
+- **New production state:** deployment `9ba55799-b1e9-46a0-8a84-1dff72c4048e`,
+  Worker `e168220c-b105-4c57-be79-0eb24cd2b1e1`, 100% traffic. Domain,
+  bindings, variables/secrets metadata and cron were preserved.
+- **Smoke checks:** `/`, `/news`, `/alerts`, `/reports`, `/campaigns` and
+  `/infrastructure-issues` returned HTTP 200. Homepage contains `Your ad here`,
+  `Advertise with us`, and all three road-browsing headings; forbidden generic
+  creatives were absent. `/partner-with-us` and `/roads` returned HTTP 200;
+  `/staging-media-feed-preview` returned HTTP 404; road-filter route probes on
+  News, Alerts and Reports returned HTTP 200.
+- **Pending:** browser visual/responsive/console acceptance remains pending;
+  authenticated CMS verification and genuine rolling road-view analytics remain
+  outstanding. No SQL, migrations, Supabase changes or unrelated configuration
+  changes were made.
