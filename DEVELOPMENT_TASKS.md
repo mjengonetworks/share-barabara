@@ -1615,6 +1615,13 @@ unfinished application changes are not merged here.
 - **Safety:** Existing active/published/approved eligibility filters remain enforced; no synthetic rankings, SQL, migrations, production writes or configuration changes were made. Other homepage Media & Feed latest activity remains separate.
 - **Verification:** Focused ranking/navigation tests `3/3`; full suite `603 passed, 1 skipped`; security suite `14/14`; production build passed with `.output/server/index.mjs` and `.output/server/wrangler.json`; artifact gate `2/2`; changed-file lint and `git diff --check` passed. Browser responsive/console verification remains pending because browser automation is unavailable. Deployment is not authorized.
 
+## HOMEPAGE SPACING FOLLOW-UP — IMPLEMENTED (2026-11-09)
+
+- **Audit finding:** The prior density change was incomplete at desktop breakpoints: the common wrapper was `py-4 sm:py-5` (16px mobile / 20px desktop), versus the original `py-10` (40px), giving approximately 60% mobile reduction but only 50% desktop reduction. Empty alert/report states also retained large `mt-6 p-8` panels, and an empty Featured Page wrapper could reserve vertical space.
+- **Correction:** Homepage section wrappers now use one compact `py-4` token (16px at all breakpoints), empty alert/report states use `mt-3 p-3`, and the redundant empty Featured Page wrapper was removed because Pages/Profile discovery already supplies the real public discovery surface. Mjengo discovery separators changed from `mt-6 pt-6 mb-5` to `mt-4 pt-4 mb-4`. Hero internal spacing and advertising separation remain intentionally preserved.
+- **Discovery verification:** Pages use real public page records; profiles use unsuspended public profiles; Featured Profile uses the real `home_profile` slot and is excluded from the general profile list. Canonical `/pages`, `/contributors` and `/u/$userId` links remain active.
+- **Status:** Not deployed. Browser visual/responsive verification remains pending; no SQL, migrations, Supabase changes or production configuration changes were made.
+
 ## HOMEPAGE CATEGORY DISCOVERY — DEPLOYED (2026-11-09)
 
 - **Application:** Candidate `0a20e4dba92d6c6a4cff2fa2c102242c453687c2` deployed from `fix/homepage-category-discovery`. Workflow-only release commits were `ea07dd6`, `336e8c7` and `47ed1f9`; application code remained unchanged after the candidate commit.
