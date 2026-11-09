@@ -23,7 +23,7 @@ export function HomepageDirectoryDiscovery() {
   const pages = data?.pages ?? [];
   if (!featuredProfile && !pages.length && !profiles.length) return null;
   return (
-    <section className="public-content-container py-4 sm:py-5" aria-labelledby="homepage-directory-heading">
+    <section className="public-content-container py-4" aria-labelledby="homepage-directory-heading">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div><p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">Community discovery</p><h2 id="homepage-directory-heading" className="mt-1 text-xl font-bold text-brand-navy">Pages and profiles</h2></div>
         <div className="flex gap-3 text-sm font-semibold text-brand-blue underline"><Link to="/pages">View all pages</Link><Link to="/contributors">View all profiles</Link></div>

@@ -149,7 +149,7 @@ export function HomepageMediaFeedPreview() {
   })).filter((group) => group.items.length);
   return (
     <section
-      className="public-content-container py-4 sm:py-5"
+      className="public-content-container py-4"
       aria-labelledby="homepage-media-feed-heading"
     >
       <div className="flex flex-wrap items-end justify-between gap-4">

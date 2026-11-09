@@ -10,7 +10,7 @@ test("homepage uses the shared wide public content frame for every section", asy
     read("src/styles.css"),
   ]);
 
-  assert.equal((homepage.match(/public-content-container/g) ?? []).length, 11);
+  assert.equal((homepage.match(/public-content-container/g) ?? []).length, 10);
   assert.doesNotMatch(homepage, /max-w-6xl/);
   assert.match(styles, /max-width: 93\.75rem/);
   assert.match(styles, /padding-inline: 1rem/);

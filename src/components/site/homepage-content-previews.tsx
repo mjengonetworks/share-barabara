@@ -81,7 +81,7 @@ function ContentSection({
   if (!items.length) return null;
   return (
     <section
-      className="public-content-container py-4 sm:py-5"
+      className="public-content-container py-4"
       aria-labelledby={`homepage-${kind}-heading`}
     >
       <div className="flex flex-wrap items-end justify-between gap-4">

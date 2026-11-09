@@ -12,7 +12,7 @@ test("platform spacing uses compact shared bands and discovery gaps", async () =
   ]);
   assert.match(layout, /px-4 py-4 sm:-mx-8 sm:px-8 sm:py-5/);
   assert.match(discovery, /mt-6 space-y-6/);
-  assert.match(mjengo, /mt-6 border-t border-border pt-6/);
+  assert.match(mjengo, /mt-4 border-t border-border pt-4/);
 });
 
 test("Report and Alert detail metadata follows the shared article hierarchy", async () => {

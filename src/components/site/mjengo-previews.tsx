@@ -186,8 +186,8 @@ function MjengoHubCard({ media }: { media: MediaPreview[] }) {
 
 function MjengoNetworksSection() {
   return (
-    <section className="mt-6 border-t border-border pt-6" aria-label="Mjengo Networks discovery">
-      <div className="mb-5">
+    <section className="mt-4 border-t border-border pt-4" aria-label="Mjengo Networks discovery">
+      <div className="mb-4">
         <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
           Professional construction network
         </p>
@@ -310,8 +310,8 @@ export function MjengoPreviews({
   const media = (data?.media ?? []).slice(0, 3);
   return (
     <div className={fullWidth ? "w-full" : "mx-auto w-full max-w-6xl px-4 sm:px-6"}>
-      <section className="mt-6 border-t border-border pt-6" aria-label="Mjengo Hub discovery">
-        <div className="mb-5">
+      <section className="mt-4 border-t border-border pt-4" aria-label="Mjengo Hub discovery">
+        <div className="mb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground">
             Ecosystem discovery
           </p>

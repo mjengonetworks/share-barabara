@@ -9,7 +9,6 @@ import { EMERGENCY_CONTACTS } from "@/lib/constants";
 import { BannerAd } from "@/components/site/banner-ad";
 import { SearchBar } from "@/components/site/search-bar";
 import { QuoteOfTheDay } from "@/components/site/quote-of-the-day";
-import { FeaturedPageCard } from "@/components/site/featured-cards";
 import { PublicNewsletterCard } from "@/components/site/public-ui";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import {
@@ -228,7 +227,7 @@ function Index() {
           className="absolute inset-0 size-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/40" />
-        <div className="relative public-content-container py-6 sm:py-5">
+        <div className="relative public-content-container py-6">
           <div className="flex flex-wrap gap-2">
             <a
               href="https://mjengohub.co.ke"
@@ -301,7 +300,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="public-content-container py-4 sm:py-5">
+      <section className="public-content-container py-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="text-[1.44375rem] font-bold">Latest hazard alerts</h2>
           <div className="flex gap-3">
@@ -317,7 +316,7 @@ function Index() {
           </div>
         </div>
         {alerts.length === 0 ? (
-          <p className="mt-6 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
+          <p className="mt-3 rounded border border-dashed border-border p-3 text-center text-sm text-muted-foreground">
             No alerts posted yet. Be the first to report a hazard on your route.
           </p>
         ) : (
@@ -333,7 +332,7 @@ function Index() {
       <HomepageDirectoryDiscovery />
 
       <section className="border-y border-border bg-secondary/40">
-        <div className="public-content-container py-4 sm:py-5">
+        <div className="public-content-container py-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-[1.44375rem] font-bold">News &amp; Articles</h2>
             <div className="flex gap-3">
@@ -355,7 +354,7 @@ function Index() {
               ))}
             </div>
           ) : (
-            <p className="mt-6 rounded border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+            <p className="mt-3 rounded border border-dashed border-border p-3 text-center text-sm text-muted-foreground">
               No published articles yet.
             </p>
           )}
@@ -367,7 +366,7 @@ function Index() {
         <BannerAd placement="homepage-between-news-reports" />
       </section>
 
-      <section className="public-content-container py-4 sm:py-5">
+      <section className="public-content-container py-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="flex items-center gap-2 text-[1.44375rem] font-bold">
             <CarFront className="size-7 text-accent" /> Accident reports
@@ -385,7 +384,7 @@ function Index() {
           </div>
         </div>
         {reports.length === 0 ? (
-          <p className="mt-6 rounded border border-dashed border-border p-8 text-center text-muted-foreground">
+          <p className="mt-3 rounded border border-dashed border-border p-3 text-center text-sm text-muted-foreground">
             No published reports yet.
           </p>
         ) : (
@@ -406,7 +405,7 @@ function Index() {
         <BannerAd placement="homepage-support-partner" />
       </section>
 
-      <section className="public-content-container py-4 sm:py-5">
+      <section className="public-content-container py-4">
         <div className="grid gap-6 lg:grid-cols-2">
           <QuoteOfTheDay />
           <div className="flex flex-col justify-center rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
@@ -423,7 +422,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="py-4 sm:py-5">
+      <section className="py-4">
         <div className="public-content-container">
           <PublicNewsletterCard
             title="Get the Share Barabara newsletter"
@@ -437,7 +436,7 @@ function Index() {
         </div>
       </section>
 
-      <section className="public-content-container py-4 sm:py-5">
+      <section className="public-content-container py-4">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
           <div className="min-w-0">
             <h2 className="text-[1.35rem] font-bold">In an emergency</h2>
@@ -462,12 +461,8 @@ function Index() {
         </div>
       </section>
 
-      <section className="public-content-container py-4 sm:py-5">
-        <FeaturedPageCard slot="home_page" />
-      </section>
-
       <section className="border-t border-border bg-secondary/40">
-        <div className="public-content-container space-y-4 py-4 sm:py-5">
+        <div className="public-content-container space-y-4 py-4">
           <MjengoPreviews context="home" fullWidth />
         </div>
       </section>
