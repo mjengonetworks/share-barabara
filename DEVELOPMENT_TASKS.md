@@ -1850,3 +1850,10 @@ unfinished application changes are not merged here.
 - **Correction:** Commit `4b5514c482fd09184c0e5dd7238b26be709aa093` binds the optional `showExcerpt` prop in both shared link components and restricts the homepage video select to confirmed production columns (`id,title,description,video_url,status,created_at`). Focused regression coverage was added.
 - **Verification:** Local Chromium renders clean and query-string homepages with HTTP 200, no page exceptions, no failed requests and no fatal console errors. Screenshots: `C:\Users\phabi\share-barabara-browser-diagnostics\fixed-clean-1440.png` and `fixed-utm-1440.png`. Full suite `615 passed, 1 skipped`; security `14/14`; production build passed.
 - **Residual:** One non-fatal React hydration warning remains in the local query-string case for a newsletter input `caret-color` attribute mismatch; the page renders. Production hotfix deployment is not authorized by this incident task and was not performed. Current production remains Worker `cc9c68b5-7570-4296-ae57-85d9e9ad3973` at 100%.
+
+## HOMEPAGE PRODUCTION INCIDENT — ROLLED BACK (2026-11-10)
+
+- **Critical regression confirmed:** Playwright reproduced the error page on clean and query-string homepages. Fatal cause: `ReferenceError: showExcerpt is not defined` in the deployed shared editorial preview bundle. A separate production-schema query failure requested nonexistent `videos.image_url` and `videos.updated_at` columns.
+- **Recovery:** Rollback workflow [42803418417](https://github.com/mjengonetworks/share-barabara/actions/runs/42803418417) activated Worker `70c18110-5cd6-41cd-8f3b-88fb091392fa` at 100%. Its immediate final probe raced propagation on `/feed`; subsequent HTTP and Playwright checks passed for `/`, `/news`, `/alerts`, `/reports`, `/feed` and both homepage URL variants.
+- **Rollback target:** Deployment `a66eadb9-0be0-4f73-94b6-91fd37ac4bce` / Worker `70c18110-5cd6-41cd-8f3b-88fb091392fa`.
+- **Hotfix:** `4b5514c482fd09184c0e5dd7238b26be709aa093` is pushed but not deployed. Separate owner approval is required before deployment.
