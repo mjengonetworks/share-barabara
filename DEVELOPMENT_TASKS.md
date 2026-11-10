@@ -1907,3 +1907,10 @@ unfinished application changes are not merged here.
 - **Candidate:** Branch `fix/news-alerts-road-filter-runtime`, commit `cb1842ef157520f5bfb93c4e03c0b65c1088168e`, pushed for review. It descends from the current deployed diagnostic application `b7f500604d3cc853c0f84aebd881f697635e6eae`.
 - **Verification:** Focused test 5/5; full suite 620 passed, 1 skipped; security 14/14; production build passed. Local Playwright checks for `/news` and `/alerts` passed at 1440, 1280, 1024, 768, 440, 390 and 360px with no page/console errors, failed requests or horizontal overflow. Screenshots: `%TEMP%\share-barabara-road-fix-news-1440.png`, `%TEMP%\share-barabara-road-fix-alerts-390.png`.
 - **Release:** Not deployed. Current production remains deployment `d4d86168-c686-4207-a319-c415a17dbaa8` / Worker `af456ecc-0ab4-4d95-a4ac-caaf6585a5d2` at 100%. CMS persistence remains an independent open incident.
+
+## NEWS/ALERTS RUNTIME FIX — RELEASE PREPARATION (2026-11-10)
+
+- **Candidate:** `cb1842ef157520f5bfb93c4e03c0b65c1088168e`, descended from the deployed diagnostic application `b7f500604d3cc853c0f84aebd881f697635e6eae`. Application diff is limited to the `road` destructuring fix and its regression test; the deployed CMS diagnostic code remains in the candidate ancestry unchanged.
+- **Artifact:** Verification [42824056270](https://github.com/mjengonetworks/share-barabara/actions/runs/42824056270) passed and produced artifact `13767619819`, digest `sha256:86d08b4f441672e0e3eb88e498f2e2f03472eeb27b2997e9aad23c10703de3f1`.
+- **Fresh preflight:** [42824280037](https://github.com/mjengonetworks/share-barabara/actions/runs/42824280037) passed against deployment `d4d86168-c686-4207-a319-c415a17dbaa8` / Worker `af456ecc-0ab4-4d95-a4ac-caaf6585a5d2`, 100% traffic, active domain, unchanged binding metadata and cron `*/1 * * * *`. The immediate rollback target is the current diagnostic Worker/version `af456ecc-0ab4-4d95-a4ac-caaf6585a5d2` / deployment `d4d86168-c686-4207-a319-c415a17dbaa8`.
+- **Status:** Not deployed. Owner deployment approval is required. CMS persistence remains open and independent.
