@@ -8,6 +8,7 @@ on:
       - fix/homepage-density-discovery
       - feat/homepage-order-advertising-road-discovery
       - feat/full-road-management-article-cms-repairs
+      - fix/homepage-previews-most-viewed-ads
 
 permissions:
   contents: read
@@ -24,9 +25,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       WORKER_NAME: share-barabara
-      EXPECTED_WORKER_VERSION_ID: e168220c-b105-4c57-be79-0eb24cd2b1e1
-      EXPECTED_PRODUCTION_APPLICATION_SHA: f03f3f94437cdc21b9ee74cfb69612f2f13faae4
-      EXPECTED_APPLICATION_SHA: ead265641955c182dcc8afa26a7e48791f9ec106
+      EXPECTED_WORKER_VERSION_ID: 70c18110-5cd6-41cd-8f3b-88fb091392fa
+      EXPECTED_PRODUCTION_APPLICATION_SHA: ead265641955c182dcc8afa26a7e48791f9ec106
+      EXPECTED_APPLICATION_SHA: 694abb45d87371c7fe7cd62e7df11974f03d8162
 
     steps:
       - name: Check out preflight revision
