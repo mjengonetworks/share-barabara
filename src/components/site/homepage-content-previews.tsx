@@ -1,10 +1,49 @@
 import { useQuery } from "@tanstack/react-query";
 import { Film, Megaphone, Wrench } from "lucide-react";
-import { getUnifiedFeed, type UnifiedFeedItem } from "@/lib/unified-feed";
+import { supabase } from "@/integrations/supabase/client";
+import type { UnifiedFeedItem, UnifiedFeedKind } from "@/lib/unified-feed";
 import { youtubeId } from "@/lib/video";
 import { TaxonomyStrip, type TaxonomyStripItem } from "@/components/site/taxonomy-strip";
 
 type PreviewKind = "infrastructure" | "campaign" | "video";
+type PreviewRow = {
+  id: string;
+  title?: string | null;
+  summary?: string | null;
+  description?: string | null;
+  image_url?: string | null;
+  video_url?: string | null;
+  end_date?: string | null;
+  report_published?: boolean | null;
+  status?: string | null;
+  created_at?: string | null;
+  start_date?: string | null;
+  updated_at?: string | null;
+};
+
+function toFeedItem(kind: UnifiedFeedKind, row: PreviewRow): UnifiedFeedItem {
+  const createdAt = row.created_at ?? row.start_date ?? "";
+  return {
+    key: `${kind}:${row.id}`,
+    kind,
+    label: kind === "infrastructure" ? "Infrastructure Issue" : kind === "campaign" ? "Campaign" : "Video",
+    sourceId: row.id,
+    title: row.title ?? "Published Share Barabara update",
+    body: row.summary ?? row.description ?? "",
+    location: null,
+    href: kind === "infrastructure" ? `/infrastructure-issues/${row.id}` : kind === "campaign" ? `/campaigns/${row.id}` : "/videos",
+    imageUrl: row.image_url ?? null,
+    mediaUrl: row.video_url ?? null,
+    authorId: null,
+    createdAt,
+    publishedAt: createdAt || null,
+    updatedAt: row.updated_at ?? null,
+    status: row.status ?? null,
+    moderationStatus: null,
+    hashtags: [],
+    media: [],
+  };
+}
 const config: Record<
   PreviewKind,
   { title: string; href: string; empty: string; icon: typeof Film }
@@ -78,7 +117,6 @@ function ContentSection({
 }) {
   const section = config[kind];
   const Icon = section.icon;
-  if (!items.length) return null;
   return (
     <section
       className="public-content-container py-4"
@@ -103,7 +141,7 @@ function ContentSection({
           ))}
         </div>
       ) : (
-        <p className="mt-5 rounded border border-dashed border-border px-4 py-5 text-center text-sm text-muted-foreground">
+        <p className="mt-3 rounded border border-dashed border-border px-4 py-3 text-center text-sm text-muted-foreground">
           {section.empty}
         </p>
       )}
@@ -121,7 +159,20 @@ export function HomepageContentPreviews({
 }) {
   const { data: items = [] } = useQuery({
     queryKey: ["homepage-content-previews"],
-    queryFn: () => getUnifiedFeed({ limit: 60 }),
+    queryFn: async () => {
+      const [infrastructure, campaigns, videos] = await Promise.all([
+        supabase.from("infrastructure_issues").select("id,title,summary,image_url,status,created_at,updated_at").eq("status", "approved").order("created_at", { ascending: false }).limit(18),
+        supabase.from("campaigns").select("id,title,description,image_url,start_date,end_date,report_published,created_at,updated_at").order("start_date", { ascending: false }).limit(18),
+        supabase.from("videos").select("id,title,description,image_url,video_url,status,created_at,updated_at").eq("status", "featured").order("created_at", { ascending: false }).limit(18),
+      ]);
+      for (const result of [infrastructure, campaigns, videos]) if (result.error) throw result.error;
+      const today = new Date().toISOString().slice(0, 10);
+      return [
+        ...(infrastructure.data ?? []).map((row) => toFeedItem("infrastructure", row)),
+        ...(campaigns.data ?? []).filter((row) => row.end_date >= today || row.report_published === true).map((row) => toFeedItem("campaign", row)),
+        ...(videos.data ?? []).map((row) => toFeedItem("video", row)),
+      ];
+    },
     staleTime: 60_000,
   });
   return (

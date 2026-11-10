@@ -33,27 +33,33 @@ test("homepage places community discovery after report taxonomy and before later
   assert.doesNotMatch(homepage.slice(0, reports), /<HomepageDirectoryDiscovery \/>/);
 });
 
-test("homepage content previews use the authoritative eligible feed and honest empty states", async () => {
+test("homepage content previews use independent eligible source queries and honest empty states", async () => {
   const previews = await read("src/components/site/homepage-content-previews.tsx");
-  assert.match(previews, /getUnifiedFeed\(\{ limit: 60 \}\)/);
+  assert.match(previews, /from\("infrastructure_issues"\)/);
+  assert.match(previews, /from\("campaigns"\)/);
+  assert.match(previews, /from\("videos"\)/);
   assert.match(previews, /item\.kind === kind/);
   assert.match(previews, /No published infrastructure issues yet/);
   assert.match(previews, /No active public campaigns yet/);
   assert.match(previews, /No published videos yet/);
   assert.match(previews, /item\.imageUrl/);
   assert.match(previews, /youtubeId/);
+  assert.match(previews, /px-4 py-3/);
 });
 
-test("homepage Media & Feed uses latest activity only until analytics is available", async () => {
+test("homepage Media & Feed remains separate and latest-first while Most Viewed is independently ranked", async () => {
   const preview = await read("src/components/site/global-editorial-preview.tsx");
+  const mostViewed = await read("src/components/site/homepage-most-viewed.tsx");
   assert.match(preview, /buildMediaFeedGroups\(query\.data \?\? \[\], null/);
   assert.match(preview, /const items = groups\.latest/);
   assert.match(preview, /Array\.from\(\{ length: 3 \}/);
   assert.match(preview, /Most Viewed rankings will return/);
-  assert.doesNotMatch(preview, /Most Viewed · Last 12 Hours/);
-  assert.doesNotMatch(preview, /Most Viewed · Last 24 Hours/);
   assert.match(preview, /<h2 id="homepage-media-feed-heading"/);
   assert.match(preview, /href="\/feed"/);
+  assert.match(mostViewed, /\{ tab: "alerts"/);
+  assert.match(mostViewed, /\{ tab: "reports"/);
+  assert.match(mostViewed, /\{ tab: "articles"/);
+  assert.match(mostViewed, /showActivityExcerpt=\{false\}/);
 });
 
 test("cross-platform homepage discovery uses approved canonical copy and working directory discovery", async () => {

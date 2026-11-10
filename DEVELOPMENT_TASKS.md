@@ -1803,3 +1803,12 @@ unfinished application changes are not merged here.
 - **Health:** Workflow checks passed for `/`, `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues`. Direct post-deployment checks also returned HTTP 200 for `/roads` and `/statistics`; `/staging-media-feed-preview` returned HTTP 404.
 - **Configuration:** Existing production domain, bindings, cron and environment metadata were validated before deployment. No SQL, migration, Supabase or multi-road association change was executed.
 - **Pending:** Browser visual/responsive, CMS/map interaction and live Grok/Groq acceptance remain open because no browser surface or authorized live provider session is available. Phase 2 multi-road migration remains separate and unapplied.
+
+## HOMEPAGE PREVIEWS, MOST VIEWED AND AD PLACEMENT CORRECTION (2026-11-10)
+
+- **Branch:** `fix/homepage-previews-most-viewed-ads`; implementation is prepared and not deployed.
+- **Most Viewed:** Restored the three equal desktop cards in the required order — Alerts, Accident Reports, Articles. Each uses the existing genuine 12-hour RPC ranking, limits results to three, keeps labels/thumbnails/timestamps/links, and suppresses summaries/excerpts for the ranked items.
+- **Homepage previews:** Infrastructure Issues, Campaigns and Videos now query their own eligible public source tables, so a unified-feed source failure cannot suppress all secondary homepage previews. Empty states remain compact and honest; Media & Feed remains separate and latest-first.
+- **Advertising:** Shared content interleaving now inserts banner slots after six content items, matching two three-column desktop rows and the six-card mobile rule. Existing paid-ad selection, generic-creative filtering and `/partner-with-us` fallback remain unchanged; the advertising page is not a listing target.
+- **Verification:** Full suite `612 passed, 1 skipped`; security `14/14`; production build passed and generated `.output/server/index.mjs` and `.output/server/wrangler.json`; `git diff --check` passed. Repository-wide lint remains blocked by the existing checkout-wide CRLF/Prettier baseline (`36,387` errors), not scoped implementation diagnostics. Browser automation is unavailable, so responsive screenshots, console and overflow checks remain pending.
+- **Status:** **Implemented — pending owner review and separate deployment approval.** No SQL, migrations, Supabase changes, production data changes or deployment were made.

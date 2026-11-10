@@ -448,7 +448,7 @@ function FeedPage() {
           <div className="mt-6 space-y-5" aria-live="polite">
             {timeline.map((entry, index) => entry.kind === "editorial" ? (
               <Fragment key={entry.id}>
-                {(index + 1) % 4 === 0 ? <BannerAd placement={`feed-list-interval-${(index + 1) / 4}`} /> : null}
+                {(index + 1) % 6 === 0 ? <BannerAd placement={`feed-list-interval-${(index + 1) / 6}`} /> : null}
                 <a href={entry.item.href} className="block rounded-lg border border-border bg-card p-4 transition-colors hover:border-accent card-elevated">
                   <div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold uppercase tracking-wider text-accent-foreground">{entry.item.kind === "article" ? "News & Articles" : entry.item.kind === "alert" ? "Active alert" : entry.item.kind === "report" ? "Approved report" : entry.item.kind === "campaign" ? "Campaign" : entry.item.kind === "update" ? "Administrator update" : "Infrastructure issue"}</span><span className="text-xs text-muted-foreground">{timeAgo(entry.item.created_at)}</span></div>
                   <h2 className="mt-2 font-bold">{entry.item.title}</h2>
@@ -461,7 +461,7 @@ function FeedPage() {
               const post = entry.post;
               return (
               <Fragment key={entry.id}>
-                {(index + 1) % 4 === 0 ? <BannerAd placement={`feed-list-interval-${(index + 1) / 4}`} /> : null}
+                {(index + 1) % 6 === 0 ? <BannerAd placement={`feed-list-interval-${(index + 1) / 6}`} /> : null}
                 <article
                   key={post.id}
                   className="rounded-lg border border-border bg-card p-5 card-elevated"

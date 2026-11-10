@@ -6,8 +6,8 @@ import type { PreviewItem } from "@/lib/global-editorial-preview";
 
 const cards: Array<{ tab: MostViewedTab; title: string; tone: "white" | "blue" | "navy" }> = [
   { tab: "alerts", title: "Most Viewed Alerts", tone: "white" },
-  { tab: "articles", title: "Most Viewed Articles", tone: "blue" },
   { tab: "reports", title: "Most Viewed Accident Reports", tone: "navy" },
+  { tab: "articles", title: "Most Viewed Articles", tone: "blue" },
 ];
 
 export function HomepageMostViewed() {
@@ -56,7 +56,7 @@ export function HomepageMostViewed() {
         </a>
       </div>
       <div className="mt-4 grid gap-4 md:grid-cols-3">
-        {populated.map((group) => (
+        {groups.map((group) => (
           <EditorialTripleCard
             key={group.tab}
             title={group.title}
@@ -72,6 +72,7 @@ export function HomepageMostViewed() {
             identities={identities}
             tone={group.tone}
             viewAllHref={`/trending?tab=${group.tab}&range=12h`}
+            showActivityExcerpt={false}
           />
         ))}
       </div>

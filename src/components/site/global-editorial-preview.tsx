@@ -178,6 +178,7 @@ function ItemLink({
   item: PreviewItem;
   identity?: { name?: string | null; username?: string | null; avatar?: string | null };
   tone?: FeedSurfaceTone;
+  showExcerpt?: boolean;
 }) {
   const styles = feedSurfaceTokens[tone];
   if (item.activity) {
@@ -204,6 +205,7 @@ function ItemLink({
           }}
           identity={identity}
           tone={tone}
+          showExcerpt={showExcerpt}
         />
       </a>
     );
@@ -245,6 +247,7 @@ function CompactItemLink({
   item: PreviewItem;
   identity?: { name?: string | null; username?: string | null; avatar?: string | null };
   tone?: FeedSurfaceTone;
+  showExcerpt?: boolean;
 }) {
   const styles = feedSurfaceTokens[tone];
   if (item.activity) {
@@ -272,6 +275,7 @@ function CompactItemLink({
           }}
           identity={identity}
           tone={tone}
+          showExcerpt={showExcerpt}
         />
       </a>
     );
@@ -309,6 +313,7 @@ export function EditorialTripleCard({
   identities,
   tone = "white",
   viewAllHref,
+  showActivityExcerpt = true,
 }: {
   title: string;
   items: PreviewItem[];
@@ -319,6 +324,7 @@ export function EditorialTripleCard({
   >;
   tone?: FeedSurfaceTone;
   viewAllHref?: string;
+  showActivityExcerpt?: boolean;
 }) {
   const href = viewAllHref ?? (items[0] ? meta[items[0].destination].href : undefined);
   const styles = feedSurfaceTokens[tone];
@@ -351,6 +357,7 @@ export function EditorialTripleCard({
             item={items[0]}
             identity={identities?.[items[0].activity?.authorId ?? items[0].id]}
             tone={tone}
+            showExcerpt={showActivityExcerpt}
           />
           {items.slice(1, 3).map((item) => (
             <CompactItemLink
@@ -358,6 +365,7 @@ export function EditorialTripleCard({
               item={item}
               identity={identities?.[item.activity?.authorId ?? item.id]}
               tone={tone}
+              showExcerpt={showActivityExcerpt}
             />
           ))}
         </div>

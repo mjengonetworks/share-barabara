@@ -4,14 +4,16 @@ import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("homepage suppresses empty content panels and uses compact section spacing", async () => {
+test("homepage uses compact honest empty states and compact section spacing", async () => {
   const [homepage, previews] = await Promise.all([
     read("src/routes/index.tsx"),
     read("src/components/site/homepage-content-previews.tsx"),
   ]);
   assert.doesNotMatch(homepage, /py-10|py-8|py-4 sm:py-5/);
   assert.match(homepage, /py-4/);
-  assert.match(previews, /if \(!items\.length\) return null/);
+  assert.doesNotMatch(previews, /if \(!items\.length\) return null/);
+  assert.match(previews, /No published videos yet/);
+  assert.match(previews, /px-4 py-3/);
   assert.match(previews, /py-4/);
   assert.doesNotMatch(homepage, /rounded border border-dashed border-border p-8/);
 });

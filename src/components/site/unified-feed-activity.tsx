@@ -58,11 +58,13 @@ export function UnifiedFeedActivity({
   identity,
   compact = false,
   tone = "white",
+  showExcerpt = true,
 }: {
   item: UnifiedFeedItem;
   identity?: Identity;
   compact?: boolean;
   tone?: FeedSurfaceTone;
+  showExcerpt?: boolean;
 }) {
   const displayName =
     identity?.name ?? (item.authorId ? "Share Barabara contributor" : "Share Barabara");
@@ -99,7 +101,7 @@ export function UnifiedFeedActivity({
           >
             {item.title}
           </span>
-          {item.body ? (
+          {showExcerpt && item.body ? (
             <span className={`mt-1 block line-clamp-2 text-xs leading-5 ${styles.secondary}`}>
               {item.body}
             </span>
@@ -196,7 +198,7 @@ export function UnifiedFeedActivity({
         >
           {item.title}
         </span>
-        {item.body ? (
+        {showExcerpt && item.body ? (
           <span className={`mt-2 line-clamp-3 text-sm leading-5 ${styles.secondary}`}>
             {item.body}
           </span>
