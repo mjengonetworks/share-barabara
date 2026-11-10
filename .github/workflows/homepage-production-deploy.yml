@@ -17,6 +17,7 @@ on:
       - feat/full-road-management-article-cms-repairs
       - fix/homepage-previews-most-viewed-ads
       - fix/cms-persistence-diagnostics
+      - fix/news-alerts-road-filter-runtime
 
 permissions:
   contents: read
@@ -31,13 +32,13 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && inputs.rollback_version_id == '') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[deploy-approved-homepage]'))
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: b7f500604d3cc853c0f84aebd881f697635e6eae
-      EXPECTED_PRODUCTION_APPLICATION_SHA: 4b5514c482fd09184c0e5dd7238b26be709aa093
-      EXPECTED_DEPLOYMENT_ID: fb102d9c-ee22-4f22-bb5a-a63f7523ec95
-      EXPECTED_WORKER_VERSION_ID: 63e25bd7-d295-4ccc-bea7-e0998071c98f
-      EXPECTED_ARTIFACT_ID: 13763748839
-      EXPECTED_ARTIFACT_RUN_ID: 42814817344
-      EXPECTED_ARTIFACT_DIGEST: sha256:d2e52c0e9fd1c1ae4438a9010dedc55668e6ac52dbc5161d1bda868bf93b9fd9
+      APP_CANDIDATE_SHA: cb1842ef157520f5bfb93c4e03c0b65c1088168e
+      EXPECTED_PRODUCTION_APPLICATION_SHA: b7f500604d3cc853c0f84aebd881f697635e6eae
+      EXPECTED_DEPLOYMENT_ID: d4d86168-c686-4207-a319-c415a17dbaa8
+      EXPECTED_WORKER_VERSION_ID: af456ecc-0ab4-4d95-a4ac-caaf6585a5d2
+      EXPECTED_ARTIFACT_ID: 13767619819
+      EXPECTED_ARTIFACT_RUN_ID: 42824056270
+      EXPECTED_ARTIFACT_DIGEST: sha256:86d08b4f441672e0e3eb88e498f2e2f03472eeb27b2997e9aad23c10703de3f1
       WORKER_NAME: share-barabara
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
 
@@ -45,7 +46,7 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: b7f500604d3cc853c0f84aebd881f697635e6eae
+          ref: cb1842ef157520f5bfb93c4e03c0b65c1088168e
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
@@ -207,7 +208,7 @@ jobs:
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       WORKER_NAME: share-barabara
-      CURRENT_VERSION_ID: 63e25bd7-d295-4ccc-bea7-e0998071c98f
+      CURRENT_VERSION_ID: af456ecc-0ab4-4d95-a4ac-caaf6585a5d2
       ROLLBACK_VERSION_ID: ${{ inputs.rollback_version_id }}
     steps:
       - name: Confirm current production before rollback
