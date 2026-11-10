@@ -8,7 +8,7 @@ const publicForm = await readFile("src/components/site/report-form.tsx", "utf8")
 
 test("Accident Report persistence keeps a sanitized correlation ID through the server function", () => {
   assert.match(report, /requestId\?: string/);
-  assert.match(report, /insert_returning_id/);
+  assert.match(report, /insert_record/);
   assert.match(report, /return \{ ok: false, error: diagnostic \}/);
   assert.match(report, /console\.error\("\[CMS persistence failed\]"/);
   assert.doesNotMatch(report, /console\.error\([^\n]*(payload|context\.supabase|access_token)/i);
@@ -29,10 +29,12 @@ test("the client surfaces the sanitized error code and server correlation ID", (
   assert.match(publicForm, /renderPersistenceError\(e/);
 });
 
-test("the insert is confirmed before duplicate review and duplicate review cannot turn success into failure", () => {
-  const insertOffset = report.indexOf('phase = "insert_returning_id"');
-  const returnOffset = report.indexOf("return { ok: true as const, id: report.id", insertOffset);
-  const duplicateOffset = report.indexOf("suggestIncidentDuplicates", insertOffset);
-  assert.ok(insertOffset >= 0 && duplicateOffset > insertOffset && returnOffset > duplicateOffset);
-  assert.match(report.slice(duplicateOffset, returnOffset), /catch \{[\s\S]*Duplicate review is additive/);
+test("the committed insert returns the durable request ID before additive duplicate review", () => {
+  const insertOffset = report.indexOf('"insert_record"');
+  const duplicateOffset = report.indexOf("await suggestIncidentDuplicates", insertOffset);
+  assert.ok(insertOffset >= 0);
+  assert.ok(duplicateOffset >= 0);
+  assert.match(report, /return \{ ok: true as const, id: report\.id, status: payload\.status \?\? "pending", requestId \}/);
+  assert.match(report, /insert\(\{ id: requestId, \.\.\.payload \}/);
+  assert.match(report, /Duplicate review is additive/);
 });

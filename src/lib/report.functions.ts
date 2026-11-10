@@ -7,6 +7,7 @@ import { suggestIncidentDuplicates } from "@/lib/incident-duplicates";
 
 type ReportSubmission = {
   requestId?: string;
+  id?: string;
   requestedStatus?: "pending" | "approved";
   title: string;
   summary?: string | null;
@@ -41,7 +42,7 @@ function diagnosticRequestId(value?: string) {
 
 function persistenceDiagnostic(error: unknown, requestId: string, phase: string) {
   const candidate = error as { code?: unknown; status?: unknown; statusCode?: unknown; message?: unknown } | null;
-  const code = typeof candidate?.code === "string" && candidate.code.length <= 32 ? candidate.code : "UNKNOWN";
+  const code = typeof candidate?.code === "string" && candidate.code.length <= 32 ? candidate.code : "unavailable";
   const statusValue = candidate?.status ?? candidate?.statusCode;
   const status = typeof statusValue === "number" ? statusValue : undefined;
   const message = /42501|PGRST301/i.test(code)
@@ -89,7 +90,7 @@ type PersistedReportFields = Omit<
 export function buildAccidentReportPayload(
   submission: ReportSubmission,
   userId: string,
-  status: "pending" | "approved",
+  status: "pending" | "approved" | undefined,
   capabilities: { summary: boolean; incident_type: boolean } = {
     summary: true,
     incident_type: true,
@@ -118,8 +119,8 @@ export function buildAccidentReportPayload(
     attachments: submission.attachments,
     is_anonymous: submission.is_anonymous,
     user_id: userId,
-    status,
   };
+  if (status) fields.status = status;
   if (capabilities.summary && submission.summary !== undefined) fields.summary = submission.summary;
   if (capabilities.incident_type && submission.incident_type !== undefined)
     fields.incident_type = submission.incident_type;
@@ -156,7 +157,8 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
       context: { supabase: SupabaseClient<Database>; userId: string };
     }) => {
       const requestId = diagnosticRequestId(data.requestId);
-      const { requestedStatus = "pending" } = data;
+      const { requestedStatus } = data;
+      const recordId = data.id && REPORT_REQUEST_ID.test(data.id) ? data.id : undefined;
       let phase = "role_lookup";
       try {
         const { data: roles, error: rolesError } = await context.supabase
@@ -168,10 +170,9 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
         const canPublish = (roles ?? []).some(
           (entry) => (roleRank[entry.role] ?? 0) >= roleRank.moderator,
         );
-        const statusPayload = {
-          status: canPublish && requestedStatus === "approved" ? "approved" : "pending",
-        } as const;
-        const status = statusPayload.status;
+        const status = requestedStatus === undefined
+          ? undefined
+          : canPublish && requestedStatus === "approved" ? "approved" : "pending";
         phase = "schema_capability_probe";
         const [summary, incident_type] = await Promise.all([
           supportsColumn(context.supabase, "summary"),
@@ -184,15 +185,52 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
           incident_type,
         });
 
-        phase = "insert_returning_id";
+        phase = recordId ? "update_existing_record" : "insert_record";
         // The generated types still reflect the pre-nullability schema. Keep the
         // compatibility cast at this boundary until Supabase types are regenerated.
-        const { data: report, error } = await context.supabase
+        if (recordId) {
+          const updatePayload = { ...payload };
+          delete updatePayload.user_id;
+          const { data: report, error } = await context.supabase
+            .from("accident_reports")
+            .update(updatePayload as never)
+            .eq("id", recordId)
+            .select("id,title,description,county,road,occurred_at,latitude,longitude,status")
+            .single();
+          if (error) throw error;
+          if (!report?.id) throw new Error("The database did not confirm the updated report.");
+          return { ok: true as const, id: report.id, status: report.status, requestId };
+        }
+
+        // Use the request UUID as the primary key. This makes a retry of the
+        // same mutation idempotent and avoids INSERT ... RETURNING being
+        // rejected by a SELECT policy after the row has already committed.
+        const { error } = await context.supabase
           .from("accident_reports")
-          .insert(payload as never)
-          .select("id,title,description,county,road,occurred_at,latitude,longitude,status")
-          .single();
-        if (error) throw error;
+          .insert({ id: requestId, ...payload } as never);
+        if (error) {
+          if (typeof (error as { code?: unknown }).code === "string" && (error as { code: string }).code === "23505") {
+            const { data: existing, error: existingError } = await context.supabase
+              .from("accident_reports")
+              .select("id,user_id")
+              .eq("id", requestId)
+              .single();
+            if (!existingError && existing?.id === requestId && existing.user_id === context.userId) {
+              return { ok: true as const, id: existing.id, status: requestedStatus ?? "pending", requestId };
+            }
+          }
+          throw error;
+        }
+        const report = {
+          id: requestId,
+          title: data.title,
+          description: data.description,
+          county: data.county,
+          road: data.road,
+          occurred_at: data.occurred_at,
+          latitude: data.latitude,
+          longitude: data.longitude,
+        };
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           await suggestIncidentDuplicates(supabaseAdmin, {
@@ -209,7 +247,7 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
         } catch {
           // Duplicate review is additive and must not reject a valid submission.
         }
-        return { ok: true as const, id: report.id, status: payload.status, requestId };
+        return { ok: true as const, id: report.id, status: payload.status ?? "pending", requestId };
       } catch (error) {
         return recordPersistenceDiagnostic(error, requestId, phase);
       }

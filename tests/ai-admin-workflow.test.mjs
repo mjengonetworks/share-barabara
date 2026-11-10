@@ -30,7 +30,7 @@ test("admin Accident Report add and edit flows expose Generate and Auto-Populate
 
 test("report publishing is role-authoritative and public submissions remain pending", () => {
   const source = read("src/lib/report.functions.ts");
-  assert.ok(source.includes('status: canPublish && requestedStatus === "approved"'));
+  assert.ok(source.includes('canPublish && requestedStatus === "approved" ? "approved" : "pending"'));
   assert.ok(source.includes(': "pending"'));
   assert.ok(read("src/components/site/report-form.tsx").includes("Publish report"));
   assert.ok(read("src/components/site/report-form.tsx").includes("Submit report for review"));

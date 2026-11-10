@@ -11,13 +11,17 @@ const newsIndex = await readFile("src/routes/news.index.tsx", "utf8");
 test("accident-report creation uses an explicit persisted payload and returns the database id", () => {
   assert.match(reportFn, /buildAccidentReportPayload/);
   assert.doesNotMatch(reportFn, /const payload = \{\s*\.\.\.submission/);
-  assert.match(reportFn, /\.select\("id,title,description/);
-  assert.match(reportFn, /return \{ ok: true as const, id: report\.id, status: payload\.status, requestId \}/);
+  assert.match(reportFn, /\.insert\(\{ id: requestId, \.\.\.payload \}/);
+  assert.match(reportFn, /return \{ ok: true as const, id: report\.id, status: payload\.status \?\? "pending", requestId \}/);
+  assert.match(reportFn, /same mutation idempotent/);
 });
 
 test("report updates require Supabase to return the updated row", () => {
-  assert.match(editor, /\.update\(patch\)\.eq\("id", id\)\.select\("id"\)\.single\(\)/);
-  assert.match(editor, /database did not confirm the updated record/);
+  assert.match(reportFn, /\.update\(updatePayload as never\)\s*\.eq\("id", recordId\)\s*\.select\("id,title/);
+  assert.match(reportFn, /delete updatePayload\.user_id/);
+  assert.match(reportFn, /database did not confirm the updated report/);
+  assert.match(editor, /submitAccidentReport\(\{ data:/);
+  assert.match(editor, /\.\.\.\(isEditing \? \{ id \} : \{\}\)/);
 });
 
 test("article queue keeps routed editor hooks outside the list component", () => {

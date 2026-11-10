@@ -8,7 +8,7 @@ test("report creation derives status from the authenticated role, not request da
   const text = await source("src/lib/report.functions.ts");
   assert.match(text, /context\.userId/);
   assert.match(text, /roleRank\[entry\.role\]/);
-  assert.match(text, /status: canPublish && requestedStatus === "approved"[\s\S]*?: "pending"/);
+  assert.match(text, /canPublish && requestedStatus === "approved" \? "approved" : "pending"/);
   assert.match(text, /user_id: context\.userId/);
   assert.doesNotMatch(text, /data\.status/);
 });

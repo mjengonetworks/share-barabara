@@ -180,15 +180,11 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         : requestedStatus === "approved" && canReview
           ? "approved"
           : undefined;
-      if (isEditing) {
-        const patch = status ? { ...payload, status } : payload;
-        const { data: saved, error } = await (supabase.from(config.table) as any).update(patch).eq("id", id).select("id").single();
-        if (error) throw error;
-        if (!saved?.id) throw new Error("The database did not confirm the updated record.");
-      } else if (type === "report") {
+      if (type === "report") {
         const road_id = await findExistingRoad(form.road);
         const result = await submitAccidentReport({ data: {
           requestId,
+          ...(isEditing ? { id } : {}),
           title: form.title,
           ...(summarySupported ? { summary: form["summary"].trim() || null } : {}),
           description: form.body,
@@ -212,11 +208,16 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           attachments: form.attachments,
           page_id: identity.type === "page" ? identity.pageId : null,
           is_anonymous: false,
-          requestedStatus: status === "approved" ? "approved" : "pending",
+          requestedStatus: status === "approved" ? "approved" : isEditing ? undefined : "pending",
         } });
         if (!result.ok) {
-          throw new Error(serializePersistenceDiagnostic(result.error, { requestId, operation: "create", contentType: type }));
+          throw new Error(serializePersistenceDiagnostic(result.error, { requestId, operation: isEditing ? "update" : "create", contentType: type }));
         }
+      } else if (isEditing) {
+        const patch = status ? { ...payload, status } : payload;
+        const { data: saved, error } = await (supabase.from(config.table) as any).update(patch).eq("id", id).select("id").single();
+        if (error) throw error;
+        if (!saved?.id) throw new Error("The database did not confirm the updated record.");
       } else {
         const insertPayload = {
           ...payload,
