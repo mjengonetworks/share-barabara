@@ -8,6 +8,7 @@ on:
       - feat/homepage-redesign
       - fix/homepage-category-discovery
       - feat/homepage-order-advertising-road-discovery
+      - feat/full-road-management-article-cms-repairs
 
 permissions:
   contents: read
@@ -22,13 +23,13 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-approved-homepage]')
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: f03f3f94437cdc21b9ee74cfb69612f2f13faae4
-      EXPECTED_PRODUCTION_APPLICATION_SHA: 9ab103f0c1dc7fbbf23f6c69e1349edd77162da2
-      EXPECTED_DEPLOYMENT_ID: 9c96d893-5b24-4d23-860f-61576b34b908
-      EXPECTED_WORKER_VERSION_ID: 44ae1baf-1c93-457f-af63-edc88917c87e
-      EXPECTED_ARTIFACT_ID: 13691372840
-      EXPECTED_ARTIFACT_RUN_ID: 42653780581
-      EXPECTED_ARTIFACT_DIGEST: sha256:07c83d41816307a2c5d41eb5e6eff1ad8457f5008518a4213955edbaf64ea0f6
+      APP_CANDIDATE_SHA: ead265641955c182dcc8afa26a7e48791f9ec106
+      EXPECTED_PRODUCTION_APPLICATION_SHA: f03f3f94437cdc21b9ee74cfb69612f2f13faae4
+      EXPECTED_DEPLOYMENT_ID: 9ba55799-b1e9-46a0-8a84-1dff72c4048e
+      EXPECTED_WORKER_VERSION_ID: e168220c-b105-4c57-be79-0eb24cd2b1e1
+      EXPECTED_ARTIFACT_ID: 13743098303
+      EXPECTED_ARTIFACT_RUN_ID: 42774870076
+      EXPECTED_ARTIFACT_DIGEST: sha256:4456d4289da0f54eaa4d9b1e6a9bb99502560b605c2c30d7868246b06baa9aa8
       WORKER_NAME: share-barabara
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
 
@@ -36,7 +37,7 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: f03f3f94437cdc21b9ee74cfb69612f2f13faae4
+          ref: ead265641955c182dcc8afa26a7e48791f9ec106
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
