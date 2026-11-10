@@ -27,7 +27,7 @@ function safeValue(value: unknown, fallback: string, maxLength = 64) {
 }
 
 function safeStatus(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? String(value) : "unknown";
+  return typeof value === "number" && Number.isFinite(value) ? String(value) : "unavailable";
 }
 
 function diagnosticFromError(error: unknown): PersistenceDiagnostic | null {
@@ -50,9 +50,9 @@ function diagnosticFromError(error: unknown): PersistenceDiagnostic | null {
 export function serializePersistenceDiagnostic(diagnostic: PersistenceDiagnostic, context: PersistenceContext) {
   return `CMS persistence diagnostic ${JSON.stringify({
     requestId: diagnostic.requestId ?? context.requestId,
-    phase: diagnostic.phase ?? "transport",
-    code: diagnostic.code ?? "UNKNOWN",
-    status: diagnostic.status,
+    phase: diagnostic.phase ?? "unavailable",
+    code: diagnostic.code ?? "unavailable",
+    status: diagnostic.status ?? "unavailable",
     message: diagnostic.message,
     operation: context.operation,
     contentType: context.contentType,
@@ -63,12 +63,12 @@ export function renderPersistenceError(error: unknown, context: PersistenceConte
   const diagnostic = diagnosticFromError(error);
   const requestId = typeof diagnostic?.requestId === "string" && REQUEST_ID.test(diagnostic.requestId)
     ? diagnostic.requestId
-    : context.requestId;
+    : REQUEST_ID.test(context.requestId) ? context.requestId : "unavailable";
   const message = typeof diagnostic?.message === "string" && SAFE_MESSAGES.has(diagnostic.message)
     ? diagnostic.message
     : "The database rejected the report.";
-  const code = safeValue(diagnostic?.code, "UNKNOWN", 32);
-  const phase = safeValue(diagnostic?.phase, "transport", 48);
+  const code = safeValue(diagnostic?.code, "unavailable", 32);
+  const phase = safeValue(diagnostic?.phase, "unavailable", 48);
   const status = safeStatus(diagnostic?.status);
   return `CMS persistence failed: ${message} Error code ${code}; phase=${phase}; status=${status}; Request ID ${requestId}; operation=${context.operation}; contentType=${context.contentType}.`;
 }

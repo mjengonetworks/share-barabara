@@ -36,6 +36,19 @@ test("generic-toast regression retains structured diagnostics after a thrown ser
   assert.match(rendered, /operation=create; contentType=report/);
 });
 
+test("missing diagnostic fields are explicit and do not gain invented values", () => {
+  const rendered = renderPersistenceError(new Error(serializePersistenceDiagnostic({}, {
+    requestId: "unavailable",
+    operation: "create",
+    contentType: "report",
+  })), { requestId: "unavailable", operation: "create", contentType: "report" });
+  assert.match(rendered, /Error code unavailable/);
+  assert.match(rendered, /phase=unavailable/);
+  assert.match(rendered, /status=unavailable/);
+  assert.match(rendered, /Request ID unavailable/);
+  assert.doesNotMatch(rendered, /phase=transport|status=unknown|Error code UNKNOWN/);
+});
+
 test("admin and public report callers use the shared diagnostic renderer", () => {
   assert.match(editor, /serializePersistenceDiagnostic\(result\.error/);
   assert.match(editor, /renderPersistenceError\(error/);
