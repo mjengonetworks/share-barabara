@@ -59,7 +59,7 @@ jobs:
           fi
 
           run_json="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow homepage-release-verification.yml --limit 20 --json databaseId,headSha,status,conclusion,headBranch,createdAt)"
-          run_id="$(jq -r --arg sha "$EXPECTED_APPLICATION_SHA" '[.[] | select(.status == "completed" and .conclusion == "success")] | sort_by(.createdAt) | reverse | .[0].databaseId // empty' <<<"$run_json")"
+          run_id="$(jq -r --arg sha "$EXPECTED_APPLICATION_SHA" '[.[] | select(.headSha == $sha and .status == "completed" and .conclusion == "success")] | sort_by(.createdAt) | reverse | .[0].databaseId // empty' <<<"$run_json")"
           test -n "$run_id"
           artifact_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts")"
           artifact="$(jq -c --arg name "homepage-worker-payload-${EXPECTED_APPLICATION_SHA}" '.artifacts[] | select(.name == $name)' <<<"$artifact_json")"
