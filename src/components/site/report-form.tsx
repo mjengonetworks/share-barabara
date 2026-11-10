@@ -74,6 +74,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
   const submit = useMutation({
     mutationFn: async (requestedStatus: "pending" | "approved") => {
       if (!user) throw new Error("Sign in required");
+      const requestId = crypto.randomUUID();
       const breakdownError = casualtyBreakdownError(casualtyBreakdown, {
         dead: form.fatalities,
         injured: form.casualties,
@@ -82,6 +83,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
       const road_id = await findExistingRoad(form.road);
       return submitAccidentReport({
         data: {
+          requestId,
           ...form,
           requestedStatus,
           ...(reportIncidentTypeAvailable ? { incident_type: form.incident_type || null } : {}),

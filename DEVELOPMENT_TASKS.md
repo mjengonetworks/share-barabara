@@ -1875,3 +1875,11 @@ unfinished application changes are not merged here.
 - **Health:** Workflow checks passed for `/`, `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues`; direct checks also passed for `/feed`, `/roads` and `/statistics`. `/staging-media-feed-preview` returned HTTP 404. Production bindings, domain metadata and cron were preserved.
 - **Browser:** Live Playwright 1.64.1 covered clean and `?utm_source=chatgpt.com` homepages at 1440, 1280, 1024, 768, 440, 390 and 360px: 14/14 rendered with no page exceptions, application request failures or horizontal overflow. Screenshots are in `C:\Users\phabi\share-barabara-hotfix-live-browser\`. A non-fatal external thumbnail 404 (`https://i.ytimg.com/vi/sb-demo0000/hqdefault.jpg`) remains a content-quality follow-up.
 - **Scope:** No SQL, migrations, Supabase changes or database writes were executed. Authenticated CMS/provider acceptance and Phase 2 multi-road migration remain pending.
+
+## CMS PERSISTENCE INCIDENT — TARGETED DIAGNOSTICS (2026-11-10)
+
+- **Status:** Open; diagnostics prepared on `fix/cms-persistence-diagnostics`. Production remains unchanged.
+- **Submission path:** `submitAccidentReport` is invoked by the admin editor and public report form through `POST /_serverFn/0e7f7234f851860bfdbf24c060c6904cfdaf3e363c0eb24e9b592abd26d48588`, with `x-tsr-serverFn: true`, JSON content type and an authenticated Bearer header when a session exists.
+- **Diagnostics:** Each create carries a UUID correlation ID, logs only sanitized operation/content type/phase/code/status/message metadata, excludes the ID from the database payload, and surfaces code plus request ID in the safe client error.
+- **Evidence status:** No authorized production write session or captured Supabase failure response is available. The database error code, RLS/constraint cause and durable-insert outcome therefore remain unknown. Focused structural tests pass; this is not authenticated production acceptance.
+- **Retry risk:** A post-commit network failure can still appear as failure and be retried because this change adds no database idempotency key. The pending mutation blocks duplicate clicks but cannot make an ambiguous network retry safe. Keep the incident open until disposable authenticated create/save/ID/reload/edit/reload evidence exists.

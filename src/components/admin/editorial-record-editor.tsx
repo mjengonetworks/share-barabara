@@ -45,6 +45,10 @@ function safePersistenceMessage(error: unknown, context: { requestId: string; op
   const message = error instanceof Error ? error.message : String(error ?? "");
   const normalized = message.toLocaleLowerCase();
   const diagnostic = `Request ID ${context.requestId}; operation=${context.operation}; contentType=${context.contentType}.`;
+  const structured = message.match(/^CMS persistence failed \[([^\]]+)\] (.+) \[requestId=([^\]]+)\]$/);
+  if (structured) {
+    return `CMS persistence failed: ${structured[2]} Error code ${structured[1]}. Request ID ${structured[3]}; operation=${context.operation}; contentType=${context.contentType}.`;
+  }
   if (/column .*does not exist|schema cache|could not find the .*column|unknown column/.test(normalized)) {
     return `CMS persistence failed: the database schema rejected a submitted field. No changes were saved. ${diagnostic}`;
   }
@@ -203,6 +207,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       } else if (type === "report") {
         const road_id = await findExistingRoad(form.road);
         await submitAccidentReport({ data: {
+          requestId,
           title: form.title,
           ...(summarySupported ? { summary: form["summary"].trim() || null } : {}),
           description: form.body,
