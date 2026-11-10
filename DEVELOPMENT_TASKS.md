@@ -1826,3 +1826,12 @@ unfinished application changes are not merged here.
 - **Fresh read-only Cloudflare preflight:** [Run 42792625687](https://github.com/mjengonetworks/share-barabara/actions/runs/42792625687) passed against live application `ead265641955c182dcc8afa26a7e48791f9ec106` baseline, Worker `70c18110-5cd6-41cd-8f3b-88fb091392fa`, 100% traffic, active domain/bindings/cron and rollback availability. No mutating Cloudflare calls were made.
 - **Checks:** Full suite `614 passed, 1 skipped`; security `14/14`; production build, complete artifact packaging and diff checks passed. Repository-wide lint remains blocked by the pre-existing checkout-wide CRLF/Prettier baseline. Browser automation is unavailable, so screenshots, console, overflow and responsive visual acceptance remain pending.
 - **Status:** **GO for owner review / separate deployment approval; NOT DEPLOYED.** No SQL, migrations, Supabase changes, production data changes or deployment were made.
+
+## HOMEPAGE REGRESSION FIX — PRODUCTION DEPLOYED (2026-11-10)
+
+- **Deployment:** [Workflow 42793934440](https://github.com/mjengonetworks/share-barabara/actions/runs/42793934440) deployed the exact verified artifact for application `694abb45d87371c7fe7cd62e7df11974f03d8162`.
+- **Artifact:** `13751224305`, digest `sha256:b375c83ba6dd550cd5f0d4ee8256f21797716ca369f8f55f3e849aa24959c6dc`.
+- **Cloudflare:** New deployment `ec5f32b4-4540-41cd-ac69-ff15c5c8eaac`, Worker `cc9c68b5-7570-4296-ae57-85d9e9ad3973`, 100% traffic. Immediate rollback is deployment `a66eadb9-0be0-4f73-94b6-91fd37ac4bce` / Worker `70c18110-5cd6-41cd-8f3b-88fb091392fa`.
+- **Health:** `/`, `/feed`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/roads` and `/statistics` returned HTTP 200. `/staging-media-feed-preview` returned HTTP 404.
+- **Rendered checks:** The homepage contains the Most Viewed — Last 12 Hours section, `Your ad here` with `/partner-with-us`, and no legacy `Emergency Response, 24/7` or `Book Your Roadworthiness Test` text. No eligible rolling-12-hour rows are currently returned, so ranked category cards are not populated; no synthetic rankings were introduced.
+- **Pending:** Browser visual/responsive/console acceptance remains open because no browser surface is available. Phase 2 multi-road migration remains pending and unapplied. No SQL, migrations or Supabase changes were made.
