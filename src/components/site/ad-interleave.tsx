@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import { BannerAd } from "@/components/site/banner-ad";
-import { withAdPlacements } from "@/lib/ad-placement";
+import { withResponsiveAdPlacements } from "@/lib/ad-placement";
 import { renderRichText, splitRichTextBlocks } from "@/lib/richtext";
 
 export function AdInterleave<T>({
@@ -9,6 +9,7 @@ export function AdInterleave<T>({
   offset = 0,
   adClassName = "",
   contentClassName = "contents",
+  layout = "sm-2-lg-3",
   renderItem,
 }: {
   items: readonly T[];
@@ -16,13 +17,17 @@ export function AdInterleave<T>({
   offset?: number;
   adClassName?: string;
   contentClassName?: string;
+  layout?: "sm-2-lg-3" | "md-3";
   renderItem: (item: T, index: number) => ReactNode;
 }) {
   return (
     <>
-      {withAdPlacements(items, offset).map((entry) =>
+      {withResponsiveAdPlacements(items, offset, layout).map((entry) =>
         entry.kind === "ad" ? (
-          <div key={`${placement}-ad-${entry.slot}`} className={adClassName}>
+          <div
+            key={`${placement}-ad-${entry.slot}-${entry.visibility}`}
+            className={`${adClassName} ${entry.visibility === "tablet" ? "hidden sm:block lg:hidden" : entry.visibility === "mobile-desktop" ? "block sm:hidden lg:block" : "block"}`}
+          >
             <BannerAd placement={`${placement}-interval-${entry.slot}`} />
           </div>
         ) : (

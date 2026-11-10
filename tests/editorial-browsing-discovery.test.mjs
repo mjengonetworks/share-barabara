@@ -43,6 +43,6 @@ test("discovery and browsing continue to use approved ad architecture", async ()
     source("src/routes/reports.index.tsx"),
     source("src/routes/infrastructure-issues.index.tsx"),
   ]);
-  assert.match(interleave, /BannerAd/);
+  assert.match(interleave, /withResponsiveAdPlacements/);
   for (const route of [news, alerts, reports, infrastructure]) assert.match(route, /BannerAd/);
 });
