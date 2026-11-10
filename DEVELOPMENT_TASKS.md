@@ -1962,3 +1962,11 @@ unfinished application changes are not merged here.
 - **Preserved behavior:** Explicit allowlisted fields, nullable casualty/injury values, road associations, media, SEO fields, authentication, RLS, report-to-alert relationships and additive duplicate review remain intact. No schema assumptions, SQL, migrations or RLS policies changed.
 - **Verification:** Focused persistence/diagnostic suite `14/14`; full application suite `629 passed, 1 skipped`; security `14/14`; production build passed. These are source and automated gates only. A fresh real database-backed server-function create → ID → reload → edit → reload run is still pending because local Supabase services are not running and production writes are prohibited.
 - **Status:** Candidate is not deployed. The diagnostic release is live, but this persistence rebuild requires a new artifact, preflight and separate owner approval. Keep the incident open until authenticated database-backed acceptance succeeds.
+
+## PERSISTENCE REBUILD — ACCEPTANCE AND RELEASE PREPARATION (2026-11-11)
+
+- **Candidate:** `00c4319d47da74c3e1fb46dc35d531ed11b0361b` on `fix/cms-editor-workspace-corrections`. The exact server-function path is the only path changed for report create/edit; direct browser report updates were removed.
+- **Authenticated acceptance:** Not available. No local Supabase service is listening, no authorized staging Supabase URL/keys or CMS session are present, and production writes are prohibited. Existing local direct-client acceptance cannot substitute for this server-function acceptance.
+- **Available verification:** Full suite `629 passed, 1 skipped`; security `14/14`; production build passed. These do not prove server-function database persistence.
+- **Release preparation:** Verification/preflight workflow constants are pinned to this candidate and the live diagnostic baseline (`61a6a5be…` / deployment `14040e20-cc2a-4f63-8e66-307d332311ef` / Worker `8d627b83-578b-4254-b778-5dc9989bce3a`). No deployment, SQL, migration, RLS change or production write occurred.
+- **Status:** **NO-GO pending authenticated server-function acceptance**: create → durable ID → reload → edit → reload, same-request retry idempotency, unauthorized edit denial and null casualty persistence.
