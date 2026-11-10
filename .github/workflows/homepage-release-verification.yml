@@ -14,6 +14,7 @@ on:
       - fix/cms-persistence-diagnostics
       - fix/news-alerts-road-filter-runtime
       - fix/homepage-previews-most-viewed-ads
+      - fix/cms-editor-workspace-corrections
 
 permissions:
   contents: read
@@ -22,13 +23,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: cb1842ef157520f5bfb93c4e03c0b65c1088168e
+      APP_CANDIDATE_SHA: cb4bc2a671e1b3bf7dc00c1bb3a1e0c992a99154
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: cb1842ef157520f5bfb93c4e03c0b65c1088168e
+          ref: cb4bc2a671e1b3bf7dc00c1bb3a1e0c992a99154
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
