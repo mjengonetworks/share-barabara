@@ -3,9 +3,6 @@
 -- This script contains SELECTs and session/transaction controls only.
 -- It does not expose table rows, credentials or personal data.
 
-BEGIN TRANSACTION READ ONLY;
-SET LOCAL statement_timeout = '30s';
-
 -- 1. Applied migration history.
 SELECT version, name
 FROM supabase_migrations.schema_migrations
@@ -124,4 +121,3 @@ FROM reviewed_migrations
 CROSS JOIN LATERAL unnest(required_objects) AS object_name
 ORDER BY version, object_name;
 
-ROLLBACK;
