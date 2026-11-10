@@ -28,9 +28,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       WORKER_NAME: share-barabara
-      EXPECTED_WORKER_VERSION_ID: bd62b2d2-80d0-4388-a92b-50704c16b1ad
+      EXPECTED_WORKER_VERSION_ID: 0a1faeea-8ff4-4430-9327-c7de87d635d0
       EXPECTED_PRODUCTION_APPLICATION_SHA: cb1842ef157520f5bfb93c4e03c0b65c1088168e
-      EXPECTED_APPLICATION_SHA: cb4bc2a671e1b3bf7dc00c1bb3a1e0c992a99154
+      EXPECTED_APPLICATION_SHA: 61a6a5be3697912f0c648d41555d712d95e355fb
 
     steps:
       - name: Check out preflight revision
