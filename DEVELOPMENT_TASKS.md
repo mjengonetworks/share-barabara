@@ -1835,3 +1835,11 @@ unfinished application changes are not merged here.
 - **Health:** `/`, `/feed`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/roads` and `/statistics` returned HTTP 200. `/staging-media-feed-preview` returned HTTP 404.
 - **Rendered checks:** The homepage contains the Most Viewed — Last 12 Hours section, `Your ad here` with `/partner-with-us`, and no legacy `Emergency Response, 24/7` or `Book Your Roadworthiness Test` text. No eligible rolling-12-hour rows are currently returned, so ranked category cards are not populated; no synthetic rankings were introduced.
 - **Pending:** Browser visual/responsive/console acceptance remains open because no browser surface is available. Phase 2 multi-road migration remains pending and unapplied. No SQL, migrations or Supabase changes were made.
+
+## HOMEPAGE PRODUCTION INCIDENT CHECK — UNREPRODUCED (2026-11-10)
+
+- **Report:** Owner observed a browser error at `/?utm_source=chatgpt.com` after deployment `ec5f32b4-4540-41cd-ac69-ff15c5c8eaac` / Worker `cc9c68b5-7570-4296-ae57-85d9e9ad3973`.
+- **Read-only reproduction:** Clean `/` and the exact query-string URL both returned complete HTML with HTTP 200; `/feed`, `/news`, `/alerts`, `/reports`, `/campaigns`, `/infrastructure-issues`, `/roads` and `/statistics` also returned HTTP 200. The exact HTML contained the homepage sections and no error-boundary text.
+- **Rendered evidence:** The query-string response contained `Most Viewed — Last 12 Hours`, `Media & Feed`, `Your ad here`, and `/partner-with-us`; legacy generic banner text was absent. No rolling-12-hour records were returned, so no fabricated ranking cards appeared.
+- **Diagnostics limitation:** No browser surface or authorized Cloudflare log/exception connector is available in this environment, so client-side console/hydration errors and a server stack trace cannot be confirmed.
+- **Decision:** No rollback was triggered because the failure was not reproducible and public origin/edge checks are healthy. If the owner can provide a browser console trace or Cloudflare exception event, isolate it before any hotfix. No SQL, migrations, data changes or new deployment occurred.
