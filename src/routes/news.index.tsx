@@ -223,6 +223,7 @@ async function fetchPublishedArticles(limit = 50) {
 function usePublishedQuery({
   name,
   category,
+  road,
   limit = 12,
   initialData,
 }: {
