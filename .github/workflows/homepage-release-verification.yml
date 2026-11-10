@@ -11,6 +11,7 @@ on:
       - fix/homepage-density-discovery
       - feat/homepage-order-advertising-road-discovery
       - feat/full-road-management-article-cms-repairs
+      - fix/cms-persistence-diagnostics
       - fix/homepage-previews-most-viewed-ads
 
 permissions:
@@ -20,13 +21,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 4b5514c482fd09184c0e5dd7238b26be709aa093
+      APP_CANDIDATE_SHA: 75ec67e58a26a92fdc77bd09df5d7193506368c2
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: 4b5514c482fd09184c0e5dd7238b26be709aa093
+          ref: 75ec67e58a26a92fdc77bd09df5d7193506368c2
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
