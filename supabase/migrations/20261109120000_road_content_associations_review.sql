@@ -36,7 +36,71 @@ ALTER TABLE public.news_roads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.alert_roads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accident_report_roads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infrastructure_issue_roads ENABLE ROW LEVEL SECURITY;
--- Public reads must be mediated by eligible source-row queries/RPCs; editors
--- may maintain associations only through the CMS after publication rules are
--- reviewed. Policies are intentionally omitted from this proposal until the
--- production source-status/RLS contract is confirmed.
+
+GRANT SELECT ON public.news_roads, public.alert_roads, public.accident_report_roads,
+  public.infrastructure_issue_roads TO anon, authenticated;
+GRANT INSERT, DELETE ON public.news_roads, public.alert_roads, public.accident_report_roads,
+  public.infrastructure_issue_roads TO authenticated;
+
+-- Public association reads are limited to records that are already eligible on
+-- their source table. Association writes remain editor-only and cannot attach
+-- unpublished, deleted or rejected content to a public road.
+CREATE POLICY news_roads_public_read_eligible ON public.news_roads
+  FOR SELECT TO public USING (EXISTS (
+    SELECT 1 FROM public.news n
+    WHERE n.id = news_id AND n.status = 'published' AND n.deleted_at IS NULL
+  ));
+CREATE POLICY news_roads_editor_insert ON public.news_roads
+  FOR INSERT TO authenticated
+  WITH CHECK (public.has_min_role(auth.uid(), 'editor') AND EXISTS (
+    SELECT 1 FROM public.news n
+    WHERE n.id = news_id AND n.status = 'published' AND n.deleted_at IS NULL
+  ));
+CREATE POLICY news_roads_editor_delete ON public.news_roads
+  FOR DELETE TO authenticated USING (public.has_min_role(auth.uid(), 'editor'));
+
+CREATE POLICY alert_roads_public_read_eligible ON public.alert_roads
+  FOR SELECT TO public USING (EXISTS (
+    SELECT 1 FROM public.alerts a
+    WHERE a.id = alert_id AND a.deleted_at IS NULL
+      AND (a.status IS NULL OR a.status IN ('active','in_progress','under_resolution','resolved'))
+  ));
+CREATE POLICY alert_roads_editor_insert ON public.alert_roads
+  FOR INSERT TO authenticated
+  WITH CHECK (public.has_min_role(auth.uid(), 'editor') AND EXISTS (
+    SELECT 1 FROM public.alerts a
+    WHERE a.id = alert_id AND a.deleted_at IS NULL
+      AND (a.status IS NULL OR a.status IN ('active','in_progress','under_resolution','resolved'))
+  ));
+CREATE POLICY alert_roads_editor_delete ON public.alert_roads
+  FOR DELETE TO authenticated USING (public.has_min_role(auth.uid(), 'editor'));
+
+CREATE POLICY accident_report_roads_public_read_eligible ON public.accident_report_roads
+  FOR SELECT TO public USING (EXISTS (
+    SELECT 1 FROM public.accident_reports r
+    WHERE r.id = report_id AND r.status = 'approved'
+      AND r.deleted_at IS NULL AND r.duplicate_of_report_id IS NULL
+  ));
+CREATE POLICY accident_report_roads_editor_insert ON public.accident_report_roads
+  FOR INSERT TO authenticated
+  WITH CHECK (public.has_min_role(auth.uid(), 'editor') AND EXISTS (
+    SELECT 1 FROM public.accident_reports r
+    WHERE r.id = report_id AND r.status = 'approved'
+      AND r.deleted_at IS NULL AND r.duplicate_of_report_id IS NULL
+  ));
+CREATE POLICY accident_report_roads_editor_delete ON public.accident_report_roads
+  FOR DELETE TO authenticated USING (public.has_min_role(auth.uid(), 'editor'));
+
+CREATE POLICY infrastructure_issue_roads_public_read_eligible ON public.infrastructure_issue_roads
+  FOR SELECT TO public USING (EXISTS (
+    SELECT 1 FROM public.infrastructure_issues i
+    WHERE i.id = issue_id AND i.status = 'approved' AND i.deleted_at IS NULL
+  ));
+CREATE POLICY infrastructure_issue_roads_editor_insert ON public.infrastructure_issue_roads
+  FOR INSERT TO authenticated
+  WITH CHECK (public.has_min_role(auth.uid(), 'editor') AND EXISTS (
+    SELECT 1 FROM public.infrastructure_issues i
+    WHERE i.id = issue_id AND i.status = 'approved' AND i.deleted_at IS NULL
+  ));
+CREATE POLICY infrastructure_issue_roads_editor_delete ON public.infrastructure_issue_roads
+  FOR DELETE TO authenticated USING (public.has_min_role(auth.uid(), 'editor'));
