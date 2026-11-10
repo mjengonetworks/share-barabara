@@ -1794,3 +1794,12 @@ unfinished application changes are not merged here.
 - **Rollback boundary:** The previous Worker version is available and the deployment credential is reserved in GitHub Actions, but the existing deployment workflow has no separate rollback job. No rollback was triggered. A future rollback must use the supported Cloudflare version/deployment activation mechanism with the dedicated deployment credential, not the read-only preflight token.
 - **Browser:** CUA returned no browser or app surfaces. Manual acceptance remains required for CMS create/edit, Road Admin/MapLibre interaction and responsive layouts.
 - **Decision:** Phase 1 is technically release-ready and awaits explicit owner deployment approval. Phase 2 multi-road SQL remains separate and unapplied.
+
+## PHASE 1 PRODUCTION DEPLOYMENT — COMPLETED (2026-11-10)
+
+- **Deployment workflow:** [42777313788](https://github.com/mjengonetworks/share-barabara/actions/runs/42777313788) deployed the exact approved artifact after digest verification and a fresh read-only baseline check.
+- **Application/artifact:** `ead265641955c182dcc8afa26a7e48791f9ec106`; artifact `13743098303`; digest `sha256:4456d4289da0f54eaa4d9b1e6a9bb99502560b605c2c30d7868246b06baa9aa8`.
+- **Cloudflare:** New deployment `a66eadb9-0be0-4f73-94b6-91fd37ac4bce`, Worker version `70c18110-5cd6-41cd-8f3b-88fb091392fa`, 100% traffic. Immediate rollback is deployment `9ba55799-b1e9-46a0-8a84-1dff72c4048e` / Worker `e168220c-b105-4c57-be79-0eb24cd2b1e1`.
+- **Health:** Workflow checks passed for `/`, `/news`, `/alerts`, `/reports`, `/campaigns` and `/infrastructure-issues`. Direct post-deployment checks also returned HTTP 200 for `/roads` and `/statistics`; `/staging-media-feed-preview` returned HTTP 404.
+- **Configuration:** Existing production domain, bindings, cron and environment metadata were validated before deployment. No SQL, migration, Supabase or multi-road association change was executed.
+- **Pending:** Browser visual/responsive, CMS/map interaction and live Grok/Groq acceptance remain open because no browser surface or authorized live provider session is available. Phase 2 multi-road migration remains separate and unapplied.
