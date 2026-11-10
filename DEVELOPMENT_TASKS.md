@@ -1759,3 +1759,9 @@ unfinished application changes are not merged here.
 - **Production schema status:** No authorized read-only Supabase production connection, migration-history endpoint, database inspection token or approved schema export is available in this workspace. Production migration status, nullability, grants, policies and association tables therefore remain **unverified**; repository filenames are not being treated as evidence.
 - **Browser/provider status:** Local browser acceptance and live Grok/Groq verification remain pending. The local authenticated database acceptance is complete and is not being represented as UI or live-provider evidence.
 - **Release decision:** **NO-GO** until read-only production schema evidence, backup/rollback readiness and the remaining browser/provider checks are supplied. No deployment or production SQL was run.
+
+## OWNER ACTION — READ-ONLY PRODUCTION SCHEMA CHECK (2026-11-10)
+
+- Added `scripts/production-schema-readonly.sql`, a single read-only Supabase SQL Editor script. It reports migration history, required object presence, relevant column nullability/defaults, RLS state and policies, grants, constraints, indexes and a compatibility matrix for the four reviewed migrations without selecting application rows.
+- The owner must run it in the production Supabase SQL Editor using an authorized administrator account, export only the result grids, redact project identifiers if desired, and share the results without credentials or table content.
+- Required release evidence remains: current database backup identifier and timestamp, backup integrity/restore verification, approved migration order/rollback plan, and browser/provider acceptance results. No production migration or deployment is authorized by this task.
