@@ -31,6 +31,8 @@ test("editorial AI panels start collapsed and do not request on expansion", () =
 });
 
 test("report persistence callers preserve structured server failures", () => {
-  assert.match(editor, /if \(!result\.ok\)\s*\{[\s\S]{0,160}CMS persistence failed/);
-  assert.match(publicForm, /if \(!result\.ok\)\s*\{[\s\S]{0,160}CMS persistence failed/);
+  assert.match(editor, /if \(!result\.ok\)\s*\{[\s\S]{0,220}serializePersistenceDiagnostic\(result\.error/);
+  assert.match(publicForm, /if \(!result\.ok\)\s*\{[\s\S]{0,220}serializePersistenceDiagnostic\(result\.error/);
+  assert.match(editor, /renderPersistenceError\(error/);
+  assert.match(publicForm, /renderPersistenceError\(e/);
 });

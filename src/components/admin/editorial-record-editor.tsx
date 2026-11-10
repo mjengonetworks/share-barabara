@@ -28,6 +28,7 @@ import { LocationButton } from "@/components/site/location-button";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { buildArticlePersistencePayload, resolveArticleStatus } from "@/lib/article-persistence";
+import { renderPersistenceError, serializePersistenceDiagnostic } from "@/lib/persistence-diagnostics";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -40,26 +41,6 @@ const CONFIG: Record<EditorialRecordType, { table: string; label: string; back: 
 };
 
 type RecordValue = Record<string, any>;
-
-function safePersistenceMessage(error: unknown, context: { requestId: string; operation: string; contentType: EditorialRecordType }) {
-  const message = error instanceof Error ? error.message : String(error ?? "");
-  const normalized = message.toLocaleLowerCase();
-  const diagnostic = `Request ID ${context.requestId}; operation=${context.operation}; contentType=${context.contentType}.`;
-  const structured = message.match(/^CMS persistence failed \[([^\]]+)\] (.+) \[requestId=([^\]]+)\]$/);
-  if (structured) {
-    return `CMS persistence failed: ${structured[2]} Error code ${structured[1]}. Request ID ${structured[3]}; operation=${context.operation}; contentType=${context.contentType}.`;
-  }
-  if (/column .*does not exist|schema cache|could not find the .*column|unknown column/.test(normalized)) {
-    return `CMS persistence failed: the database schema rejected a submitted field. No changes were saved. ${diagnostic}`;
-  }
-  if (/duplicate|unique constraint|already exists/.test(normalized)) {
-    return `CMS persistence failed: this record conflicts with an existing value. No changes were saved. ${diagnostic}`;
-  }
-  if (/permission|not authorized|row-level security|rls/.test(normalized)) {
-    return `CMS persistence failed: your session is not authorized to save this record. No changes were saved. ${diagnostic}`;
-  }
-  return `CMS persistence failed: the record could not be saved. No changes were saved; retry without rerunning AI. ${diagnostic}`;
-}
 
 function stringValue(record: RecordValue, key: string) {
   return typeof record[key] === "string" ? record[key] : "";
@@ -234,7 +215,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           requestedStatus: status === "approved" ? "approved" : "pending",
         } });
         if (!result.ok) {
-          throw new Error(`CMS persistence failed [${result.error.code}] ${result.error.message} [requestId=${result.error.requestId}]`);
+          throw new Error(serializePersistenceDiagnostic(result.error, { requestId, operation: "create", contentType: type }));
         }
       } else {
         const insertPayload = {
@@ -258,7 +239,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created with status ${String(variables.requestedStatus ?? "draft").replace("_", " ")}.`);
       await navigate({ to: config.back });
     },
-    onError: (error: Error, variables) => toast.error(safePersistenceMessage(error, { requestId: variables.requestId, operation: isEditing ? "update" : "create", contentType: type })),
+    onError: (error: Error, variables) => toast.error(renderPersistenceError(error, { requestId: variables.requestId, operation: isEditing ? "update" : "create", contentType: type })),
   });
 
   if (isEditing && recordQuery.error) return <p className="rounded-lg border border-destructive/30 p-6 text-destructive">Unable to load this {config.label.toLowerCase()}.</p>;

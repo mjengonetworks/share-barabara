@@ -23,9 +23,10 @@ test("admin and public report callers send the correlation ID without adding it 
 });
 
 test("the client surfaces the sanitized error code and server correlation ID", () => {
-  assert.match(editor, /const structured = message\.match\(\/\^CMS persistence failed/);
-  assert.match(editor, /Error code \$\{structured\[1\]\}/);
-  assert.match(editor, /Request ID \$\{structured\[3\]\}/);
+  assert.match(editor, /renderPersistenceError\(error/);
+  assert.match(editor, /serializePersistenceDiagnostic\(result\.error/);
+  assert.match(editor, /persistence-diagnostics/);
+  assert.match(publicForm, /renderPersistenceError\(e/);
 });
 
 test("the insert is confirmed before duplicate review and duplicate review cannot turn success into failure", () => {

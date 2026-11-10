@@ -33,6 +33,7 @@ import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
 import { submitAccidentReport } from "@/lib/report.functions";
+import { renderPersistenceError, serializePersistenceDiagnostic } from "@/lib/persistence-diagnostics";
 import { useRoles } from "@/hooks/useRoles";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 
@@ -104,7 +105,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
         },
       });
       if (!result.ok) {
-        throw new Error(`CMS persistence failed [${result.error.code}] ${result.error.message} [requestId=${result.error.requestId}]`);
+        throw new Error(serializePersistenceDiagnostic(result.error, { requestId, operation: "create", contentType: "report" }));
       }
       return result;
     },
@@ -134,7 +135,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       onDone?.();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(renderPersistenceError(e, { requestId: "unknown", operation: "create", contentType: "report" })),
   });
 
   function applyEditorialDraft(draft: Record<string, unknown>) {

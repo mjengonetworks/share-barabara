@@ -70,6 +70,7 @@ test("the editor guards duplicate requests and preserves changed form values", a
   assert.match(button, /category: "provider-response"/);
   assert.match(button, /category: "schema-validation"/);
   assert.match(button, /category: "unsupported-field"/);
-  assert.match(editor, /CMS persistence failed/);
+  assert.match(editor, /serializePersistenceDiagnostic\(result\.error/);
+  assert.match(editor, /renderPersistenceError\(error/);
   assert.doesNotMatch(editor, /toast\.error\(error\.message\)/);
 });
