@@ -1818,3 +1818,11 @@ unfinished application changes are not merged here.
 - **Correction:** Shared listing ad insertion now accounts for the actual responsive grid: six cards on mobile, four cards at `sm`–`lg` two-column tablet widths, and six cards at `lg` three-column desktop widths. Homepage three-column surfaces use six-card intervals. Hidden breakpoint markers prevent duplicate visible banners.
 - **Verification:** Full suite `614 passed, 1 skipped`; security `14/14`; production build passed; responsive ad placement tests cover tablet, mobile/desktop and homepage layouts. Browser automation remains unavailable, so no visual acceptance or screenshots are claimed. Repository-wide lint remains blocked by the pre-existing checkout-wide CRLF/Prettier baseline.
 - **Status:** **Implemented — pending owner review and fresh CI/preflight.** No SQL, migrations, Supabase changes, production data changes or deployment were made.
+
+## HOMEPAGE REGRESSION RELEASE GATES — FRESH VERIFICATION (2026-11-10)
+
+- **Application candidate:** `694abb45d87371c7fe7cd62e7df11974f03d8162` on `fix/homepage-previews-most-viewed-ads`; workflow-only verification correction: `810c2fff035fccb055762224ee843cbca122c9cb`.
+- **Linux verification:** [Run 42791481763](https://github.com/mjengonetworks/share-barabara/actions/runs/42791481763) passed. Complete Worker artifact `13751224305`, digest `sha256:b375c83ba6dd550cd5f0d4ee8256f21797716ca369f8f55f3e849aa24959c6dc`.
+- **Fresh read-only Cloudflare preflight:** [Run 42792625687](https://github.com/mjengonetworks/share-barabara/actions/runs/42792625687) passed against live application `ead265641955c182dcc8afa26a7e48791f9ec106` baseline, Worker `70c18110-5cd6-41cd-8f3b-88fb091392fa`, 100% traffic, active domain/bindings/cron and rollback availability. No mutating Cloudflare calls were made.
+- **Checks:** Full suite `614 passed, 1 skipped`; security `14/14`; production build, complete artifact packaging and diff checks passed. Repository-wide lint remains blocked by the pre-existing checkout-wide CRLF/Prettier baseline. Browser automation is unavailable, so screenshots, console, overflow and responsive visual acceptance remain pending.
+- **Status:** **GO for owner review / separate deployment approval; NOT DEPLOYED.** No SQL, migrations, Supabase changes, production data changes or deployment were made.
