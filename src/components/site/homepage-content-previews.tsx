@@ -163,7 +163,7 @@ export function HomepageContentPreviews({
       const [infrastructure, campaigns, videos] = await Promise.all([
         supabase.from("infrastructure_issues").select("id,title,summary,image_url,status,created_at,updated_at").eq("status", "approved").order("created_at", { ascending: false }).limit(18),
         supabase.from("campaigns").select("id,title,description,image_url,start_date,end_date,report_published,created_at,updated_at").order("start_date", { ascending: false }).limit(18),
-        supabase.from("videos").select("id,title,description,image_url,video_url,status,created_at,updated_at").eq("status", "featured").order("created_at", { ascending: false }).limit(18),
+        supabase.from("videos").select("id,title,description,video_url,status,created_at").eq("status", "featured").order("created_at", { ascending: false }).limit(18),
       ]);
       for (const result of [infrastructure, campaigns, videos]) if (result.error) throw result.error;
       const today = new Date().toISOString().slice(0, 10);

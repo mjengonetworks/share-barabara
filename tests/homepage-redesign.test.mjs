@@ -45,6 +45,11 @@ test("homepage content previews use independent eligible source queries and hone
   assert.match(previews, /item\.imageUrl/);
   assert.match(previews, /youtubeId/);
   assert.match(previews, /px-4 py-3/);
+  assert.match(
+    previews,
+    /from\("videos"\)\.select\("id,title,description,video_url,status,created_at"\)/,
+  );
+  assert.doesNotMatch(previews, /from\("videos"\)\.select\([^)]*image_url/);
 });
 
 test("homepage Media & Feed remains separate and latest-first while Most Viewed is independently ranked", async () => {
@@ -60,6 +65,13 @@ test("homepage Media & Feed remains separate and latest-first while Most Viewed 
   assert.match(mostViewed, /\{ tab: "reports"/);
   assert.match(mostViewed, /\{ tab: "articles"/);
   assert.match(mostViewed, /showActivityExcerpt=\{false\}/);
+});
+
+test("homepage activity link components bind the excerpt visibility prop", async () => {
+  const preview = await read("src/components/site/global-editorial-preview.tsx");
+  assert.match(preview, /function ItemLink\(\{[\s\S]*?showExcerpt = true/);
+  assert.match(preview, /function CompactItemLink\(\{[\s\S]*?showExcerpt = true/);
+  assert.match(preview, /showExcerpt=\{showExcerpt\}/);
 });
 
 test("cross-platform homepage discovery uses approved canonical copy and working directory discovery", async () => {

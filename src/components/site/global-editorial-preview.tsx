@@ -174,6 +174,7 @@ function ItemLink({
   item,
   identity,
   tone = "white",
+  showExcerpt = true,
 }: {
   item: PreviewItem;
   identity?: { name?: string | null; username?: string | null; avatar?: string | null };
@@ -243,6 +244,7 @@ function CompactItemLink({
   item,
   identity,
   tone = "white",
+  showExcerpt = true,
 }: {
   item: PreviewItem;
   identity?: { name?: string | null; username?: string | null; avatar?: string | null };
