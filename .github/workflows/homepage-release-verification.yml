@@ -12,6 +12,7 @@ on:
       - feat/homepage-order-advertising-road-discovery
       - feat/full-road-management-article-cms-repairs
       - fix/cms-persistence-diagnostics
+      - fix/news-alerts-road-filter-runtime
       - fix/homepage-previews-most-viewed-ads
 
 permissions:
@@ -21,13 +22,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: b7f500604d3cc853c0f84aebd881f697635e6eae
+      APP_CANDIDATE_SHA: cb1842ef157520f5bfb93c4e03c0b65c1088168e
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: b7f500604d3cc853c0f84aebd881f697635e6eae
+          ref: cb1842ef157520f5bfb93c4e03c0b65c1088168e
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
