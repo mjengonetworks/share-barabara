@@ -31,6 +31,7 @@ test("shared editorial editors expose persisted Featured controls for Articles, 
 
 test("Report and Alert edit forms consume the existing incident relationship review panel", () => {
   assert.match(editor, /IncidentRelationshipPanel/);
-  assert.match(editor, /isEditing && \(type === "report" \|\| type === "alert"\)/);
+  assert.match(editor, /type === "report" \|\| type === "alert" \? <IncidentRelationshipPanel/);
+  assert.match(editor, /sourceId=\{isEditing \? id : undefined\}/);
 });
 

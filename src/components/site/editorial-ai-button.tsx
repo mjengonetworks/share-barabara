@@ -222,8 +222,8 @@ export function EditorialAIButton({
   }
 
   return (
-    <section
-      className="relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-accent"
+      <section
+      className="relative overflow-hidden rounded-lg border border-border bg-card p-3 shadow-sm before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-accent"
       aria-label={title}
       data-editorial-ai-ui-version={EDITORIAL_AI_UI_VERSION}
     >
@@ -244,12 +244,12 @@ export function EditorialAIButton({
           <h3 className="mt-1 text-base font-bold text-foreground">
             {title} <span className="font-normal text-muted-foreground">({providerLabel})</span>
           </h3>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
         <ChevronDown className={`mt-1 size-4 shrink-0 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
 
-      {expanded ? <div id={`editorial-panel-${contentType}-${mode}-${selectedProvider}`} className="mt-4 space-y-3">
+      {expanded ? <div id={`editorial-panel-${contentType}-${mode}-${selectedProvider}`} className="mt-3 space-y-3">
+        <p className="text-sm text-muted-foreground">{description}</p>
         <label
           className="block text-sm font-semibold text-foreground"
           htmlFor={`editorial-source-${contentType}-${mode}`}

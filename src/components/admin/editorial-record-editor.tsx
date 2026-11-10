@@ -206,7 +206,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         if (!saved?.id) throw new Error("The database did not confirm the updated record.");
       } else if (type === "report") {
         const road_id = await findExistingRoad(form.road);
-        await submitAccidentReport({ data: {
+        const result = await submitAccidentReport({ data: {
           requestId,
           title: form.title,
           ...(summarySupported ? { summary: form["summary"].trim() || null } : {}),
@@ -233,6 +233,9 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           is_anonymous: false,
           requestedStatus: status === "approved" ? "approved" : "pending",
         } });
+        if (!result.ok) {
+          throw new Error(`CMS persistence failed [${result.error.code}] ${result.error.message} [requestId=${result.error.requestId}]`);
+        }
       } else {
         const insertPayload = {
           ...payload,
@@ -326,7 +329,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         {type === "campaign" ? <><div><Label>Location</Label><Input value={form.location} onChange={(e) => set("location", e.target.value)} /></div><div><Label>Start date</Label><Input type="datetime-local" value={form.start_date?.slice(0, 16)} onChange={(e) => set("start_date", e.target.value)} /></div><div><Label>End date</Label><Input type="datetime-local" value={form.end_date?.slice(0, 16)} onChange={(e) => set("end_date", e.target.value)} /></div></> : null}
       </section>
       <section className="space-y-3 border-t border-border pt-5"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Featured image and attribution</h2><ImageUploadField value={form.image_url} onChange={(value) => set("image_url", value)} /><div className="grid gap-4 sm:grid-cols-2"><div><Label>Alt text</Label><Input value={form.image_alt} onChange={(e) => set("image_alt", e.target.value)} /></div><div><Label>Caption</Label><Input value={form.image_caption} onChange={(e) => set("image_caption", e.target.value)} /></div><div className="sm:col-span-2"><Label>Source / credit</Label><Input value={form.image_credit} onChange={(e) => set("image_credit", e.target.value)} /></div></div></section>
-      {isEditing && (type === "report" || type === "alert") ? <IncidentRelationshipPanel /> : null}
+      {type === "report" || type === "alert" ? <IncidentRelationshipPanel sourceType={type} sourceId={isEditing ? id : undefined} /> : null}
       {isEditing ? <CrossContentEditor sourceType={type} sourceId={id!} sourceRecord={recordQuery.data ?? {}} /> : null}
       <section className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div><Label>Status</Label><p className="text-sm capitalize text-muted-foreground">{String(form.status).replace("_", " ")}</p></div><div className="flex flex-wrap gap-2">{type === "article" ? <Button type="button" onClick={() => save.mutate({ requestedStatus: form.status as "draft" | "pending_review" | "published", requestId: crypto.randomUUID() })} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Update article" : "Create article"}</Button> : <><Button type="button" variant="outline" onClick={() => save.mutate({ requestedStatus: "draft", requestId: crypto.randomUUID() })} disabled={save.isPending}><Save className="mr-2 size-4" />{save.isPending ? "Saving…" : isEditing ? "Save changes" : "Save draft"}</Button>{canReview ? <Button type="button" onClick={() => save.mutate({ requestedStatus: "approved", requestId: crypto.randomUUID() })} disabled={save.isPending}>{isEditing ? "Save & publish" : "Publish report"}</Button> : null}</>}</div></section>
     </div>

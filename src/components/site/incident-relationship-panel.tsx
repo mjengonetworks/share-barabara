@@ -39,7 +39,7 @@ function pairFor(item: IncidentSuggestion) {
     : { alertId: item.target_id, reportId: item.candidate_id };
 }
 
-export function IncidentRelationshipPanel() {
+export function IncidentRelationshipPanel({ sourceType, sourceId }: { sourceType: "alert" | "report"; sourceId?: string }) {
   const queryClient = useQueryClient();
   const [alertId, setAlertId] = useState("");
   const [reportId, setReportId] = useState("");
@@ -53,6 +53,7 @@ export function IncidentRelationshipPanel() {
       if (error) throw error;
       return (data ?? []) as AlertRow[];
     },
+    enabled: Boolean(sourceId),
   });
   const reports = useQuery({
     queryKey: [...relationKey, "reports"],
@@ -66,22 +67,32 @@ export function IncidentRelationshipPanel() {
       if (error) throw error;
       return (data ?? []) as ReportRow[];
     },
+    enabled: Boolean(sourceId),
   });
   const links = useQuery({
     queryKey: [...relationKey, "links"],
     queryFn: async () => {
-      const { data, error } = await (supabase.from("incident_content_links") as any).select("id,content_id,canonical_report_id,review_note,reviewed_at").eq("content_type", "alert").eq("status", "confirmed").order("reviewed_at", { ascending: false }).limit(250);
+      let query = (supabase.from("incident_content_links") as any).select("id,content_id,canonical_report_id,review_note,reviewed_at").eq("content_type", "alert").eq("status", "confirmed");
+      if (sourceId) query = query.eq(sourceType === "alert" ? "content_id" : "canonical_report_id", sourceId);
+      const { data, error } = await query.order("reviewed_at", { ascending: false }).limit(250);
       if (error) throw error;
       return (data ?? []) as LinkRow[];
     },
+    enabled: Boolean(sourceId),
   });
   const suggestions = useQuery({
     queryKey: [...relationKey, "suggestions"],
     queryFn: async () => {
       const { data, error } = await (supabase.from("incident_duplicate_suggestions") as any).select("id,candidate_type,candidate_id,target_type,target_id,confidence,reasons").eq("status", "suggested").order("confidence", { ascending: false }).limit(100);
       if (error) throw error;
-      return ((data ?? []) as IncidentSuggestion[]).filter(isAlertReportSuggestion);
+      return ((data ?? []) as IncidentSuggestion[]).filter((item) => {
+        if (!isAlertReportSuggestion(item)) return false;
+        if (!sourceId) return false;
+        const pair = pairFor(item);
+        return sourceType === "alert" ? pair.alertId === sourceId : pair.reportId === sourceId;
+      });
     },
+    enabled: Boolean(sourceId),
   });
 
   const alertMap = useMemo(() => new Map((alerts.data ?? []).map((row) => [row.id, row])), [alerts.data]);
@@ -96,7 +107,7 @@ export function IncidentRelationshipPanel() {
       const { error } = await (supabase as any).rpc("confirm_incident_content_link", { _alert_id: selectedAlertId, _canonical_report_id: selectedReportId, _suggestion_id: suggestionId ?? null, _note: "Confirmed during editorial relationship review." });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Alert linked to the approved canonical report"); refresh(); },
+    onSuccess: () => { setAlertId(""); setReportId(""); toast.success("Alert linked to the approved canonical report"); refresh(); },
     onError: (error: Error) => toast.error(error.message),
   });
   const rejectSuggestion = useMutation({
@@ -132,20 +143,25 @@ export function IncidentRelationshipPanel() {
       <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Confirm only evidence-reviewed matches. Similar headlines, dates or locations create suggestions, never automatic links. Each Alert can have at most one confirmed canonical Accident Report.</p>
     </div>
 
-    <div className="mt-5 rounded border border-border p-3">
-      <h3 className="font-semibold">Link existing records</h3>
+    {!sourceId ? <p className="mt-5 rounded border border-dashed border-border p-3 text-sm text-muted-foreground">Save this record first. Relationship choices become available after a durable {sourceType === "report" ? "Accident Report" : "Alert"} ID exists.</p> : <div className="mt-5 rounded border border-border p-3">
+      <h3 className="font-semibold">Link an existing {sourceType === "report" ? "Alert" : "Accident Report"}</h3>
       <div className="mt-3 grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-        <select aria-label="Alert to link" value={alertId} onChange={(event) => setAlertId(event.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
-          <option value="">Choose an Alert</option>
-          {(alerts.data ?? []).filter((row) => !linkMap.has(row.id)).map((row) => <option key={row.id} value={row.id}>{row.title} · {row.county}</option>)}
-        </select>
-        <select aria-label="Approved report to link" value={reportId} onChange={(event) => setReportId(event.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
-          <option value="">Choose an approved Accident Report</option>
-          {(reports.data ?? []).map((row) => <option key={row.id} value={row.id}>{row.title} · {row.county}</option>)}
-        </select>
-        <Button type="button" disabled={!alertId || !reportId || confirmLink.isPending} onClick={() => confirmLink.mutate({ alertId, reportId })}><Link2 className="mr-1.5 size-4" />Confirm link</Button>
+        {sourceType === "report" ? <>
+          <span className="flex h-9 items-center rounded-md border border-input bg-muted/30 px-2 text-sm">Current Accident Report</span>
+          <select aria-label="Alert to link" value={alertId} onChange={(event) => setAlertId(event.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+            <option value="">Choose an Alert</option>
+            {(alerts.data ?? []).filter((row) => !linkMap.has(row.id)).map((row) => <option key={row.id} value={row.id}>{row.title} · {row.county}</option>)}
+          </select>
+        </> : <>
+          <span className="flex h-9 items-center rounded-md border border-input bg-muted/30 px-2 text-sm">Current Alert</span>
+          <select aria-label="Approved report to link" value={reportId} onChange={(event) => setReportId(event.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+            <option value="">Choose an approved Accident Report</option>
+            {(reports.data ?? []).map((row) => <option key={row.id} value={row.id}>{row.title} · {row.county}</option>)}
+          </select>
+        </>}
+        <Button type="button" disabled={sourceType === "report" ? !alertId || confirmLink.isPending : !reportId || confirmLink.isPending} onClick={() => confirmLink.mutate({ alertId: sourceType === "alert" ? sourceId ?? "" : alertId, reportId: sourceType === "report" ? sourceId ?? "" : reportId })}><Link2 className="mr-1.5 size-4" />Confirm link</Button>
       </div>
-    </div>
+    </div>}
 
     {suggestions.data?.length ? <div className="mt-5 space-y-3"><h3 className="font-semibold">Suggested relationships awaiting review</h3>{suggestions.data.map((suggestion) => { const pair = pairFor(suggestion); const alert = alertMap.get(pair.alertId); const report = reportMap.get(pair.reportId); return <article key={suggestion.id} className="rounded border border-amber-200 bg-amber-50/50 p-3"><div className="grid gap-1 text-sm sm:grid-cols-2"><a className="font-semibold underline" href={`/alerts/${pair.alertId}`}>{alert?.title ?? "Alert record"}</a><a className="font-semibold underline" href={`/reports/${pair.reportId}`}>{report?.title ?? "Accident Report record"}</a></div><p className="mt-1 text-xs text-muted-foreground">{Math.round(Number(suggestion.confidence) * 100)}% suggestion · {(suggestion.reasons ?? []).join(" · ") || "Evidence requires editorial review."}</p><div className="mt-3 flex flex-wrap gap-2"><Button size="sm" onClick={() => confirmLink.mutate({ alertId: pair.alertId, reportId: pair.reportId, suggestionId: suggestion.id })}><Link2 className="mr-1 size-3" />Confirm relationship</Button><Button size="sm" variant="ghost" onClick={() => rejectSuggestion.mutate(suggestion.id)}><XCircle className="mr-1 size-3" />Reject suggestion</Button></div></article>; })}</div> : null}
 

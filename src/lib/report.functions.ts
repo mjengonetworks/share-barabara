@@ -40,24 +40,26 @@ function diagnosticRequestId(value?: string) {
 }
 
 function persistenceDiagnostic(error: unknown, requestId: string, phase: string) {
-  const candidate = error as { code?: unknown; status?: unknown; message?: unknown } | null;
+  const candidate = error as { code?: unknown; status?: unknown; statusCode?: unknown; message?: unknown } | null;
   const code = typeof candidate?.code === "string" && candidate.code.length <= 32 ? candidate.code : "UNKNOWN";
-  const status = typeof candidate?.status === "number" ? candidate.status : undefined;
-  const rawMessage = String(candidate?.message ?? "Database rejected the report.")
-    .replace(/[\r\n]+/g, " ")
-    .replace(/bearer\s+[a-z0-9._-]+/gi, "bearer [redacted]")
-    .slice(0, 240);
+  const statusValue = candidate?.status ?? candidate?.statusCode;
+  const status = typeof statusValue === "number" ? statusValue : undefined;
   const message = /42501|PGRST301/i.test(code)
     ? "The current session is not authorized to save this report."
     : /23502|23503|22P02|PGRST204|PGRST205/i.test(code)
       ? "The database rejected one or more report fields."
       : /23505/i.test(code)
         ? "A conflicting report already exists."
-        : rawMessage;
+        : "The database rejected the report.";
   return { requestId, phase, code, status, message };
 }
 
-function throwPersistenceDiagnostic(error: unknown, requestId: string, phase: string): never {
+type PersistenceFailure = {
+  ok: false;
+  error: ReturnType<typeof persistenceDiagnostic>;
+};
+
+function recordPersistenceDiagnostic(error: unknown, requestId: string, phase: string): PersistenceFailure {
   const diagnostic = persistenceDiagnostic(error, requestId, phase);
   console.error("[CMS persistence failed]", {
     operation: "create",
@@ -68,7 +70,7 @@ function throwPersistenceDiagnostic(error: unknown, requestId: string, phase: st
     status: diagnostic.status,
     message: diagnostic.message,
   });
-  throw new Error(`CMS persistence failed [${diagnostic.code}] ${diagnostic.message} [requestId=${diagnostic.requestId}]`);
+  return { ok: false, error: diagnostic };
 }
 
 type PersistedReportFields = Omit<
@@ -207,9 +209,9 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
         } catch {
           // Duplicate review is additive and must not reject a valid submission.
         }
-        return { id: report.id, status: payload.status, requestId };
+        return { ok: true as const, id: report.id, status: payload.status, requestId };
       } catch (error) {
-        throwPersistenceDiagnostic(error, requestId, phase);
+        return recordPersistenceDiagnostic(error, requestId, phase);
       }
     },
   );

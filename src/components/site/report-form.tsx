@@ -81,7 +81,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
       });
       if (breakdownError) throw new Error(breakdownError);
       const road_id = await findExistingRoad(form.road);
-      return submitAccidentReport({
+      const result = await submitAccidentReport({
         data: {
           requestId,
           ...form,
@@ -103,6 +103,10 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
           is_anonymous: identity.type === "profile" && anonymous,
         },
       });
+      if (!result.ok) {
+        throw new Error(`CMS persistence failed [${result.error.code}] ${result.error.message} [requestId=${result.error.requestId}]`);
+      }
+      return result;
     },
     onSuccess: (result) => {
       toast.success(
