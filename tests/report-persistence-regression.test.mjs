@@ -11,7 +11,7 @@ test("accident-report creation uses an explicit persisted payload and returns th
   assert.match(reportFn, /buildAccidentReportPayload/);
   assert.doesNotMatch(reportFn, /const payload = \{\s*\.\.\.submission/);
   assert.match(reportFn, /\.select\("id,title,description/);
-  assert.match(reportFn, /return \{ id: report\.id, status: payload\.status \}/);
+  assert.match(reportFn, /return \{ id: report\.id, status: payload\.status, requestId \}/);
 });
 
 test("report updates require Supabase to return the updated row", () => {
