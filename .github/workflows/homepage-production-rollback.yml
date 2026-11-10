@@ -1,0 +1,70 @@
+name: Emergency homepage production rollback
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: share-barabara-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API: https://api.cloudflare.com/client/v4
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WORKER_NAME: share-barabara
+      CURRENT_VERSION_ID: cc9c68b5-7570-4296-ae57-85d9e9ad3973
+      ROLLBACK_VERSION_ID: 70c18110-5cd6-41cd-8f3b-88fb091392fa
+
+    steps:
+      - name: Confirm current production before rollback
+        env:
+          CLOUDFLARE_READ_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${CLOUDFLARE_READ_TOKEN:?read token required}"
+          : "${CLOUDFLARE_ACCOUNT_ID:?account id required}"
+          deployments="$(curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer ${CLOUDFLARE_READ_TOKEN}" \
+            --header 'Content-Type: application/json' \
+            "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments?per_page=100")"
+          test "$(jq -r '.success' <<<"$deployments")" = true
+          latest="$(jq -c '.result.deployments | sort_by(.created_on) | last' <<<"$deployments")"
+          live_version="$(jq -r '.versions[0].version_id' <<<"$latest")"
+          traffic="$(jq '[.versions[].percentage] | add' <<<"$latest")"
+          test "$live_version" = "$CURRENT_VERSION_ID"
+          test "$traffic" = 100
+          echo "Confirmed rollback source version=${live_version} traffic=${traffic}%"
+
+      - name: Roll back Worker to preserved version
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_API_TOKEN }}
+        run: npx wrangler rollback "$ROLLBACK_VERSION_ID" --name "$WORKER_NAME" --message "emergency homepage regression rollback" --yes
+
+      - name: Verify rollback and public health
+        env:
+          CLOUDFLARE_READ_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deployments="$(curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer ${CLOUDFLARE_READ_TOKEN}" \
+            --header 'Content-Type: application/json' \
+            "${CLOUDFLARE_API}/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${WORKER_NAME}/deployments?per_page=100")"
+          test "$(jq -r '.success' <<<"$deployments")" = true
+          latest="$(jq -c '.result.deployments | sort_by(.created_on) | last' <<<"$deployments")"
+          live_version="$(jq -r '.versions[0].version_id' <<<"$latest")"
+          traffic="$(jq '[.versions[].percentage] | add' <<<"$latest")"
+          test "$live_version" = "$ROLLBACK_VERSION_ID"
+          test "$traffic" = 100
+          for path in / /news /alerts /reports /feed; do
+            code="$(curl --retry 2 --silent --show-error --output /dev/null --write-out '%{http_code}' "https://sharebarabara.co.ke${path}")"
+            test "$code" = 200
+            echo "Health ${path}: HTTP ${code}"
+          done
+          echo "Rollback verified: version=${live_version} traffic=${traffic}%"
