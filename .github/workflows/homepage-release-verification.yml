@@ -23,13 +23,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 9665e164e92df9d3fd0092b422903d21e9821571
+      APP_CANDIDATE_SHA: f1a90d40b18523acb03afc8dcb234990e641c484
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: 9665e164e92df9d3fd0092b422903d21e9821571
+          ref: f1a90d40b18523acb03afc8dcb234990e641c484
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout
