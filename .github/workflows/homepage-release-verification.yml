@@ -2,6 +2,11 @@ name: Homepage release verification
 
 on:
   workflow_dispatch:
+    inputs:
+      application_sha:
+        description: "Exact application commit to verify"
+        required: false
+        type: string
   push:
     branches:
       - fix/homepage-grid-width
@@ -15,6 +20,7 @@ on:
       - fix/news-alerts-road-filter-runtime
       - fix/homepage-previews-most-viewed-ads
       - fix/cms-editor-workspace-corrections
+      - rebuild/accident-report-cms
 
 permissions:
   contents: read
@@ -23,13 +29,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 55eb283c8061d604f1c895ca4882bd068598517e
+      APP_CANDIDATE_SHA: ${{ inputs.application_sha || github.sha }}
 
     steps:
       - name: Check out candidate
         uses: actions/checkout@v4
         with:
-          ref: 55eb283c8061d604f1c895ca4882bd068598517e
+          ref: ${{ env.APP_CANDIDATE_SHA }}
           fetch-depth: 0
 
       - name: Confirm exact candidate checkout

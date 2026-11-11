@@ -2,6 +2,19 @@ name: Cloudflare production preflight
 
 on:
   workflow_dispatch:
+    inputs:
+      expected_application_sha:
+        description: "Exact application commit whose artifact was verified"
+        required: true
+        type: string
+      expected_production_application_sha:
+        description: "Current live application commit used for ancestry reconciliation"
+        required: true
+        type: string
+      expected_worker_version_id:
+        description: "Current live Worker version used as the protected baseline"
+        required: true
+        type: string
   push:
     branches:
       - fix/homepage-grid-width
@@ -12,6 +25,7 @@ on:
       - fix/cms-persistence-diagnostics
       - fix/news-alerts-road-filter-runtime
       - fix/cms-editor-workspace-corrections
+      - rebuild/accident-report-cms
 
 permissions:
   contents: read
@@ -28,9 +42,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       WORKER_NAME: share-barabara
-      EXPECTED_WORKER_VERSION_ID: 11a79614-aa2c-44ba-9d7c-bab06c0b0166
-      EXPECTED_PRODUCTION_APPLICATION_SHA: 9665e164e92df9d3fd0092b422903d21e9821571
-      EXPECTED_APPLICATION_SHA: 55eb283c8061d604f1c895ca4882bd068598517e
+      EXPECTED_WORKER_VERSION_ID: ${{ inputs.expected_worker_version_id || '16b5b94f-8f1b-4bce-98c4-3af03eb2bb8c' }}
+      EXPECTED_PRODUCTION_APPLICATION_SHA: ${{ inputs.expected_production_application_sha || '55eb283c8061d604f1c895ca4882bd068598517e' }}
+      EXPECTED_APPLICATION_SHA: ${{ inputs.expected_application_sha || github.sha }}
 
     steps:
       - name: Check out preflight revision
