@@ -33,13 +33,13 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && inputs.rollback_version_id == '') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[deploy-approved-homepage]'))
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 55eb283c8061d604f1c895ca4882bd068598517e
-      EXPECTED_PRODUCTION_APPLICATION_SHA: 9665e164e92df9d3fd0092b422903d21e9821571
-      EXPECTED_DEPLOYMENT_ID: eb4ad80c-1bbc-4059-8792-ccc53e6b2f4e
-      EXPECTED_WORKER_VERSION_ID: 11a79614-aa2c-44ba-9d7c-bab06c0b0166
-      EXPECTED_ARTIFACT_ID: 13851039059
-      EXPECTED_ARTIFACT_RUN_ID: 43013175491
-      EXPECTED_ARTIFACT_DIGEST: sha256:e761e70b9f8f224340eaa9a4c9524fde09860b1d5682d93c15abf5c577a15cc5
+      APP_CANDIDATE_SHA: 8fa03bdf965d21fee3d1a1f4db47f2ec5d0ca0f9
+      EXPECTED_PRODUCTION_APPLICATION_SHA: 55eb283c8061d604f1c895ca4882bd068598517e
+      EXPECTED_DEPLOYMENT_ID: 9125d5b2-f41a-4dc9-894c-47d4f5f7506b
+      EXPECTED_WORKER_VERSION_ID: 16b5b94f-8f1b-4bce-98c4-3af03eb2bb8c
+      EXPECTED_ARTIFACT_ID: 13866331497
+      EXPECTED_ARTIFACT_RUN_ID: 43042994736
+      EXPECTED_ARTIFACT_DIGEST: sha256:143e6aabf3845f008fc5f8171453c37173e6ac9b1db2c58ee5bd23111b39bbbf
       WORKER_NAME: share-barabara
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
 
@@ -47,7 +47,7 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: 55eb283c8061d604f1c895ca4882bd068598517e
+          ref: 8fa03bdf965d21fee3d1a1f4db47f2ec5d0ca0f9
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
@@ -209,7 +209,7 @@ jobs:
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       WORKER_NAME: share-barabara
-      CURRENT_VERSION_ID: 11a79614-aa2c-44ba-9d7c-bab06c0b0166
+      CURRENT_VERSION_ID: 16b5b94f-8f1b-4bce-98c4-3af03eb2bb8c
       ROLLBACK_VERSION_ID: ${{ inputs.rollback_version_id }}
     steps:
       - name: Confirm current production before rollback
