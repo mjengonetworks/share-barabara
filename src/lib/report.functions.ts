@@ -60,10 +60,15 @@ type PersistenceFailure = {
   error: ReturnType<typeof persistenceDiagnostic>;
 };
 
-function recordPersistenceDiagnostic(error: unknown, requestId: string, phase: string): PersistenceFailure {
+function recordPersistenceDiagnostic(
+  error: unknown,
+  requestId: string,
+  phase: string,
+  operation: "create" | "update",
+): PersistenceFailure {
   const diagnostic = persistenceDiagnostic(error, requestId, phase);
   console.error("[CMS persistence failed]", {
-    operation: "create",
+    operation,
     contentType: "report",
     requestId: diagnostic.requestId,
     phase: diagnostic.phase,
@@ -249,7 +254,7 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
         }
         return { ok: true as const, id: report.id, status: payload.status ?? "pending", requestId };
       } catch (error) {
-        return recordPersistenceDiagnostic(error, requestId, phase);
+        return recordPersistenceDiagnostic(error, requestId, phase, recordId ? "update" : "create");
       }
     },
   );

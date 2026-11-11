@@ -73,9 +73,8 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
   const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const submit = useMutation({
-    mutationFn: async (requestedStatus: "pending" | "approved") => {
+    mutationFn: async ({ requestedStatus, requestId }: { requestedStatus: "pending" | "approved"; requestId: string }) => {
       if (!user) throw new Error("Sign in required");
-      const requestId = crypto.randomUUID();
       const breakdownError = casualtyBreakdownError(casualtyBreakdown, {
         dead: form.fatalities,
         injured: form.casualties,
@@ -135,7 +134,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       onDone?.();
     },
-    onError: (e: Error) => toast.error(renderPersistenceError(e, { requestId: "unknown", operation: "create", contentType: "report" })),
+    onError: (e: Error, variables) => toast.error(renderPersistenceError(e, { requestId: variables?.requestId ?? "unavailable", operation: "create", contentType: "report" })),
   });
 
   function applyEditorialDraft(draft: Record<string, unknown>) {
@@ -163,7 +162,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        submit.mutate();
+        submit.mutate({ requestedStatus: "pending", requestId: crypto.randomUUID() });
       }}
     >
       <div>

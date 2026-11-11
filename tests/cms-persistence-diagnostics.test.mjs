@@ -16,7 +16,7 @@ test("Accident Report persistence keeps a sanitized correlation ID through the s
 
 test("admin and public report callers send the correlation ID without adding it to the database payload", () => {
   assert.match(editor, /submitAccidentReport\(\{ data: \{[\s\S]{0,120}requestId,/);
-  assert.match(publicForm, /const requestId = crypto\.randomUUID\(\)/);
+  assert.match(publicForm, /requestId: crypto\.randomUUID\(\)/);
   assert.match(publicForm, /data: \{[\s\S]{0,120}requestId,/);
   assert.match(report, /fields: PersistedReportFields/);
   assert.doesNotMatch(report, /requestId: requestId/);

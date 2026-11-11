@@ -7,6 +7,7 @@ const diagnostic = await readFile("src/lib/persistence-diagnostics.ts", "utf8");
 const editor = await readFile("src/components/admin/editorial-record-editor.tsx", "utf8");
 const form = await readFile("src/components/site/report-form.tsx", "utf8");
 const report = await readFile("src/lib/report.functions.ts", "utf8");
+const auth = await readFile("src/integrations/supabase/auth-middleware.ts", "utf8");
 
 test("diagnostic boundary preserves every safe field through the UI error contract", () => {
   assert.match(diagnostic, /serializePersistenceDiagnostic/);
@@ -60,4 +61,18 @@ test("successful report results still require a durable database ID", () => {
   assert.match(report, /select\("id,title,description/);
   assert.match(report, /report\.id/);
   assert.match(report, /return \{ ok: true as const, id: report\.id/);
+});
+
+test("authentication failures cross the same sanitized diagnostic boundary", () => {
+  assert.match(auth, /const requestId = crypto\.randomUUID\(\)/);
+  assert.match(auth, /phase: 'authentication'/);
+  assert.match(auth, /code: 'AUTHENTICATION_FAILED'/);
+  assert.match(auth, /persistenceDiagnosticError\(diagnostic/);
+  assert.doesNotMatch(auth, /console\.error\([^\n]*(token|authorization|SUPABASE_KEY)/i);
+});
+
+test("report diagnostics label create and update operations correctly", () => {
+  assert.match(report, /recordPersistenceDiagnostic\(error, requestId, phase, recordId \? "update" : "create"\)/);
+  assert.match(report, /operation,\n    contentType: "report"/);
+  assert.match(form, /requestId: variables\?\.requestId/);
 });

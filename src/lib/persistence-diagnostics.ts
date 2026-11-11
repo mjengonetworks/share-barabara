@@ -12,6 +12,8 @@ type PersistenceContext = {
   contentType: string;
 };
 
+export type PersistenceOperation = "create" | "update" | "unknown";
+
 const REQUEST_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SAFE_MESSAGES = new Set([
   "The current session is not authorized to save this report.",
@@ -57,6 +59,15 @@ export function serializePersistenceDiagnostic(diagnostic: PersistenceDiagnostic
     operation: context.operation,
     contentType: context.contentType,
   })}`;
+}
+
+/** Build a transport-safe Error for failures that happen before a server
+ * function reaches its content-specific handler, such as authentication. */
+export function persistenceDiagnosticError(
+  diagnostic: PersistenceDiagnostic,
+  context: PersistenceContext,
+) {
+  return new Error(serializePersistenceDiagnostic(diagnostic, context));
 }
 
 export function renderPersistenceError(error: unknown, context: PersistenceContext) {
