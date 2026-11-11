@@ -34,7 +34,7 @@ test("the committed insert returns the durable request ID before additive duplic
   const duplicateOffset = report.indexOf("await suggestIncidentDuplicates", insertOffset);
   assert.ok(insertOffset >= 0);
   assert.ok(duplicateOffset >= 0);
-  assert.match(report, /return \{ ok: true as const, id: report\.id, status: payload\.status \?\? "pending", requestId \}/);
+  assert.match(report, /return \{ ok: true as const, data: \{ id: confirmed\.id, status: confirmed\.status \}, requestId \}/);
   assert.match(report, /insert\(\{ id: requestId, \.\.\.payload \}/);
   assert.match(report, /Duplicate review is additive/);
 });

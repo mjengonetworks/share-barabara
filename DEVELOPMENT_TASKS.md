@@ -1,5 +1,32 @@
 # Development tasks
 
+## Accident Report persistence — server-function correction / deployment pending — 2026-11-11
+
+- Replaced the Accident Report mutation's dependency on the throwing shared
+  `requireSupabaseAuth` function middleware with handler-local authentication.
+  The handler now resolves the bearer session into a user-scoped Supabase
+  client, keeps role-derived publication and RLS enforcement, and returns
+  discriminated `{ ok: true, data }` or `{ ok: false, error }` results for
+  expected validation, authentication and persistence failures.
+- Create and update writes use an allowlisted payload. Create uses the request
+  UUID as the idempotency key; retries verify the same owner and persisted
+  fields before returning success. Updates no longer depend on an RLS-sensitive
+  `UPDATE ... RETURNING` read; both paths perform a server-side service-role
+  confirmation of the durable row and expected fields before success is
+  reported. Unknown casualty and injury values remain nullable.
+- Added `report-auth.server.ts` for sanitized authentication diagnostics and
+  preserved request IDs, operation labels and content type across the server
+  function boundary. Unexpected server failures are distinct from database
+  rejection; no credentials or report contents are logged.
+- Focused persistence/diagnostic coverage passes `31/31`; full application
+  tests pass `633/633` with one pre-existing skipped artifact test; security
+  tests pass `14/14`; production build passes. `git diff --check` passes.
+  No SQL, migrations, RLS changes, production writes or deployment were run.
+- Genuine authenticated create → durable ID → reload → edit → reload remains
+  pending because no authorized non-production database-backed acceptance
+  environment is available in this task. This candidate is not a claim that
+  production persistence has been accepted.
+
 ## Homepage preview width correction — DEPLOYED / LIVE VERIFIED / OWNER ACCEPTED — 2026-11-06
 
 - Dedicated candidate `3225461f29e6ebcbf42b2eb4b7d35f03dea2f3ee` removes the

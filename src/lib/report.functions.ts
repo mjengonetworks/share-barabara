@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CasualtyBreakdown } from "@/components/site/party-casualty-inputs";
 import { suggestIncidentDuplicates } from "@/lib/incident-duplicates";
+import { resolveReportAuth } from "@/integrations/supabase/report-auth.server";
 
 type ReportSubmission = {
   requestId?: string;
@@ -42,16 +42,19 @@ function diagnosticRequestId(value?: string) {
 
 function persistenceDiagnostic(error: unknown, requestId: string, phase: string) {
   const candidate = error as { code?: unknown; status?: unknown; statusCode?: unknown; message?: unknown } | null;
-  const code = typeof candidate?.code === "string" && candidate.code.length <= 32 ? candidate.code : "unavailable";
+  const hasDatabaseCode = typeof candidate?.code === "string" && candidate.code.length <= 32;
+  const code = hasDatabaseCode ? candidate.code : "UNEXPECTED_SERVER_FAILURE";
   const statusValue = candidate?.status ?? candidate?.statusCode;
-  const status = typeof statusValue === "number" ? statusValue : undefined;
-  const message = /42501|PGRST301/i.test(code)
+  const status = typeof statusValue === "number" ? statusValue : 500;
+  const message = /PERSISTENCE_UNVERIFIED/i.test(String(candidate?.code))
+    ? "The database did not confirm the saved report."
+    : /42501|PGRST301/i.test(String(code))
     ? "The current session is not authorized to save this report."
-    : /23502|23503|22P02|PGRST204|PGRST205/i.test(code)
+    : /23502|23503|22P02|PGRST204|PGRST205/i.test(String(code))
       ? "The database rejected one or more report fields."
-      : /23505/i.test(code)
+      : /23505/i.test(String(code))
         ? "A conflicting report already exists."
-        : "The database rejected the report.";
+        : hasDatabaseCode ? "The database rejected the report." : "The report save could not be completed by the server.";
   return { requestId, phase, code, status, message };
 }
 
@@ -59,6 +62,42 @@ type PersistenceFailure = {
   ok: false;
   error: ReturnType<typeof persistenceDiagnostic>;
 };
+
+function expectedFailure(
+  requestId: string,
+  phase: string,
+  code: string,
+  status: number,
+  message: string,
+): PersistenceFailure {
+  return { ok: false, error: { requestId, phase, code, status, message } };
+}
+
+function validateReportSubmission(data: ReportSubmission, requestId: string): PersistenceFailure | null {
+  if (!data || typeof data !== "object") return expectedFailure(requestId, "validation", "VALIDATION_FAILED", 400, "The report fields are invalid.");
+  if (!data.title?.trim()) return expectedFailure(requestId, "validation", "TITLE_REQUIRED", 400, "The report title is required.");
+  if (!data.description?.trim()) return expectedFailure(requestId, "validation", "DESCRIPTION_REQUIRED", 400, "The incident description is required.");
+  if (!data.county?.trim()) return expectedFailure(requestId, "validation", "COUNTY_REQUIRED", 400, "The report county is required.");
+  if (!data.severity?.trim() || !data.occurred_at) return expectedFailure(requestId, "validation", "REPORT_FIELDS_INVALID", 400, "The report fields are invalid.");
+  return null;
+}
+
+async function verifyPersistedReport(id: string, userId: string, expected?: Record<string, unknown>) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await (supabaseAdmin.from("accident_reports") as any)
+    .select("id,user_id,status,title,description,county,occurred_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.id) throw Object.assign(new Error("Persistence verification failed"), { code: "PERSISTENCE_UNVERIFIED", status: 503 });
+  if (data.user_id !== userId) throw Object.assign(new Error("Report ownership could not be verified"), { code: "42501", status: 403 });
+  for (const [key, value] of Object.entries(expected ?? {})) {
+    if (String(data[key] ?? "") !== String(value ?? "")) {
+      throw Object.assign(new Error("Persistence verification failed"), { code: "PERSISTENCE_UNVERIFIED", status: 503 });
+    }
+  }
+  return data as { id: string; status: string };
+}
 
 function recordPersistenceDiagnostic(
   error: unknown,
@@ -151,25 +190,26 @@ const roleRank: Record<string, number> = {
   admin: 5,
 };
 
-export const submitAccidentReport = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(
+export const submitAccidentReport = createServerFn({ method: "POST" }).handler(
     async ({
       data,
-      context,
     }: {
       data: ReportSubmission;
-      context: { supabase: SupabaseClient<Database>; userId: string };
     }) => {
-      const requestId = diagnosticRequestId(data.requestId);
-      const { requestedStatus } = data;
+      const requestId = diagnosticRequestId(data?.requestId);
+      const validationFailure = validateReportSubmission(data, requestId);
+      if (validationFailure) return validationFailure;
       const recordId = data.id && REPORT_REQUEST_ID.test(data.id) ? data.id : undefined;
+      const auth = await resolveReportAuth(requestId, recordId ? "update" : "create");
+      if (!auth.ok) return auth;
+      const { supabase, userId } = auth.context;
+      const { requestedStatus } = data;
       let phase = "role_lookup";
       try {
-        const { data: roles, error: rolesError } = await context.supabase
+        const { data: roles, error: rolesError } = await supabase
           .from("user_roles")
           .select("role")
-          .eq("user_id", context.userId);
+          .eq("user_id", userId);
         if (rolesError) throw rolesError;
 
         const canPublish = (roles ?? []).some(
@@ -180,12 +220,12 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
           : canPublish && requestedStatus === "approved" ? "approved" : "pending";
         phase = "schema_capability_probe";
         const [summary, incident_type] = await Promise.all([
-          supportsColumn(context.supabase, "summary"),
-          supportsColumn(context.supabase, "incident_type"),
+          supportsColumn(supabase, "summary"),
+          supportsColumn(supabase, "incident_type"),
         ]);
-        // The allowlisted builder writes user_id: context.userId and never trusts
+        // The allowlisted builder writes user_id: userId and never trusts
         // a browser-supplied owner value.
-        const payload = buildAccidentReportPayload(data, context.userId, status, {
+        const payload = buildAccidentReportPayload(data, userId, status, {
           summary,
           incident_type,
         });
@@ -196,46 +236,45 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
         if (recordId) {
           const updatePayload = { ...payload };
           delete updatePayload.user_id;
-          const { data: report, error } = await context.supabase
+          const { error } = await supabase
             .from("accident_reports")
             .update(updatePayload as never)
-            .eq("id", recordId)
-            .select("id,title,description,county,road,occurred_at,latitude,longitude,status")
-            .single();
+            .eq("id", recordId);
           if (error) throw error;
-          if (!report?.id) throw new Error("The database did not confirm the updated report.");
-          return { ok: true as const, id: report.id, status: report.status, requestId };
+          const confirmed = await verifyPersistedReport(recordId, userId, {
+            title: updatePayload.title,
+            description: updatePayload.description,
+            county: updatePayload.county,
+            occurred_at: updatePayload.occurred_at,
+          });
+          return { ok: true as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
         }
 
         // Use the request UUID as the primary key. This makes a retry of the
         // same mutation idempotent and avoids INSERT ... RETURNING being
         // rejected by a SELECT policy after the row has already committed.
-        const { error } = await context.supabase
+        const { error } = await supabase
           .from("accident_reports")
           .insert({ id: requestId, ...payload } as never);
         if (error) {
           if (typeof (error as { code?: unknown }).code === "string" && (error as { code: string }).code === "23505") {
-            const { data: existing, error: existingError } = await context.supabase
-              .from("accident_reports")
-              .select("id,user_id")
-              .eq("id", requestId)
-              .single();
-            if (!existingError && existing?.id === requestId && existing.user_id === context.userId) {
-              return { ok: true as const, id: existing.id, status: requestedStatus ?? "pending", requestId };
-            }
+            const confirmed = await verifyPersistedReport(requestId, userId, {
+              title: payload.title,
+              description: payload.description,
+              county: payload.county,
+              occurred_at: payload.occurred_at,
+            });
+            if (confirmed.id === requestId) return { ok: true as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
           }
           throw error;
         }
-        const report = {
-          id: requestId,
-          title: data.title,
-          description: data.description,
-          county: data.county,
-          road: data.road,
-          occurred_at: data.occurred_at,
-          latitude: data.latitude,
-          longitude: data.longitude,
-        };
+        const confirmed = await verifyPersistedReport(requestId, userId, {
+          title: payload.title,
+          description: payload.description,
+          county: payload.county,
+          occurred_at: payload.occurred_at,
+        });
+        const report = { id: confirmed.id, title: data.title, description: data.description, county: data.county, road: data.road, occurred_at: data.occurred_at, latitude: data.latitude, longitude: data.longitude };
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           await suggestIncidentDuplicates(supabaseAdmin, {
@@ -252,7 +291,7 @@ export const submitAccidentReport = createServerFn({ method: "POST" })
         } catch {
           // Duplicate review is additive and must not reject a valid submission.
         }
-        return { ok: true as const, id: report.id, status: payload.status ?? "pending", requestId };
+        return { ok: true as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
       } catch (error) {
         return recordPersistenceDiagnostic(error, requestId, phase, recordId ? "update" : "create");
       }

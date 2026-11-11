@@ -12,14 +12,15 @@ test("accident-report creation uses an explicit persisted payload and returns th
   assert.match(reportFn, /buildAccidentReportPayload/);
   assert.doesNotMatch(reportFn, /const payload = \{\s*\.\.\.submission/);
   assert.match(reportFn, /\.insert\(\{ id: requestId, \.\.\.payload \}/);
-  assert.match(reportFn, /return \{ ok: true as const, id: report\.id, status: payload\.status \?\? "pending", requestId \}/);
+  assert.match(reportFn, /verifyPersistedReport\(requestId, userId, \{/);
+  assert.match(reportFn, /return \{ ok: true as const, data: \{ id: confirmed\.id, status: confirmed\.status \}, requestId \}/);
   assert.match(reportFn, /same mutation idempotent/);
 });
 
-test("report updates require Supabase to return the updated row", () => {
-  assert.match(reportFn, /\.update\(updatePayload as never\)\s*\.eq\("id", recordId\)\s*\.select\("id,title/);
+test("report updates verify the committed row without relying on RLS RETURNING", () => {
+  assert.match(reportFn, /\.update\(updatePayload as never\)\s*\.eq\("id", recordId\);/);
   assert.match(reportFn, /delete updatePayload\.user_id/);
-  assert.match(reportFn, /database did not confirm the updated report/);
+  assert.match(reportFn, /verifyPersistedReport\(recordId, userId, \{/);
   assert.match(editor, /submitAccidentReport\(\{ data:/);
   assert.match(editor, /\.\.\.\(isEditing \? \{ id \} : \{\}\)/);
 });

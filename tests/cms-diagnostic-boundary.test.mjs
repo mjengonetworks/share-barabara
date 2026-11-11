@@ -7,7 +7,7 @@ const diagnostic = await readFile("src/lib/persistence-diagnostics.ts", "utf8");
 const editor = await readFile("src/components/admin/editorial-record-editor.tsx", "utf8");
 const form = await readFile("src/components/site/report-form.tsx", "utf8");
 const report = await readFile("src/lib/report.functions.ts", "utf8");
-const auth = await readFile("src/integrations/supabase/auth-middleware.ts", "utf8");
+const auth = await readFile("src/integrations/supabase/report-auth.server.ts", "utf8");
 
 test("diagnostic boundary preserves every safe field through the UI error contract", () => {
   assert.match(diagnostic, /serializePersistenceDiagnostic/);
@@ -50,6 +50,36 @@ test("missing diagnostic fields are explicit and do not gain invented values", (
   assert.doesNotMatch(rendered, /phase=transport|status=unknown|Error code UNKNOWN/);
 });
 
+test("unexpected and unverified persistence failures remain distinct from database rejection", () => {
+  const unverified = renderPersistenceError(new Error(serializePersistenceDiagnostic({
+    requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
+    phase: "insert_record",
+    code: "PERSISTENCE_UNVERIFIED",
+    status: 503,
+    message: "The database did not confirm the saved report.",
+  }, { requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36", operation: "create", contentType: "report" })), {
+    requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
+    operation: "create",
+    contentType: "report",
+  });
+  assert.match(unverified, /The database did not confirm the saved report/);
+  assert.match(unverified, /Error code PERSISTENCE_UNVERIFIED/);
+
+  const unexpected = renderPersistenceError(new Error(serializePersistenceDiagnostic({
+    requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
+    phase: "framework",
+    code: "UNEXPECTED_SERVER_FAILURE",
+    status: 500,
+    message: "The report save could not be completed by the server.",
+  }, { requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36", operation: "create", contentType: "report" })), {
+    requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
+    operation: "create",
+    contentType: "report",
+  });
+  assert.match(unexpected, /The report save could not be completed by the server/);
+  assert.match(unexpected, /Error code UNEXPECTED_SERVER_FAILURE/);
+});
+
 test("admin and public report callers use the shared diagnostic renderer", () => {
   assert.match(editor, /serializePersistenceDiagnostic\(result\.error/);
   assert.match(editor, /renderPersistenceError\(error/);
@@ -58,16 +88,17 @@ test("admin and public report callers use the shared diagnostic renderer", () =>
 });
 
 test("successful report results still require a durable database ID", () => {
-  assert.match(report, /select\("id,title,description/);
-  assert.match(report, /report\.id/);
-  assert.match(report, /return \{ ok: true as const, id: report\.id/);
+  assert.match(report, /select\("id,user_id,status,title,description,county,occurred_at"/);
+  assert.match(report, /if \(!data\?\.id\) throw Object\.assign/);
+  assert.match(report, /return \{ ok: true as const, data: \{ id: confirmed\.id, status: confirmed\.status \}/);
 });
 
 test("authentication failures cross the same sanitized diagnostic boundary", () => {
-  assert.match(auth, /const requestId = crypto\.randomUUID\(\)/);
-  assert.match(auth, /phase: 'authentication'/);
-  assert.match(auth, /code: 'AUTHENTICATION_FAILED'/);
-  assert.match(auth, /persistenceDiagnosticError\(diagnostic/);
+  assert.match(report, /resolveReportAuth\(requestId, recordId \? "update" : "create"\)/);
+  assert.match(auth, /phase: "authentication"/);
+  assert.match(auth, /code: "AUTHENTICATION_FAILED"/);
+  assert.match(auth, /return \{\s*ok: false,/);
+  assert.doesNotMatch(report, /requireSupabaseAuth/);
   assert.doesNotMatch(auth, /console\.error\([^\n]*(token|authorization|SUPABASE_KEY)/i);
 });
 
@@ -75,4 +106,12 @@ test("report diagnostics label create and update operations correctly", () => {
   assert.match(report, /recordPersistenceDiagnostic\(error, requestId, phase, recordId \? "update" : "create"\)/);
   assert.match(report, /operation,\n    contentType: "report"/);
   assert.match(form, /requestId: variables\?\.requestId/);
+});
+
+test("report mutation exposes a discriminated server-function contract", () => {
+  assert.match(report, /createServerFn\(\{ method: "POST" \}\)\.handler/);
+  assert.match(report, /if \(validationFailure\) return validationFailure/);
+  assert.match(report, /if \(!auth\.ok\) return auth/);
+  assert.match(report, /return recordPersistenceDiagnostic\(error, requestId, phase, recordId \? "update" : "create"\)/);
+  assert.match(report, /return \{ ok: true as const, data:/);
 });

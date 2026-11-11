@@ -110,7 +110,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
     },
     onSuccess: (result) => {
       toast.success(
-        result.status === "approved"
+        result.data.status === "approved"
           ? "Report published"
           : "Report submitted for review, an editor will verify it before it is published",
       );

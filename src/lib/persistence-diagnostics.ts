@@ -17,9 +17,15 @@ export type PersistenceOperation = "create" | "update" | "unknown";
 const REQUEST_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SAFE_MESSAGES = new Set([
   "The current session is not authorized to save this report.",
+  "The report fields are invalid.",
+  "The report title is required.",
+  "The incident description is required.",
+  "The report county is required.",
   "The database rejected one or more report fields.",
   "A conflicting report already exists.",
   "The database rejected the report.",
+  "The database did not confirm the saved report.",
+  "The report save could not be completed by the server.",
 ]);
 
 function safeValue(value: unknown, fallback: string, maxLength = 64) {
