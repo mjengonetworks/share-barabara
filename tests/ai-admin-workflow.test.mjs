@@ -29,8 +29,8 @@ test("admin Accident Report add and edit flows expose Generate and Auto-Populate
 });
 
 test("report publishing is role-authoritative and public submissions remain pending", () => {
-  const source = read("src/lib/report.functions.ts");
-  assert.ok(source.includes('canPublish && requestedStatus === "approved" ? "approved" : "pending"'));
+  const source = read("src/lib/accident-report-persistence.server.ts");
+  assert.ok(source.includes('data.requestedStatus === "approved" && canPublish ? "approved" : data.requestedStatus ? "pending"'));
   assert.ok(source.includes(': "pending"'));
   assert.ok(read("src/components/site/report-form.tsx").includes("Publish report"));
   assert.ok(read("src/components/site/report-form.tsx").includes("Submit report for review"));
@@ -38,7 +38,7 @@ test("report publishing is role-authoritative and public submissions remain pend
 });
 
 test("report draft publishing remains blocked without the approved schema change", () => {
-  assert.equal(read("src/lib/report.functions.ts").includes('"draft"'), false);
+  assert.equal(read("src/lib/accident-report-persistence.server.ts").includes('"draft"'), false);
   assert.equal(read("src/components/site/report-form.tsx").includes('mutate("draft")'), false);
 });
 

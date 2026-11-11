@@ -4,6 +4,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleRssFeedRequest } from "./lib/rss-feed";
 import { serverEnv } from "./lib/runtime-env.server";
+import { handleAccidentReportApi } from "./lib/accident-report-persistence.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -109,6 +110,9 @@ export default {
       // every request, not only scheduled push dispatches.
       (globalThis as typeof globalThis & { __env__?: unknown }).__env__ = env;
       const requestUrl = new URL(request.url);
+      if (requestUrl.pathname.startsWith("/api/admin/accident-reports")) {
+        return withStagingProtection(await handleAccidentReportApi(request));
+      }
       // Deny by default outside the isolated preview runtime. This remains
       // effective even if a production build accidentally contains the file route.
       if (isPreviewRoute(requestUrl.pathname) && !isIsolatedPreviewRuntime()) {

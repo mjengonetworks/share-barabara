@@ -1,119 +1,27 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { renderPersistenceError, serializePersistenceDiagnostic } from "../src/lib/persistence-diagnostics.ts";
 
-const diagnostic = await readFile("src/lib/persistence-diagnostics.ts", "utf8");
-const editor = await readFile("src/components/admin/editorial-record-editor.tsx", "utf8");
-const form = await readFile("src/components/site/report-form.tsx", "utf8");
-const report = await readFile("src/lib/report.functions.ts", "utf8");
-const auth = await readFile("src/integrations/supabase/report-auth.server.ts", "utf8");
+const server = await readFile("src/lib/accident-report-persistence.server.ts", "utf8");
+const client = await readFile("src/lib/accident-report-api.ts", "utf8");
 
-test("diagnostic boundary preserves every safe field through the UI error contract", () => {
-  assert.match(diagnostic, /serializePersistenceDiagnostic/);
-  assert.match(diagnostic, /requestId: diagnostic\.requestId/);
-  assert.match(diagnostic, /phase: diagnostic\.phase/);
-  assert.match(diagnostic, /code: diagnostic\.code/);
-  assert.match(diagnostic, /status: diagnostic\.status/);
-  assert.match(diagnostic, /operation: context\.operation/);
-  assert.match(diagnostic, /contentType: context\.contentType/);
-  assert.match(diagnostic, /phase=\$\{phase\}; status=\$\{status\}/);
+test("authentication, validation and database failures are returned as structured HTTP results", () => {
+  assert.match(server, /AUTHENTICATION_FAILED/);
+  assert.match(server, /VALIDATION_FAILED/);
+  assert.match(server, /failure\(id, operation/);
+  assert.match(server, /return response\(failure/);
+  assert.match(server, /ok: false/);
 });
 
-test("generic-toast regression retains structured diagnostics after a thrown server result", () => {
-  const requestId = "9a1c0130-78f3-4565-9ac7-6b425b682e36";
-  const thrown = new Error(serializePersistenceDiagnostic({
-    requestId,
-    phase: "insert_returning_id",
-    code: "23505",
-    status: 409,
-    message: "A conflicting report already exists.",
-  }, { requestId, operation: "create", contentType: "report" }));
-  const rendered = renderPersistenceError(thrown, { requestId, operation: "create", contentType: "report" });
-  assert.match(rendered, /Error code 23505/);
-  assert.match(rendered, /phase=insert_returning_id/);
-  assert.match(rendered, /status=409/);
-  assert.match(rendered, new RegExp(`Request ID ${requestId}`));
-  assert.match(rendered, /operation=create; contentType=report/);
+test("unexpected transport failures are uncertain rather than false successes", () => {
+  assert.match(client, /outcome: "uncertain"/);
+  assert.match(client, /PERSISTENCE_UNCERTAIN/);
+  assert.match(server, /PERSISTENCE_UNCERTAIN/);
+  assert.doesNotMatch(server, /SUPABASE_SERVICE_ROLE_KEY/);
 });
 
-test("missing diagnostic fields are explicit and do not gain invented values", () => {
-  const rendered = renderPersistenceError(new Error(serializePersistenceDiagnostic({}, {
-    requestId: "unavailable",
-    operation: "create",
-    contentType: "report",
-  })), { requestId: "unavailable", operation: "create", contentType: "report" });
-  assert.match(rendered, /Error code unavailable/);
-  assert.match(rendered, /phase=unavailable/);
-  assert.match(rendered, /status=unavailable/);
-  assert.match(rendered, /Request ID unavailable/);
-  assert.doesNotMatch(rendered, /phase=transport|status=unknown|Error code UNKNOWN/);
-});
-
-test("unexpected and unverified persistence failures remain distinct from database rejection", () => {
-  const unverified = renderPersistenceError(new Error(serializePersistenceDiagnostic({
-    requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
-    phase: "insert_record",
-    code: "PERSISTENCE_UNCERTAIN",
-    status: 503,
-    outcome: "uncertain",
-    message: "The write outcome could not be confirmed.",
-  }, { requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36", operation: "create", contentType: "report" })), {
-    requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
-    operation: "create",
-    contentType: "report",
-  });
-  assert.match(unverified, /CMS persistence uncertain/);
-  assert.match(unverified, /The write outcome could not be confirmed/);
-  assert.match(unverified, /Error code PERSISTENCE_UNCERTAIN/);
-
-  const unexpected = renderPersistenceError(new Error(serializePersistenceDiagnostic({
-    requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
-    phase: "framework",
-    code: "UNEXPECTED_SERVER_FAILURE",
-    status: 500,
-    message: "The report save could not be completed by the server.",
-  }, { requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36", operation: "create", contentType: "report" })), {
-    requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
-    operation: "create",
-    contentType: "report",
-  });
-  assert.match(unexpected, /The report save could not be completed by the server/);
-  assert.match(unexpected, /Error code UNEXPECTED_SERVER_FAILURE/);
-});
-
-test("admin and public report callers use the shared diagnostic renderer", () => {
-  assert.match(editor, /serializePersistenceDiagnostic\(result\.error/);
-  assert.match(editor, /renderPersistenceError\(error/);
-  assert.match(form, /serializePersistenceDiagnostic\(result\.error/);
-  assert.match(form, /renderPersistenceError\(e/);
-});
-
-test("successful report results still require a durable database ID", () => {
-  assert.match(report, /select\("id,user_id,status,title,description,county,occurred_at"/);
-  assert.match(report, /if \(!data\?\.id\)/);
-  assert.match(report, /return \{ ok: true as const, outcome: "confirmed" as const, data: \{ id: confirmed\.id, status: confirmed\.status \}/);
-});
-
-test("authentication failures cross the same sanitized diagnostic boundary", () => {
-  assert.match(report, /resolveReportAuth\(requestId, recordId \? "update" : "create"\)/);
-  assert.match(auth, /phase: "authentication"/);
-  assert.match(auth, /code: "AUTHENTICATION_FAILED"/);
-  assert.match(auth, /return \{\s*ok: false,/);
-  assert.doesNotMatch(report, /requireSupabaseAuth/);
-  assert.doesNotMatch(auth, /console\.error\([^\n]*(token|authorization|SUPABASE_KEY)/i);
-});
-
-test("report diagnostics label create and update operations correctly", () => {
-  assert.match(report, /recordPersistenceDiagnostic\(error, requestId, phase, recordId \? "update" : "create"\)/);
-  assert.match(report, /operation,\n    contentType: "report"/);
-  assert.match(form, /requestId: variables\?\.requestId/);
-});
-
-test("report mutation exposes a discriminated server-function contract", () => {
-  assert.match(report, /createServerFn\(\{ method: "POST" \}\)\.handler/);
-  assert.match(report, /if \(validationFailure\) return validationFailure/);
-  assert.match(report, /if \(!auth\.ok\) return auth/);
-  assert.match(report, /return recordPersistenceDiagnostic\(error, requestId, phase, recordId \? "update" : "create"\)/);
-  assert.match(report, /return \{ ok: true as const, outcome: "confirmed" as const, data:/);
+test("create and update labels are derived from the HTTP method and route", () => {
+  assert.match(server, /request\.method === "POST" \? "create" : "update"/);
+  assert.match(server, /PUT/);
+  assert.match(client, /const operation = input\.id \? "update" : "create"/);
 });

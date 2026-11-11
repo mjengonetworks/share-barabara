@@ -103,7 +103,7 @@ test("report editor owns structured accident fields and same-record update", asy
   for (const field of ["incident_type", "occurred_at", "latitude", "longitude", "vehicles_involved", "casualties", "fatalities", "parties_involved", "casualty_breakdown", "attachments"]) assert.match(editor, new RegExp(field), field);
   assert.match(editor, /type === "report"/);
   assert.match(editor, /\.update\(patch\).*eq\("id", id\)/s);
-  assert.match(editor, /submitAccidentReport/);
+  assert.match(editor, /saveAccidentReport/);
 });
 
 test("all editorial listing parents delegate edit URLs to the child editor", async () => {

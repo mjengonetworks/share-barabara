@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRoles } from "@/hooks/useRoles";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { findExistingRoad } from "@/lib/roads";
-import { submitAccidentReport } from "@/lib/report.functions";
+import { saveAccidentReport } from "@/lib/accident-report-api";
 import { IncidentRelationshipPanel } from "@/components/site/incident-relationship-panel";
 import { CrossContentEditor } from "@/components/site/cross-content-editor";
 import { LocationButton } from "@/components/site/location-button";
@@ -182,9 +182,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           : undefined;
       if (type === "report") {
         const road_id = await findExistingRoad(form.road);
-        const result = await submitAccidentReport({ data: {
-          requestId,
-          ...(isEditing ? { id } : {}),
+        const result = await saveAccidentReport({ requestId, ...(isEditing ? { id } : {}), payload: {
           title: form.title,
           ...(summarySupported ? { summary: form["summary"].trim() || null } : {}),
           description: form.body,

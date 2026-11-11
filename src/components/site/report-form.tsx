@@ -32,7 +32,7 @@ import { useIncidentTaxonomy, useReportIncidentTypeSchema } from "@/hooks/useInc
 import { findExistingRoad } from "@/lib/roads";
 import { RoadInput } from "@/components/site/road-input";
 import { LocationButton } from "@/components/site/location-button";
-import { submitAccidentReport } from "@/lib/report.functions";
+import { saveAccidentReport } from "@/lib/accident-report-api";
 import { renderPersistenceError, serializePersistenceDiagnostic } from "@/lib/persistence-diagnostics";
 import { useRoles } from "@/hooks/useRoles";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
@@ -81,9 +81,9 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
       });
       if (breakdownError) throw new Error(breakdownError);
       const road_id = await findExistingRoad(form.road);
-      const result = await submitAccidentReport({
-        data: {
-          requestId,
+      const result = await saveAccidentReport({
+        requestId,
+        payload: {
           ...form,
           requestedStatus,
           ...(reportIncidentTypeAvailable ? { incident_type: form.incident_type || null } : {}),

@@ -5,10 +5,10 @@ import test from "node:test";
 const source = async (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 
 test("report creation derives status from the authenticated role, not request data", async () => {
-  const text = await source("src/lib/report.functions.ts");
+  const text = await source("src/lib/accident-report-persistence.server.ts");
   assert.match(text, /userId/);
-  assert.match(text, /roleRank\[entry\.role\]/);
-  assert.match(text, /canPublish && requestedStatus === "approved" \? "approved" : "pending"/);
+  assert.match(text, /roleRank\[row\.role\]/);
+  assert.match(text, /data\.requestedStatus === "approved" && canPublish/);
   assert.match(text, /user_id: userId/);
   assert.doesNotMatch(text, /data\.status/);
 });

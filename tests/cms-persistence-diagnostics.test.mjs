@@ -1,40 +1,54 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { renderPersistenceError, serializePersistenceDiagnostic } from "../src/lib/persistence-diagnostics.ts";
 
-const report = await readFile("src/lib/report.functions.ts", "utf8");
+const server = await readFile("src/lib/accident-report-persistence.server.ts", "utf8");
+const client = await readFile("src/lib/accident-report-api.ts", "utf8");
 const editor = await readFile("src/components/admin/editorial-record-editor.tsx", "utf8");
-const publicForm = await readFile("src/components/site/report-form.tsx", "utf8");
+const form = await readFile("src/components/site/report-form.tsx", "utf8");
 
-test("Accident Report persistence keeps a sanitized correlation ID through the server function", () => {
-  assert.match(report, /requestId\?: string/);
-  assert.match(report, /insert_record/);
-  assert.match(report, /return \{ ok: false, outcome, error: diagnostic \}/);
-  assert.match(report, /console\.error\("\[CMS persistence\]"/);
-  assert.doesNotMatch(report, /console\.error\([^\n]*(payload|context\.supabase|access_token)/i);
+test("the replacement endpoint is the single report mutation path", () => {
+  assert.match(server, /handleAccidentReportApi/);
+  assert.match(server, /request\.method !== "POST"/);
+  assert.match(client, /\/api\/admin\/accident-reports/);
+  assert.doesNotMatch(editor, /createServerFn|submitAccidentReport/);
+  assert.doesNotMatch(form, /createServerFn|submitAccidentReport/);
 });
 
-test("admin and public report callers send the correlation ID without adding it to the database payload", () => {
-  assert.match(editor, /submitAccidentReport\(\{ data: \{[\s\S]{0,120}requestId,/);
-  assert.match(publicForm, /requestId: crypto\.randomUUID\(\)/);
-  assert.match(publicForm, /data: \{[\s\S]{0,120}requestId,/);
-  assert.match(report, /fields: PersistedReportFields/);
-  assert.doesNotMatch(report, /requestId: requestId/);
+test("the HTTP boundary preserves correlation, operation and content type", () => {
+  assert.match(client, /x-request-id/);
+  assert.match(server, /x-request-id/);
+  assert.match(server, /operation, contentType: "report"/);
+  assert.match(server, /"x-request-id": result\.requestId/);
 });
 
-test("the client surfaces the sanitized error code and server correlation ID", () => {
-  assert.match(editor, /renderPersistenceError\(error/);
-  assert.match(editor, /serializePersistenceDiagnostic\(result\.error/);
-  assert.match(editor, /persistence-diagnostics/);
-  assert.match(publicForm, /renderPersistenceError\(e/);
+test("successful writes require authenticated read-back and durable IDs", () => {
+  assert.match(server, /insert\(\{ id: reportId, \.\.\.write \}/);
+  assert.match(server, /successful PostgREST insert is the durable acknowledgement/);
+  assert.match(server, /readExisting\(supabase, reportId, userId/);
+  assert.match(server, /return response\(\{ ok: true, outcome: "confirmed"/);
+  assert.match(server, /PERSISTENCE_UNCERTAIN/);
 });
 
-test("the committed insert returns the durable request ID before additive duplicate review", () => {
-  const insertOffset = report.indexOf('"insert_record"');
-  const duplicateOffset = report.indexOf("await suggestIncidentDuplicates", insertOffset);
-  assert.ok(insertOffset >= 0);
-  assert.ok(duplicateOffset >= 0);
-  assert.match(report, /return \{ ok: true as const, outcome: "confirmed" as const, data: \{ id: confirmed\.id, status: confirmed\.status \}, requestId \}/);
-  assert.match(report, /insert\(\{ id: requestId, \.\.\.payload \}/);
-  assert.match(report, /Duplicate review is additive/);
+test("retries are idempotent and conflicting request UUIDs are not overwritten", () => {
+  assert.match(server, /idempotency_check/);
+  assert.match(server, /DUPLICATE_REQUEST_CONFLICT/);
+  assert.match(server, /readExisting\(supabase, reportId, userId/);
+});
+
+test("safe diagnostics survive the UI error renderer", () => {
+  const requestId = "9a1c0130-78f3-4565-9ac7-6b425b682e36";
+  const rendered = renderPersistenceError(new Error(serializePersistenceDiagnostic({ requestId, phase: "insert_record", code: "23505", status: 409 }, { requestId, operation: "create", contentType: "report" })), { requestId, operation: "create", contentType: "report" });
+  assert.match(rendered, /Error code 23505/);
+  assert.match(rendered, /phase=insert_record/);
+  assert.match(rendered, /status=409/);
+  assert.match(rendered, new RegExp(`Request ID ${requestId}`));
+});
+
+test("missing fields stay explicitly unavailable", () => {
+  const rendered = renderPersistenceError(new Error(serializePersistenceDiagnostic({}, { requestId: "unavailable", operation: "create", contentType: "report" })), { requestId: "unavailable", operation: "create", contentType: "report" });
+  assert.match(rendered, /Error code unavailable/);
+  assert.match(rendered, /phase=unavailable/);
+  assert.match(rendered, /status=unavailable/);
 });

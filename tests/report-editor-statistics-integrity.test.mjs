@@ -15,7 +15,7 @@ test("Report Add and Edit use one structured editor and the listing routes new t
   assert.match(edit, /EditorialRecordEditor type="report"/);
   assert.match(editor, /id\?: string/);
   assert.match(editor, /enabled: isEditing/);
-  assert.match(editor, /submitAccidentReport/);
+  assert.match(editor, /saveAccidentReport/);
 });
 
 test("Report create mode exposes exactly three primary actions and edit adds same-record update", async () => {

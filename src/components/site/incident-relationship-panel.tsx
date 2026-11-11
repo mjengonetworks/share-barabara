@@ -137,11 +137,11 @@ export function IncidentRelationshipPanel({ sourceType, sourceId }: { sourceType
     onError: (error: Error) => toast.error(error.message),
   });
 
-  return <section className="mt-8 rounded-lg border border-border bg-card p-5 card-elevated" aria-labelledby="incident-relationships-heading">
-    <div>
+  return <details className="mt-8 rounded-lg border border-border bg-card p-5 card-elevated" aria-labelledby="incident-relationships-heading">
+    <summary className="cursor-pointer list-none">
       <h2 id="incident-relationships-heading" className="flex items-center gap-2 font-bold"><Link2 className="size-5 text-accent" /> Alert-to-Report relationships</h2>
       <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Confirm only evidence-reviewed matches. Similar headlines, dates or locations create suggestions, never automatic links. Each Alert can have at most one confirmed canonical Accident Report.</p>
-    </div>
+    </summary>
 
     {!sourceId ? <p className="mt-5 rounded border border-dashed border-border p-3 text-sm text-muted-foreground">Save this record first. Relationship choices become available after a durable {sourceType === "report" ? "Accident Report" : "Alert"} ID exists.</p> : <div className="mt-5 rounded border border-border p-3">
       <h3 className="font-semibold">Link an existing {sourceType === "report" ? "Alert" : "Accident Report"}</h3>
@@ -168,5 +168,5 @@ export function IncidentRelationshipPanel({ sourceType, sourceId }: { sourceType
     {suggestions.error || links.error ? <p className="mt-4 rounded border border-dashed border-border p-3 text-sm text-muted-foreground">Relationship review is unavailable until the additive incident-content-links migration is approved and applied to this database.</p> : null}
 
     {links.data?.length ? <div className="mt-5 space-y-3"><h3 className="font-semibold">Confirmed relationships</h3>{links.data.map((link) => { const alert = alertMap.get(link.content_id); const report = reportMap.get(link.canonical_report_id); return <article key={link.id} className="rounded border border-border p-3"><div className="grid gap-1 text-sm sm:grid-cols-2"><a className="font-semibold underline" href={`/alerts/${link.content_id}`}>{alert?.title ?? "Alert record"}</a><a className="font-semibold underline" href={`/reports/${link.canonical_report_id}`}>{report?.title ?? "Accident Report record"}</a></div><p className="mt-1 text-xs text-muted-foreground">Reviewed {new Date(link.reviewed_at).toLocaleString("en-KE", { timeZone: "Africa/Nairobi" })}{link.review_note ? ` · ${link.review_note}` : ""}</p><div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto]"><select aria-label={`Replacement report for ${alert?.title ?? link.content_id}`} value={replacementReports[link.id] ?? ""} onChange={(event) => setReplacementReports((current) => ({ ...current, [link.id]: event.target.value }))} className="h-9 rounded-md border border-input bg-background px-2 text-sm"><option value="">Choose replacement report</option>{(reports.data ?? []).filter((row) => row.id !== link.canonical_report_id).map((row) => <option key={row.id} value={row.id}>{row.title} · {row.county}</option>)}</select><input aria-label={`Correction note for ${alert?.title ?? link.content_id}`} value={notes[link.id] ?? ""} onChange={(event) => setNotes((current) => ({ ...current, [link.id]: event.target.value }))} placeholder="Correction note" className="h-9 rounded-md border border-input bg-background px-2 text-sm" /><Button size="sm" variant="outline" disabled={!replacementReports[link.id] || correctLink.isPending} onClick={() => correctLink.mutate({ linkId: link.id, replacementReportId: replacementReports[link.id], note: notes[link.id] ?? "" })}>Correct</Button><Button size="sm" variant="ghost" disabled={revokeLink.isPending} onClick={() => revokeLink.mutate({ linkId: link.id, note: notes[link.id] ?? "Relationship was not supported by review evidence." })}><Unlink2 className="mr-1 size-3" />Revoke</Button></div></article>; })}</div> : null}
-  </section>;
+  </details>;
 }

@@ -27,7 +27,7 @@ test("scoring requires independent evidence and never treats unknown values as m
 });
 
 test("submission paths invoke duplicate review without making it a publication decision", () => {
-  const report = fs.readFileSync("src/lib/report.functions.ts", "utf8");
+  const report = fs.readFileSync("src/lib/accident-report-persistence.server.ts", "utf8");
   const alert = fs.readFileSync("src/lib/alert.functions.ts", "utf8");
   assert.match(report, /suggestIncidentDuplicates/);
   assert.match(alert, /suggestIncidentDuplicates/);

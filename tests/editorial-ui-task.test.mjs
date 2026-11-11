@@ -14,7 +14,7 @@ test("compact report form uses progressive disclosure without changing submissio
   assert.match(form, /<CollapsibleContent/);
   assert.match(form, /value=\{form\.casualties\}/);
   assert.match(form, /value=\{form\.fatalities\}/);
-  assert.match(form, /submitAccidentReport/);
+  assert.match(form, /saveAccidentReport/);
   assert.match(form, /casualtyBreakdownError/);
   assert.match(form, /withUnspecifiedCasualties/);
   assert.match(form, /CollapsibleContent[\s\S]*EditorialAIButton/);

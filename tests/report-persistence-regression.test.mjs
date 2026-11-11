@@ -2,24 +2,25 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-const reportFn = await readFile("src/lib/report.functions.ts", "utf8");
+const reportFn = await readFile("src/lib/accident-report-persistence.server.ts", "utf8");
 const editor = await readFile("src/components/admin/editorial-record-editor.tsx", "utf8");
 const articleQueue = await readFile("src/routes/_authenticated/admin/articles.tsx", "utf8");
 const geometryEditor = await readFile("src/components/site/road-geometry-editor.tsx", "utf8");
 const newsIndex = await readFile("src/routes/news.index.tsx", "utf8");
 
 test("accident-report creation uses an explicit persisted payload and returns the database id", () => {
-  assert.match(reportFn, /buildAccidentReportPayload/);
-  assert.doesNotMatch(reportFn, /const payload = \{\s*\.\.\.submission/);
-  assert.match(reportFn, /\.insert\(\{ id: requestId, \.\.\.payload \}/);
-  assert.match(reportFn, /verifyPersistedReport\(supabase, requestId, userId, \{/);
-  assert.match(reportFn, /return \{ ok: true as const, outcome: "confirmed" as const, data: \{ id: confirmed\.id, status: confirmed\.status \}, requestId \}/);
-  assert.match(reportFn, /same mutation idempotent/);
+  assert.match(reportFn, /function payload\(/);
+  assert.doesNotMatch(reportFn, /\.\.\.data/);
+  assert.match(reportFn, /insert\(\{ id: reportId, \.\.\.write \}/);
+  assert.match(reportFn, /successful PostgREST insert is the durable acknowledgement/);
+  assert.match(reportFn, /readExisting\(supabase, reportId, userId/);
+  assert.match(reportFn, /outcome: "confirmed"/);
+  assert.match(reportFn, /idempotency_check/);
 });
 
 test("persistence verification uses the authenticated client without a service-role dependency", () => {
-  const start = reportFn.indexOf("async function verifyPersistedReport");
-  const end = reportFn.indexOf("function recordPersistenceDiagnostic", start);
+  const start = reportFn.indexOf("async function readExisting");
+  const end = reportFn.indexOf("async function mutate", start);
   const verification = reportFn.slice(start, end);
   assert.match(verification, /supabase: SupabaseClient<Database>/);
   assert.match(verification, /supabase\.from\("accident_reports"\)/);
@@ -28,17 +29,17 @@ test("persistence verification uses the authenticated client without a service-r
 });
 
 test("create and update expose confirmed versus uncertain outcomes", () => {
-  assert.match(reportFn, /outcome: "confirmed" as const/);
-  assert.match(reportFn, /\? "uncertain"/);
-  assert.match(reportFn, /phase = "persistence_verification"/);
-  assert.match(reportFn, /same mutation idempotent/);
+  assert.match(reportFn, /outcome: "confirmed"/);
+  assert.match(reportFn, /PERSISTENCE_UNCERTAIN/);
+  assert.match(reportFn, /phase: "readback_verification"/);
+  assert.match(reportFn, /idempotency_check/);
 });
 
 test("report updates verify the committed row without relying on RLS RETURNING", () => {
-  assert.match(reportFn, /\.update\(updatePayload as never\)\s*\.eq\("id", recordId\);/);
-  assert.match(reportFn, /delete updatePayload\.user_id/);
-  assert.match(reportFn, /verifyPersistedReport\(supabase, recordId, userId, \{/);
-  assert.match(editor, /submitAccidentReport\(\{ data:/);
+  assert.match(reportFn, /\.update\(update\)\.eq\("id", reportId\)\.eq\("user_id", userId\)/);
+  assert.match(reportFn, /delete update\.user_id/);
+  assert.match(reportFn, /readExisting\(supabase, reportId, userId/);
+  assert.match(editor, /saveAccidentReport\(\{ requestId/);
   assert.match(editor, /\.\.\.\(isEditing \? \{ id \} : \{\}\)/);
 });
 
