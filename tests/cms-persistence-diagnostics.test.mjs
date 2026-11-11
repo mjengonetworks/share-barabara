@@ -9,8 +9,8 @@ const publicForm = await readFile("src/components/site/report-form.tsx", "utf8")
 test("Accident Report persistence keeps a sanitized correlation ID through the server function", () => {
   assert.match(report, /requestId\?: string/);
   assert.match(report, /insert_record/);
-  assert.match(report, /return \{ ok: false, error: diagnostic \}/);
-  assert.match(report, /console\.error\("\[CMS persistence failed\]"/);
+  assert.match(report, /return \{ ok: false, outcome, error: diagnostic \}/);
+  assert.match(report, /console\.error\("\[CMS persistence\]"/);
   assert.doesNotMatch(report, /console\.error\([^\n]*(payload|context\.supabase|access_token)/i);
 });
 
@@ -34,7 +34,7 @@ test("the committed insert returns the durable request ID before additive duplic
   const duplicateOffset = report.indexOf("await suggestIncidentDuplicates", insertOffset);
   assert.ok(insertOffset >= 0);
   assert.ok(duplicateOffset >= 0);
-  assert.match(report, /return \{ ok: true as const, data: \{ id: confirmed\.id, status: confirmed\.status \}, requestId \}/);
+  assert.match(report, /return \{ ok: true as const, outcome: "confirmed" as const, data: \{ id: confirmed\.id, status: confirmed\.status \}, requestId \}/);
   assert.match(report, /insert\(\{ id: requestId, \.\.\.payload \}/);
   assert.match(report, /Duplicate review is additive/);
 });

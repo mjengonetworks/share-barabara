@@ -19,6 +19,7 @@ export type ReportAuthResult =
         code: string;
         status: number;
         message: string;
+        outcome: "failure";
       };
     };
 
@@ -84,6 +85,7 @@ export async function resolveReportAuth(
         code: "AUTHENTICATION_FAILED",
         status: 401,
         message: "The current session is not authorized to save this report.",
+        outcome: "failure",
       },
     };
   }

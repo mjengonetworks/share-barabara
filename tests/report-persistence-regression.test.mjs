@@ -12,15 +12,32 @@ test("accident-report creation uses an explicit persisted payload and returns th
   assert.match(reportFn, /buildAccidentReportPayload/);
   assert.doesNotMatch(reportFn, /const payload = \{\s*\.\.\.submission/);
   assert.match(reportFn, /\.insert\(\{ id: requestId, \.\.\.payload \}/);
-  assert.match(reportFn, /verifyPersistedReport\(requestId, userId, \{/);
-  assert.match(reportFn, /return \{ ok: true as const, data: \{ id: confirmed\.id, status: confirmed\.status \}, requestId \}/);
+  assert.match(reportFn, /verifyPersistedReport\(supabase, requestId, userId, \{/);
+  assert.match(reportFn, /return \{ ok: true as const, outcome: "confirmed" as const, data: \{ id: confirmed\.id, status: confirmed\.status \}, requestId \}/);
+  assert.match(reportFn, /same mutation idempotent/);
+});
+
+test("persistence verification uses the authenticated client without a service-role dependency", () => {
+  const start = reportFn.indexOf("async function verifyPersistedReport");
+  const end = reportFn.indexOf("function recordPersistenceDiagnostic", start);
+  const verification = reportFn.slice(start, end);
+  assert.match(verification, /supabase: SupabaseClient<Database>/);
+  assert.match(verification, /supabase\.from\("accident_reports"\)/);
+  assert.doesNotMatch(verification, /supabaseAdmin|SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(verification, /PERSISTENCE_UNCERTAIN/);
+});
+
+test("create and update expose confirmed versus uncertain outcomes", () => {
+  assert.match(reportFn, /outcome: "confirmed" as const/);
+  assert.match(reportFn, /\? "uncertain"/);
+  assert.match(reportFn, /phase = "persistence_verification"/);
   assert.match(reportFn, /same mutation idempotent/);
 });
 
 test("report updates verify the committed row without relying on RLS RETURNING", () => {
   assert.match(reportFn, /\.update\(updatePayload as never\)\s*\.eq\("id", recordId\);/);
   assert.match(reportFn, /delete updatePayload\.user_id/);
-  assert.match(reportFn, /verifyPersistedReport\(recordId, userId, \{/);
+  assert.match(reportFn, /verifyPersistedReport\(supabase, recordId, userId, \{/);
   assert.match(editor, /submitAccidentReport\(\{ data:/);
   assert.match(editor, /\.\.\.\(isEditing \? \{ id \} : \{\}\)/);
 });

@@ -54,16 +54,18 @@ test("unexpected and unverified persistence failures remain distinct from databa
   const unverified = renderPersistenceError(new Error(serializePersistenceDiagnostic({
     requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
     phase: "insert_record",
-    code: "PERSISTENCE_UNVERIFIED",
+    code: "PERSISTENCE_UNCERTAIN",
     status: 503,
-    message: "The database did not confirm the saved report.",
+    outcome: "uncertain",
+    message: "The write outcome could not be confirmed.",
   }, { requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36", operation: "create", contentType: "report" })), {
     requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
     operation: "create",
     contentType: "report",
   });
-  assert.match(unverified, /The database did not confirm the saved report/);
-  assert.match(unverified, /Error code PERSISTENCE_UNVERIFIED/);
+  assert.match(unverified, /CMS persistence uncertain/);
+  assert.match(unverified, /The write outcome could not be confirmed/);
+  assert.match(unverified, /Error code PERSISTENCE_UNCERTAIN/);
 
   const unexpected = renderPersistenceError(new Error(serializePersistenceDiagnostic({
     requestId: "9a1c0130-78f3-4565-9ac7-6b425b682e36",
@@ -89,8 +91,8 @@ test("admin and public report callers use the shared diagnostic renderer", () =>
 
 test("successful report results still require a durable database ID", () => {
   assert.match(report, /select\("id,user_id,status,title,description,county,occurred_at"/);
-  assert.match(report, /if \(!data\?\.id\) throw Object\.assign/);
-  assert.match(report, /return \{ ok: true as const, data: \{ id: confirmed\.id, status: confirmed\.status \}/);
+  assert.match(report, /if \(!data\?\.id\)/);
+  assert.match(report, /return \{ ok: true as const, outcome: "confirmed" as const, data: \{ id: confirmed\.id, status: confirmed\.status \}/);
 });
 
 test("authentication failures cross the same sanitized diagnostic boundary", () => {
@@ -113,5 +115,5 @@ test("report mutation exposes a discriminated server-function contract", () => {
   assert.match(report, /if \(validationFailure\) return validationFailure/);
   assert.match(report, /if \(!auth\.ok\) return auth/);
   assert.match(report, /return recordPersistenceDiagnostic\(error, requestId, phase, recordId \? "update" : "create"\)/);
-  assert.match(report, /return \{ ok: true as const, data:/);
+  assert.match(report, /return \{ ok: true as const, outcome: "confirmed" as const, data:/);
 });

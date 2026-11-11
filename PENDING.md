@@ -6,14 +6,16 @@
   handler with the user-scoped Supabase client, while role authorization and
   RLS remain enforced. Expected failures now cross the server-function boundary
   as discriminated structured results; create/update success requires a
-  durable server-side row confirmation. Request UUIDs remain idempotency keys,
-  retries verify owner and payload fields, and nullable casualties/injuries
-  are preserved. Focused persistence/diagnostic checks pass `31/31`, full
-  tests pass `633/633` with one pre-existing skipped artifact test, security
-  `14/14`, and the production build passes. No SQL, migration, RLS change,
-  production write or deployment was performed. Authenticated database-backed
-  create → ID → reload → edit → reload acceptance remains OPEN and must not be
-  marked resolved from automated tests alone.
+  durable row confirmation. Request UUIDs remain idempotency keys, retries
+  verify owner and payload fields, and nullable casualties/injuries are
+  preserved. Verification uses the authenticated Supabase client only; a
+  denied or unavailable read-back returns an explicit uncertain outcome rather
+  than a false failure or success. Focused persistence/diagnostic checks pass
+  `20/20`, full tests pass `635/635` with one pre-existing skipped artifact
+  test, security `14/14`, and the production build passes. No SQL, migration,
+  RLS change, production write or deployment was performed. Authenticated
+  database-backed create → ID → reload → edit → reload acceptance remains OPEN
+  and must not be marked resolved from automated tests alone.
 
 - **HOMEPAGE PREVIEW WIDTH CORRECTION — DEPLOYED / LIVE VERIFIED / OWNER
   ACCEPTED (2026-11-06).** Candidate

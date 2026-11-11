@@ -46,8 +46,8 @@ function persistenceDiagnostic(error: unknown, requestId: string, phase: string)
   const code = hasDatabaseCode ? candidate.code : "UNEXPECTED_SERVER_FAILURE";
   const statusValue = candidate?.status ?? candidate?.statusCode;
   const status = typeof statusValue === "number" ? statusValue : 500;
-  const message = /PERSISTENCE_UNVERIFIED/i.test(String(candidate?.code))
-    ? "The database did not confirm the saved report."
+  const message = /PERSISTENCE_UNCERTAIN|PERSISTENCE_UNVERIFIED/i.test(String(candidate?.code))
+    ? "The write outcome could not be confirmed."
     : /42501|PGRST301/i.test(String(code))
     ? "The current session is not authorized to save this report."
     : /23502|23503|22P02|PGRST204|PGRST205/i.test(String(code))
@@ -55,11 +55,13 @@ function persistenceDiagnostic(error: unknown, requestId: string, phase: string)
       : /23505/i.test(String(code))
         ? "A conflicting report already exists."
         : hasDatabaseCode ? "The database rejected the report." : "The report save could not be completed by the server.";
-  return { requestId, phase, code, status, message };
+  const outcome = /PERSISTENCE_UNCERTAIN|PERSISTENCE_UNVERIFIED/i.test(String(code)) ? "uncertain" : "failure";
+  return { requestId, phase, code, status, outcome, message };
 }
 
 type PersistenceFailure = {
   ok: false;
+  outcome: "failure" | "uncertain";
   error: ReturnType<typeof persistenceDiagnostic>;
 };
 
@@ -70,7 +72,7 @@ function expectedFailure(
   status: number,
   message: string,
 ): PersistenceFailure {
-  return { ok: false, error: { requestId, phase, code, status, message } };
+  return { ok: false, outcome: "failure", error: { requestId, phase, code, status, outcome: "failure" as const, message } };
 }
 
 function validateReportSubmission(data: ReportSubmission, requestId: string): PersistenceFailure | null {
@@ -82,18 +84,36 @@ function validateReportSubmission(data: ReportSubmission, requestId: string): Pe
   return null;
 }
 
-async function verifyPersistedReport(id: string, userId: string, expected?: Record<string, unknown>) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await (supabaseAdmin.from("accident_reports") as any)
+async function verifyPersistedReport(
+  supabase: SupabaseClient<Database>,
+  id: string,
+  userId: string,
+  expected?: Record<string, unknown>,
+) {
+  const { data, error } = await (supabase.from("accident_reports") as any)
     .select("id,user_id,status,title,description,county,occurred_at")
     .eq("id", id)
     .maybeSingle();
-  if (error) throw error;
-  if (!data?.id) throw Object.assign(new Error("Persistence verification failed"), { code: "PERSISTENCE_UNVERIFIED", status: 503 });
+  if (error) {
+    throw Object.assign(new Error("The write was accepted but the saved report could not be read back."), {
+      code: "PERSISTENCE_UNCERTAIN",
+      status: 503,
+      causeCode: typeof error.code === "string" ? error.code : undefined,
+    });
+  }
+  if (!data?.id) {
+    throw Object.assign(new Error("The write was accepted but the saved report could not be confirmed."), {
+      code: "PERSISTENCE_UNCERTAIN",
+      status: 503,
+    });
+  }
   if (data.user_id !== userId) throw Object.assign(new Error("Report ownership could not be verified"), { code: "42501", status: 403 });
   for (const [key, value] of Object.entries(expected ?? {})) {
     if (String(data[key] ?? "") !== String(value ?? "")) {
-      throw Object.assign(new Error("Persistence verification failed"), { code: "PERSISTENCE_UNVERIFIED", status: 503 });
+      throw Object.assign(new Error("The write was accepted but the saved report did not match the submitted values."), {
+        code: "PERSISTENCE_UNCERTAIN",
+        status: 503,
+      });
     }
   }
   return data as { id: string; status: string };
@@ -106,16 +126,18 @@ function recordPersistenceDiagnostic(
   operation: "create" | "update",
 ): PersistenceFailure {
   const diagnostic = persistenceDiagnostic(error, requestId, phase);
-  console.error("[CMS persistence failed]", {
+  const outcome = diagnostic.outcome === "uncertain" ? "uncertain" : "failure";
+  console.error("[CMS persistence]", {
     operation,
     contentType: "report",
+    outcome,
     requestId: diagnostic.requestId,
     phase: diagnostic.phase,
     code: diagnostic.code,
     status: diagnostic.status,
     message: diagnostic.message,
   });
-  return { ok: false, error: diagnostic };
+  return { ok: false, outcome, error: diagnostic };
 }
 
 type PersistedReportFields = Omit<
@@ -233,7 +255,7 @@ export const submitAccidentReport = createServerFn({ method: "POST" }).handler(
         phase = recordId ? "update_existing_record" : "insert_record";
         // The generated types still reflect the pre-nullability schema. Keep the
         // compatibility cast at this boundary until Supabase types are regenerated.
-        if (recordId) {
+      if (recordId) {
           const updatePayload = { ...payload };
           delete updatePayload.user_id;
           const { error } = await supabase
@@ -241,13 +263,14 @@ export const submitAccidentReport = createServerFn({ method: "POST" }).handler(
             .update(updatePayload as never)
             .eq("id", recordId);
           if (error) throw error;
-          const confirmed = await verifyPersistedReport(recordId, userId, {
+          phase = "persistence_verification";
+          const confirmed = await verifyPersistedReport(supabase, recordId, userId, {
             title: updatePayload.title,
             description: updatePayload.description,
             county: updatePayload.county,
             occurred_at: updatePayload.occurred_at,
           });
-          return { ok: true as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
+          return { ok: true as const, outcome: "confirmed" as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
         }
 
         // Use the request UUID as the primary key. This makes a retry of the
@@ -258,17 +281,19 @@ export const submitAccidentReport = createServerFn({ method: "POST" }).handler(
           .insert({ id: requestId, ...payload } as never);
         if (error) {
           if (typeof (error as { code?: unknown }).code === "string" && (error as { code: string }).code === "23505") {
-            const confirmed = await verifyPersistedReport(requestId, userId, {
+            phase = "persistence_verification";
+            const confirmed = await verifyPersistedReport(supabase, requestId, userId, {
               title: payload.title,
               description: payload.description,
               county: payload.county,
               occurred_at: payload.occurred_at,
             });
-            if (confirmed.id === requestId) return { ok: true as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
+            if (confirmed.id === requestId) return { ok: true as const, outcome: "confirmed" as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
           }
           throw error;
         }
-        const confirmed = await verifyPersistedReport(requestId, userId, {
+        phase = "persistence_verification";
+        const confirmed = await verifyPersistedReport(supabase, requestId, userId, {
           title: payload.title,
           description: payload.description,
           county: payload.county,
@@ -291,7 +316,7 @@ export const submitAccidentReport = createServerFn({ method: "POST" }).handler(
         } catch {
           // Duplicate review is additive and must not reject a valid submission.
         }
-        return { ok: true as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
+        return { ok: true as const, outcome: "confirmed" as const, data: { id: confirmed.id, status: confirmed.status }, requestId };
       } catch (error) {
         return recordPersistenceDiagnostic(error, requestId, phase, recordId ? "update" : "create");
       }

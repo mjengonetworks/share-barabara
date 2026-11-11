@@ -11,15 +11,17 @@
 - Create and update writes use an allowlisted payload. Create uses the request
   UUID as the idempotency key; retries verify the same owner and persisted
   fields before returning success. Updates no longer depend on an RLS-sensitive
-  `UPDATE ... RETURNING` read; both paths perform a server-side service-role
-  confirmation of the durable row and expected fields before success is
-  reported. Unknown casualty and injury values remain nullable.
+  `UPDATE ... RETURNING` read; both paths use the authenticated Supabase client
+  for authorized read-back. A denied or unavailable read-back is returned as
+  an explicit uncertain outcome, never as a database rejection or false
+  success. Unknown casualty and injury values remain nullable; no service-role
+  binding is required by the persistence path.
 - Added `report-auth.server.ts` for sanitized authentication diagnostics and
   preserved request IDs, operation labels and content type across the server
   function boundary. Unexpected server failures are distinct from database
   rejection; no credentials or report contents are logged.
-- Focused persistence/diagnostic coverage passes `31/31`; full application
-  tests pass `633/633` with one pre-existing skipped artifact test; security
+- Focused persistence/diagnostic coverage passes `20/20`; full application
+  tests pass `635/635` with one pre-existing skipped artifact test; security
   tests pass `14/14`; production build passes. `git diff --check` passes.
   No SQL, migrations, RLS changes, production writes or deployment were run.
 - Genuine authenticated create → durable ID → reload → edit → reload remains

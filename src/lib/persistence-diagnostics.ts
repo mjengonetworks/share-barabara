@@ -4,6 +4,7 @@ export type PersistenceDiagnostic = {
   code?: unknown;
   status?: unknown;
   message?: unknown;
+  outcome?: unknown;
 };
 
 type PersistenceContext = {
@@ -24,7 +25,7 @@ const SAFE_MESSAGES = new Set([
   "The database rejected one or more report fields.",
   "A conflicting report already exists.",
   "The database rejected the report.",
-  "The database did not confirm the saved report.",
+  "The write outcome could not be confirmed.",
   "The report save could not be completed by the server.",
 ]);
 
@@ -61,6 +62,7 @@ export function serializePersistenceDiagnostic(diagnostic: PersistenceDiagnostic
     phase: diagnostic.phase ?? "unavailable",
     code: diagnostic.code ?? "unavailable",
     status: diagnostic.status ?? "unavailable",
+    outcome: diagnostic.outcome ?? "failure",
     message: diagnostic.message,
     operation: context.operation,
     contentType: context.contentType,
@@ -84,8 +86,10 @@ export function renderPersistenceError(error: unknown, context: PersistenceConte
   const message = typeof diagnostic?.message === "string" && SAFE_MESSAGES.has(diagnostic.message)
     ? diagnostic.message
     : "The database rejected the report.";
+  const outcome = diagnostic?.outcome === "uncertain" ? "uncertain" : "failure";
   const code = safeValue(diagnostic?.code, "unavailable", 32);
   const phase = safeValue(diagnostic?.phase, "unavailable", 48);
   const status = safeStatus(diagnostic?.status);
-  return `CMS persistence failed: ${message} Error code ${code}; phase=${phase}; status=${status}; Request ID ${requestId}; operation=${context.operation}; contentType=${context.contentType}.`;
+  const prefix = outcome === "uncertain" ? "CMS persistence uncertain" : "CMS persistence failed";
+  return `${prefix}: ${message} Error code ${code}; phase=${phase}; status=${status}; Request ID ${requestId}; operation=${context.operation}; contentType=${context.contentType}.`;
 }
