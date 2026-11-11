@@ -1,5 +1,18 @@
 # Pending
 
+- **ACCIDENT REPORT PERSISTENCE CORRECTION — DEPLOYED / AUTHENTICATED
+  ACCEPTANCE OPEN (2026-11-11).** Application
+  `55eb283c8061d604f1c895ca4882bd068598517e` deployed in workflow
+  `43024680221` from artifact `13851039059`, digest
+  `sha256:e761e70b9f8f224340eaa9a4c9524fde09860b1d5682d93c15abf5c577a15cc5`.
+  New deployment `9125d5b2-f41a-4dc9-894c-47d4f5f7506b`, Worker
+  `16b5b94f-8f1b-4bce-98c4-3af03eb2bb8c`, traffic 100%; rollback preserved to
+  `eb4ad80c-1bbc-4059-8792-ccc53e6b2f4e` / `11a79614-aa2c-44ba-9d7c-bab06c0b0166`.
+  Public route and asset checks passed and the staging preview route returned
+  404. No production CMS submission or database modification occurred. Browser
+  visual acceptance was unavailable, and authenticated create → ID → reload →
+  edit → reload remains unresolved.
+
 - **ACCIDENT REPORT PERSISTENCE — SERVER-FUNCTION CORRECTION READY / DEPLOYMENT
   PENDING (2026-11-11).** The report mutation no longer depends on throwing
   shared authentication middleware. Authentication is resolved inside the

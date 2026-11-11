@@ -1,5 +1,22 @@
 # Development tasks
 
+## Accident Report persistence correction — DEPLOYED / AUTHENTICATED ACCEPTANCE OPEN — 2026-11-11
+
+- Application `55eb283c8061d604f1c895ca4882bd068598517e` was deployed through
+  workflow `43024680221` using artifact `13851039059` with digest
+  `sha256:e761e70b9f8f224340eaa9a4c9524fde09860b1d5682d93c15abf5c577a15cc5`.
+- Production preflight reconciled deployment
+  `eb4ad80c-1bbc-4059-8792-ccc53e6b2f4e` / Worker
+  `11a79614-aa2c-44ba-9d7c-bab06c0b0166`; immediate rollback was preserved.
+  New deployment is `9125d5b2-f41a-4dc9-894c-47d4f5f7506b` / Worker
+  `16b5b94f-8f1b-4bce-98c4-3af03eb2bb8c` at 100% traffic.
+- Public route and asset checks passed; `/staging-media-feed-preview` returned
+  404. No SQL, migration, RLS change, production CMS submission or database
+  modification occurred.
+- Browser automation had no available browser surface, so visual acceptance is
+  pending. Authenticated Accident Report create → durable ID → reload → edit →
+  reload remains OPEN and persistence is not marked resolved.
+
 ## Accident Report persistence — server-function correction / deployment pending — 2026-11-11
 
 - Replaced the Accident Report mutation's dependency on the throwing shared
