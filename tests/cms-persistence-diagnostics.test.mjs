@@ -52,3 +52,13 @@ test("missing fields stay explicitly unavailable", () => {
   assert.match(rendered, /phase=unavailable/);
   assert.match(rendered, /status=unavailable/);
 });
+
+test("local empty-form validation is not labelled as a database rejection", () => {
+  const rendered = renderPersistenceError(new Error("Report title is required"), { requestId: "dd431909-3889-48cd-9bae-24b45bab3c66", operation: "create", contentType: "report" });
+  assert.match(rendered, /^CMS validation failed:/);
+  assert.match(rendered, /The report title is required/);
+  assert.match(rendered, /Error code TITLE_REQUIRED/);
+  assert.match(rendered, /phase=validation/);
+  assert.match(rendered, /status=400/);
+  assert.doesNotMatch(rendered, /database rejected/);
+});

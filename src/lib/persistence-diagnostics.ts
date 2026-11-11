@@ -27,7 +27,16 @@ const SAFE_MESSAGES = new Set([
   "The database rejected the report.",
   "The write outcome could not be confirmed.",
   "The report save could not be completed by the server.",
+  "The report save failed before a database result was available.",
 ]);
+
+const LOCAL_VALIDATION_ERRORS: Record<string, PersistenceDiagnostic> = {
+  "Sign in required": { phase: "authentication", code: "AUTHENTICATION_FAILED", status: 401, message: "The current session is not authorized to save this report.", outcome: "failure" },
+  "Report title is required": { phase: "validation", code: "TITLE_REQUIRED", status: 400, message: "The report title is required.", outcome: "failure" },
+  "Incident description is required": { phase: "validation", code: "DESCRIPTION_REQUIRED", status: 400, message: "The incident description is required.", outcome: "failure" },
+  "County is required": { phase: "validation", code: "COUNTY_REQUIRED", status: 400, message: "The report county is required.", outcome: "failure" },
+  "Occurrence date and time are required": { phase: "validation", code: "REPORT_FIELDS_INVALID", status: 400, message: "The report fields are invalid.", outcome: "failure" },
+};
 
 function safeValue(value: unknown, fallback: string, maxLength = 64) {
   return typeof value === "string" && value.length > 0
@@ -56,6 +65,10 @@ function diagnosticFromError(error: unknown): PersistenceDiagnostic | null {
   return null;
 }
 
+function localValidationDiagnostic(error: unknown): PersistenceDiagnostic | null {
+  return error instanceof Error ? LOCAL_VALIDATION_ERRORS[error.message] ?? null : null;
+}
+
 export function serializePersistenceDiagnostic(diagnostic: PersistenceDiagnostic, context: PersistenceContext) {
   return `CMS persistence diagnostic ${JSON.stringify({
     requestId: diagnostic.requestId ?? context.requestId,
@@ -79,17 +92,19 @@ export function persistenceDiagnosticError(
 }
 
 export function renderPersistenceError(error: unknown, context: PersistenceContext) {
-  const diagnostic = diagnosticFromError(error);
+  const diagnostic = diagnosticFromError(error) ?? localValidationDiagnostic(error);
   const requestId = typeof diagnostic?.requestId === "string" && REQUEST_ID.test(diagnostic.requestId)
     ? diagnostic.requestId
     : REQUEST_ID.test(context.requestId) ? context.requestId : "unavailable";
   const message = typeof diagnostic?.message === "string" && SAFE_MESSAGES.has(diagnostic.message)
     ? diagnostic.message
-    : "The database rejected the report.";
+    : "The report save failed before a database result was available.";
   const outcome = diagnostic?.outcome === "uncertain" ? "uncertain" : "failure";
   const code = safeValue(diagnostic?.code, "unavailable", 32);
   const phase = safeValue(diagnostic?.phase, "unavailable", 48);
   const status = safeStatus(diagnostic?.status);
-  const prefix = outcome === "uncertain" ? "CMS persistence uncertain" : "CMS persistence failed";
+  const prefix = outcome === "uncertain"
+    ? "CMS persistence uncertain"
+    : diagnostic?.phase === "validation" ? "CMS validation failed" : "CMS persistence failed";
   return `${prefix}: ${message} Error code ${code}; phase=${phase}; status=${status}; Request ID ${requestId}; operation=${context.operation}; contentType=${context.contentType}.`;
 }
