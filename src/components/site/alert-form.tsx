@@ -17,7 +17,7 @@ import {
   PartyCasualtyInputs,
   type CasualtyBreakdown,
 } from "@/components/site/party-casualty-inputs";
-import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
+import { AttachmentsField, attachmentsForScope, replaceAttachmentScope, type Attachment } from "@/components/site/attachments-field";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { useAlertSeverities } from "@/hooks/useTaxonomy";
@@ -228,11 +228,9 @@ export function AlertForm({ onDone, editorial = false }: { onDone?: () => void; 
           placeholder="Direction of travel, how long the hazard has been there, whether emergency services are on scene. Add photos or a video with the toolbar."
         />
       </div>
-      <div>
-        <Label>Attach photos or video (optional)</Label>
-        <div className="mt-2">
-          <AttachmentsField value={attachments} onChange={setAttachments} />
-        </div>
+      <div className="space-y-5 border-t border-border pt-5">
+        <AttachmentsField title="More Photos and Videos" description="Add supporting images or videos without replacing existing content." scope="media" value={attachmentsForScope(attachments, "media")} onChange={(value) => setAttachments(replaceAttachmentScope(attachments, "media", value))} />
+        <AttachmentsField title="Documents" description="Add permitted PDF, DOC, DOCX or TXT evidence files." scope="documents" value={attachmentsForScope(attachments, "documents")} onChange={(value) => setAttachments(replaceAttachmentScope(attachments, "documents", value))} />
       </div>
       {identity.type === "profile" ? (
         <label className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
 import { ImageUploadField } from "@/components/site/image-upload-field";
-import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
+import { AttachmentsField, attachmentsForScope, replaceAttachmentScope, type Attachment } from "@/components/site/attachments-field";
 import { supabase } from "@/integrations/supabase/client";
 import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { campaignStatus } from "@/lib/campaigns";
@@ -254,15 +254,6 @@ function CampaignsAdminPage() {
                         placeholder="How the campaign actually went, with photos or a video from the toolbar."
                       />
                     </div>
-                    <div>
-                      <Label>More media (optional)</Label>
-                      <div className="mt-2">
-                        <AttachmentsField
-                          value={reportAttachments}
-                          onChange={setReportAttachments}
-                        />
-                      </div>
-                    </div>
                     <label className="flex items-center gap-2 text-sm">
                       <Checkbox
                         checked={reportForm.report_published}
@@ -272,6 +263,13 @@ function CampaignsAdminPage() {
                       />
                       Published (visible to the public once the event is over)
                     </label>
+                    <AttachmentsField
+                      title="More Photos and Videos"
+                      description="Add supporting images or videos for the campaign report."
+                      scope="media"
+                      value={attachmentsForScope(reportAttachments, "media")}
+                      onChange={(value) => setReportAttachments(replaceAttachmentScope(reportAttachments, "media", value))}
+                    />
                     <Button disabled={saveReport.isPending} onClick={() => saveReport.mutate(c.id)}>
                       {reportForm.report_published ? "Save & publish" : "Save draft"}
                     </Button>

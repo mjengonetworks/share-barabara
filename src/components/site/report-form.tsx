@@ -23,7 +23,7 @@ import {
 } from "@/components/site/party-casualty-inputs";
 import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { ImageUploadField } from "@/components/site/image-upload-field";
-import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
+import { AttachmentsField, attachmentsForScope, replaceAttachmentScope, type Attachment } from "@/components/site/attachments-field";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveIdentity } from "@/hooks/useActiveIdentity";
 import { KENYA_COUNTIES, PARTIES_INVOLVED } from "@/lib/constants";
@@ -197,15 +197,6 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
           ))}
         </div>
       ) : null}
-      <div>
-        <Label>Attachments</Label>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Add photos or evidence files that help explain the incident.
-        </p>
-        <div className="mt-2">
-          <AttachmentsField value={attachments} onChange={setAttachments} />
-        </div>
-      </div>
       <Collapsible>
         <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-left text-sm font-semibold hover:bg-muted/50">
           <span>Additional details (optional)</span>
@@ -390,6 +381,10 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
           ) : null}
         </CollapsibleContent>
       </Collapsible>
+      <div className="space-y-5 border-t border-border pt-5">
+        <AttachmentsField title="More Photos and Videos" description="Add supporting images or videos that help explain the incident." scope="media" value={attachmentsForScope(attachments, "media")} onChange={(value) => setAttachments(replaceAttachmentScope(attachments, "media", value))} />
+        <AttachmentsField title="Documents" description="Add permitted PDF, DOC, DOCX or TXT evidence files." scope="documents" value={attachmentsForScope(attachments, "documents")} onChange={(value) => setAttachments(replaceAttachmentScope(attachments, "documents", value))} />
+      </div>
       <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
         Reports are reviewed and may be edited for accuracy by a moderator or editor before they
         appear publicly. Published reports credit both of you.

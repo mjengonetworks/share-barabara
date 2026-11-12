@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RichTextEditor } from "@/components/site/rich-text-editor";
-import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
+import { AttachmentsField, attachmentsForScope, replaceAttachmentScope, type Attachment } from "@/components/site/attachments-field";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -143,7 +143,7 @@ export function EditorialUpdatesManager({
       <div className="mt-4 space-y-3">
         <div><Label htmlFor={`update-title-${parentId}`}>Title (optional)</Label><Input id={`update-title-${parentId}`} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Road reopened after clearance" /></div>
         <div><Label htmlFor={`update-body-${parentId}`}>Update body</Label><RichTextEditor id={`update-body-${parentId}`} value={body} onChange={setBody} rows={7} required placeholder="Record only verified new information…" /></div>
-        <div><Label>Attachments</Label><AttachmentsField value={attachments} onChange={setAttachments} /></div>
+        <div className="space-y-4"><AttachmentsField title="More Photos and Videos" scope="media" value={attachmentsForScope(attachments, "media")} onChange={(value) => setAttachments(replaceAttachmentScope(attachments, "media", value))} /><AttachmentsField title="Documents" scope="documents" value={attachmentsForScope(attachments, "documents")} onChange={(value) => setAttachments(replaceAttachmentScope(attachments, "documents", value))} /></div>
         <div className="flex flex-wrap items-end gap-3">
           <div><Label>Status</Label><Select value={status} onValueChange={(value: "draft" | "published") => setStatus(value)}><SelectTrigger className="w-36"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem></SelectContent></Select></div>
           <Button type="button" disabled={save.isPending || !body.trim()} onClick={() => save.mutate()}>{save.isPending ? "Saving…" : editingId ? "Save update" : status === "published" ? "Publish update" : "Save draft"}</Button>

@@ -8,7 +8,7 @@ test("compact report form uses progressive disclosure without changing submissio
   const form = await source("src/components/site/report-form.tsx");
   assert.match(form, /<Label htmlFor="r-title">Title<\/Label>/);
   assert.match(form, /Content \/ What happened\?/);
-  assert.match(form, /<Label>Attachments<\/Label>/);
+  assert.match(form, /More Photos and Videos/);
   assert.match(form, /Additional details \(optional\)/);
   assert.match(form, /<Collapsible>/);
   assert.match(form, /<CollapsibleContent/);

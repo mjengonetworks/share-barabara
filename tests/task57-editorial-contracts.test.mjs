@@ -65,8 +65,8 @@ test("Task 57 retains safe structured output and official-name rules", () => {
 
 test("Featured Image follows SEO in rich Article and Report editors", () => {
   assert.ok(article.indexOf("SEO (optional") < article.indexOf("Featured image (optional)"));
-  assert.ok(adminArticle.indexOf("SEO title") < adminArticle.indexOf("Featured image and attribution"));
-  assert.ok(adminReport.indexOf("SEO title") < adminReport.indexOf("Featured image and attribution"));
+  assert.ok(adminArticle.indexOf("SEO title") < adminArticle.indexOf("Featured Image"));
+  assert.ok(adminReport.indexOf("SEO title") < adminReport.indexOf("Featured Image"));
 });
 
 test("Task 57 has no SearXNG or autonomous publishing dependency", () => {

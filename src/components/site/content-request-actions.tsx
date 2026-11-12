@@ -15,7 +15,7 @@ import {
   PartyCasualtyInputs,
   type CasualtyBreakdown,
 } from "@/components/site/party-casualty-inputs";
-import { AttachmentsField, type Attachment } from "@/components/site/attachments-field";
+import { AttachmentsField, attachmentsForScope, replaceAttachmentScope, type Attachment } from "@/components/site/attachments-field";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -119,13 +119,9 @@ export function ContentRequestActions({ entityType, entityId, ownerId, parties =
               <PartyCasualtyInputs parties={parties} value={casualties} onChange={setCasualties} />
             </div>
           ) : null}
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Photos or video (optional)
-            </p>
-            <div className="mt-2">
-              <AttachmentsField value={attachments} onChange={setAttachments} />
-            </div>
+          <div className="space-y-4">
+            <AttachmentsField title="More Photos and Videos" scope="media" value={attachmentsForScope(attachments, "media")} onChange={(value) => setAttachments(replaceAttachmentScope(attachments, "media", value))} />
+            <AttachmentsField title="Documents" scope="documents" value={attachmentsForScope(attachments, "documents")} onChange={(value) => setAttachments(replaceAttachmentScope(attachments, "documents", value))} />
           </div>
           <Button
             disabled={updateMessage.trim().length < 3 || submitUpdate.isPending}
