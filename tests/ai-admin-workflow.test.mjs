@@ -37,8 +37,9 @@ test("report publishing is role-authoritative and public submissions remain pend
   assert.equal(read("src/components/site/report-form.tsx").includes("Save draft"), false);
 });
 
-test("report draft publishing remains blocked without the approved schema change", () => {
-  assert.equal(read("src/lib/accident-report-persistence.server.ts").includes('"draft"'), false);
+test("report drafts use the existing pending database status without requiring publication fields", () => {
+  assert.equal(read("src/lib/accident-report-persistence.server.ts").includes('requestedStatus?: "draft"'), true);
+  assert.match(read("src/components/admin/editorial-record-editor.tsx"), /requestedStatus: "draft"/);
   assert.equal(read("src/components/site/report-form.tsx").includes('mutate("draft")'), false);
 });
 

@@ -62,3 +62,19 @@ test("local empty-form validation is not labelled as a database rejection", () =
   assert.match(rendered, /status=400/);
   assert.doesNotMatch(rendered, /database rejected/);
 });
+
+test("field-level validation survives the client diagnostic boundary", () => {
+  const requestId = "c4975e55-48cf-42c1-95fa-373bbd16c876";
+  const diagnostic = {
+    requestId,
+    phase: "validation",
+    code: "REPORT_FIELDS_INVALID",
+    status: 400,
+    message: "Review the highlighted report fields.",
+    fields: { severity: "Select an incident severity before publishing." },
+  };
+  const error = new Error(serializePersistenceDiagnostic(diagnostic, { requestId, operation: "create", contentType: "report" }));
+  const rendered = renderPersistenceError(error, { requestId, operation: "create", contentType: "report" });
+  assert.match(rendered, /REPORT_FIELDS_INVALID/);
+  assert.match(error.message, /severity/);
+});

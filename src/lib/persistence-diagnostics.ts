@@ -5,6 +5,7 @@ export type PersistenceDiagnostic = {
   status?: unknown;
   message?: unknown;
   outcome?: unknown;
+  fields?: Record<string, string>;
 };
 
 type PersistenceContext = {
@@ -48,7 +49,7 @@ function safeStatus(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? String(value) : "unavailable";
 }
 
-function diagnosticFromError(error: unknown): PersistenceDiagnostic | null {
+export function readPersistenceDiagnostic(error: unknown): PersistenceDiagnostic | null {
   if (error && typeof error === "object" && "error" in error) {
     const nested = (error as { error?: unknown }).error;
     if (nested && typeof nested === "object") return nested as PersistenceDiagnostic;
@@ -79,6 +80,7 @@ export function serializePersistenceDiagnostic(diagnostic: PersistenceDiagnostic
     message: diagnostic.message,
     operation: context.operation,
     contentType: context.contentType,
+    ...(diagnostic.fields ? { fields: diagnostic.fields } : {}),
   })}`;
 }
 
@@ -92,7 +94,7 @@ export function persistenceDiagnosticError(
 }
 
 export function renderPersistenceError(error: unknown, context: PersistenceContext) {
-  const diagnostic = diagnosticFromError(error) ?? localValidationDiagnostic(error);
+  const diagnostic = readPersistenceDiagnostic(error) ?? localValidationDiagnostic(error);
   const requestId = typeof diagnostic?.requestId === "string" && REQUEST_ID.test(diagnostic.requestId)
     ? diagnostic.requestId
     : REQUEST_ID.test(context.requestId) ? context.requestId : "unavailable";

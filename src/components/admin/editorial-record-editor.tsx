@@ -28,7 +28,8 @@ import { LocationButton } from "@/components/site/location-button";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { buildArticlePersistencePayload, resolveArticleStatus } from "@/lib/article-persistence";
-import { renderPersistenceError, serializePersistenceDiagnostic } from "@/lib/persistence-diagnostics";
+import { renderPersistenceError, readPersistenceDiagnostic, serializePersistenceDiagnostic, persistenceDiagnosticError } from "@/lib/persistence-diagnostics";
+import { validateAccidentReportFields } from "@/lib/accident-report-validation";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -76,6 +77,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   const { identity } = useActiveIdentity();
   const { data: categories = [] } = useNewsCategories();
   const [form, setForm] = useState<RecordValue | null>(() => isEditing ? null : initialForm(type, {}));
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const recordQuery = useQuery({
     queryKey: ["admin-editorial-record", type, id],
     enabled: isEditing,
@@ -111,7 +113,18 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   }, [recordQuery.data, type]);
 
   const aiCurrent = useMemo(() => form ?? {}, [form]);
-  const set = (key: string, value: any) => setForm((current) => current ? { ...current, [key]: value } : current);
+  const set = (key: string, value: any) => {
+    setValidationErrors((current) => {
+      if (!(key in current)) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+    setForm((current) => current ? { ...current, [key]: value } : current);
+  };
+  const fieldError = (field: string) => validationErrors[field]
+    ? <p id={`editor-${field}-error`} className="text-xs text-destructive" role="alert">{validationErrors[field]}</p>
+    : null;
   const applyDraft = (draft: Record<string, unknown>) => setForm((current) => {
     if (!current) return current;
     const next = { ...current };
@@ -124,11 +137,18 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   const save = useMutation({
     mutationFn: async ({ requestedStatus, requestId }: { requestedStatus?: "draft" | "pending_review" | "published" | "approved"; requestId: string }) => {
       if (!form) throw new Error("Record is still loading");
-      if (type === "report" && !form.title.trim()) throw new Error("Report title is required");
-      if (type === "report" && !form.body.trim()) throw new Error("Incident description is required");
-      if (type === "report" && !form.county.trim()) throw new Error("County is required");
-      if (type === "report" && !form.occurred_at) throw new Error("Occurrence date and time are required");
       if (type === "report") {
+        const validation = validateAccidentReportFields({
+          title: form.title,
+          description: form.body,
+          county: form.county,
+          severity: form.severity,
+          occurred_at: form.occurred_at,
+          vehicles_involved: form.vehicles_involved,
+          casualties: form.casualties,
+          fatalities: form.fatalities,
+        }, requestedStatus === "approved" ? "publish" : "draft");
+        if (validation) throw persistenceDiagnosticError({ requestId, phase: "validation", code: validation.code, status: 400, message: validation.message, outcome: "failure", fields: validation.fields }, { requestId, operation: isEditing ? "update" : "create", contentType: "report" });
         const breakdownError = casualtyBreakdownError(form.casualty_breakdown, { dead: form.fatalities, injured: form.casualties });
         if (breakdownError) throw new Error(breakdownError);
       }
@@ -189,8 +209,8 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           county: form.county,
           road: form.road,
           incident_type: form.incident_type || null,
-          severity: form.severity,
-          occurred_at: new Date(form.occurred_at).toISOString(),
+          ...(form.severity?.trim() ? { severity: form.severity.trim() } : {}),
+          ...(form.occurred_at?.trim() ? { occurred_at: new Date(form.occurred_at).toISOString() } : {}),
           vehicles_involved: form.vehicles_involved,
           casualties: form.casualties,
           fatalities: form.fatalities,
@@ -206,7 +226,7 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
           attachments: form.attachments,
           page_id: identity.type === "page" ? identity.pageId : null,
           is_anonymous: false,
-          requestedStatus: status === "approved" ? "approved" : isEditing ? undefined : "pending",
+          requestedStatus: status === "approved" ? "approved" : isEditing ? undefined : "draft",
         } });
         if (!result.ok) {
           throw new Error(serializePersistenceDiagnostic(result.error, { requestId, operation: isEditing ? "update" : "create", contentType: type }));
@@ -238,7 +258,14 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
       toast.success(isEditing ? `${config.label} saved. Existing media and fields were preserved.` : `${config.label} created with status ${String(variables.requestedStatus ?? "draft").replace("_", " ")}.`);
       await navigate({ to: config.back });
     },
-    onError: (error: Error, variables) => toast.error(renderPersistenceError(error, { requestId: variables.requestId, operation: isEditing ? "update" : "create", contentType: type })),
+    onError: (error: Error, variables) => {
+      const diagnostic = readPersistenceDiagnostic(error);
+      const fields = diagnostic?.fields ?? {};
+      setValidationErrors(fields);
+      const first = Object.keys(fields)[0];
+      if (first) queueMicrotask(() => document.getElementById(first === "description" ? "editor-body" : `editor-${first}`)?.focus());
+      toast.error(renderPersistenceError(error, { requestId: variables.requestId, operation: isEditing ? "update" : "create", contentType: type }));
+    },
   });
 
   if (isEditing && recordQuery.error) return <p className="rounded-lg border border-destructive/30 p-6 text-destructive">Unable to load this {config.label.toLowerCase()}.</p>;
@@ -288,18 +315,18 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
         </section>
       ) : null}
       <section className="grid gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2"><Label htmlFor="editor-title">Title</Label><Input id="editor-title" value={form.title} onChange={(e) => set("title", e.target.value)} /></div>
+        <div className="sm:col-span-2"><Label htmlFor="editor-title">Title</Label><Input id="editor-title" aria-invalid={Boolean(validationErrors.title)} aria-describedby={validationErrors.title ? "editor-title-error" : undefined} value={form.title} onChange={(e) => set("title", e.target.value)} />{fieldError("title")}</div>
         {type === "article" || type === "infrastructure" || type === "report" || type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-summary">Editorial summary</Label>{type === "report" || type === "alert" ? <p className="mb-1 text-xs text-muted-foreground">{summarySupported ? "Saved independently from the full content." : "Summary storage activates after the reviewed summary migration is applied; other fields remain safe to save."}</p> : null}<Textarea id="editor-summary" disabled={!summarySupported} maxLength={240} placeholder="Concise factual summary (normally 20 words or fewer)" value={form["summary"]} onChange={(e) => set("summary", e.target.value)} /></div> : null}
-        {type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-description">Advisory content</Label><RichTextEditor id="editor-description" value={form.description} onChange={(value) => set("description", value)} /></div> : <div className="sm:col-span-2"><Label htmlFor="editor-body">Full content</Label><RichTextEditor id="editor-body" value={form.body} onChange={(value) => set("body", value)} /></div>}
+        {type === "alert" ? <div className="sm:col-span-2"><Label htmlFor="editor-description">Advisory content</Label><RichTextEditor id="editor-description" value={form.description} onChange={(value) => set("description", value)} /></div> : <div className="sm:col-span-2"><Label htmlFor="editor-body">Full content</Label><RichTextEditor id="editor-body" value={form.body} onChange={(value) => set("body", value)} />{type === "report" ? fieldError("description") : null}</div>}
         {type === "article" ? <><div><Label>Categories</Label><CategoryMultiSelect categories={categories} value={form.categories ?? []} onChange={(value) => { set("categories", value); set("category", value[0] ?? "News"); }} /></div><div><Label>Source / credit</Label><Input value={form.source} onChange={(e) => set("source", e.target.value)} placeholder="Source publication or reporting credit" /></div><div><Label>SEO title</Label><Input value={form.seo_title} onChange={(e) => set("seo_title", e.target.value)} /></div></> : null}
-        {type === "alert" || type === "report" ? <><div><Label>County</Label><Input value={form.county} onChange={(e) => set("county", e.target.value)} /></div><div><Label>Road / location</Label><Input value={form.road} onChange={(e) => set("road", e.target.value)} /></div><div><Label>Severity</Label><Input value={form.severity} onChange={(e) => set("severity", e.target.value)} /></div>{type === "alert" ? <div><Label>Lifecycle status</Label><Select value={form.alert_status || "none"} onValueChange={(value) => set("alert_status", value === "none" ? "" : value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">No status selected</SelectItem><SelectItem value="active">Active</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="resolved">Resolved</SelectItem><SelectItem value="under_resolution">In Progress (legacy)</SelectItem></SelectContent></Select></div> : null}</> : null}
+        {type === "alert" || type === "report" ? <><div><Label htmlFor={type === "report" ? "editor-county" : undefined}>County</Label><Input id={type === "report" ? "editor-county" : undefined} aria-invalid={type === "report" ? Boolean(validationErrors.county) : undefined} aria-describedby={type === "report" && validationErrors.county ? "editor-county-error" : undefined} value={form.county} onChange={(e) => set("county", e.target.value)} />{type === "report" ? fieldError("county") : null}</div><div><Label>Road / location</Label><Input value={form.road} onChange={(e) => set("road", e.target.value)} /></div><div><Label htmlFor={type === "report" ? "editor-severity" : undefined}>Severity</Label><Input id={type === "report" ? "editor-severity" : undefined} aria-invalid={type === "report" ? Boolean(validationErrors.severity) : undefined} aria-describedby={type === "report" && validationErrors.severity ? "editor-severity-error" : undefined} value={form.severity} onChange={(e) => set("severity", e.target.value)} />{type === "report" ? fieldError("severity") : null}</div>{type === "alert" ? <div><Label>Lifecycle status</Label><Select value={form.alert_status || "none"} onValueChange={(value) => set("alert_status", value === "none" ? "" : value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">No status selected</SelectItem><SelectItem value="active">Active</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="resolved">Resolved</SelectItem><SelectItem value="under_resolution">In Progress (legacy)</SelectItem></SelectContent></Select></div> : null}</> : null}
         {type === "report" ? <>
           <div className="sm:col-span-2 border-t border-border pt-4"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Incident details</h2></div>
           <div><Label>Incident type</Label><Input value={form.incident_type} onChange={(e) => set("incident_type", e.target.value)} /></div>
-          <div><Label>Incident date/time</Label><Input type="datetime-local" value={form.occurred_at?.slice(0, 16)} onChange={(e) => set("occurred_at", e.target.value)} /></div>
+          <div><Label htmlFor="editor-occurred_at">Incident date/time</Label><Input id="editor-occurred_at" type="datetime-local" aria-invalid={Boolean(validationErrors.occurred_at)} aria-describedby={validationErrors.occurred_at ? "editor-occurred_at-error" : undefined} value={form.occurred_at?.slice(0, 16)} onChange={(e) => set("occurred_at", e.target.value)} />{fieldError("occurred_at")}</div>
           <div><Label>Latitude</Label><Input type="number" value={form.latitude ?? ""} onChange={(e) => set("latitude", e.target.value === "" ? null : Number(e.target.value))} /></div>
           <div><Label>Longitude</Label><Input type="number" value={form.longitude ?? ""} onChange={(e) => set("longitude", e.target.value === "" ? null : Number(e.target.value))} /></div>
-          {([['vehicles_involved', 'Vehicles involved'], ['casualties', 'Confirmed injuries'], ['fatalities', 'Confirmed fatalities']] as const).map(([key, label]) => <div key={key}><Label>{label}</Label><Input type="number" min="0" value={form[key] ?? ""} onChange={(e) => set(key, e.target.value === "" ? null : Number(e.target.value))} /></div>)}
+          {([['vehicles_involved', 'Vehicles involved'], ['casualties', 'Confirmed injuries'], ['fatalities', 'Confirmed fatalities']] as const).map(([key, label]) => <div key={key}><Label htmlFor={`editor-${key}`}>{label}</Label><Input id={`editor-${key}`} type="number" min="0" aria-invalid={Boolean(validationErrors[key])} aria-describedby={validationErrors[key] ? `editor-${key}-error` : undefined} value={form[key] ?? ""} onChange={(e) => set(key, e.target.value === "" ? null : Number(e.target.value))} />{fieldError(key)}</div>)}
           <div className="sm:col-span-2 border-t border-border pt-4"><h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Vehicles, road users and casualties</h2></div>
           <div className="sm:col-span-2"><Label>Road-user categories involved</Label><div className="mt-2 flex flex-wrap gap-3">{PARTIES_INVOLVED.map((party) => <label key={party.value} className="flex items-center gap-2 text-sm"><Checkbox checked={form.parties_involved.includes(party.value)} onCheckedChange={(checked) => set("parties_involved", checked === true ? [...form.parties_involved, party.value] : form.parties_involved.filter((value: string) => value !== party.value))} />{party.label}</label>)}</div><PartyCasualtyInputs parties={form.parties_involved} value={form.casualty_breakdown} onChange={(value) => set("casualty_breakdown", value)} /><p className="mt-2 text-xs text-muted-foreground">Leave casualty fields blank when the source does not confirm a figure; blank is unknown, not zero.</p></div>
           <div className="sm:col-span-2"><Label>Supporting media</Label><AttachmentsField value={form.attachments} onChange={(value) => set("attachments", value)} /></div>

@@ -3,6 +3,7 @@ import type { Database } from "@/integrations/supabase/types";
 import type { CasualtyBreakdown } from "@/components/site/party-casualty-inputs";
 import { serverEnv } from "@/lib/runtime-env.server";
 import { suggestIncidentDuplicates } from "@/lib/incident-duplicates";
+import { validateAccidentReportFields, type ReportFieldErrors } from "@/lib/accident-report-validation";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BODY_BYTES = 128 * 1024;
@@ -11,15 +12,15 @@ const roleRank: Record<string, number> = { member: 0, guest_author: 1, author: 2
 export type ReportMutation = {
   requestId?: string;
   id?: string;
-  requestedStatus?: "pending" | "approved";
+  requestedStatus?: "draft" | "pending" | "approved";
   title: string;
   summary?: string | null;
   description: string;
   county: string;
   road: string;
   incident_type?: string | null;
-  severity: string;
-  occurred_at: string;
+  severity?: string | null;
+  occurred_at?: string | null;
   vehicles_involved: number | null;
   casualties: number | null;
   fatalities: number | null;
@@ -44,6 +45,7 @@ type Failure = {
   status: number;
   message: string;
   outcome: "failure" | "uncertain";
+  fields?: ReportFieldErrors;
 };
 
 type Result =
@@ -74,10 +76,10 @@ function publicMessage(code: string) {
   return code === "UNEXPECTED_SERVER_FAILURE" ? "The report save could not be completed by the server." : "The database rejected the report.";
 }
 
-function failure(id: string, operation: "create" | "update", phase: string, error: unknown, fallbackCode = "UNEXPECTED_SERVER_FAILURE", fallbackStatus = 500, outcome: "failure" | "uncertain" = "failure"): Result {
+function failure(id: string, operation: "create" | "update", phase: string, error: unknown, fallbackCode = "UNEXPECTED_SERVER_FAILURE", fallbackStatus = 500, outcome: "failure" | "uncertain" = "failure", fields?: ReportFieldErrors): Result {
   const code = safeCode(error, fallbackCode);
   const status = safeStatus(error, fallbackStatus);
-  const diagnostic: Failure = { requestId: id, phase, code, status, message: publicMessage(code), outcome };
+  const diagnostic: Failure = { requestId: id, phase, code, status, message: publicMessage(code), outcome, ...(fields ? { fields } : {}) };
   console.error("[CMS persistence]", { requestId: id, operation, contentType: "report", phase, code, status, outcome });
   return { ok: false, outcome, requestId: id, operation, contentType: "report", error: diagnostic };
 }
@@ -110,11 +112,9 @@ function clientFor(request: Request) {
 function validate(value: unknown, id: string, operation: "create" | "update"): Failure | null {
   const data = value as Partial<ReportMutation> | null;
   if (!data || typeof data !== "object") return { requestId: id, phase: "validation", code: "VALIDATION_FAILED", status: 400, message: publicMessage("VALIDATION_FAILED"), outcome: "failure" };
-  if (!data.title?.trim()) return { requestId: id, phase: "validation", code: "TITLE_REQUIRED", status: 400, message: "The report title is required.", outcome: "failure" };
-  if (!data.description?.trim()) return { requestId: id, phase: "validation", code: "DESCRIPTION_REQUIRED", status: 400, message: "The incident description is required.", outcome: "failure" };
-  if (!data.county?.trim()) return { requestId: id, phase: "validation", code: "COUNTY_REQUIRED", status: 400, message: "The report county is required.", outcome: "failure" };
-  if (!data.severity?.trim() || !data.occurred_at) return { requestId: id, phase: "validation", code: "REPORT_FIELDS_INVALID", status: 400, message: publicMessage("REPORT_FIELDS_INVALID"), outcome: "failure" };
   if (operation === "update" && (!data.id || !UUID.test(data.id))) return { requestId: id, phase: "validation", code: "REPORT_ID_INVALID", status: 400, message: publicMessage("VALIDATION_FAILED"), outcome: "failure" };
+  const validation = validateAccidentReportFields(data, data.requestedStatus === "approved" ? "publish" : "draft");
+  if (validation) return { requestId: id, phase: "validation", code: validation.code, status: 400, message: validation.message, outcome: "failure", fields: validation.fields };
   return null;
 }
 
@@ -126,13 +126,15 @@ async function hasColumn(supabase: SupabaseClient<Database>, column: "summary" |
 function payload(data: ReportMutation, userId: string, status: "pending" | "approved" | undefined, columns: { summary: boolean; incident_type: boolean }) {
   const value: Record<string, unknown> = {
     title: data.title.trim(), description: data.description.trim(), county: data.county.trim(), road: data.road?.trim() || null,
-    occurred_at: data.occurred_at, vehicles_involved: data.vehicles_involved, casualties: data.casualties, fatalities: data.fatalities,
-    severity: data.severity, latitude: data.latitude, longitude: data.longitude, image_url: data.image_url, image_alt: data.image_alt,
+    vehicles_involved: data.vehicles_involved, casualties: data.casualties, fatalities: data.fatalities,
+    latitude: data.latitude, longitude: data.longitude, image_url: data.image_url, image_alt: data.image_alt,
     image_caption: data.image_caption, image_credit: data.image_credit, road_id: data.road_id, page_id: data.page_id,
     parties_involved: data.parties_involved, casualty_breakdown: data.casualty_breakdown, attachments: data.attachments,
     is_anonymous: data.is_anonymous, user_id: userId,
   };
   if (status) value.status = status;
+  if (data.occurred_at && data.occurred_at.trim()) value.occurred_at = data.occurred_at;
+  if (data.severity && data.severity.trim()) value.severity = data.severity.trim();
   if (columns.summary && data.summary !== undefined) value.summary = data.summary;
   if (columns.incident_type && data.incident_type !== undefined) value.incident_type = data.incident_type;
   return value;
