@@ -34,13 +34,13 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && inputs.rollback_version_id == '') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[deploy-approved-homepage]'))
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: 009b05892f49d2fbee2b1dc3af3cdf900660ae48
-      EXPECTED_PRODUCTION_APPLICATION_SHA: dd14e67d9b21c722749b13827913a5603ef0e9f1
-      EXPECTED_DEPLOYMENT_ID: 4d71490f-8cab-442b-94cb-ca9afd6d51a1
-      EXPECTED_WORKER_VERSION_ID: e6b617ed-5127-41b3-b066-528e5d84153e
-      EXPECTED_ARTIFACT_ID: 13926109390
-      EXPECTED_ARTIFACT_RUN_ID: 43182279610
-      EXPECTED_ARTIFACT_DIGEST: sha256:4e4f935922a9a48f8a7e6c39bb7d92175c831f59e4ba23ea1f6a2ac26b0472fc
+      APP_CANDIDATE_SHA: ca27eca7e77400ddfc3bdab0eeafdca91ad4e77e
+      EXPECTED_PRODUCTION_APPLICATION_SHA: 009b05892f49d2fbee2b1dc3af3cdf900660ae48
+      EXPECTED_DEPLOYMENT_ID: 099e2e2a-dad9-4803-a77b-fed2e65045e4
+      EXPECTED_WORKER_VERSION_ID: 26d60961-f382-4271-9b8e-31d82ae9990c
+      EXPECTED_ARTIFACT_ID: 13931967572
+      EXPECTED_ARTIFACT_RUN_ID: 43194718115
+      EXPECTED_ARTIFACT_DIGEST: sha256:790a9f862c6bf7626dd88174f4863dcdb77fdf6217a87a7c04a948dcfac63399
       WORKER_NAME: share-barabara
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
 
@@ -211,7 +211,7 @@ jobs:
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       WORKER_NAME: share-barabara
-      CURRENT_VERSION_ID: e6b617ed-5127-41b3-b066-528e5d84153e
+      CURRENT_VERSION_ID: 26d60961-f382-4271-9b8e-31d82ae9990c
       ROLLBACK_VERSION_ID: ${{ inputs.rollback_version_id }}
     steps:
       - name: Confirm current production before rollback
