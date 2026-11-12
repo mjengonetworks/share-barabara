@@ -19,6 +19,7 @@ on:
       - fix/cms-persistence-diagnostics
       - fix/news-alerts-road-filter-runtime
       - fix/cms-editor-workspace-corrections
+      - fix/accident-report-cms-functional-repair
 
 permissions:
   contents: read
@@ -33,13 +34,13 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && inputs.rollback_version_id == '') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[deploy-approved-homepage]'))
     runs-on: ubuntu-latest
     env:
-      APP_CANDIDATE_SHA: dd14e67d9b21c722749b13827913a5603ef0e9f1
-      EXPECTED_PRODUCTION_APPLICATION_SHA: 0914f6cfc1ff08ec2bcaba59e776996911ec3b10
-      EXPECTED_DEPLOYMENT_ID: b6e38288-dfdf-40ae-bb50-c8dce0264e77
-      EXPECTED_WORKER_VERSION_ID: 8a1d45ce-a5b2-41e8-bd68-29711b259419
-      EXPECTED_ARTIFACT_ID: 13921424193
-      EXPECTED_ARTIFACT_RUN_ID: 43171549738
-      EXPECTED_ARTIFACT_DIGEST: sha256:177f05d01002d91b05e401b444628715a450a889a1f1b03dfcb923d1a977cd4a
+      APP_CANDIDATE_SHA: 009b05892f49d2fbee2b1dc3af3cdf900660ae48
+      EXPECTED_PRODUCTION_APPLICATION_SHA: dd14e67d9b21c722749b13827913a5603ef0e9f1
+      EXPECTED_DEPLOYMENT_ID: 4d71490f-8cab-442b-94cb-ca9afd6d51a1
+      EXPECTED_WORKER_VERSION_ID: e6b617ed-5127-41b3-b066-528e5d84153e
+      EXPECTED_ARTIFACT_ID: 13926109390
+      EXPECTED_ARTIFACT_RUN_ID: 43182279610
+      EXPECTED_ARTIFACT_DIGEST: sha256:4e4f935922a9a48f8a7e6c39bb7d92175c831f59e4ba23ea1f6a2ac26b0472fc
       WORKER_NAME: share-barabara
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
 
@@ -47,14 +48,14 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: dd14e67d9b21c722749b13827913a5603ef0e9f1
+          ref: 009b05892f49d2fbee2b1dc3af3cdf900660ae48
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$APP_CANDIDATE_SHA"
-          git fetch --no-tags origin "refs/heads/rebuild/accident-report-cms:refs/remotes/origin/rebuild/accident-report-cms"
+          git fetch --no-tags origin "refs/heads/fix/accident-report-cms-functional-repair:refs/remotes/origin/fix/accident-report-cms-functional-repair"
           git cat-file -e "${EXPECTED_PRODUCTION_APPLICATION_SHA}^{commit}"
           git merge-base --is-ancestor "$EXPECTED_PRODUCTION_APPLICATION_SHA" "$APP_CANDIDATE_SHA"
 
@@ -210,7 +211,7 @@ jobs:
       CLOUDFLARE_API: https://api.cloudflare.com/client/v4
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       WORKER_NAME: share-barabara
-      CURRENT_VERSION_ID: 8a1d45ce-a5b2-41e8-bd68-29711b259419
+      CURRENT_VERSION_ID: e6b617ed-5127-41b3-b066-528e5d84153e
       ROLLBACK_VERSION_ID: ${{ inputs.rollback_version_id }}
     steps:
       - name: Confirm current production before rollback
