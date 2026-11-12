@@ -73,7 +73,7 @@ test("custom listing layouts keep direct Edit and Options controls visible", asy
     const source = await read(`src/routes/_authenticated/admin/${file}`);
     assert.match(source, /aria-label=\{`Actions for \$\{[^}]+\}`\}/, file);
     assert.match(source, /\/admin\/[^`]+\/\$\{[^}]+\}\/edit/, file);
-    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID/ : /grid-cols-\[20px_40px_minmax\(0,1fr\)_40px\]/, file);
+    assert.match(source, file === "reports.tsx" ? /min-w-\[920px\]/ : /min-w-\[(?:900|980)px\]/, file);
   }
 });
 

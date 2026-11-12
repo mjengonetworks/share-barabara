@@ -13,15 +13,17 @@ export function AdminListingSurface({
       aria-label="Admin content listing"
       data-admin-listing="true"
     >
-      {children}
+      <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain" data-admin-listing-viewport="true">
+        {children}
+      </div>
     </section>
   );
 }
 
 export function AdminListingHeader({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div role="row" data-admin-listing-header="true" className={`hidden w-full min-w-0 break-words grid-cols-[auto_40px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,auto)_40px] items-center gap-1.5 border-b border-border bg-muted/45 px-2 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:grid ${className}`.trim()}>
-      <span aria-hidden="true" className="hidden md:block" />
+    <div role="row" data-admin-listing-header="true" className={`grid w-full min-w-[900px] break-words grid-cols-[auto_40px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,auto)_40px] items-center gap-1.5 border-b border-border bg-muted/45 px-2 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground ${className}`.trim()}>
+      <span aria-hidden="true" className="block" />
       {children}
     </div>
   );

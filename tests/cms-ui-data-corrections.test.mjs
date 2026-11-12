@@ -7,19 +7,20 @@ const read = (file) => fs.readFileSync(file, "utf8");
 test("desktop Articles filters share one compact row and table keeps aligned action columns", () => {
   const articles = read("src/routes/_authenticated/admin/articles.tsx");
   assert.match(articles, /sm:grid-cols-3 lg:grid-cols-\[minmax\(10rem,1fr\)_minmax\(10rem,1fr\)_minmax\(16rem,2fr\)\]/);
-  assert.match(articles, /grid w-full min-w-0 grid-cols-\[20px_40px_minmax\(0,1fr\)_40px\]/);
+  assert.match(articles, /grid min-w-\[900px\] grid-cols-\[20px_40px_minmax\(0,2\.2fr\)/);
   assert.match(articles, /<span>Actions<\/span>/);
   assert.match(articles, /data-row-action/);
   assert.match(articles, /line-clamp-2/);
 });
 
-test("shared listings avoid clipping and provide a deliberate mobile presentation", () => {
+test("shared listings avoid clipping and preserve full mobile tables in a scroll viewport", () => {
   const shared = read("src/components/admin/admin-listing-surface.tsx");
   assert.match(shared, /w-full min-w-0 overflow-visible/);
+  assert.match(shared, /overflow-x-auto/);
   assert.match(shared, /data-admin-listing-row/);
   for (const file of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = read(`src/routes/_authenticated/admin/${file}`);
-    assert.match(source, /md:hidden/);
+    assert.match(source, /min-w-\[(?:900|920|980)px\]/);
   }
 });
 

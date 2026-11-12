@@ -211,8 +211,7 @@ function AlertsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface className="mt-0">
-        <div className="hidden md:block">
-          <Table className="w-full min-w-0 table-fixed">
+        <Table className="w-full min-w-[980px] table-fixed">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[3%] px-1"><span className="sr-only">Select</span></TableHead>
@@ -309,29 +308,6 @@ function AlertsAdminPage() {
             ) : null}
           </TableBody>
         </Table>
-        </div>
-        <div className="space-y-2 p-2 md:hidden" aria-label="Alert records">
-          {alerts.map((a) => (
-            <article key={a.id} tabIndex={0} onClick={(event) => { const target = event.target as HTMLElement; if (target.closest("a,button,input,select,textarea,[role='button']")) return; (document.getElementById(`alert-mobile-actions-${a.id}`) as HTMLButtonElement | null)?.click(); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); (document.getElementById(`alert-mobile-actions-${a.id}`) as HTMLButtonElement | null)?.click(); } }} className="cursor-pointer rounded-md border border-border bg-background p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-blue">
-              <div className="flex items-start gap-3">
-                {a.image_url ? <img src={a.image_url} alt="" className="size-12 shrink-0 rounded object-cover" /> : <div className="size-12 shrink-0 rounded bg-muted" aria-label="No featured image" />}
-                <div className="min-w-0 flex-1">
-                  <p className="line-clamp-3 font-semibold">{a.title}</p>
-                  <p className="mt-1 text-xs capitalize text-muted-foreground">{a.county} · {a.severity} · {a.status.replace("_", " ")}</p>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild><Button id={`alert-mobile-actions-${a.id}`} data-row-action="true" variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Actions for ${a.title}`}><MoreVertical className="size-4" /></Button></DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild><Link to="/alerts/$alertId" params={{ alertId: a.id }} target="_blank"><ExternalLink className="mr-2 size-4" /> View on website</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-2 size-4" /> Edit alert</a></DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => remove.mutate(a.id)}><Trash2 className="mr-2 size-4" /> Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </article>
-          ))}
-          {!isLoading && alerts.length === 0 ? <p className="py-8 text-center text-muted-foreground">Nothing matches these filters.</p> : null}
-        </div>
       </AdminListingSurface>
 
     </div>

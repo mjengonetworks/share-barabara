@@ -41,19 +41,20 @@ test("all admin listing surfaces retain complete responsive table content", () =
   assert.match(shared, /onActivate/);
   for (const file of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = read(`src/routes/_authenticated/admin/${file}`);
-    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID/ : /w-full min-w-0/, file);
+    assert.match(source, file === "reports.tsx" ? /min-w-\[920px\]/ : /min-w-\[900px\]|min-w-\[980px\]/, file);
     assert.doesNotMatch(source, /xl:hidden|hidden[^\n]*xl:(?:block|flex|inline-flex)/, `${file} hides table columns on mobile`);
   }
 });
 
-test("admin listings keep row actions accessible without clipping and provide deliberate mobile records", () => {
+test("admin listings keep row actions accessible in horizontally scrollable mobile tables", () => {
   const files = ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"];
   for (const file of files) {
     const source = read(`src/routes/_authenticated/admin/${file}`);
     assert.match(source, /Actions for|actions-\$\{/i, `${file} has a compact row action trigger`);
-    assert.match(source, /md:hidden/, `${file} has a mobile presentation`);
+    assert.match(source, /min-w-\[(?:900|920|980)px\]/, `${file} keeps readable mobile table width`);
     assert.doesNotMatch(source, /overflow-x-hidden|overflow-hidden/, `${file} does not conceal table overflow`);
   }
+  assert.match(read("src/components/admin/admin-listing-surface.tsx"), /overflow-x-auto/);
   const reports = read("src/routes/_authenticated/admin/reports.tsx");
   assert.match(reports, /Unpublish this report/);
   const articles = read("src/routes/_authenticated/admin/articles.tsx");

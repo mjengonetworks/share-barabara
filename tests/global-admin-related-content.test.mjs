@@ -13,11 +13,12 @@ test("admin listings use constrained responsive layouts instead of fixed overflo
     "src/routes/_authenticated/admin/infrastructure-issues.tsx",
     "src/routes/_authenticated/admin/my-content.tsx",
   ];
-  for (const file of files) {
+  for (const file of files.slice(1)) {
     const source = await read(file);
-    assert.doesNotMatch(source, /min-w-\[980px\]/, `${file} still forces a desktop overflow width`);
+    assert.match(source, /min-w-\[(?:900|920|980)px\]/, `${file} keeps a readable mobile table width`);
   }
   assert.match(await read("src/components/admin/admin-listing-surface.tsx"), /overflow-visible/);
+  assert.match(await read("src/components/admin/admin-listing-surface.tsx"), /overflow-x-auto/);
   assert.match(await read("src/routes/_authenticated/admin/alerts.tsx"), /table-fixed/);
 });
 

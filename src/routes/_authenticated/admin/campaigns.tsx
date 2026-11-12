@@ -184,7 +184,7 @@ function CampaignsAdminPage() {
               key={c.id}
               onActivate={openActions}
             >
-              <div className="grid w-full min-w-0 grid-cols-[20px_40px_minmax(0,1fr)_40px] items-center gap-1.5 md:grid-cols-[20px_40px_minmax(0,2fr)_minmax(0,1.1fr)_minmax(0,.8fr)_minmax(0,1fr)_40px]">
+              <div className="grid min-w-[900px] grid-cols-[20px_40px_minmax(0,2fr)_minmax(0,1.1fr)_minmax(0,.8fr)_minmax(0,1fr)_40px] items-center gap-1.5">
               <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
               {c.image_url ? (
                 <img src={c.image_url} alt="" className="h-12 w-[70px] shrink-0 rounded object-cover" />
@@ -211,12 +211,9 @@ function CampaignsAdminPage() {
                   <p className="line-clamp-2 font-semibold">{c.title}</p>
                 </div>
               </div>
-              <span className="hidden truncate text-sm md:block">{c.location || "—"}</span>
-              <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">{status}</span>
-              <span className="hidden whitespace-nowrap text-xs text-muted-foreground md:block">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
-              <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden">
-                <span>{c.location || "Location unavailable"}</span><span className="ml-2 capitalize">{status}</span>
-              </div>
+              <span className="truncate text-sm">{c.location || "—"}</span>
+              <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
+              <span className="whitespace-nowrap text-xs text-muted-foreground">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
               <div className="flex flex-wrap items-center justify-self-end gap-1">
               <Dialog
                 open={reportOpenId === c.id}

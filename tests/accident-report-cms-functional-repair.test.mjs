@@ -8,10 +8,7 @@ const read = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 test("unified report and infrastructure editors map AI schema fields to their form state", async () => {
   const editor = await read("src/components/admin/editorial-record-editor.tsx");
   assert.match(editor, /type === "report"\) return \{ \.\.\.value, description: value\.body \}/);
-  assert.match(
-    editor,
-    /type === "infrastructure"\) return \{ \.\.\.value, content: value\.body \}/,
-  );
+  assert.match(editor, /type === "infrastructure"\) return \{ \.\.\.value, content: value\.body \}/);
   assert.match(editor, /type === "report" && key === "description"/);
   assert.match(editor, /type === "infrastructure" && key === "content"/);
 });
@@ -60,10 +57,10 @@ test("report editor relationship controls are deferred until a durable ID and li
   assert.match(relationship, /details className/);
 });
 
-test("report listing keeps title and actions in aligned, non-truncated columns", async () => {
+test("report listing keeps title and actions in aligned, horizontally scrollable columns", async () => {
   const listing = await read("src/routes/_authenticated/admin/reports.tsx");
   assert.match(listing, /const REPORT_LISTING_GRID/);
-  assert.match(listing, /grid \$\{REPORT_LISTING_GRID\} grid-cols-\[20px_40px_minmax\(0,1fr\)_40px\]/);
+  assert.match(listing, /grid min-w-\[920px\] \$\{REPORT_LISTING_GRID\}/);
   assert.match(listing, /break-words whitespace-normal font-semibold/);
   assert.match(listing, /data-row-action/);
   assert.match(listing, /Unpublish this report/);

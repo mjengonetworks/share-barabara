@@ -335,7 +335,7 @@ function ArticlesQueueListPage() {
                 key={a.id}
                 onActivate={openActions}
               >
-                <div className="grid w-full min-w-0 grid-cols-[20px_40px_minmax(0,1fr)_40px] items-center gap-1.5 md:grid-cols-[20px_40px_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,auto)_40px]">
+                <div className="grid min-w-[900px] grid-cols-[20px_40px_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,auto)_40px] items-center gap-1.5">
                   <input
                     type="checkbox"
                     aria-label={`Select ${a.title}`}
@@ -356,10 +356,6 @@ function ArticlesQueueListPage() {
                     )}
                   </div>
 
-                  <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden">
-                    <span className="capitalize">{a.status.replace("_", " ")}</span>
-                    <span className="ml-2">{a.categories?.length ? a.categories.join(", ") : a.category}</span>
-                  </div>
                   <div className="min-w-0 text-left">
                     <div className="min-w-0">
                       <p className="line-clamp-2 font-semibold leading-snug">{a.title}</p>
@@ -376,21 +372,21 @@ function ArticlesQueueListPage() {
                       </span>
                     ))}
                   </div>
-                  <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">
+                  <span className="text-xs font-semibold capitalize text-muted-foreground">
                     {a.status.replace("_", " ")}
                   </span>
-                  <span className="hidden min-w-0 text-sm md:block">
+                  <span className="min-w-0 text-sm">
                     {a.author_id ? (
                       <UserLink userId={a.author_id} name={names[a.author_id]} />
                     ) : (
                       "—"
                     )}
                   </span>
-                  <span className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex">
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                     <Eye className="size-3" />
                     {viewCountsError || viewCountsLoading ? "—" : (viewCounts[a.id] ?? 0)}
                   </span>
-                  <span className="hidden text-xs text-muted-foreground md:block">{dateTime(a.created_at)}</span>
+                  <span className="text-xs text-muted-foreground">{dateTime(a.created_at)}</span>
                   <div className="flex items-center gap-1">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

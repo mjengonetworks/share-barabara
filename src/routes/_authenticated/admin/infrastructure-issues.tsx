@@ -205,7 +205,7 @@ function InfrastructureIssuesAdminPage() {
 
           return (
             <AdminListingRow key={i.id} onActivate={openActions}>
-              <div className="grid w-full min-w-0 grid-cols-[20px_40px_minmax(0,1fr)_40px] items-center gap-1.5 md:grid-cols-[20px_40px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,.9fr)_minmax(0,.8fr)_minmax(0,.8fr)_40px]">
+              <div className="grid min-w-[900px] grid-cols-[20px_40px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,.9fr)_minmax(0,.8fr)_minmax(0,.8fr)_40px] items-center gap-1.5">
                 <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {i.image_url ? (
@@ -227,15 +227,11 @@ function InfrastructureIssuesAdminPage() {
                   </div>
                   </div>
 
-                <span className="hidden truncate text-sm md:block">{i.structure_type || "—"}</span>
-                <span className="hidden truncate text-sm md:block">{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
-                <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden">
-                  <span>{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
-                  <span className="ml-2 capitalize">{i.status}</span>
-                </div>
-                <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">{i.status}</span>
-                <span className="hidden min-w-0 text-sm md:block">{i.user_id ? <UserLink userId={i.user_id} name={names[i.user_id]} /> : "—"}</span>
-                <span className="hidden text-xs text-muted-foreground md:block">{dateTime(i.created_at)}</span>
+                <span className="truncate text-sm">{i.structure_type || "—"}</span>
+                <span className="truncate text-sm">{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
+                <span className="min-w-0 text-sm">{i.user_id ? <UserLink userId={i.user_id} name={names[i.user_id]} /> : "—"}</span>
+                <span className="text-xs text-muted-foreground">{dateTime(i.created_at)}</span>
                 <div className="flex items-center justify-self-end gap-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

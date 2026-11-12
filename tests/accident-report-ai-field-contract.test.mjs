@@ -81,10 +81,10 @@ test("the canonical full-content field maps to both editor form shapes", () => {
   assert.equal(parsed.casualties, 3);
 });
 
-test("responsive Reports listing keeps actions visible without a fixed overflow width", async () => {
+test("responsive Reports listing keeps the full table readable in a scroll viewport", async () => {
   const source = await readFile(new URL("../src/routes/_authenticated/admin/reports.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(source, /REPORT_LISTING_GRID = "[^"]*min-w-\[1180px\]/);
-  assert.match(source, /grid-cols-\[20px_40px_minmax\(0,1fr\)_40px\]/);
+  assert.match(source, /grid min-w-\[920px\]/);
   assert.match(source, /data-row-action/);
-  assert.match(source, /col-span-full min-w-0 text-xs text-muted-foreground md:hidden/);
+  assert.doesNotMatch(source, /col-span-full min-w-0 text-xs text-muted-foreground md:hidden/);
 });

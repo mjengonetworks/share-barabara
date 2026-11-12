@@ -56,7 +56,7 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingHeader, AdminListingRow, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { mapAccidentReportAiDraftToForm } from "@/lib/ai/accident-report-contract";
 
-const REPORT_LISTING_GRID = "w-full min-w-0 items-center gap-1.5";
+const REPORT_LISTING_GRID = "w-full items-center gap-1.5";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -288,7 +288,7 @@ function ReportsQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader className={REPORT_LISTING_GRID}><span>Image</span><span>Title</span><span className="hidden md:block">Location</span><span className="hidden md:block">Severity</span><span className="hidden md:block">Status</span><span className="hidden md:block">Author</span><span className="hidden md:block">Views</span><span className="hidden md:block">Created</span><span className="whitespace-nowrap">Actions</span></AdminListingHeader>
+        <AdminListingHeader className={`${REPORT_LISTING_GRID} min-w-[920px] grid-cols-[20px_40px_minmax(0,2.2fr)_minmax(0,1.1fr)_minmax(4.5rem,.7fr)_minmax(5rem,.75fr)_minmax(5rem,.8fr)_minmax(4rem,.55fr)_minmax(6rem,.8fr)_40px]`}><span>Image</span><span>Title</span><span>Location</span><span>Severity</span><span>Status</span><span>Author</span><span>Views</span><span>Created</span><span className="whitespace-nowrap">Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {reports.map((r) => {
           const reportRecord = r as typeof r & { incident_type?: string | null };
@@ -327,7 +327,7 @@ function ReportsQueuePage() {
 
           return (
             <AdminListingRow key={r.id} onActivate={openActions}>
-              <div className={`grid ${REPORT_LISTING_GRID} grid-cols-[20px_40px_minmax(0,1fr)_40px] md:grid-cols-[20px_40px_minmax(0,2.2fr)_minmax(0,1.1fr)_minmax(4.5rem,.7fr)_minmax(5rem,.75fr)_minmax(5rem,.8fr)_minmax(4rem,.55fr)_minmax(6rem,.8fr)_40px]`}>
+              <div className={`grid min-w-[920px] ${REPORT_LISTING_GRID} grid-cols-[20px_40px_minmax(0,2.2fr)_minmax(0,1.1fr)_minmax(4.5rem,.7fr)_minmax(5rem,.75fr)_minmax(5rem,.8fr)_minmax(4rem,.55fr)_minmax(6rem,.8fr)_40px]`}>
                 <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {r.image_url ? (
@@ -348,17 +348,12 @@ function ReportsQueuePage() {
                   </div>
                   </div>
 
-                <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden">
-                  <span className="font-medium">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
-                  <span className="ml-2 capitalize">{r.status}</span>
-                  <span className="ml-2">{r.severity || "Severity unavailable"}</span>
-                </div>
-                <span className="hidden min-w-0 break-words whitespace-normal text-xs md:block" title={`${r.county || "Not specified"}${r.road ? ` · ${r.road}` : ""}`}>{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
-                <span className="hidden md:block"><SeverityBadge value={r.severity} /></span>
-                <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">{r.status}</span>
-                <span className="hidden min-w-0 text-sm md:block">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
-                <span className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
-                <span className="hidden text-xs text-muted-foreground md:block">{dateTime(r.created_at)}</span>
+                <span className="min-w-0 break-words whitespace-normal text-xs" title={`${r.county || "Not specified"}${r.road ? ` · ${r.road}` : ""}`}>{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
+                <span><SeverityBadge value={r.severity} /></span>
+                <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
+                <span className="min-w-0 text-sm">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
+                <span className="text-xs text-muted-foreground">{dateTime(r.created_at)}</span>
                 <div className="flex items-center justify-self-end gap-1 whitespace-nowrap">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
