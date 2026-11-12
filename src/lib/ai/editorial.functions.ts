@@ -6,6 +6,7 @@ import { enforceAIRateLimit } from "./rate-limit.server";
 import { EDITORIAL_EXTRACTION_PROMPTS, EDITORIAL_PROMPTS } from "./editorial-prompts";
 import {
   ACCIDENT_REPORT_AI_FIELDS,
+  RECOMMENDED_SEO_DESCRIPTION_CHARS,
   normalizeAccidentReportAiObject,
   type AccidentReportAiFieldResults,
 } from "./accident-report-contract";
@@ -15,7 +16,7 @@ import { normalizeRichTextForEditor } from "@/lib/rich-text-format";
 // complete source-of-truth wording lives in docs/editorial-prompts and is
 // loaded by EDITORIAL_PROMPTS; these markers intentionally do not replace it.
 // Summary: maximum 20 words. Do not split sentences into individual paragraphs.
-// preserve a meaningful factual source list. SEO description no more than 160 characters;
+// preserve a meaningful factual source list. SEO description should ordinarily be 150–160 characters;
 // SEO keywords no more than 500 characters.
 // strong factual news lead. Attribute opinion, analysis and source material.
 // ALERT: This is a short immediate road-safety product. Never invent closure, congestion,
@@ -225,7 +226,7 @@ function parseDraftResult(contentType: EditorialContentType, answer: string): { 
   }
   if (contentType === "article") {
     if (typeof draft.summary === "string" && draft.summary.split(/\s+/).filter(Boolean).length > 20) throw new Error("Article summary exceeds 20 words");
-    if (typeof draft.seo_description === "string" && draft.seo_description.length > 160) throw new Error("Article SEO description exceeds 160 characters");
+    // SEO length is editorial guidance, not a universal technical rejection.
     if (typeof draft.seo_keywords === "string" && draft.seo_keywords.length > 500) throw new Error("SEO keywords exceed 500 characters");
   }
   if (contentType === "campaign") {
@@ -238,7 +239,15 @@ function parseDraftResult(contentType: EditorialContentType, answer: string): { 
   if (Object.keys(draft).length === 0) throw new Error("Editorial AI returned no usable fields");
   return {
     draft,
-    results: { populated: Object.keys(draft), skipped: fieldsFor(contentType).filter((field) => !(field in draft)), rejected: {} },
+    results: {
+      populated: Object.keys(draft),
+      skipped: fieldsFor(contentType).filter((field) => !(field in draft)),
+      rejected: {},
+      skippedReasons: Object.fromEntries(fieldsFor(contentType).filter((field) => !(field in draft)).map((field) => [field, "The provider did not return this field."])),
+      warnings: typeof draft.seo_description === "string" && draft.seo_description.length > RECOMMENDED_SEO_DESCRIPTION_CHARS
+        ? { seo_description: `Longer than the recommended ${RECOMMENDED_SEO_DESCRIPTION_CHARS} characters; review before saving.` }
+        : {},
+    },
   };
 }
 
@@ -323,7 +332,7 @@ function editorialPrompt(
       : "",
   ].filter(Boolean).join("\n");
   const reportContract = contentType === "report"
-    ? "Accident Report contract: summary is the independent Editorial summary and must be no more than 20 words; description is the visible Full content; seo_description is the actual SEO description editor field and must be returned separately from description, with a maximum of 160 characters; casualties means confirmed injuries and fatalities remains separate; parties_involved uses only pedestrian, cyclist, motorcyclist, passenger or other; unknown numerical values remain null; coordinates are returned only when verified; image fields are metadata only. Full content must use genuine blank-line paragraph boundaries, with headings or lists only when supported by the evidence."
+    ? "Accident Report contract: summary is the independent Editorial summary and must be no more than 20 words; description is the visible Full content; seo_description is the actual SEO description editor field and should ordinarily be 150–160 characters, but longer factual values remain reviewable and must not be silently truncated; casualties means confirmed injuries and fatalities remains separate; parties_involved uses only pedestrian, cyclist, motorcyclist, passenger or other; unknown numerical values remain null; coordinates are returned only when verified; image fields are metadata only. Full content must use genuine blank-line paragraph boundaries, with headings or lists only when supported by the evidence."
     : "";
   return [
     securityLayer(),
@@ -705,7 +714,7 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
         );
       const validateProviderDraft = (answer: string) => {
         const parsed = parseDraftResult(contentType, answer);
-        if (mode === "autopopulate") validateSourceGroundingForTest(contentType, source, parsed.draft);
+        if (mode === "autopopulate" || mode === "generate") validateSourceGroundingForTest(contentType, source, parsed.draft);
         const taxonomy = filterControlledDraftValues(contentType, parsed.draft, allowedTaxonomy);
         return {
           draft: taxonomy.draft,

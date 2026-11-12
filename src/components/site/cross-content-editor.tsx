@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link2, Plus, Save, Sparkles, Tag, Trash2, X } from "lucide-react";
+import { ChevronDown, Link2, Plus, Save, Sparkles, Tag, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,10 @@ import {
 const callGenerate = generateEditorialDraft as unknown as (args: {
   data: unknown;
 }) => Promise<{ draft?: Record<string, EditorialValue> }>;
-const types: EditorialContentType[] = ["article", "report", "alert", "campaign", "infrastructure"];
+type RelatedContentType = EditorialContentType | "feed_post";
+type SearchResult = { type: RelatedContentType; id: string; title: string; status: string };
+
+const types: RelatedContentType[] = ["article", "report", "alert", "campaign", "infrastructure", "feed_post"];
 const targets: Record<EditorialContentType, EditorialContentType[]> = {
   article: ["report", "campaign", "alert", "infrastructure"],
   report: ["article", "campaign", "alert", "infrastructure"],
@@ -36,6 +39,23 @@ const targets: Record<EditorialContentType, EditorialContentType[]> = {
 
 function label(value: EditorialContentType) {
   return value === "report" ? "Accident Report" : value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function relatedLabel(value: RelatedContentType) {
+  return value === "feed_post" ? "Media & Feed" : label(value);
+}
+
+const relationshipTables: Array<[RelatedContentType, string]> = [
+  ["article", "news"],
+  ["report", "accident_reports"],
+  ["alert", "alerts"],
+  ["campaign", "campaigns"],
+  ["infrastructure", "infrastructure_issues"],
+  ["feed_post", "feed_posts"],
+];
+
+function isCanonicalIncidentPair(sourceType: EditorialContentType, targetType: RelatedContentType) {
+  return (sourceType === "alert" && targetType === "report") || (sourceType === "report" && targetType === "alert");
 }
 function firstTarget(sourceType: EditorialContentType): EditorialContentType {
   return targets[sourceType][0] ?? "article";
@@ -80,11 +100,9 @@ export function CrossContentEditor({
   const [targetId, setTargetId] = useState("");
   const [tagQuery, setTagQuery] = useState("");
   const [newTag, setNewTag] = useState("");
-  const [linkTargetType, setLinkTargetType] = useState<EditorialContentType>(() =>
-    firstTarget(sourceType),
-  );
-  const [linkTargetId, setLinkTargetId] = useState("");
   const [linkSearch, setLinkSearch] = useState("");
+  const [linkTypeFilter, setLinkTypeFilter] = useState<RelatedContentType | "all">("all");
+  const [selectedTargets, setSelectedTargets] = useState<SearchResult[]>([]);
 
   const relationships = useQuery({
     queryKey: ["editorial-relationships", sourceType, sourceId],
@@ -94,12 +112,14 @@ export function CrossContentEditor({
           .from("editorial_content_relationships")
           .select("*")
           .eq("source_type", sourceType)
-          .eq("source_id", sourceId),
+          .eq("source_id", sourceId)
+          .is("deleted_at", null),
         (supabase as any)
           .from("editorial_content_relationships")
           .select("*")
           .eq("target_type", sourceType)
-          .eq("target_id", sourceId),
+          .eq("target_id", sourceId)
+          .is("deleted_at", null),
       ]);
       if (outgoing.error) throw outgoing.error;
       if (incoming.error) throw incoming.error;
@@ -107,6 +127,49 @@ export function CrossContentEditor({
     },
   });
   const relationshipControlsUnavailable = Boolean(relationships.error);
+  const relationshipRefs = (relationships.data ?? []).map((relationship) => ({
+    relationship,
+    source: relationship["source_type"] as RelatedContentType,
+    sourceId: String(relationship["source_id"]),
+    target: relationship["target_type"] as RelatedContentType,
+    targetId: String(relationship["target_id"]),
+  }));
+  const relationshipRecords = useQuery({
+    queryKey: [
+      "editorial-relationship-records",
+      sourceType,
+      sourceId,
+      relationshipRefs.map(({ source, sourceId: relatedSourceId, target, targetId }) =>
+        `${source}:${relatedSourceId}:${target}:${targetId}`,
+      ),
+    ],
+    enabled: relationshipRefs.length > 0 && !relationshipControlsUnavailable,
+    queryFn: async () => {
+      const results = new Map<string, SearchResult>();
+      for (const [type, table] of relationshipTables) {
+        const ids = relationshipRefs
+          .filter(({ source, sourceId: relatedSourceId, target, targetId }) =>
+            source === type ? relatedSourceId !== sourceId && relatedSourceId : target === type ? targetId !== sourceId && targetId : false,
+          )
+          .map(({ source, sourceId: relatedSourceId, targetId }) => source === type ? relatedSourceId : targetId);
+        if (!ids.length) continue;
+        const { data, error } = await (supabase as any)
+          .from(table)
+          .select(table === "feed_posts" ? "id,body,status" : "id,title,status")
+          .in("id", [...new Set(ids)]);
+        if (error) throw error;
+        for (const row of data ?? []) {
+          results.set(`${type}:${row.id}`, {
+            type,
+            id: row.id,
+            title: row.title ?? row.body?.replace(/<[^>]+>/g, " ").trim().slice(0, 120) ?? "Untitled",
+            status: row.status ?? "unknown",
+          });
+        }
+      }
+      return results;
+    },
+  });
 
   const tags = useQuery({
     queryKey: ["editorial-tags", tagQuery],
@@ -158,36 +221,31 @@ export function CrossContentEditor({
   });
 
   const relatedSearch = useQuery({
-    queryKey: ["editorial-related-search", linkSearch],
+    queryKey: ["editorial-related-search", sourceType, sourceId, linkSearch, linkTypeFilter],
     enabled: linkSearch.trim().length >= 2,
     queryFn: async () => {
-      const tables: Array<[EditorialContentType, string]> = [
-        ["article", "news"],
-        ["report", "accident_reports"],
-        ["alert", "alerts"],
-        ["campaign", "campaigns"],
-        ["infrastructure", "infrastructure_issues"],
-      ];
       const needle = `%${linkSearch.trim().replace(/[%_]/g, "\\$&")}%`;
       const results = await Promise.all(
-        tables
-          .filter(([type]) => type !== sourceType)
+        relationshipTables
+          .filter(([type]) => type !== sourceType && (linkTypeFilter === "all" || type === linkTypeFilter))
+          .filter(([type]) => !isCanonicalIncidentPair(sourceType, type))
           .map(async ([type, table]) => {
+            const titleColumn = table === "feed_posts" ? "body" : "title";
             const { data, error } = await (supabase as any)
               .from(table)
-              .select("id,title,slug")
-              .ilike("title", needle)
+              .select(table === "feed_posts" ? "id,body,status" : "id,title,status")
+              .ilike(titleColumn, needle)
               .limit(5);
             if (error) throw error;
-            return (data ?? []).map((row: { id: string; title?: string; slug?: string }) => ({
+            return (data ?? []).map((row: { id: string; title?: string; body?: string; status?: string }) => ({
               type,
               id: row.id,
-              title: row.title ?? "Untitled",
-              slug: row.slug,
+              title: row.title ?? row.body?.replace(/<[^>]+>/g, " ").trim().slice(0, 120) ?? "Untitled",
+              status: row.status ?? "unknown",
             }));
           }),
       );
-      return results.flat().slice(0, 12);
+      return results.flat().filter((result) => result.id !== sourceId).slice(0, 12) as SearchResult[];
     },
   });
 
@@ -384,19 +442,33 @@ export function CrossContentEditor({
   });
 
   const link = useMutation({
-    mutationFn: async () => {
-      if (!linkTargetId.trim()) throw new Error("Enter the target record ID.");
-      const { error } = await (supabase.rpc as any)("editorial_link_content", {
-        _source_type: sourceType,
-        _source_id: sourceId,
-        _target_type: linkTargetType,
-        _target_id: linkTargetId.trim(),
-        _relationship_type: "related",
+    mutationFn: async (targetsToLink: SearchResult[]) => {
+      if (!targetsToLink.length) throw new Error("Select at least one existing record.");
+      const existingKeys = new Set(
+        (relationships.data ?? []).map((relationship) =>
+          `${String(relationship["source_type"])}:${String(relationship["source_id"])}:${String(relationship["target_type"])}:${String(relationship["target_id"])}`,
+        ),
+      );
+      const freshTargets = targetsToLink.filter((target) => {
+        if (isCanonicalIncidentPair(sourceType, target.type)) return false;
+        return !existingKeys.has(`${sourceType}:${sourceId}:${target.type}:${target.id}`);
       });
-      if (error) throw error;
+      if (!freshTargets.length) throw new Error("The selected records are already linked.");
+      for (const target of freshTargets) {
+        const { error } = await (supabase.rpc as any)("editorial_link_content", {
+          _source_type: sourceType,
+          _source_id: sourceId,
+          _target_type: target.type,
+          _target_id: target.id,
+          _relationship_type: "related",
+        });
+        if (error) throw error;
+      }
+      return freshTargets;
     },
     onSuccess: () => {
-      setLinkTargetId("");
+      setSelectedTargets([]);
+      setLinkSearch("");
       void queryClient.invalidateQueries({
         queryKey: ["editorial-relationships", sourceType, sourceId],
       });
@@ -439,14 +511,19 @@ export function CrossContentEditor({
     >
       <div>
         <h3 className="flex items-center gap-2 font-bold">
-          <Link2 className="size-4 text-accent" /> Related content
+          <Link2 className="size-4 text-accent" /> Editorial relationships
         </h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Generate an unpublished, source-linked draft or connect an existing record. Source content
-          is never changed.
+          Link existing records or generate an unpublished, source-linked draft. Source content is never changed.
         </p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+      <details className="rounded-md border border-border bg-background" data-generate-related-content>
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-2"><Sparkles className="size-4 text-accent" /> Generate Related Content</span>
+          <ChevronDown className="size-4 text-muted-foreground" />
+        </summary>
+        <div className="space-y-3 border-t border-border p-3">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
         <div>
           <Label>Generate target</Label>
           <Select
@@ -472,7 +549,7 @@ export function CrossContentEditor({
           onClick={() => generate.mutate()}
         >
           <Sparkles className="mr-2 size-4" />
-          {generate.isPending ? "Generating…" : "Generate related draft"}
+          {generate.isPending ? "Generating…" : "Generate with Grok"}
         </Button>
       </div>
       {draft ? (
@@ -587,6 +664,8 @@ export function CrossContentEditor({
           </div>
         </div>
       ) : null}
+        </div>
+      </details>
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
         <div>
           <Label>Assign existing tag</Label>
@@ -650,112 +729,78 @@ export function CrossContentEditor({
           )}
         </div>
       ) : null}
-      <div className="space-y-3">
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <div>
-            <Label>Link target type</Label>
-            <Select
-              value={linkTargetType}
-              onValueChange={(value) => setLinkTargetType(value as EditorialContentType)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {types
-                  .filter((value) => value !== sourceType)
-                  .map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {label(value)}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Search related content</Label>
-            <Input
-              value={linkSearch}
-              onChange={(event) => setLinkSearch(event.target.value)}
-              placeholder="Search by title…"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="self-end"
-            disabled={link.isPending || relationshipControlsUnavailable}
-            onClick={() => link.mutate()}
-          >
-            Link
-          </Button>
-        </div>
-        {relatedSearch.data?.length ? (
-          <div className="grid gap-2 sm:grid-cols-2">
-            {relatedSearch.data.map((result) => (
-              <button
-                key={`${result.type}-${result.id}`}
-                type="button"
-                className="rounded border border-border bg-background p-2 text-left text-xs hover:bg-muted/50"
-                onClick={() => {
-                  setLinkTargetType(result.type);
-                  setLinkTargetId(result.id);
-                  setLinkSearch(result.title);
-                }}
-              >
-                <span className="font-semibold">{result.title}</span>
-                <span className="ml-2 text-muted-foreground">{label(result.type)}</span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-        <div>
-          <Label htmlFor={`related-id-${sourceId}`}>Selected target ID</Label>
-          <Input
-            id={`related-id-${sourceId}`}
-            value={linkTargetId}
-            onChange={(event) => setLinkTargetId(event.target.value)}
-            placeholder="Choose a search result or enter a UUID"
-          />
-        </div>
-      </div>
-      {relationshipControlsUnavailable ? (
-        <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          Related-content controls are unavailable until the approved relationship schema is present and your editor permission is active. No relationship changes were saved.
-        </p>
-      ) : null}
-      {relationships.data?.length ? (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Existing relationships
-          </p>
-          {relationships.data.map((relationship) => (
-            <div
-              key={String(relationship["id"])}
-              className="flex items-center gap-2 rounded border border-border bg-background p-2 text-xs"
-            >
-              <span className="min-w-0 flex-1 truncate">
-                {String(relationship["source_type"])} → {String(relationship["target_type"])} ·{" "}
-                {String(
-                  relationship["target_id"] === sourceId
-                    ? relationship["source_id"]
-                    : relationship["target_id"],
-                )}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Unlink content"
-                disabled={relationshipControlsUnavailable || unlink.isPending}
-                onClick={() => unlink.mutate(String(relationship["id"]))}
-              >
-                <Trash2 className="size-3.5 text-destructive" />
-              </Button>
+      <details className="rounded-md border border-border bg-background" data-related-content>
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-2"><Link2 className="size-4 text-accent" /> Related Content <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-normal">{relationships.data?.length ?? 0}</span></span>
+          <ChevronDown className="size-4 text-muted-foreground" />
+        </summary>
+        <div className="space-y-3 border-t border-border p-3">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto]">
+            <div>
+              <Label htmlFor={`related-search-${sourceId}`}>Search existing records</Label>
+              <Input
+                id={`related-search-${sourceId}`}
+                value={linkSearch}
+                onChange={(event) => setLinkSearch(event.target.value)}
+                placeholder="Search by title…"
+              />
             </div>
-          ))}
+            <div>
+              <Label>Content type</Label>
+              <Select value={linkTypeFilter} onValueChange={(value) => setLinkTypeFilter(value as RelatedContentType | "all")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All supported types</SelectItem>
+                  {types.filter((value) => value !== sourceType && !isCanonicalIncidentPair(sourceType, value)).map((value) => (
+                    <SelectItem key={value} value={value}>{relatedLabel(value)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="button" variant="outline" className="self-end" disabled={link.isPending || relationshipControlsUnavailable || selectedTargets.length === 0} onClick={() => link.mutate(selectedTargets)}>
+              {link.isPending ? "Linking…" : "Link selected"}
+            </Button>
+          </div>
+          {selectedTargets.length ? (
+            <div className="flex flex-wrap gap-2" aria-label="Selected related records">
+              {selectedTargets.map((target) => (
+                <span key={`${target.type}-${target.id}`} className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2 py-1 text-xs">
+                  {relatedLabel(target.type)}: {target.title}
+                  <button type="button" className="rounded-full p-0.5 hover:bg-muted" aria-label={`Remove ${target.title} from selection`} onClick={() => setSelectedTargets((current) => current.filter((item) => item.id !== target.id || item.type !== target.type))}><X className="size-3" /></button>
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {linkSearch.trim().length >= 2 && relatedSearch.isFetching ? <p className="text-xs text-muted-foreground">Searching existing records…</p> : null}
+          {linkSearch.trim().length >= 2 && !relatedSearch.isFetching && relatedSearch.data?.length === 0 ? <p className="text-xs text-muted-foreground">No eligible records matched this search.</p> : null}
+          {relatedSearch.data?.length ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {relatedSearch.data.map((result) => {
+                const selected = selectedTargets.some((item) => item.type === result.type && item.id === result.id);
+                return <button key={`${result.type}-${result.id}`} type="button" aria-pressed={selected} className={`rounded border p-2 text-left text-xs ${selected ? "border-accent bg-accent/10" : "border-border bg-background hover:bg-muted/50"}`} onClick={() => setSelectedTargets((current) => selected ? current.filter((item) => item.type !== result.type || item.id !== result.id) : [...current, result])}>
+                  <span className="block font-semibold">{result.title}</span>
+                  <span className="text-muted-foreground">{relatedLabel(result.type)} · {result.status}</span>
+                </button>;
+              })}
+            </div>
+          ) : null}
+          {relationshipControlsUnavailable ? <p className="rounded border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">Related-content controls are unavailable until the approved relationship schema is present and your editor permission is active. No relationship changes were saved.</p> : null}
+          {relationships.data?.length ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Existing relationships</p>
+              {relationships.data.map((relationship) => {
+                const relatedType = (relationship["target_id"] === sourceId ? relationship["source_type"] : relationship["target_type"]) as RelatedContentType;
+                const relatedId = String(relationship["target_id"] === sourceId ? relationship["source_id"] : relationship["target_id"]);
+                const record = relationshipRecords.data?.get(`${relatedType}:${relatedId}`);
+                return <div key={String(relationship["id"])} className="flex items-center gap-2 rounded border border-border bg-background p-2 text-xs">
+                  <span className="min-w-0 flex-1"><span className="font-semibold">{record?.title ?? "Linked record"}</span><span className="ml-2 text-muted-foreground">{relatedLabel(relatedType)} · {record?.status ?? "linked"}</span></span>
+                  <Button type="button" variant="ghost" size="icon" aria-label={`Unlink ${record?.title ?? "content"}`} disabled={relationshipControlsUnavailable || unlink.isPending} onClick={() => { if (window.confirm("Remove this relationship?")) unlink.mutate(String(relationship["id"])); }}><Trash2 className="size-3.5 text-destructive" /></Button>
+                </div>;
+              })}
+            </div>
+          ) : <p className="text-xs text-muted-foreground">No related content has been linked.</p>}
         </div>
-      ) : null}
+      </details>
     </section>
   );
 }

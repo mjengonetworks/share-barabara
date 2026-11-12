@@ -211,19 +211,19 @@ function AlertsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface className="mt-0">
-        <Table className="min-w-[980px]">
+          <Table className="w-full min-w-0 table-fixed">
           <TableHeader>
             <TableRow>
               <TableHead className="w-10"><span className="sr-only">Select</span></TableHead>
               <TableHead>Image</TableHead>
-              <TableHead>Alert</TableHead>
-              <TableHead>County</TableHead>
-              <TableHead>Severity</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Reported by</TableHead>
-              <TableHead>Views</TableHead>
-              <TableHead>Posted</TableHead>
-              <TableHead className="whitespace-nowrap text-right">Actions</TableHead>
+              <TableHead className="w-[24%]">Alert</TableHead>
+              <TableHead className="w-[10%]">County</TableHead>
+              <TableHead className="w-[11%]">Severity</TableHead>
+              <TableHead className="w-[10%]">Status</TableHead>
+              <TableHead className="w-[13%]">Reported by</TableHead>
+              <TableHead className="w-[8%]">Views</TableHead>
+              <TableHead className="w-[12%]">Posted</TableHead>
+              <TableHead className="w-[12%] whitespace-nowrap text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -233,7 +233,7 @@ function AlertsAdminPage() {
                 <TableCell>
                   {a.image_url ? <img src={a.image_url} alt="" className="size-12 rounded object-cover" /> : <div className="size-12 rounded bg-muted" aria-label="No featured image" />}
                 </TableCell>
-                <TableCell className="max-w-xs">
+                <TableCell className="max-w-0 break-words">
                   <Link
                     to="/alerts/$alertId"
                     params={{ alertId: a.id }}
@@ -243,8 +243,8 @@ function AlertsAdminPage() {
                   </Link>
                   <p className="text-xs text-muted-foreground">{a.hazard_type.replace("_", " ")}</p>
                 </TableCell>
-                <TableCell>{a.county}</TableCell>
-                <TableCell>
+                <TableCell className="break-words">{a.county}</TableCell>
+                <TableCell className="break-words">
                   <Select
                     value={a.severity}
                     onValueChange={(v) => setSeverityMutation.mutate({ id: a.id, severity: v })}
@@ -262,7 +262,7 @@ function AlertsAdminPage() {
                   </Select>
                 </TableCell>
                 <TableCell className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</TableCell>
-                <TableCell>
+                <TableCell className="max-w-0 break-words">
                   <UserLink userId={a.user_id} name={names[a.user_id]} anonymous={a.is_anonymous} />
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
@@ -271,7 +271,7 @@ function AlertsAdminPage() {
                 <TableCell className="text-xs text-muted-foreground">
                   {dateTime(a.created_at)}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="whitespace-nowrap text-right">
                   <Button asChild variant="outline" size="sm"><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

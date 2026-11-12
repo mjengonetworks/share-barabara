@@ -25,11 +25,11 @@ test("shared prompt rules protect factuality, causality, attribution and dignity
   ]) assert.match(editorial, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
-test("Article contract includes summary, paragraph, list and SEO limits", () => {
+test("Article contract includes summary, paragraph, list and SEO guidance", () => {
   assert.match(editorial, /Summary: maximum 20 words/);
   assert.match(editorial, /Do not split sentences into individual paragraphs/);
   assert.match(editorial, /preserve a meaningful factual source list/);
-  assert.match(editorial, /SEO description.*160 characters/);
+  assert.match(editorial, /SEO description.*150.?160 characters/);
   assert.match(editorial, /SEO keywords.*500 characters/);
   for (const field of ["title", "summary", "body", "seo_title", "seo_description", "seo_keywords"]) {
     assert.match(editorial, new RegExp(`\\"${field}\\"`));
@@ -64,9 +64,9 @@ test("Provider routing remains action-specific and public AI remains Groq", () =
   assert.match(publicAI, /completeWithProvider\("groq"/);
 });
 
-test("Article parser rejects overlong SEO fields and summaries without truncating them", () => {
+test("Article parser keeps overlong SEO fields reviewable and preserves strict summary/keyword checks", () => {
   assert.match(editorial, /summary\.split\(\/\\s\+\//);
   assert.match(editorial, /summary exceeds 20 words/);
-  assert.match(editorial, /seo_description\.length > 160/);
+  assert.match(editorial, /RECOMMENDED_SEO_DESCRIPTION_CHARS/);
   assert.match(editorial, /seo_keywords\.length > 500/);
 });

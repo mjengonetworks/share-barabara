@@ -29,6 +29,7 @@ export const ACCIDENT_REPORT_AI_FIELDS = [
   "image_caption",
   "image_credit",
 ] as const;
+export const RECOMMENDED_SEO_DESCRIPTION_CHARS = 160;
 
 export type AccidentReportAiField = (typeof ACCIDENT_REPORT_AI_FIELDS)[number];
 export type AccidentReportAiValue = string | number | null | string[];
@@ -38,6 +39,8 @@ export type AccidentReportAiFieldResults = {
   populated: string[];
   skipped: string[];
   rejected: Record<string, string>;
+  skippedReasons: Record<string, string>;
+  warnings: Record<string, string>;
 };
 
 const FIELD_ALIASES: Record<string, AccidentReportAiField> = {
@@ -125,7 +128,9 @@ function textValue(field: string, value: unknown) {
   const text = field === "description" ? normalizeRichTextForEditor(String(value)) : String(value).trim();
   if (!text) return { value: null as null, skipped: true };
   if (field === "summary" && text.split(/\s+/).filter(Boolean).length > 20) return { invalid: "summary must contain no more than 20 words." };
-  if (field === "seo_description" && text.length > 160) return { invalid: "seo_description must be 160 characters or fewer." };
+  if (field === "seo_description" && text.length > RECOMMENDED_SEO_DESCRIPTION_CHARS) {
+    return { value: text, warning: `Longer than the recommended ${RECOMMENDED_SEO_DESCRIPTION_CHARS} characters; review before saving.` };
+  }
   if (field === "seo_keywords" && text.length > 500) return { invalid: "seo_keywords must be 500 characters or fewer." };
   return { value: text };
 }
@@ -137,6 +142,8 @@ export function normalizeAccidentReportAiObject(input: Record<string, unknown>):
 } {
   const draft: AccidentReportAiDraft = {};
   const rejected: Record<string, string> = {};
+  const skippedReasons: Record<string, string> = {};
+  const warnings: Record<string, string> = {};
   const skipped = new Set<string>();
   for (const [rawField, rawValue] of Object.entries(input)) {
     const field = canonicalField(rawField);
@@ -155,15 +162,20 @@ export function normalizeAccidentReportAiObject(input: Record<string, unknown>):
     } else if (result.skipped || result.value === null) {
       if (rawValue === null) draft[field] = null;
       skipped.add(field);
+      skippedReasons[field] = rawValue === null ? "The provider marked this value as unknown or unverified." : "No usable value was returned.";
     } else {
       draft[field] = result.value as AccidentReportAiValue;
+      if ("warning" in result && result.warning) warnings[field] = result.warning;
     }
   }
   const populated = Object.keys(draft);
   for (const field of ACCIDENT_REPORT_AI_FIELDS) {
-    if (!populated.includes(field) && !rejected[field]) skipped.add(field);
+    if (!populated.includes(field) && !rejected[field]) {
+      skipped.add(field);
+      skippedReasons[field] ??= "The provider did not return this field.";
+    }
   }
-  return { draft, results: { populated, skipped: [...skipped], rejected } };
+  return { draft, results: { populated, skipped: [...skipped], rejected, skippedReasons, warnings } };
 }
 
 /** Map the canonical database contract to the visible editor field names. */

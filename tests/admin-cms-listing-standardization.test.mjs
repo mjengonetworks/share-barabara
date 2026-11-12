@@ -49,8 +49,8 @@ test("shared listing primitives provide the deployed surface and mobile-safe bou
   assert.match(listing, /AdminListingSurface/);
   assert.match(listing, /AdminListingHeader/);
   assert.match(listing, /w-full/);
-  assert.match(listing, /overflow-x-auto/);
-  assert.match(listing, /whitespace-nowrap/);
+  assert.match(listing, /overflow-hidden/);
+  assert.match(listing, /min-w-0/);
 });
 
 test("admin listing implementation remains intact while scoped public discovery work is allowed", async () => {

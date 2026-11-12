@@ -92,9 +92,9 @@ function MyContentPage() {
       <div><Label>Views order</Label><Select value={viewSort} onValueChange={(value) => { setViewSort(value); setPage(1); }}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">Default order</SelectItem><SelectItem value="desc">Highest first</SelectItem><SelectItem value="asc">Lowest first</SelectItem></SelectContent></Select></div>
     </div>
     <AdminListingSurface className="mt-3">
-      <div className="grid min-w-[980px] grid-cols-[48px_minmax(10rem,2fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)] items-center gap-2 border-b border-border bg-muted/45 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground"><span>Image</span><span>Title / type</span><span>Status</span><span>Created</span><span>Views</span><span>Actions</span></div>
-      <div className="min-w-[980px] divide-y divide-border/70">
-        {pagedContent.map((item) => <div key={`${item.label}-${item.id}`} className="grid min-w-[980px] grid-cols-[48px_minmax(10rem,2fr)_minmax(6rem,1fr)_minmax(7rem,1fr)_minmax(4rem,auto)_minmax(7rem,auto)] items-center gap-2 px-3 py-2">
+      <div className="grid w-full min-w-0 grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,auto)_minmax(6rem,auto)] items-center gap-2 border-b border-border bg-muted/45 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground"><span>Image</span><span>Title / type</span><span>Status</span><span>Created</span><span>Views</span><span>Actions</span></div>
+      <div className="w-full min-w-0 divide-y divide-border/70">
+        {pagedContent.map((item) => <div key={`${item.label}-${item.id}`} className="grid w-full min-w-0 grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,auto)_minmax(6rem,auto)] items-center gap-2 px-3 py-2">
           {item.image_url ? <img src={item.image_url} alt="" className="h-12 w-[70px] rounded object-cover" /> : <div className="flex size-12 items-center justify-center rounded bg-muted"><ImageIcon className="size-5 text-muted-foreground" /></div>}
           <div className="min-w-0"><p className="line-clamp-2 font-semibold">{item.title || "Untitled"}</p><p className="text-xs text-muted-foreground">{item.label}</p></div>
           <span className="text-sm capitalize text-muted-foreground">{String(item.status ?? "draft").replace("_", " ")}</span>

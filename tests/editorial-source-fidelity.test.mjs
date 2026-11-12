@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { parseEditorialDraftForTest, validateSourceGroundingForTest } from "../src/lib/ai/editorial.functions.ts";
+import { normalizeAccidentReportAiObject } from "../src/lib/ai/accident-report-contract.ts";
 
 const source = (file) => readFile(new URL(`../${file}`, import.meta.url), "utf8");
 const suppliedUrl =
@@ -55,6 +56,14 @@ test("valid structured Article output is not rejected because it exceeds the old
   });
   assert.ok(answer.length > 5000);
   assert.equal(parseEditorialDraftForTest("article", answer).title, "NTSA seeks details on Nairobi Expressway driving footage");
+});
+
+test("SEO guidance preserves a factual overlength value and reports a warning", () => {
+  const seo = "A factual description about the incident, location, confirmed response and investigation status that is intentionally longer than the recommended snippet length.";
+  const normalized = normalizeAccidentReportAiObject({ seo_description: seo, description: "First paragraph.\n\nSecond paragraph." });
+  assert.equal(normalized.draft.seo_description, seo);
+  assert.match(normalized.results.warnings.seo_description, /recommended 160/);
+  assert.match(String(normalized.draft.description), /First paragraph\.[\s\S]*Second paragraph/);
 });
 
 test("provider configuration preserves full editorial JSON and uses extraction temperature", async () => {

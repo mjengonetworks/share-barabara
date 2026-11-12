@@ -204,7 +204,7 @@ function InfrastructureIssuesAdminPage() {
 
           return (
             <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid min-w-[980px] grid-cols-[auto_48px_minmax(10rem,2fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_minmax(5.5rem,1fr)_minmax(6rem,1fr)_minmax(6.5rem,auto)_minmax(7rem,auto)] items-center gap-2 px-3 py-2">
+              <div className="grid w-full min-w-0 grid-cols-[auto_48px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,auto)_minmax(6rem,auto)] items-center gap-2 px-3 py-2">
                 <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {i.image_url ? (

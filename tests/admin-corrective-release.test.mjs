@@ -33,12 +33,13 @@ test("Article form has no incident location or mapping contract", () => {
   assert.match(source, /htmlFor="a-source"/);
 });
 
-test("all admin listing surfaces retain a fixed complete table width on mobile", () => {
+test("all admin listing surfaces retain complete responsive table content", () => {
   const shared = read("src/components/admin/admin-listing-surface.tsx");
-  assert.match(shared, /min-w-\[980px\]/);
+  assert.match(shared, /w-full min-w-0/);
+  assert.match(shared, /overflow-hidden/);
   for (const file of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = read(`src/routes/_authenticated/admin/${file}`);
-    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID|min-w-\[1180px\]/ : /min-w-\[980px\]/, file);
+    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID/ : /w-full min-w-0/, file);
     assert.doesNotMatch(source, /xl:hidden|hidden[^\n]*xl:(?:block|flex|inline-flex)/, `${file} hides table columns on mobile`);
   }
 });
@@ -129,7 +130,7 @@ test("My Content exposes owned destinations and a unified ownership-aware table"
   assert.match(source, /if \(error\) throw error/);
   assert.match(source, /\.eq\(source\.owner, user!\.id\)/);
   assert.match(source, /AdminListingSurface/);
-  assert.match(source, /min-w-\[980px\]/);
+  assert.match(source, /w-full min-w-0/);
   assert.match(source, /Views order/);
   assert.match(source, /Previous/);
   assert.match(source, /Next/);

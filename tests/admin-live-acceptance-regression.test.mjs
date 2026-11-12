@@ -53,7 +53,7 @@ test("editorial listing rows expose separated management-table columns", async (
     for (const label of labels) assert.match(source, new RegExp(label), `${file}: ${label}`);
   }
   const surface = await read("src/components/admin/admin-listing-surface.tsx");
-  assert.match(surface, /grid min-w-\[980px\]/);
+  assert.match(surface, /grid w-full min-w-0/);
 });
 
 test("global admin search includes authorised editorial sources and admin destinations", async () => {
@@ -73,7 +73,7 @@ test("custom listing layouts keep direct Edit and Options controls visible", asy
     const source = await read(`src/routes/_authenticated/admin/${file}`);
     assert.match(source, /aria-label="More actions"/, file);
     assert.match(source, /\/admin\/[^`]+\/\$\{[^}]+\}\/edit/, file);
-    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID|min-w-\[1180px\]/ : /min-w-\[980px\] grid-cols-\[auto_48px/, file);
+    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID/ : /w-full min-w-0 grid-cols-\[auto_48px/, file);
   }
 });
 

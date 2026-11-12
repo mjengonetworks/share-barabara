@@ -266,7 +266,8 @@ export function EditorialAIButton({
         {lastFieldResults ? <div className="rounded-md border border-border bg-muted/30 p-2 text-xs" role="status" aria-live="polite">
           <p className="font-semibold text-foreground">Latest field result</p>
           <p className="mt-1 text-muted-foreground">Populated: {lastFieldResults.populated.length ? lastFieldResults.populated.join(", ") : "none"}</p>
-          <p className="text-muted-foreground">Skipped or unverified: {lastFieldResults.skipped.length ? lastFieldResults.skipped.join(", ") : "none"}</p>
+          <p className="text-muted-foreground">Skipped or unverified: {lastFieldResults.skipped.length ? lastFieldResults.skipped.map((field) => `${field} (${lastFieldResults.skippedReasons?.[field] ?? "not returned"})`).join("; ") : "none"}</p>
+          {Object.keys(lastFieldResults.warnings ?? {}).length ? <p className="text-amber-700">Review guidance: {Object.entries(lastFieldResults.warnings ?? {}).map(([field, reason]) => `${field} (${reason})`).join("; ")}</p> : null}
           {Object.keys(lastFieldResults.rejected).length ? <p className="text-destructive">Rejected: {Object.entries(lastFieldResults.rejected).map(([field, reason]) => `${field} (${reason})`).join("; ")}</p> : null}
         </div> : null}
         <label

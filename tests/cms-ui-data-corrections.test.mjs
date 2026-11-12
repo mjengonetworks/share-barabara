@@ -7,7 +7,7 @@ const read = (file) => fs.readFileSync(file, "utf8");
 test("desktop Articles filters share one compact row and table keeps aligned action columns", () => {
   const articles = read("src/routes/_authenticated/admin/articles.tsx");
   assert.match(articles, /sm:grid-cols-3 lg:grid-cols-\[minmax\(10rem,1fr\)_minmax\(10rem,1fr\)_minmax\(16rem,2fr\)\]/);
-  assert.match(articles, /min-w-\[980px\].*grid-cols-\[auto_48px/);
+  assert.match(articles, /w-full min-w-0 grid-cols-\[auto_48px/);
   assert.match(articles, /<span>Actions<\/span>/);
   assert.match(articles, /More actions/);
   assert.match(articles, /line-clamp-2/);
@@ -15,8 +15,8 @@ test("desktop Articles filters share one compact row and table keeps aligned act
 
 test("shared listings contain horizontal overflow and preserve the complete mobile table", () => {
   const shared = read("src/components/admin/admin-listing-surface.tsx");
-  assert.match(shared, /min-w-0 overflow-x-auto/);
-  assert.match(shared, /min-w-\[980px\]/);
+  assert.match(shared, /w-full min-w-0 overflow-hidden/);
+  assert.match(shared, /grid-cols-\[auto_48px/);
   for (const file of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = read(`src/routes/_authenticated/admin/${file}`);
     assert.doesNotMatch(source, /xl:hidden|hidden[^\n]*xl:(?:block|flex|inline-flex)/);
