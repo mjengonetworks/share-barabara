@@ -48,7 +48,7 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: 009b05892f49d2fbee2b1dc3af3cdf900660ae48
+          ref: ca27eca7e77400ddfc3bdab0eeafdca91ad4e77e
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
