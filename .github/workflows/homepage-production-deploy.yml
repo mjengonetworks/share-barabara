@@ -83,7 +83,7 @@ jobs:
       - name: Check out approved application candidate
         uses: actions/checkout@v4
         with:
-          ref: ca27eca7e77400ddfc3bdab0eeafdca91ad4e77e
+          ref: ${{ inputs.application_sha || 'ca27eca7e77400ddfc3bdab0eeafdca91ad4e77e' }}
           fetch-depth: 0
 
       - name: Confirm candidate ancestry
