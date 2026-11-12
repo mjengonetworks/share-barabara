@@ -54,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$APP_CANDIDATE_SHA"
-          git fetch --no-tags origin "$EXPECTED_PRODUCTION_APPLICATION_SHA"
+          git fetch --no-tags origin "refs/heads/rebuild/accident-report-cms:refs/remotes/origin/rebuild/accident-report-cms"
           git cat-file -e "${EXPECTED_PRODUCTION_APPLICATION_SHA}^{commit}"
           git merge-base --is-ancestor "$EXPECTED_PRODUCTION_APPLICATION_SHA" "$APP_CANDIDATE_SHA"
 
