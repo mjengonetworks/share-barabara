@@ -84,7 +84,7 @@ test("the canonical full-content field maps to both editor form shapes", () => {
 test("responsive Reports listing keeps actions visible without a fixed overflow width", async () => {
   const source = await readFile(new URL("../src/routes/_authenticated/admin/reports.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(source, /REPORT_LISTING_GRID = "[^"]*min-w-\[1180px\]/);
-  assert.match(source, /grid-cols-\[24px_48px_minmax\(0,1fr\)_auto\]/);
-  assert.match(source, /min-w-\[9rem\].*whitespace-nowrap/);
-  assert.match(source, /hidden md:block.*Location/);
+  assert.match(source, /grid-cols-\[20px_40px_minmax\(0,1fr\)_40px\]/);
+  assert.match(source, /data-row-action/);
+  assert.match(source, /col-span-full min-w-0 text-xs text-muted-foreground md:hidden/);
 });

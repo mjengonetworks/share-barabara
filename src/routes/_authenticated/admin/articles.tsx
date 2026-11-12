@@ -45,7 +45,7 @@ import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { CategoryMultiSelect } from "@/components/site/category-multi-select";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { AdminListingHeader, AdminListingRow, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 
 export const Route = createFileRoute("/_authenticated/admin/articles")({
   head: () => ({ meta: [{ title: "Articles: Share Barabara Admin" }] }),
@@ -328,13 +328,14 @@ function ArticlesQueueListPage() {
               set(patch);
             };
             const expanded = expandedId === a.id;
+            const openActions = () => document.getElementById(`article-actions-${a.id}`)?.click();
 
             return (
-              <li
+              <AdminListingRow
                 key={a.id}
-                className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0"
+                onActivate={openActions}
               >
-                <div className="grid w-full min-w-0 grid-cols-[auto_48px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,auto)_minmax(0,auto)_minmax(6rem,auto)] items-center gap-2 px-3 py-2">
+                <div className="grid w-full min-w-0 grid-cols-[20px_40px_minmax(0,1fr)_40px] items-center gap-1.5 md:grid-cols-[20px_40px_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,auto)_40px]">
                   <input
                     type="checkbox"
                     aria-label={`Select ${a.title}`}
@@ -354,13 +355,18 @@ function ArticlesQueueListPage() {
                       </div>
                     )}
                   </div>
+
+                  <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden">
+                    <span className="capitalize">{a.status.replace("_", " ")}</span>
+                    <span className="ml-2">{a.categories?.length ? a.categories.join(", ") : a.category}</span>
+                  </div>
                   <div className="min-w-0 text-left">
                     <div className="min-w-0">
                       <p className="line-clamp-2 font-semibold leading-snug">{a.title}</p>
                     </div>
                   </div>
 
-                  <div className="min-w-0 flex flex-wrap gap-1">
+                  <div className="hidden min-w-0 flex-wrap gap-1 md:flex">
                     {(a.categories?.length ? a.categories : [a.category]).map((c) => (
                       <span
                         key={c}
@@ -370,34 +376,31 @@ function ArticlesQueueListPage() {
                       </span>
                     ))}
                   </div>
-                  <span className="text-xs font-semibold capitalize text-muted-foreground">
+                  <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">
                     {a.status.replace("_", " ")}
                   </span>
-                  <span className="min-w-0 text-sm">
+                  <span className="hidden min-w-0 text-sm md:block">
                     {a.author_id ? (
                       <UserLink userId={a.author_id} name={names[a.author_id]} />
                     ) : (
                       "—"
                     )}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <span className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex">
                     <Eye className="size-3" />
                     {viewCountsError || viewCountsLoading ? "—" : (viewCounts[a.id] ?? 0)}
                   </span>
-                  <span className="text-xs text-muted-foreground">{dateTime(a.created_at)}</span>
+                  <span className="hidden text-xs text-muted-foreground md:block">{dateTime(a.created_at)}</span>
                   <div className="flex items-center gap-1">
-                    <Button asChild variant="outline" size="sm" className="shrink-0">
-                      <a href={`/admin/articles/${a.id}/edit`}>
-                        <Pencil className="mr-1.5 size-4" /> Edit
-                      </a>
-                    </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
+                          id={`article-actions-${a.id}`}
+                          data-row-action="true"
                           variant="ghost"
                           size="icon"
                           className="size-8 shrink-0"
-                          aria-label="More actions"
+                          aria-label={`Actions for ${a.title}`}
                         >
                           <MoreVertical className="size-4" />
                         </Button>
@@ -423,7 +426,7 @@ function ArticlesQueueListPage() {
                         ) : null}
                         {canPublishArticles && a.status === "published" ? (
                           <DropdownMenuItem
-                            onClick={() => save.mutate({ id: a.id, status: "draft" })}
+                            onClick={() => { if (window.confirm("Unpublish this article? It will remain saved but leave public listings.")) save.mutate({ id: a.id, status: "draft" }); }}
                           >
                             Unpublish (send back to draft)
                           </DropdownMenuItem>
@@ -660,7 +663,7 @@ function ArticlesQueueListPage() {
                           <Button
                             variant="ghost"
                             disabled={save.isPending}
-                            onClick={() => save.mutate({ id: a.id, status: "draft" })}
+                            onClick={() => { if (window.confirm("Unpublish this article? It will remain saved but leave public listings.")) save.mutate({ id: a.id, status: "draft" }); }}
                           >
                             Unpublish
                           </Button>
@@ -669,7 +672,7 @@ function ArticlesQueueListPage() {
                     ) : null}
                   </div>
                 ) : null}
-              </li>
+              </AdminListingRow>
             );
           })}
         </ul>

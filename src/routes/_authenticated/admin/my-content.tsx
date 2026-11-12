@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Image as ImageIcon } from "lucide-react";
+import { FileText, Image as ImageIcon, MoreVertical, ExternalLink, Pencil } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useMemo, useState } from "react";
 import { useViewCounts } from "@/hooks/useViewCounts";
 import { campaignStatus } from "@/lib/campaigns";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AdminListingRow } from "@/components/admin/admin-listing-surface";
 
 export const Route = createFileRoute("/_authenticated/admin/my-content")({
   head: () => ({ meta: [{ title: "My Content: Share Barabara Admin" }] }),
@@ -92,16 +95,30 @@ function MyContentPage() {
       <div><Label>Views order</Label><Select value={viewSort} onValueChange={(value) => { setViewSort(value); setPage(1); }}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">Default order</SelectItem><SelectItem value="desc">Highest first</SelectItem><SelectItem value="asc">Lowest first</SelectItem></SelectContent></Select></div>
     </div>
     <AdminListingSurface className="mt-3">
-      <div className="grid w-full min-w-0 grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,auto)_minmax(6rem,auto)] items-center gap-2 border-b border-border bg-muted/45 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground"><span>Image</span><span>Title / type</span><span>Status</span><span>Created</span><span>Views</span><span>Actions</span></div>
+      <div className="hidden w-full min-w-0 grid-cols-[40px_minmax(0,2fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,.55fr)_40px] items-center gap-1.5 border-b border-border bg-muted/45 px-2 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:grid"><span>Image</span><span>Title / type</span><span>Status</span><span>Created</span><span>Views</span><span>Actions</span></div>
       <div className="w-full min-w-0 divide-y divide-border/70">
-        {pagedContent.map((item) => <div key={`${item.label}-${item.id}`} className="grid w-full min-w-0 grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,auto)_minmax(6rem,auto)] items-center gap-2 px-3 py-2">
+        {pagedContent.map((item) => {
+          const openActions = () => document.getElementById(`my-content-actions-${item.sourceKey}-${item.id}`)?.click();
+          return <AdminListingRow key={`${item.label}-${item.id}`} onActivate={openActions}>
+          <div className="grid w-full min-w-0 grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-1.5 md:grid-cols-[40px_minmax(0,2fr)_minmax(0,.8fr)_minmax(0,.8fr)_minmax(0,.55fr)_40px]">
           {item.image_url ? <img src={item.image_url} alt="" className="h-12 w-[70px] rounded object-cover" /> : <div className="flex size-12 items-center justify-center rounded bg-muted"><ImageIcon className="size-5 text-muted-foreground" /></div>}
           <div className="min-w-0"><p className="line-clamp-2 font-semibold">{item.title || "Untitled"}</p><p className="text-xs text-muted-foreground">{item.label}</p></div>
-          <span className="text-sm capitalize text-muted-foreground">{String(item.status ?? "draft").replace("_", " ")}</span>
-          <time className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleString()}</time>
-          <span className="text-xs text-muted-foreground">{item.sourceKey === "articles" ? viewCountsError || viewCountsLoading ? "—" : viewCounts[item.id] ?? 0 : "—"}</span>
-          <div className="flex gap-2"><a className="text-sm font-semibold text-brand-blue hover:underline" href={item.edit}>Edit</a>{item.sourceKey === "articles" && item.slug ? <a className="text-sm font-semibold text-brand-blue hover:underline" href={`/news/${item.slug}`} target="_blank" rel="noreferrer">View</a> : null}</div>
-        </div>)}
+          <span className="hidden text-sm capitalize text-muted-foreground md:block">{String(item.status ?? "draft").replace("_", " ")}</span>
+          <time className="hidden text-xs text-muted-foreground md:block">{new Date(item.created_at).toLocaleString()}</time>
+          <span className="hidden text-xs text-muted-foreground md:block">{item.sourceKey === "articles" ? viewCountsError || viewCountsLoading ? "—" : viewCounts[item.id] ?? 0 : "—"}</span>
+          <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden"><span className="capitalize">{String(item.status ?? "draft").replace("_", " ")}</span><span className="ml-2">{new Date(item.created_at).toLocaleDateString()}</span></div>
+          <div className="flex justify-self-end gap-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild><Button id={`my-content-actions-${item.sourceKey}-${item.id}`} data-row-action="true" variant="ghost" size="icon" className="size-8" aria-label={`Actions for ${item.title}`}><MoreVertical className="size-4" /></Button></DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild><a href={item.edit}><Pencil className="mr-2 size-4" /> Edit</a></DropdownMenuItem>
+                {item.sourceKey === "articles" && item.slug ? <DropdownMenuItem asChild><a href={`/news/${item.slug}`} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 size-4" /> View</a></DropdownMenuItem> : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+        </AdminListingRow>;
+        })}
         {!content.isLoading && content.error ? <div className="p-6 text-center text-sm text-destructive">Could not load owned content. {content.error instanceof Error ? content.error.message : "The request failed."}</div> : null}
         {!content.isLoading && !content.error && !filteredContent.length ? <div className="p-6 text-center text-sm text-muted-foreground"><FileText className="mx-auto mb-2 size-6" />No owned content found.</div> : null}
       </div>

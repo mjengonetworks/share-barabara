@@ -49,7 +49,7 @@ test("shared listing primitives provide the deployed surface and mobile-safe bou
   assert.match(listing, /AdminListingSurface/);
   assert.match(listing, /AdminListingHeader/);
   assert.match(listing, /w-full/);
-  assert.match(listing, /overflow-hidden/);
+  assert.match(listing, /overflow-visible/);
   assert.match(listing, /min-w-0/);
 });
 

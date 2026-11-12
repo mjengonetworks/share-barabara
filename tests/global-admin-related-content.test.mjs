@@ -17,7 +17,7 @@ test("admin listings use constrained responsive layouts instead of fixed overflo
     const source = await read(file);
     assert.doesNotMatch(source, /min-w-\[980px\]/, `${file} still forces a desktop overflow width`);
   }
-  assert.match(await read("src/components/admin/admin-listing-surface.tsx"), /overflow-hidden/);
+  assert.match(await read("src/components/admin/admin-listing-surface.tsx"), /overflow-visible/);
   assert.match(await read("src/routes/_authenticated/admin/alerts.tsx"), /table-fixed/);
 });
 

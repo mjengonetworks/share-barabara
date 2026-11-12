@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, Megaphone, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Megaphone, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,7 +30,7 @@ import { moveToRecycleBin } from "@/lib/recycle-bin.mjs";
 import { campaignStatus } from "@/lib/campaigns";
 import { longDate } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { AdminListingHeader, AdminListingRow, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 
 export const Route = createFileRoute("/_authenticated/admin/campaigns")({
   head: () => ({ meta: [{ title: "Campaigns: Share Barabara Admin" }] }),
@@ -178,11 +178,13 @@ function CampaignsAdminPage() {
       <ul className="divide-y divide-border/70">
         {visibleCampaigns.map((c) => {
           const status = campaignStatus(c.start_date, c.end_date);
+          const openActions = () => document.getElementById(`campaign-actions-${c.id}`)?.click();
           return (
-            <li
+            <AdminListingRow
               key={c.id}
-              className="grid w-full min-w-0 grid-cols-[auto_48px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,auto)_minmax(0,auto)_minmax(6rem,auto)] items-center gap-2 border-b border-border/70 px-3 py-2 odd:bg-background even:bg-muted/[0.18] last:border-b-0"
+              onActivate={openActions}
             >
+              <div className="grid w-full min-w-0 grid-cols-[20px_40px_minmax(0,1fr)_40px] items-center gap-1.5 md:grid-cols-[20px_40px_minmax(0,2fr)_minmax(0,1.1fr)_minmax(0,.8fr)_minmax(0,1fr)_40px]">
               <input type="checkbox" aria-label={`Select ${c.title}`} className="size-4 accent-brand-blue" />
               {c.image_url ? (
                 <img src={c.image_url} alt="" className="h-12 w-[70px] shrink-0 rounded object-cover" />
@@ -209,18 +211,20 @@ function CampaignsAdminPage() {
                   <p className="line-clamp-2 font-semibold">{c.title}</p>
                 </div>
               </div>
-              <span className="truncate text-sm">{c.location || "—"}</span>
-              <span className="text-xs font-semibold capitalize text-muted-foreground">{status}</span>
-              <span className="whitespace-nowrap text-xs text-muted-foreground">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
-              <div className="flex flex-wrap items-center gap-1">
-              <Button size="sm" variant="outline" asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></Button>
+              <span className="hidden truncate text-sm md:block">{c.location || "—"}</span>
+              <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">{status}</span>
+              <span className="hidden whitespace-nowrap text-xs text-muted-foreground md:block">{longDate(c.start_date)} – {longDate(c.end_date)}</span>
+              <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden">
+                <span>{c.location || "Location unavailable"}</span><span className="ml-2 capitalize">{status}</span>
+              </div>
+              <div className="flex flex-wrap items-center justify-self-end gap-1">
               <Dialog
                 open={reportOpenId === c.id}
                 onOpenChange={(v) => setReportOpenId(v ? c.id : null)}
               >
                 <DialogTrigger asChild>
-                  <Button size="sm" variant="outline" onClick={() => openReport(c.id)}>
-                    Report
+                  <Button size="icon" variant="ghost" className="size-8" aria-label={`Edit report for ${c.title}`} onClick={() => openReport(c.id)}>
+                    <Pencil className="size-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
@@ -276,22 +280,14 @@ function CampaignsAdminPage() {
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-destructive"
-                disabled={remove.isPending}
-                onClick={() => remove.mutate(c.id)}
-              >
-                Delete
-              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
+                  <Button id={`campaign-actions-${c.id}`} data-row-action="true" variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Actions for ${c.title}`}>
                     <MoreVertical className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => openReport(c.id)}>Report</DropdownMenuItem>
                   <DropdownMenuItem asChild><a href={`/admin/campaigns/${c.id}/edit`}>Edit campaign</a></DropdownMenuItem>
                   <DropdownMenuItem onClick={() => remove.mutate(c.id)} className="text-destructive focus:text-destructive">
                     <Trash2 className="mr-2 size-4" /> Delete
@@ -299,7 +295,8 @@ function CampaignsAdminPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
               </div>
-            </li>
+              </div>
+            </AdminListingRow>
           );
         })}
         {!isLoading && visibleCampaigns.length === 0 ? (

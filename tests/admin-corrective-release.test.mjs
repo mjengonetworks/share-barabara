@@ -36,12 +36,28 @@ test("Article form has no incident location or mapping contract", () => {
 test("all admin listing surfaces retain complete responsive table content", () => {
   const shared = read("src/components/admin/admin-listing-surface.tsx");
   assert.match(shared, /w-full min-w-0/);
-  assert.match(shared, /overflow-hidden/);
+  assert.match(shared, /overflow-visible/);
+  assert.match(shared, /data-admin-listing-row/);
+  assert.match(shared, /onActivate/);
   for (const file of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = read(`src/routes/_authenticated/admin/${file}`);
     assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID/ : /w-full min-w-0/, file);
     assert.doesNotMatch(source, /xl:hidden|hidden[^\n]*xl:(?:block|flex|inline-flex)/, `${file} hides table columns on mobile`);
   }
+});
+
+test("admin listings keep row actions accessible without clipping and provide deliberate mobile records", () => {
+  const files = ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"];
+  for (const file of files) {
+    const source = read(`src/routes/_authenticated/admin/${file}`);
+    assert.match(source, /Actions for|actions-\$\{/i, `${file} has a compact row action trigger`);
+    assert.match(source, /md:hidden/, `${file} has a mobile presentation`);
+    assert.doesNotMatch(source, /overflow-x-hidden|overflow-hidden/, `${file} does not conceal table overflow`);
+  }
+  const reports = read("src/routes/_authenticated/admin/reports.tsx");
+  assert.match(reports, /Unpublish this report/);
+  const articles = read("src/routes/_authenticated/admin/articles.tsx");
+  assert.match(articles, /Unpublish \(send back to draft\)/);
 });
 
 test("Article summary validation remains strict and has a bounded repair path", () => {

@@ -53,10 +53,10 @@ import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs"
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
-import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { AdminListingHeader, AdminListingRow, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { mapAccidentReportAiDraftToForm } from "@/lib/ai/accident-report-contract";
 
-const REPORT_LISTING_GRID = "grid w-full min-w-0 grid-cols-[24px_48px_minmax(0,1fr)_auto] items-start gap-2 px-2 py-2 md:grid-cols-[24px_48px_minmax(7rem,1.4fr)_minmax(5rem,1fr)_minmax(4rem,.7fr)_minmax(4.5rem,.7fr)_minmax(5rem,.9fr)_minmax(3rem,.5fr)_minmax(5rem,.7fr)_minmax(6rem,auto)] xl:grid-cols-[32px_64px_minmax(12rem,2fr)_minmax(8rem,1.1fr)_minmax(5rem,.7fr)_minmax(6rem,.7fr)_minmax(7rem,1fr)_minmax(4rem,.6fr)_minmax(7rem,.8fr)_minmax(8rem,auto)]";
+const REPORT_LISTING_GRID = "w-full min-w-0 items-center gap-1.5";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -323,10 +323,11 @@ function ReportsQueuePage() {
             set(Object.fromEntries(Object.entries(mapped).filter(([field, value]) => field in d && value !== null && value !== "")) as Partial<ReportDraft>);
           };
           const expanded = expandedId === r.id;
+          const openActions = () => document.getElementById(`report-actions-${r.id}`)?.click();
 
           return (
-            <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className={REPORT_LISTING_GRID}>
+            <AdminListingRow key={r.id} onActivate={openActions}>
+              <div className={`grid ${REPORT_LISTING_GRID} grid-cols-[20px_40px_minmax(0,1fr)_40px] md:grid-cols-[20px_40px_minmax(0,2.2fr)_minmax(0,1.1fr)_minmax(4.5rem,.7fr)_minmax(5rem,.75fr)_minmax(5rem,.8fr)_minmax(4rem,.55fr)_minmax(6rem,.8fr)_40px]`}>
                 <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {r.image_url ? (
@@ -347,17 +348,21 @@ function ReportsQueuePage() {
                   </div>
                   </div>
 
-                <span className="hidden min-w-0 break-words whitespace-normal text-sm md:block" title={`${r.county || "Not specified"}${r.road ? ` · ${r.road}` : ""}`}>{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
+                <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden">
+                  <span className="font-medium">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
+                  <span className="ml-2 capitalize">{r.status}</span>
+                  <span className="ml-2">{r.severity || "Severity unavailable"}</span>
+                </div>
+                <span className="hidden min-w-0 break-words whitespace-normal text-xs md:block" title={`${r.county || "Not specified"}${r.road ? ` · ${r.road}` : ""}`}>{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
                 <span className="hidden md:block"><SeverityBadge value={r.severity} /></span>
                 <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">{r.status}</span>
                 <span className="hidden min-w-0 text-sm md:block">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
                 <span className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
                 <span className="hidden text-xs text-muted-foreground md:block">{dateTime(r.created_at)}</span>
-                <div className="flex min-w-[9rem] items-center justify-self-end gap-1 whitespace-nowrap">
-                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
+                <div className="flex items-center justify-self-end gap-1 whitespace-nowrap">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
+                    <Button id={`report-actions-${r.id}`} data-row-action="true" variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Actions for ${r.title}`}>
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -376,7 +381,13 @@ function ReportsQueuePage() {
                       >
                         Approve &amp; publish
                       </DropdownMenuItem>
-                    ) : null}
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={() => { if (window.confirm("Unpublish this report? It will remain saved but leave public listings.")) save.mutate({ id: r.id, status: "pending" }); }}
+                      >
+                        Unpublish
+                      </DropdownMenuItem>
+                    )}
                     {r.status !== "rejected" ? (
                       <DropdownMenuItem
                         onClick={() => save.mutate({ id: r.id, status: "rejected" })}
@@ -614,7 +625,7 @@ function ReportsQueuePage() {
                   </div>
                 </div>
               ) : null}
-            </li>
+            </AdminListingRow>
           );
         })}
       </ul>

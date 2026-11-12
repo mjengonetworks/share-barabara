@@ -211,29 +211,30 @@ function AlertsAdminPage() {
       {isLoading ? <p className="mt-8 text-muted-foreground">Loading…</p> : null}
 
       <AdminListingSurface className="mt-0">
+        <div className="hidden md:block">
           <Table className="w-full min-w-0 table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10"><span className="sr-only">Select</span></TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead className="w-[24%]">Alert</TableHead>
-              <TableHead className="w-[10%]">County</TableHead>
-              <TableHead className="w-[11%]">Severity</TableHead>
-              <TableHead className="w-[10%]">Status</TableHead>
-              <TableHead className="w-[13%]">Reported by</TableHead>
-              <TableHead className="w-[8%]">Views</TableHead>
-              <TableHead className="w-[12%]">Posted</TableHead>
-              <TableHead className="w-[12%] whitespace-nowrap text-right">Actions</TableHead>
+              <TableHead className="w-[3%] px-1"><span className="sr-only">Select</span></TableHead>
+              <TableHead className="w-[5%] px-1">Image</TableHead>
+              <TableHead className="w-[27%] px-2">Alert</TableHead>
+              <TableHead className="w-[9%] px-2">County</TableHead>
+              <TableHead className="w-[10%] px-2">Severity</TableHead>
+              <TableHead className="w-[9%] px-2">Status</TableHead>
+              <TableHead className="w-[13%] px-2">Reported by</TableHead>
+              <TableHead className="w-[7%] px-2">Views</TableHead>
+              <TableHead className="w-[10%] px-2">Posted</TableHead>
+              <TableHead className="w-[7%] whitespace-nowrap px-2 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {alerts.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell className="w-10"><input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" /></TableCell>
-                <TableCell>
-                  {a.image_url ? <img src={a.image_url} alt="" className="size-12 rounded object-cover" /> : <div className="size-12 rounded bg-muted" aria-label="No featured image" />}
+              <TableRow key={a.id} onClick={(event) => { const target = event.target as HTMLElement; if (target.closest("a,button,input,select,textarea,[role='button']")) return; document.getElementById(`alert-actions-${a.id}`)?.click(); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); document.getElementById(`alert-actions-${a.id}`)?.click(); } }} tabIndex={0} className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-blue">
+                <TableCell className="w-8 px-2"><input type="checkbox" aria-label={`Select ${a.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} /></TableCell>
+                <TableCell className="w-12 px-2">
+                  {a.image_url ? <img src={a.image_url} alt="" className="size-10 rounded object-cover" /> : <div className="size-10 rounded bg-muted" aria-label="No featured image" />}
                 </TableCell>
-                <TableCell className="max-w-0 break-words">
+                <TableCell className="max-w-0 break-words px-2 text-sm">
                   <Link
                     to="/alerts/$alertId"
                     params={{ alertId: a.id }}
@@ -243,13 +244,13 @@ function AlertsAdminPage() {
                   </Link>
                   <p className="text-xs text-muted-foreground">{a.hazard_type.replace("_", " ")}</p>
                 </TableCell>
-                <TableCell className="break-words">{a.county}</TableCell>
-                <TableCell className="break-words">
+                <TableCell className="break-words px-2 text-xs">{a.county}</TableCell>
+                <TableCell className="break-words px-2">
                   <Select
                     value={a.severity}
                     onValueChange={(v) => setSeverityMutation.mutate({ id: a.id, severity: v })}
                   >
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="h-8 w-full min-w-0 px-2 text-xs">
                       <SeverityBadge value={a.severity} />
                     </SelectTrigger>
                     <SelectContent>
@@ -261,21 +262,20 @@ function AlertsAdminPage() {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</TableCell>
-                <TableCell className="max-w-0 break-words">
+                <TableCell className="px-2 text-xs font-semibold capitalize text-muted-foreground">{a.status.replace("_", " ")}</TableCell>
+                <TableCell className="max-w-0 break-words px-2 text-xs">
                   <UserLink userId={a.user_id} name={names[a.user_id]} anonymous={a.is_anonymous} />
                 </TableCell>
-                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                <TableCell className="whitespace-nowrap px-2 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1"><Eye className="size-3" /> {viewCountsError ? "—" : viewCounts[a.id] ?? 0}</span>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">
+                <TableCell className="px-2 text-xs text-muted-foreground">
                   {dateTime(a.created_at)}
                 </TableCell>
-                <TableCell className="whitespace-nowrap text-right">
-                  <Button asChild variant="outline" size="sm"><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
+                <TableCell className="whitespace-nowrap px-2 text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8" aria-label="More actions">
+                    <Button id={`alert-actions-${a.id}`} data-row-action="true" variant="ghost" size="icon" className="size-8" aria-label={`Actions for ${a.title}`}>
                       <MoreVertical className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -309,6 +309,29 @@ function AlertsAdminPage() {
             ) : null}
           </TableBody>
         </Table>
+        </div>
+        <div className="space-y-2 p-2 md:hidden" aria-label="Alert records">
+          {alerts.map((a) => (
+            <article key={a.id} tabIndex={0} onClick={(event) => { const target = event.target as HTMLElement; if (target.closest("a,button,input,select,textarea,[role='button']")) return; (document.getElementById(`alert-mobile-actions-${a.id}`) as HTMLButtonElement | null)?.click(); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); (document.getElementById(`alert-mobile-actions-${a.id}`) as HTMLButtonElement | null)?.click(); } }} className="cursor-pointer rounded-md border border-border bg-background p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-blue">
+              <div className="flex items-start gap-3">
+                {a.image_url ? <img src={a.image_url} alt="" className="size-12 shrink-0 rounded object-cover" /> : <div className="size-12 shrink-0 rounded bg-muted" aria-label="No featured image" />}
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-3 font-semibold">{a.title}</p>
+                  <p className="mt-1 text-xs capitalize text-muted-foreground">{a.county} · {a.severity} · {a.status.replace("_", " ")}</p>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild><Button id={`alert-mobile-actions-${a.id}`} data-row-action="true" variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Actions for ${a.title}`}><MoreVertical className="size-4" /></Button></DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild><Link to="/alerts/$alertId" params={{ alertId: a.id }} target="_blank"><ExternalLink className="mr-2 size-4" /> View on website</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><a href={`/admin/alerts/${a.id}/edit`}><Pencil className="mr-2 size-4" /> Edit alert</a></DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => remove.mutate(a.id)}><Trash2 className="mr-2 size-4" /> Delete</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </article>
+          ))}
+          {!isLoading && alerts.length === 0 ? <p className="py-8 text-center text-muted-foreground">Nothing matches these filters.</p> : null}
+        </div>
       </AdminListingSurface>
 
     </div>

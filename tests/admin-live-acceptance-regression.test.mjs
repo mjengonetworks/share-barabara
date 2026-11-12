@@ -53,7 +53,7 @@ test("editorial listing rows expose separated management-table columns", async (
     for (const label of labels) assert.match(source, new RegExp(label), `${file}: ${label}`);
   }
   const surface = await read("src/components/admin/admin-listing-surface.tsx");
-  assert.match(surface, /grid w-full min-w-0/);
+  assert.match(surface, /w-full min-w-0/);
 });
 
 test("global admin search includes authorised editorial sources and admin destinations", async () => {
@@ -64,16 +64,16 @@ test("global admin search includes authorised editorial sources and admin destin
 test("Alerts listing has all rendered action imports and controls", async () => {
   const source = await read("src/routes/_authenticated/admin/alerts.tsx");
   assert.match(source, /import \{[^}]*Pencil[^}]*\} from "lucide-react"/);
-  assert.match(source, /aria-label="More actions"/);
+  assert.match(source, /aria-label=\{`Actions for \$\{a\.title\}`\}/);
   assert.match(source, /\/admin\/alerts\/\$\{a\.id\}\/edit/);
 });
 
 test("custom listing layouts keep direct Edit and Options controls visible", async () => {
   for (const file of ["articles.tsx", "reports.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = await read(`src/routes/_authenticated/admin/${file}`);
-    assert.match(source, /aria-label="More actions"/, file);
+    assert.match(source, /aria-label=\{`Actions for \$\{[^}]+\}`\}/, file);
     assert.match(source, /\/admin\/[^`]+\/\$\{[^}]+\}\/edit/, file);
-    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID/ : /w-full min-w-0 grid-cols-\[auto_48px/, file);
+    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID/ : /grid-cols-\[20px_40px_minmax\(0,1fr\)_40px\]/, file);
   }
 });
 

@@ -63,10 +63,10 @@ test("report editor relationship controls are deferred until a durable ID and li
 test("report listing keeps title and actions in aligned, non-truncated columns", async () => {
   const listing = await read("src/routes/_authenticated/admin/reports.tsx");
   assert.match(listing, /const REPORT_LISTING_GRID/);
-  assert.match(listing, /className=\{REPORT_LISTING_GRID\}/);
+  assert.match(listing, /grid \$\{REPORT_LISTING_GRID\} grid-cols-\[20px_40px_minmax\(0,1fr\)_40px\]/);
   assert.match(listing, /break-words whitespace-normal font-semibold/);
-  assert.doesNotMatch(listing, /line-clamp-2 font-semibold/);
-  assert.match(listing, /min-w-\[9rem\].*whitespace-nowrap/);
+  assert.match(listing, /data-row-action/);
+  assert.match(listing, /Unpublish this report/);
 });
 
 test("AI update record retrieval includes fields required to preserve report content", async () => {

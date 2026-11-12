@@ -13,7 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { AdminListingHeader, AdminListingRow, AdminListingSurface } from "@/components/admin/admin-listing-surface";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -201,10 +201,11 @@ function InfrastructureIssuesAdminPage() {
           const set = (patch: Partial<Draft>) =>
             setDrafts((prev) => ({ ...prev, [i.id]: { ...d, ...patch } }));
           const expanded = expandedId === i.id;
+          const openActions = () => document.getElementById(`infrastructure-actions-${i.id}`)?.click();
 
           return (
-            <li key={i.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid w-full min-w-0 grid-cols-[auto_48px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,auto)_minmax(6rem,auto)] items-center gap-2 px-3 py-2">
+            <AdminListingRow key={i.id} onActivate={openActions}>
+              <div className="grid w-full min-w-0 grid-cols-[20px_40px_minmax(0,1fr)_40px] items-center gap-1.5 md:grid-cols-[20px_40px_minmax(0,2fr)_minmax(0,1fr)_minmax(0,.9fr)_minmax(0,.8fr)_minmax(0,.8fr)_40px]">
                 <input type="checkbox" aria-label={`Select ${i.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {i.image_url ? (
@@ -226,16 +227,19 @@ function InfrastructureIssuesAdminPage() {
                   </div>
                   </div>
 
-                <span className="truncate text-sm">{i.structure_type || "—"}</span>
-                <span className="truncate text-sm">{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
-                <span className="text-xs font-semibold capitalize text-muted-foreground">{i.status}</span>
-                <span className="min-w-0 text-sm">{i.user_id ? <UserLink userId={i.user_id} name={names[i.user_id]} /> : "—"}</span>
-                <span className="text-xs text-muted-foreground">{dateTime(i.created_at)}</span>
-                <div className="flex items-center gap-1">
-                <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/infrastructure-issues/${i.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
+                <span className="hidden truncate text-sm md:block">{i.structure_type || "—"}</span>
+                <span className="hidden truncate text-sm md:block">{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
+                <div className="col-span-full min-w-0 text-xs text-muted-foreground md:hidden">
+                  <span>{i.road_name}{i.county ? ` · ${i.county}` : ""}</span>
+                  <span className="ml-2 capitalize">{i.status}</span>
+                </div>
+                <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">{i.status}</span>
+                <span className="hidden min-w-0 text-sm md:block">{i.user_id ? <UserLink userId={i.user_id} name={names[i.user_id]} /> : "—"}</span>
+                <span className="hidden text-xs text-muted-foreground md:block">{dateTime(i.created_at)}</span>
+                <div className="flex items-center justify-self-end gap-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0" aria-label="More actions">
+                    <Button id={`infrastructure-actions-${i.id}`} data-row-action="true" variant="ghost" size="icon" className="size-8 shrink-0" aria-label={`Actions for ${i.title}`}>
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -259,6 +263,11 @@ function InfrastructureIssuesAdminPage() {
                         onClick={() => save.mutate({ id: i.id, status: "approved" })}
                       >
                         Approve &amp; publish
+                      </DropdownMenuItem>
+                    ) : null}
+                    {i.status === "approved" ? (
+                      <DropdownMenuItem onClick={() => { if (window.confirm("Unpublish this issue? It will remain saved but leave public listings.")) save.mutate({ id: i.id, status: "pending" }); }}>
+                        Unpublish
                       </DropdownMenuItem>
                     ) : null}
                     {i.status !== "rejected" ? (
@@ -426,7 +435,7 @@ function InfrastructureIssuesAdminPage() {
                   </div>
                 </div>
               ) : null}
-            </li>
+            </AdminListingRow>
           );
         })}
       </ul>
