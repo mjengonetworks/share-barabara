@@ -11,7 +11,7 @@ export function EditorialMediaMeta({ caption, credit, className = "" }: Editoria
   return (
     <figcaption className={`mt-1.5 text-xs leading-5 text-muted-foreground ${className}`.trim()}>
       {cleanCaption ? <em>{cleanCaption}</em> : null}
-      {cleanCaption && cleanCredit ? " · " : null}
+      {cleanCaption && cleanCredit ? <span aria-hidden="true" className="mx-1.5 not-italic">|</span> : null}
       {cleanCredit ? <span>{cleanCredit}</span> : null}
     </figcaption>
   );

@@ -9,6 +9,7 @@ import {
   normalizeAccidentReportAiObject,
   type AccidentReportAiFieldResults,
 } from "./accident-report-contract";
+import { normalizeRichTextForEditor } from "@/lib/rich-text-format";
 
 // Compatibility markers for the established editorial contract tests. The
 // complete source-of-truth wording lives in docs/editorial-prompts and is
@@ -216,7 +217,7 @@ function parseDraftResult(contentType: EditorialContentType, answer: string): { 
             ? normalizeCalendarDate(value, field)
             : field === "occurred_at"
               ? normalizeOccurredAt(value, field)
-          : field === "body" || field === "description" ? value : value.trim()
+          : field === "body" || field === "description" || field === "content" ? normalizeRichTextForEditor(value) : value.trim()
         : value;
     } else if (value !== undefined) {
       throw new Error(`${field}: expected text, number, list or null`);
@@ -322,7 +323,7 @@ function editorialPrompt(
       : "",
   ].filter(Boolean).join("\n");
   const reportContract = contentType === "report"
-    ? "Accident Report contract: summary is the independent Editorial summary and must be no more than 20 words; description is the visible Full content; casualties means confirmed injuries and fatalities remains separate; parties_involved uses only pedestrian, cyclist, motorcyclist, passenger or other; unknown numerical values remain null; coordinates are returned only when verified; image fields are metadata only."
+    ? "Accident Report contract: summary is the independent Editorial summary and must be no more than 20 words; description is the visible Full content; seo_description is the actual SEO description editor field and must be returned separately from description, with a maximum of 160 characters; casualties means confirmed injuries and fatalities remains separate; parties_involved uses only pedestrian, cyclist, motorcyclist, passenger or other; unknown numerical values remain null; coordinates are returned only when verified; image fields are metadata only. Full content must use genuine blank-line paragraph boundaries, with headings or lists only when supported by the evidence."
     : "";
   return [
     securityLayer(),

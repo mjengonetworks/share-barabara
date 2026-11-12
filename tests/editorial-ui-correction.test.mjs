@@ -32,7 +32,7 @@ test("mixed paragraph/link/list fixture survives the body lifecycle contract", a
   assert.match(blocks[2], /\[link\][\s\S]*\*\*bold text\*\*/);
   assert.deepEqual(blocks[3].split("\n"), ["- First list item", "- Second list item"]);
   assert.match(renderer, /splitRichTextBlocks/);
-  assert.match(renderer, /listItems/);
+  assert.match(renderer, /lines\.every\(\(line\) => \/\^\\s\*\(\?:\[-\*\+\] \|\\d\+\[\.\)\] \)\/\.test\(line\)\)/);
   assert.doesNotMatch(editor, /split\(.*\. /);
 });
 

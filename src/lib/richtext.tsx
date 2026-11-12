@@ -1,30 +1,17 @@
 import type { ReactNode } from "react";
 import katex from "katex";
 import { EditorialMediaMeta } from "@/components/site/editorial-media-meta";
+import { isSafeRichTextUrl, parseInlineImageBlock, type InlineImageMetadata } from "@/lib/rich-text-format";
 
-/**
- * A deliberately small markdown-lite dialect, not full CommonMark: bold
- * (**text**), italic (*text*), links ([text](url)), block images
- * (![alt](url) alone on its own line/paragraph), a video embed marker
- * ({{video:URL}} alone on its own line/paragraph) for YouTube links, and
- * LaTeX math ($inline$ or $$block$$, rendered with KaTeX). Existing
- * plain-text content (paragraphs separated by a blank line) keeps rendering
- * exactly as before, since none of that syntax appears in it.
- */
+export type RichTextRenderOptions = {
+  onImageClick?: (image: InlineImageMetadata & { blockIndex: number }) => void;
+};
 
-/** trust:false (the default) disables LaTeX commands that could otherwise
- *  reach into the page (\href, \includegraphics, etc.) -- required since
- *  this renders arbitrary user-submitted formulas. */
 function renderMath(latex: string, displayMode: boolean): string {
-  try {
-    return katex.renderToString(latex, { throwOnError: false, displayMode });
-  } catch {
-    return latex;
-  }
+  try { return katex.renderToString(latex, { throwOnError: false, displayMode }); } catch { return latex; }
 }
 
-// The 5th alternative ($...$) is inline LaTeX math, rendered with KaTeX.
-const INLINE_RE = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*|\$([^$\n]+)\$/g;
+const INLINE_RE = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|__([^_]+)__|~~([^~]+)~~|\+\+([^+]+)\+\+|\*([^*]+)\*|\$([^$\n]+)\$|\[\[color:(#[0-9a-fA-F]{3,8})\]\]([\s\S]*?)\[\[\/color\]\]|\[\[highlight:(#[0-9a-fA-F]{3,8})\]\]([\s\S]*?)\[\[\/highlight\]\]/g;
 
 function parseInline(text: string, keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = [];
@@ -35,129 +22,84 @@ function parseInline(text: string, keyPrefix: string): ReactNode[] {
   while ((match = INLINE_RE.exec(text))) {
     if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index));
     if (match[1] !== undefined) {
-      nodes.push(
-        <a
-          key={`${keyPrefix}-${i++}`}
-          href={match[2]}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-brand-blue underline"
-        >
-          {match[1]}
-        </a>,
-      );
-    } else if (match[3] !== undefined) {
-      nodes.push(<strong key={`${keyPrefix}-${i++}`}>{match[3]}</strong>);
-    } else if (match[4] !== undefined) {
-      nodes.push(<em key={`${keyPrefix}-${i++}`}>{match[4]}</em>);
-    } else if (match[5] !== undefined) {
-      nodes.push(
-        <span
-          key={`${keyPrefix}-${i++}`}
-          dangerouslySetInnerHTML={{ __html: renderMath(match[5], false) }}
-        />,
-      );
-    }
+      if (isSafeRichTextUrl(match[2] ?? "")) nodes.push(<a key={`${keyPrefix}-${i++}`} href={match[2]} target="_blank" rel="noopener noreferrer" className="text-brand-blue underline">{match[1]}</a>);
+      else nodes.push(match[1]);
+    } else if (match[3] !== undefined) nodes.push(<strong key={`${keyPrefix}-${i++}`}>{match[3]}</strong>);
+    else if (match[4] !== undefined) nodes.push(<u key={`${keyPrefix}-${i++}`}>{match[4]}</u>);
+    else if (match[5] !== undefined) nodes.push(<s key={`${keyPrefix}-${i++}`}>{match[5]}</s>);
+    else if (match[6] !== undefined) nodes.push(<span key={`${keyPrefix}-${i++}`} className="rounded-sm bg-muted px-0.5">{match[6]}</span>);
+    else if (match[7] !== undefined) nodes.push(<em key={`${keyPrefix}-${i++}`}>{match[7]}</em>);
+    else if (match[8] !== undefined) nodes.push(<span key={`${keyPrefix}-${i++}`} dangerouslySetInnerHTML={{ __html: renderMath(match[8], false) }} />);
+    else if (match[9] !== undefined) nodes.push(<span key={`${keyPrefix}-${i++}`} style={{ color: match[9] }}>{match[10]}</span>);
+    else if (match[11] !== undefined) nodes.push(<span key={`${keyPrefix}-${i++}`} style={{ backgroundColor: match[11] }}>{match[12]}</span>);
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
   return nodes;
 }
 
-/** Extracts an 11-character YouTube video ID from any common URL shape. */
 export function extractYouTubeId(url: string): string | null {
-  const match = url.match(
-    /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-  );
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
   return match ? (match[1] ?? null) : null;
 }
 
 export function YouTubeEmbed({ url, className = "" }: { url: string; className?: string }) {
   const id = extractYouTubeId(url);
-  if (!id) {
-    return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-brand-blue underline">
-        {url}
-      </a>
-    );
-  }
-  return (
-    <div
-      className={`aspect-video w-full overflow-hidden rounded-lg border border-border ${className}`}
-    >
-      <iframe
-        src={`https://www.youtube.com/embed/${id}`}
-        title="Embedded video"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        className="size-full"
-      />
-    </div>
-  );
+  if (!id) return isSafeRichTextUrl(url) ? <a href={url} target="_blank" rel="noopener noreferrer" className="text-brand-blue underline">{url}</a> : null;
+  return <div className={`aspect-video w-full overflow-hidden rounded-lg border border-border ${className}`}><iframe src={`https://www.youtube.com/embed/${id}`} title="Embedded video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="size-full" /></div>;
 }
 
 const VIDEO_BLOCK_RE = /^\{\{video:(.+)\}\}$/;
 const MATH_BLOCK_RE = /^\$\$([\s\S]+)\$\$$/;
-// Optional quoted title after the URL carries "caption::credit" (both
-// optional), a convention this app's own editor writes — plain
-// ![alt](url) with no title still renders exactly as before.
-const IMAGE_BLOCK_RE = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)$/;
+const ALIGN_BLOCK_RE = /^\[\[align:(left|center|right|justify)\]\]\n?([\s\S]*?)\n?\[\[\/align\]\]$/;
+const INDENT_BLOCK_RE = /^\[\[indent:([1-4])\]\]\n?([\s\S]*?)\n?\[\[\/indent\]\]$/;
+const COLOR_BLOCK_RE = /^\[\[color:(#[0-9a-fA-F]{3,8})\]\]\n?([\s\S]*?)\n?\[\[\/color\]\]$/;
+const HIGHLIGHT_BLOCK_RE = /^\[\[highlight:(#[0-9a-fA-F]{3,8})\]\]\n?([\s\S]*?)\n?\[\[\/highlight\]\]$/;
 
 export function splitRichTextBlocks(content: string): string[] {
-  // Older editorial records occasionally contain paragraph tags even though
-  // the stored field is otherwise markdown-lite. Convert only those block
-  // boundaries to text blocks; never render arbitrary stored HTML.
-  const normalized = content
-    .replace(/\r\n?/g, "\n")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p\s*>/gi, "\n\n")
-    .replace(/<p(?:\s[^>]*)?>/gi, "")
-    .replace(/<\/?(?:div|section|article)(?:\s[^>]*)?>/gi, "\n\n");
-  return normalized.split(/\n\s*\n/).filter((b) => b.trim().length > 0);
+  const normalized = content.replace(/\r\n?/g, "\n").replace(/<br\s*\/?\s*>/gi, "\n").replace(/<\/p\s*>/gi, "\n\n").replace(/<p(?:\s[^>]*)?>/gi, "").replace(/<\/?(?:div|section|article)(?:\s[^>]*)?>/gi, "\n\n");
+  return normalized.split(/\n\s*\n/).filter((block) => block.trim().length > 0);
 }
 
-/** Renders rich-text-lite content as paragraphs, inline formatting, block
- *  images (with an optional caption/credit) and embedded YouTube videos. */
-export function renderRichText(content: string): ReactNode {
-  const blocks = splitRichTextBlocks(content);
-  return blocks.map((block, i) => {
-    const trimmed = block.trim();
-    const videoMatch = trimmed.match(VIDEO_BLOCK_RE);
-    if (videoMatch) return <YouTubeEmbed key={i} url={videoMatch[1] ?? ""} className="my-4" />;
-    const mathMatch = trimmed.match(MATH_BLOCK_RE);
-    if (mathMatch) {
-      return (
-        <div
-          key={i}
-          className="my-4 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4"
-          dangerouslySetInnerHTML={{ __html: renderMath((mathMatch[1] ?? "").trim(), true) }}
-        />
-      );
-    }
-    const imageMatch = trimmed.match(IMAGE_BLOCK_RE);
-    if (imageMatch) {
-      const [caption, credit] = (imageMatch[3] ?? "").split("::");
-      return (
-        <figure key={i} className="my-4">
-          <img
-            src={imageMatch[2]}
-            alt={imageMatch[1]}
-            className="w-full rounded-lg border border-border object-cover"
-          />
-          <EditorialMediaMeta caption={caption} credit={credit} />
-        </figure>
-      );
-    }
-    const listItems = trimmed.split("\n").map((line) => line.match(/^\s*(?:[-*+] |\d+[.)] )(.*)$/)).filter(Boolean) as RegExpMatchArray[];
-    if (listItems.length === trimmed.split("\n").length && listItems.length > 0) {
-      const ordered = /^\s*\d+[.)] /.test(trimmed);
-      const List = ordered ? "ol" : "ul";
-      return <List key={i} className="list-inside list-disc space-y-1">{listItems.map((item, index) => <li key={index}>{parseInline(item[1] ?? "", `${i}-${index}`)}</li>)}</List>;
-    }
-    return (
-      <p key={i} className="whitespace-pre-wrap leading-7">
-        {parseInline(trimmed, String(i))}
-      </p>
-    );
-  });
+function renderNested(content: string, options: RichTextRenderOptions, prefix: string) {
+  return splitRichTextBlocks(content).map((block, index) => renderBlock(block, options, `${prefix}-${index}`));
+}
+
+function renderBlock(block: string, options: RichTextRenderOptions, key: string): ReactNode {
+  const trimmed = block.trim();
+  const aligned = trimmed.match(ALIGN_BLOCK_RE);
+  if (aligned) return <div key={key} style={{ textAlign: aligned[1] as "left" | "center" | "right" | "justify" }}>{renderNested(aligned[2] ?? "", options, key)}</div>;
+  const indented = trimmed.match(INDENT_BLOCK_RE);
+  if (indented) return <div key={key} style={{ marginInlineStart: `${Number(indented[1] ?? 1) * 1.5}rem` }}>{renderNested(indented[2] ?? "", options, key)}</div>;
+  const coloured = trimmed.match(COLOR_BLOCK_RE);
+  if (coloured) return <div key={key} style={{ color: coloured[1] }}>{renderNested(coloured[2] ?? "", options, key)}</div>;
+  const highlighted = trimmed.match(HIGHLIGHT_BLOCK_RE);
+  if (highlighted) return <div key={key} style={{ backgroundColor: highlighted[1] }}>{renderNested(highlighted[2] ?? "", options, key)}</div>;
+  const videoMatch = trimmed.match(VIDEO_BLOCK_RE);
+  if (videoMatch) return <YouTubeEmbed key={key} url={videoMatch[1] ?? ""} className="my-4" />;
+  const mathMatch = trimmed.match(MATH_BLOCK_RE);
+  if (mathMatch) return <div key={key} className="my-4 overflow-x-auto rounded-lg border border-border bg-muted/30 p-4" dangerouslySetInnerHTML={{ __html: renderMath((mathMatch[1] ?? "").trim(), true) }} />;
+  const image = parseInlineImageBlock(trimmed);
+  if (image && isSafeRichTextUrl(image.url, "media")) {
+    const imageIndex = Number(key.split("-").pop() ?? 0);
+    return <figure key={key} className="my-4"><img src={image.url} alt={image.alt} className={`w-full rounded-lg border border-border object-contain ${options.onImageClick ? "cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring" : ""}`} tabIndex={options.onImageClick ? 0 : undefined} role={options.onImageClick ? "button" : undefined} onClick={() => options.onImageClick?.({ ...image, blockIndex: imageIndex })} onKeyDown={(event) => { if (options.onImageClick && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); options.onImageClick({ ...image, blockIndex: imageIndex }); } }} /><EditorialMediaMeta caption={image.caption} credit={image.credit} /></figure>;
+  }
+  const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+  if (heading) {
+    const Heading = heading[1]?.length === 1 ? "h2" : heading[1]?.length === 2 ? "h3" : "h4";
+    return <Heading key={key} className="font-bold leading-tight">{parseInline(heading[2] ?? "", key)}</Heading>;
+  }
+  if (/^```(?:[\w+-]+)?\n[\s\S]*\n```$/.test(trimmed)) return <pre key={key} className="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{trimmed.replace(/^```[^\n]*\n|\n```$/g, "")}</code></pre>;
+  const lines = trimmed.split("\n");
+  if (lines.length > 0 && lines.every((line) => /^\s*(?:[-*+] |\d+[.)] )/.test(line))) {
+    const ordered = /^\s*\d+[.)] /.test(lines[0] ?? "");
+    const List = ordered ? "ol" : "ul";
+    return <List key={key} className={`${ordered ? "list-decimal" : "list-disc"} list-inside space-y-1`}>{lines.map((line, index) => <li key={`${key}-${index}`}>{parseInline(line.replace(/^\s*(?:[-*+] |\d+[.)] )/, ""), `${key}-${index}`)}</li>)}</List>;
+  }
+  if (lines.every((line) => /^\s*> ?/.test(line))) return <blockquote key={key} className="border-l-2 border-border pl-4 italic text-muted-foreground">{lines.map((line, index) => <p key={`${key}-${index}`}>{parseInline(line.replace(/^\s*> ?/, ""), `${key}-${index}`)}</p>)}</blockquote>;
+  return <p key={key} className="whitespace-pre-wrap leading-7">{parseInline(trimmed, key)}</p>;
+}
+
+export function renderRichText(content: string, options: RichTextRenderOptions = {}): ReactNode {
+  return splitRichTextBlocks(content).map((block, index) => renderBlock(block, options, `block-${index}`));
 }

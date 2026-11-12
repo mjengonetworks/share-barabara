@@ -1,3 +1,5 @@
+import { normalizeRichTextForEditor } from "@/lib/rich-text-format";
+
 /**
  * Canonical Accident Report AI contract.
  *
@@ -120,7 +122,7 @@ function partiesValue(value: unknown) {
 function textValue(field: string, value: unknown) {
   if (value === null || value === undefined || value === "") return { value: null as null, skipped: true };
   if (typeof value !== "string" && typeof value !== "number") return { invalid: `${field} must be text or remain blank.` };
-  const text = String(value).trim();
+  const text = field === "description" ? normalizeRichTextForEditor(String(value)) : String(value).trim();
   if (!text) return { value: null as null, skipped: true };
   if (field === "summary" && text.split(/\s+/).filter(Boolean).length > 20) return { invalid: "summary must contain no more than 20 words." };
   if (field === "seo_description" && text.length > 160) return { invalid: "seo_description must be 160 characters or fewer." };
@@ -171,9 +173,10 @@ export function mapAccidentReportAiDraftToForm(
 ) {
   const next: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(draft)) {
-    if (key === "description" || key === "body") next[contentField] = value;
-    else if (key === "road_user_categories") next["parties_involved"] = value;
-    else next[key] = value;
+    const field = canonicalField(key) ?? key;
+    if (field === "description") next[contentField] = value;
+    else if (field === "parties_involved") next["parties_involved"] = value;
+    else next[field] = value;
   }
   return next;
 }
