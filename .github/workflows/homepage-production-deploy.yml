@@ -54,9 +54,13 @@ jobs:
       - name: Confirm candidate ancestry
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$APP_CANDIDATE_SHA"
+          actual_head="$(git rev-parse HEAD)"
+          echo "Checked-out candidate: ${actual_head}"
+          test "$actual_head" = "$APP_CANDIDATE_SHA"
           git cat-file -e "${EXPECTED_PRODUCTION_APPLICATION_SHA}^{commit}"
-          git merge-base --is-ancestor "$EXPECTED_PRODUCTION_APPLICATION_SHA" "$APP_CANDIDATE_SHA"
+          merge_base="$(git merge-base "$EXPECTED_PRODUCTION_APPLICATION_SHA" "$APP_CANDIDATE_SHA")"
+          echo "Production-to-candidate merge base: ${merge_base}"
+          test "$merge_base" = "$EXPECTED_PRODUCTION_APPLICATION_SHA"
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
