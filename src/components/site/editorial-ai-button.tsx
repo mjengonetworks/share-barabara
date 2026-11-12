@@ -10,6 +10,7 @@ import {
   type EditorialProposal,
   type EditorialValue,
 } from "@/lib/ai/editorial.functions";
+import { filterEditorialDraftForApply } from "@/lib/ai/editorial-ui-policy";
 
 
 const callGenerateEditorialDraft = generateEditorialDraft as unknown as (args: {
@@ -175,7 +176,7 @@ export function EditorialAIButton({
         throw new Error("No draft returned");
       }
       const latest = currentRef.current;
-      const safeDraft = filterUnchangedEditorialDraft(proposed, latest, snapshot);
+      const safeDraft = filterEditorialDraftForApply(proposed, latest, snapshot, mode);
       onDraft(safeDraft);
       const durationMs = Math.round(performance.now() - startedAt);
       setLastDurationMs(durationMs);

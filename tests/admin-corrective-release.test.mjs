@@ -38,7 +38,7 @@ test("all admin listing surfaces retain a fixed complete table width on mobile",
   assert.match(shared, /min-w-\[980px\]/);
   for (const file of ["articles.tsx", "reports.tsx", "alerts.tsx", "campaigns.tsx", "infrastructure-issues.tsx"]) {
     const source = read(`src/routes/_authenticated/admin/${file}`);
-    assert.match(source, /min-w-\[980px\]/, file);
+    assert.match(source, file === "reports.tsx" ? /REPORT_LISTING_GRID|min-w-\[1180px\]/ : /min-w-\[980px\]/, file);
     assert.doesNotMatch(source, /xl:hidden|hidden[^\n]*xl:(?:block|flex|inline-flex)/, `${file} hides table columns on mobile`);
   }
 });

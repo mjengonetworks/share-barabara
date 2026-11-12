@@ -112,7 +112,6 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
     if (recordQuery.data) setForm(initialForm(type, recordQuery.data));
   }, [recordQuery.data, type]);
 
-  const aiCurrent = useMemo(() => form ?? {}, [form]);
   const set = (key: string, value: any) => {
     setValidationErrors((current) => {
       if (!(key in current)) return current;
@@ -125,11 +124,22 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   const fieldError = (field: string) => validationErrors[field]
     ? <p id={`editor-${field}-error`} className="text-xs text-destructive" role="alert">{validationErrors[field]}</p>
     : null;
+  const aiCurrent = useMemo(() => {
+    const value = form ?? {};
+    if (type === "report") return { ...value, description: value.body };
+    if (type === "infrastructure") return { ...value, content: value.body };
+    return value;
+  }, [form, type]);
   const applyDraft = (draft: Record<string, unknown>) => setForm((current) => {
     if (!current) return current;
     const next = { ...current };
     for (const [key, value] of Object.entries(draft)) {
-      if (key in next && value !== null && value !== undefined && value !== "" && (!(typeof value === "string") || value.trim())) next[key] = value;
+      const formKey = type === "report" && key === "description"
+        ? "body"
+        : type === "infrastructure" && key === "content"
+          ? "body"
+          : key;
+      if (formKey in next && value !== null && value !== undefined && value !== "" && (!(typeof value === "string") || value.trim())) next[formKey] = value;
     }
     return next;
   });

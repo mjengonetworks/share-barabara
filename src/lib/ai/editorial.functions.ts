@@ -550,7 +550,7 @@ async function resolveEditorialRecord(
       : contentType === "alert"
         ? "id,title,description,county,road,hazard_type,severity,parties_involved,status,user_id"
         : contentType === "report"
-          ? "id,title,description,county,road,severity,occurred_at,vehicles_involved,casualties,fatalities,parties_involved,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,user_id"
+          ? "id,title,summary,description,county,road,incident_type,severity,occurred_at,vehicles_involved,casualties,fatalities,parties_involved,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,user_id"
           : contentType === "campaign"
             ? "id,title,location,description,start_date,end_date,report_published,created_by"
             : contentType === "infrastructure"

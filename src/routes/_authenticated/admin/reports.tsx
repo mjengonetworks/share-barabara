@@ -52,9 +52,10 @@ import { NullableNumberField } from "@/components/site/nullable-number-field";
 import { casualtyBreakdownError } from "@/components/site/party-casualty-inputs";
 import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
-import { IncidentDiscoveryPanel } from "@/components/site/incident-discovery-panel";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+
+const REPORT_LISTING_GRID = "grid min-w-[1180px] grid-cols-[auto_72px_minmax(16rem,2.5fr)_minmax(10rem,1.2fr)_minmax(6rem,0.8fr)_minmax(7rem,0.8fr)_minmax(8rem,1fr)_minmax(4rem,auto)_minmax(8.5rem,auto)_minmax(9rem,auto)] items-center gap-3 px-3 py-2";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -218,8 +219,6 @@ function ReportsQueuePage() {
           <a className={buttonVariants({ size: "sm" })} href="/admin/reports/new"><Plus className="mr-1.5 size-4" /> Add New Report</a>
         }
       />
-      <IncidentDiscoveryPanel />
-
       <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Label>Status</Label>
@@ -286,7 +285,7 @@ function ReportsQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader><span>Image</span><span>Title</span><span>Location</span><span>Severity</span><span>Status</span><span>Author</span><span>Views</span><span>Created</span><span>Actions</span></AdminListingHeader>
+        <AdminListingHeader className={REPORT_LISTING_GRID}><span>Image</span><span>Title</span><span>Location</span><span>Severity</span><span>Status</span><span>Author</span><span>Views</span><span>Created</span><span className="whitespace-nowrap">Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {reports.map((r) => {
           const d = (drafts[r.id] ?? {
@@ -319,7 +318,7 @@ function ReportsQueuePage() {
 
           return (
             <li key={r.id} className="border-b border-border/70 odd:bg-background even:bg-muted/[0.18] last:border-b-0">
-              <div className="grid min-w-[980px] grid-cols-[auto_48px_minmax(10rem,2fr)_minmax(6rem,1fr)_minmax(5.5rem,1fr)_minmax(5.5rem,1fr)_minmax(6rem,1fr)_minmax(4rem,auto)_minmax(6.5rem,auto)_minmax(7rem,auto)] items-center gap-2 px-3 py-2">
+              <div className={REPORT_LISTING_GRID}>
                 <input type="checkbox" aria-label={`Select ${r.title}`} className="size-4 accent-brand-blue" onClick={(event) => event.stopPropagation()} />
                 <div className="min-w-0 text-left">
                   {r.image_url ? (
@@ -336,17 +335,17 @@ function ReportsQueuePage() {
                   </div>
                   <div className="min-w-0 text-left">
                   <div className="min-w-0">
-                    <p className="line-clamp-2 font-semibold">{r.title}</p>
+                    <p className="break-words whitespace-normal font-semibold leading-snug">{r.title}</p>
                   </div>
                   </div>
 
-                <span className="truncate text-sm">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
+                <span className="break-words whitespace-normal text-sm">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
                 <span><SeverityBadge value={r.severity} /></span>
                 <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
                 <span className="min-w-0 text-sm">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
                 <span className="text-xs text-muted-foreground">{dateTime(r.created_at)}</span>
-                <div className="flex items-center gap-1">
+                <div className="flex min-w-[9rem] items-center gap-1 whitespace-nowrap">
                 <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

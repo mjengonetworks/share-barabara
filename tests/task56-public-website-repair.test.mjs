@@ -177,7 +177,7 @@ test("external incident discovery creates bounded admin drafts and never auto-pu
   assert.match(discoveryMigration, /status TEXT NOT NULL DEFAULT 'draft'/);
   assert.match(discoveryMigration, /editors review incident discovery drafts/);
   assert.match(discoveryPanel, /never publish automatically/);
-  assert.match(read("src/routes/_authenticated/admin/reports.tsx"), /IncidentDiscoveryPanel/);
+  assert.doesNotMatch(read("src/routes/_authenticated/admin/reports.tsx"), /IncidentDiscoveryPanel/);
 });
 
 test("discovery drafts can be linked to an approved canonical incident", () => {
