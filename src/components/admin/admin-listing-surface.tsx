@@ -21,7 +21,7 @@ export function AdminListingSurface({
 export function AdminListingHeader({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div role="row" className={`grid min-w-[980px] whitespace-nowrap grid-cols-[auto_48px_minmax(10rem,2fr)_minmax(6rem,1fr)_minmax(5.5rem,1fr)_minmax(6.5rem,1fr)_minmax(4rem,auto)_minmax(6.5rem,auto)_minmax(7rem,auto)] items-center gap-2 border-b border-border bg-muted/45 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground ${className}`.trim()}>
-      <span aria-hidden="true" />
+      <span aria-hidden="true" className="hidden md:block" />
       {children}
     </div>
   );

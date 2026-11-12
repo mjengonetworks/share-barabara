@@ -1,6 +1,7 @@
 import { MAX_OUTPUT_CHARS, normalizeAIError, validateCitation } from "./safe";
 import type { Evidence, TrustedCitation } from "./types";
 import { serverEnv } from "@/lib/runtime-env.server";
+import { ACCIDENT_REPORT_AI_FIELDS } from "./accident-report-contract";
 
 type Provider = "groq" | "grok";
 type EditorialResponseSchema = {
@@ -42,13 +43,13 @@ export function editorialResponseSchemaForContentType(contentType: string): Edit
     : contentType === "alert"
       ? ["title", "description", "county", "road", "hazard_type", "severity", "parties_involved"]
       : contentType === "report"
-        ? ["title", "description", "county", "road", "incident_type", "severity", "occurred_at", "vehicles_involved", "casualties", "fatalities", "parties_involved", "seo_title", "seo_description", "seo_keywords", "image_alt", "image_caption", "image_credit"]
+        ? [...ACCIDENT_REPORT_AI_FIELDS]
         : contentType === "campaign"
           ? ["title", "location", "description", "start_date", "end_date"]
           : ["title", "road_name", "county", "authority", "structure_type", "summary", "content", "editor_note"];
   const properties: Record<string, unknown> = {};
   for (const field of fields) {
-    const numeric = ["vehicles_involved", "casualties", "fatalities"].includes(field);
+    const numeric = ["vehicles_involved", "casualties", "fatalities", "latitude", "longitude"].includes(field);
     const list = field === "parties_involved";
     properties[field] = numeric
       ? { type: ["integer", "null"] }

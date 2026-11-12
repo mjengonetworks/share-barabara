@@ -9,6 +9,7 @@ import {
   type EditorialProvider,
   type EditorialProposal,
   type EditorialValue,
+  type EditorialFieldResults,
 } from "@/lib/ai/editorial.functions";
 import { filterEditorialDraftForApply } from "@/lib/ai/editorial-ui-policy";
 
@@ -18,6 +19,7 @@ const callGenerateEditorialDraft = generateEditorialDraft as unknown as (args: {
 }) => Promise<{
   draft?: Record<string, EditorialValue>;
   proposal?: EditorialProposal;
+  fieldResults?: EditorialFieldResults;
 }>;
 
 // Non-sensitive DOM diagnostic for support tickets involving stale mobile
@@ -25,7 +27,7 @@ const callGenerateEditorialDraft = generateEditorialDraft as unknown as (args: {
 const EDITORIAL_AI_UI_VERSION = "2026-10-26-cross-device-1";
 
 function contentLabel(contentType: EditorialContentType) {
-  return contentType[0].toUpperCase() + contentType.slice(1);
+  return contentType.charAt(0).toUpperCase() + contentType.slice(1);
 }
 
 function nonDestructiveDraft(draft: Record<string, EditorialValue>) {
@@ -128,6 +130,7 @@ export function EditorialAIButton({
 }) {
   const [busy, setBusy] = useState(false);
   const [lastDurationMs, setLastDurationMs] = useState<number | null>(null);
+  const [lastFieldResults, setLastFieldResults] = useState<EditorialFieldResults | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [sourceMaterial, setSourceMaterial] = useState(() => initialSourceMaterial(source, mode));
   const [sourceFiles, setSourceFiles] = useState<Array<{ name: string; text: string }>>([]);
@@ -176,12 +179,21 @@ export function EditorialAIButton({
         throw new Error("No draft returned");
       }
       const latest = currentRef.current;
-      const safeDraft = filterEditorialDraftForApply(proposed, latest, snapshot, mode);
+      const safeDraft = filterEditorialDraftForApply(proposed as Record<string, EditorialValue>, latest, snapshot, mode);
       onDraft(safeDraft);
+      const serverResults = result.proposal?.fieldResults ?? result.fieldResults;
+      if (serverResults) {
+        setLastFieldResults({
+          ...serverResults,
+          populated: Object.keys(safeDraft),
+        });
+      }
       const durationMs = Math.round(performance.now() - startedAt);
       setLastDurationMs(durationMs);
       console.info("[Share Barabara Editorial AI] completed", { contentType, mode, provider: selectedProvider, durationMs });
-      toast.success("Editorial AI values populated. Review and continue editing before saving.");
+      const populatedCount = Object.keys(safeDraft).length;
+      const rejectedCount = serverResults ? Object.keys(serverResults.rejected).length : 0;
+      toast.success(`Editorial AI populated ${populatedCount} field${populatedCount === 1 ? "" : "s"}${rejectedCount ? `; ${rejectedCount} value${rejectedCount === 1 ? " was" : "s were"} skipped` : ""}. Review before saving.`);
     } catch (error) {
       const classified = classifyEditorialError(error);
       console.warn("[Share Barabara Editorial AI] request failed", {
@@ -251,6 +263,12 @@ export function EditorialAIButton({
 
       {expanded ? <div id={`editorial-panel-${contentType}-${mode}-${selectedProvider}`} className="mt-3 space-y-3">
         <p className="text-sm text-muted-foreground">{description}</p>
+        {lastFieldResults ? <div className="rounded-md border border-border bg-muted/30 p-2 text-xs" role="status" aria-live="polite">
+          <p className="font-semibold text-foreground">Latest field result</p>
+          <p className="mt-1 text-muted-foreground">Populated: {lastFieldResults.populated.length ? lastFieldResults.populated.join(", ") : "none"}</p>
+          <p className="text-muted-foreground">Skipped or unverified: {lastFieldResults.skipped.length ? lastFieldResults.skipped.join(", ") : "none"}</p>
+          {Object.keys(lastFieldResults.rejected).length ? <p className="text-destructive">Rejected: {Object.entries(lastFieldResults.rejected).map(([field, reason]) => `${field} (${reason})`).join("; ")}</p> : null}
+        </div> : null}
         <label
           className="block text-sm font-semibold text-foreground"
           htmlFor={`editorial-source-${contentType}-${mode}`}

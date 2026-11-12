@@ -36,6 +36,7 @@ import { saveAccidentReport } from "@/lib/accident-report-api";
 import { renderPersistenceError, serializePersistenceDiagnostic } from "@/lib/persistence-diagnostics";
 import { useRoles } from "@/hooks/useRoles";
 import { EditorialAIButton } from "@/components/site/editorial-ai-button";
+import { mapAccidentReportAiDraftToForm } from "@/lib/ai/accident-report-contract";
 
 export function ReportForm({ onDone, editorial = false }: { onDone?: () => void; editorial?: boolean }) {
   const { user } = useAuth();
@@ -138,22 +139,23 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
   });
 
   function applyEditorialDraft(draft: Record<string, unknown>) {
+    const mapped = mapAccidentReportAiDraftToForm(draft, "description");
     setForm((current) => ({
       ...current,
-      ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
-      ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
-      ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
-      ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
-      ...(typeof draft.incident_type === "string" && draft.incident_type.trim() ? { incident_type: draft.incident_type } : {}),
-      ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
-      ...(typeof draft.occurred_at === "string" && draft.occurred_at.trim() ? { occurred_at: draft.occurred_at.slice(0, 16) } : {}),
-      ...(typeof draft.vehicles_involved === "number" ? { vehicles_involved: draft.vehicles_involved } : {}),
-      ...(typeof draft.casualties === "number" ? { casualties: draft.casualties } : {}),
-      ...(typeof draft.fatalities === "number" ? { fatalities: draft.fatalities } : {}),
-      ...(Array.isArray(draft.parties_involved) ? { parties_involved: draft.parties_involved } : {}),
-      ...(typeof draft.image_alt === "string" && draft.image_alt.trim() ? { image_alt: draft.image_alt } : {}),
-      ...(typeof draft.image_caption === "string" && draft.image_caption.trim() ? { image_caption: draft.image_caption } : {}),
-      ...(typeof draft.image_credit === "string" && draft.image_credit.trim() ? { image_credit: draft.image_credit } : {}),
+      ...(typeof mapped.title === "string" && mapped.title.trim() ? { title: mapped.title } : {}),
+      ...(typeof mapped.description === "string" && mapped.description.trim() ? { description: mapped.description } : {}),
+      ...(typeof mapped.county === "string" && mapped.county.trim() ? { county: mapped.county } : {}),
+      ...(typeof mapped.road === "string" && mapped.road.trim() ? { road: mapped.road } : {}),
+      ...(typeof mapped.incident_type === "string" && mapped.incident_type.trim() ? { incident_type: mapped.incident_type } : {}),
+      ...(typeof mapped.severity === "string" && mapped.severity.trim() ? { severity: mapped.severity } : {}),
+      ...(typeof mapped.occurred_at === "string" && mapped.occurred_at.trim() ? { occurred_at: mapped.occurred_at.slice(0, 16) } : {}),
+      ...(typeof mapped.vehicles_involved === "number" ? { vehicles_involved: mapped.vehicles_involved } : {}),
+      ...(typeof mapped.casualties === "number" ? { casualties: mapped.casualties } : {}),
+      ...(typeof mapped.fatalities === "number" ? { fatalities: mapped.fatalities } : {}),
+      ...(Array.isArray(mapped.parties_involved) ? { parties_involved: mapped.parties_involved } : {}),
+      ...(typeof mapped.image_alt === "string" && mapped.image_alt.trim() ? { image_alt: mapped.image_alt } : {}),
+      ...(typeof mapped.image_caption === "string" && mapped.image_caption.trim() ? { image_caption: mapped.image_caption } : {}),
+      ...(typeof mapped.image_credit === "string" && mapped.image_credit.trim() ? { image_credit: mapped.image_credit } : {}),
     }));
   }
 
@@ -381,28 +383,7 @@ export function ReportForm({ onDone, editorial = false }: { onDone?: () => void;
               provider={provider}
                   current={form}
                   source=""
-                  onDraft={(draft) =>
-                    setForm((current) => ({
-                      ...current,
-                      ...(typeof draft.title === "string" && draft.title.trim() ? { title: draft.title } : {}),
-                      ...(typeof draft.description === "string" && draft.description.trim() ? { description: draft.description } : {}),
-                      ...(typeof draft.county === "string" && draft.county.trim() ? { county: draft.county } : {}),
-                      ...(typeof draft.road === "string" && draft.road.trim() ? { road: draft.road } : {}),
-                      ...(typeof draft.incident_type === "string" && draft.incident_type.trim() ? { incident_type: draft.incident_type } : {}),
-                      ...(typeof draft.severity === "string" && draft.severity.trim() ? { severity: draft.severity } : {}),
-                      ...(typeof draft.occurred_at === "string" && draft.occurred_at.trim() ? { occurred_at: draft.occurred_at.slice(0, 16) } : {}),
-                      ...(typeof draft.vehicles_involved === "number" ? { vehicles_involved: draft.vehicles_involved } : {}),
-                      ...(typeof draft.casualties === "number" ? { casualties: draft.casualties } : {}),
-                      ...(typeof draft.fatalities === "number" ? { fatalities: draft.fatalities } : {}),
-                      ...(Array.isArray(draft.parties_involved) ? { parties_involved: draft.parties_involved } : {}),
-                      ...(typeof draft.seo_title === "string" && draft.seo_title.trim() ? { seo_title: draft.seo_title } : {}),
-                      ...(typeof draft.seo_description === "string" && draft.seo_description.trim() ? { seo_description: draft.seo_description } : {}),
-                      ...(typeof draft.seo_keywords === "string" && draft.seo_keywords.trim() ? { seo_keywords: draft.seo_keywords } : {}),
-                      ...(typeof draft.image_alt === "string" && draft.image_alt.trim() ? { image_alt: draft.image_alt } : {}),
-                      ...(typeof draft.image_caption === "string" && draft.image_caption.trim() ? { image_caption: draft.image_caption } : {}),
-                      ...(typeof draft.image_credit === "string" && draft.image_credit.trim() ? { image_credit: draft.image_credit } : {}),
-                    }))
-                  }
+                  onDraft={applyEditorialDraft}
                 />
               ))}
             </div>

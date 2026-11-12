@@ -54,8 +54,9 @@ import { LocationButton } from "@/components/site/location-button";
 import { EditorialUpdatesManager } from "@/components/site/editorial-updates-manager";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminListingHeader, AdminListingSurface } from "@/components/admin/admin-listing-surface";
+import { mapAccidentReportAiDraftToForm } from "@/lib/ai/accident-report-contract";
 
-const REPORT_LISTING_GRID = "grid min-w-[1180px] grid-cols-[auto_72px_minmax(16rem,2.5fr)_minmax(10rem,1.2fr)_minmax(6rem,0.8fr)_minmax(7rem,0.8fr)_minmax(8rem,1fr)_minmax(4rem,auto)_minmax(8.5rem,auto)_minmax(9rem,auto)] items-center gap-3 px-3 py-2";
+const REPORT_LISTING_GRID = "grid w-full min-w-0 grid-cols-[24px_48px_minmax(0,1fr)_auto] items-start gap-2 px-2 py-2 md:grid-cols-[24px_48px_minmax(7rem,1.4fr)_minmax(5rem,1fr)_minmax(4rem,.7fr)_minmax(4.5rem,.7fr)_minmax(5rem,.9fr)_minmax(3rem,.5fr)_minmax(5rem,.7fr)_minmax(6rem,auto)] xl:grid-cols-[32px_64px_minmax(12rem,2fr)_minmax(8rem,1.1fr)_minmax(5rem,.7fr)_minmax(6rem,.7fr)_minmax(7rem,1fr)_minmax(4rem,.6fr)_minmax(7rem,.8fr)_minmax(8rem,auto)]";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({ meta: [{ title: "Accident Reports: Share Barabara Admin" }] }),
@@ -69,6 +70,8 @@ type ReportDraft = {
   road: string;
   latitude: number | null;
   longitude: number | null;
+  incident_type: string;
+  occurred_at: string | null;
   severity: string;
   featured: boolean;
   vehicles_involved: number | null;
@@ -285,9 +288,10 @@ function ReportsQueuePage() {
       ) : null}
 
       <AdminListingSurface>
-        <AdminListingHeader className={REPORT_LISTING_GRID}><span>Image</span><span>Title</span><span>Location</span><span>Severity</span><span>Status</span><span>Author</span><span>Views</span><span>Created</span><span className="whitespace-nowrap">Actions</span></AdminListingHeader>
+        <AdminListingHeader className={REPORT_LISTING_GRID}><span>Image</span><span>Title</span><span className="hidden md:block">Location</span><span className="hidden md:block">Severity</span><span className="hidden md:block">Status</span><span className="hidden md:block">Author</span><span className="hidden md:block">Views</span><span className="hidden md:block">Created</span><span className="whitespace-nowrap">Actions</span></AdminListingHeader>
       <ul className="divide-y divide-border/70">
         {reports.map((r) => {
+          const reportRecord = r as typeof r & { incident_type?: string | null };
           const d = (drafts[r.id] ?? {
             title: r.title,
             description: r.description,
@@ -295,6 +299,8 @@ function ReportsQueuePage() {
             road: r.road ?? "",
             latitude: r.latitude,
             longitude: r.longitude,
+            incident_type: reportRecord.incident_type ?? "",
+            occurred_at: r.occurred_at ?? null,
             severity: r.severity,
             featured: Boolean((r as { featured?: boolean | null }).featured),
             vehicles_involved: r.vehicles_involved,
@@ -312,8 +318,10 @@ function ReportsQueuePage() {
           }) as unknown as ReportDraft & Record<string, import("@/lib/ai/editorial.functions").EditorialValue>;
           const set = (patch: Partial<ReportDraft>) =>
             setDrafts((prev) => ({ ...prev, [r.id]: { ...d, ...patch } }));
-          const applyAI = (draft: Record<string, unknown>) =>
-            set(Object.fromEntries(Object.entries(draft).filter(([field, value]) => field in d && value !== null && value !== "")) as Partial<ReportDraft>);
+          const applyAI = (draft: Record<string, unknown>) => {
+            const mapped = mapAccidentReportAiDraftToForm(draft, "description");
+            set(Object.fromEntries(Object.entries(mapped).filter(([field, value]) => field in d && value !== null && value !== "")) as Partial<ReportDraft>);
+          };
           const expanded = expandedId === r.id;
 
           return (
@@ -339,13 +347,13 @@ function ReportsQueuePage() {
                   </div>
                   </div>
 
-                <span className="break-words whitespace-normal text-sm">{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
-                <span><SeverityBadge value={r.severity} /></span>
-                <span className="text-xs font-semibold capitalize text-muted-foreground">{r.status}</span>
-                <span className="min-w-0 text-sm">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
-                <span className="text-xs text-muted-foreground">{dateTime(r.created_at)}</span>
-                <div className="flex min-w-[9rem] items-center gap-1 whitespace-nowrap">
+                <span className="hidden min-w-0 break-words whitespace-normal text-sm md:block" title={`${r.county || "Not specified"}${r.road ? ` · ${r.road}` : ""}`}>{r.county || "Not specified"}{r.road ? ` · ${r.road}` : ""}</span>
+                <span className="hidden md:block"><SeverityBadge value={r.severity} /></span>
+                <span className="hidden text-xs font-semibold capitalize text-muted-foreground md:block">{r.status}</span>
+                <span className="hidden min-w-0 text-sm md:block">{r.user_id ? <UserLink userId={r.user_id} name={names[r.user_id]} /> : "—"}</span>
+                <span className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex"><Eye className="size-3" />{viewCountsError ? "—" : viewCounts[r.id] ?? 0}</span>
+                <span className="hidden text-xs text-muted-foreground md:block">{dateTime(r.created_at)}</span>
+                <div className="flex min-w-[9rem] items-center justify-self-end gap-1 whitespace-nowrap">
                 <Button asChild variant="outline" size="sm" className="shrink-0"><a href={`/admin/reports/${r.id}/edit`}><Pencil className="mr-1.5 size-4" /> Edit</a></Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

@@ -73,9 +73,10 @@ test("free-text roads are preserved without silently creating canonical roads", 
   assert.doesNotMatch(roads, /\.from\("roads"\)\.insert/);
 });
 
-test("Editorial AI cannot populate coordinates", () => {
+test("Editorial AI coordinates remain verified-only and nullable", () => {
   assert.match(editorial, /Do not invent figures, dates, times, locations, coordinates/);
-  assert.doesNotMatch(editorial, /latitude|longitude|geocode/i);
+  assert.match(editorial, /latitude|longitude/);
+  assert.match(read("src/lib/ai/accident-report-contract.ts"), /verified coordinate or remain blank/);
 });
 
 test("no map-provider, SearXNG or Task 25 runtime dependency was added", () => {

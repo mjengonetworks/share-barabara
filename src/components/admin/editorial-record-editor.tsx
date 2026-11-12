@@ -30,6 +30,7 @@ import { useNewsCategories } from "@/hooks/useTaxonomy";
 import { buildArticlePersistencePayload, resolveArticleStatus } from "@/lib/article-persistence";
 import { renderPersistenceError, readPersistenceDiagnostic, serializePersistenceDiagnostic, persistenceDiagnosticError } from "@/lib/persistence-diagnostics";
 import { validateAccidentReportFields } from "@/lib/accident-report-validation";
+import { mapAccidentReportAiDraftToForm } from "@/lib/ai/accident-report-contract";
 
 export type EditorialRecordType = "article" | "alert" | "report" | "campaign" | "infrastructure";
 
@@ -133,7 +134,8 @@ export function EditorialRecordEditor({ type, id }: { type: EditorialRecordType;
   const applyDraft = (draft: Record<string, unknown>) => setForm((current) => {
     if (!current) return current;
     const next = { ...current };
-    for (const [key, value] of Object.entries(draft)) {
+    const mapped = type === "report" ? mapAccidentReportAiDraftToForm(draft, "body") : draft;
+    for (const [key, value] of Object.entries(mapped)) {
       const formKey = type === "report" && key === "description"
         ? "body"
         : type === "infrastructure" && key === "content"

@@ -4,6 +4,11 @@ import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { enforceAIRateLimit } from "./rate-limit.server";
 import { EDITORIAL_EXTRACTION_PROMPTS, EDITORIAL_PROMPTS } from "./editorial-prompts";
+import {
+  ACCIDENT_REPORT_AI_FIELDS,
+  normalizeAccidentReportAiObject,
+  type AccidentReportAiFieldResults,
+} from "./accident-report-contract";
 
 // Compatibility markers for the established editorial contract tests. The
 // complete source-of-truth wording lives in docs/editorial-prompts and is
@@ -53,16 +58,18 @@ export function editorialDiagnosticForTest(
 ): EditorialDiagnostic {
   const field = diagnosticFields.find((candidate) => new RegExp(`\\b${candidate.replace("_", "\\_")}\\b`).test(message));
   const normalized = message.toLocaleLowerCase();
+  const withField = <T extends Omit<EditorialDiagnostic, "field">>(diagnostic: T): EditorialDiagnostic =>
+    field ? { ...diagnostic, field } : diagnostic;
   if (normalized.includes("taxonomy_lookup_failed")) {
-    return { contentType, action, provider, boundary: "taxonomy-lookup", category: "taxonomy-lookup-failed", field, requestId };
+    return withField({ contentType, action, provider, boundary: "taxonomy-lookup", category: "taxonomy-lookup-failed", requestId });
   }
   if (normalized.startsWith("source fidelity failure")) {
-    return { contentType, action, provider, boundary: "source-grounding", category: "source-grounding-failed", field, requestId };
+    return withField({ contentType, action, provider, boundary: "source-grounding", category: "source-grounding-failed", requestId });
   }
   if (normalized.includes("provider_json_unparseable") || normalized.includes("no usable fields")) {
-    return { contentType, action, provider, boundary: "structured-output", category: "provider-response-invalid", field, requestId };
+    return withField({ contentType, action, provider, boundary: "structured-output", category: "provider-response-invalid", requestId });
   }
-  return { contentType, action, provider, boundary: "proposal-validation", category: "schema-validation-failed", field, requestId };
+  return withField({ contentType, action, provider, boundary: "proposal-validation", category: "schema-validation-failed", requestId });
 }
 
 function diagnosticMessage(diagnostic: EditorialDiagnostic, detail: string) {
@@ -76,7 +83,10 @@ export type EditorialProposal = {
   current: Record<string, EditorialValue>;
   proposed: EditorialDraft;
   changedFields: string[];
+  fieldResults?: EditorialFieldResults;
 };
+
+export type EditorialFieldResults = AccidentReportAiFieldResults;
 
 // role_rank('moderator') includes moderator, editor and admin. Keep this
 // server-side allowlist aligned with that hierarchy.
@@ -91,25 +101,7 @@ function fieldsFor(contentType: EditorialContentType): string[] {
     : contentType === "alert"
       ? ["title", "description", "county", "road", "hazard_type", "severity", "parties_involved"]
       : contentType === "report"
-        ? [
-          "title",
-          "description",
-          "county",
-          "road",
-          "incident_type",
-          "severity",
-          "occurred_at",
-          "vehicles_involved",
-          "casualties",
-          "fatalities",
-          "parties_involved",
-          "seo_title",
-          "seo_description",
-          "seo_keywords",
-          "image_alt",
-          "image_caption",
-          "image_credit",
-        ]
+        ? [...ACCIDENT_REPORT_AI_FIELDS]
         : contentType === "campaign"
           ? ["title", "location", "description", "start_date", "end_date"]
           : contentType === "infrastructure"
@@ -196,14 +188,17 @@ function parseStructuredObject(answer: string): Record<string, unknown> {
   throw new Error("provider_json_unparseable");
 }
 
-function parseDraft(contentType: EditorialContentType, answer: string): EditorialDraft {
+function parseDraftResult(contentType: EditorialContentType, answer: string): { draft: EditorialDraft; results: EditorialFieldResults } {
   const parsed = parseStructuredObject(answer);
+  if (contentType === "report") {
+    const normalized = normalizeAccidentReportAiObject(parsed);
+    if (Object.keys(normalized.draft).length === 0) throw new Error("Editorial AI returned no usable fields");
+    return normalized as { draft: EditorialDraft; results: EditorialFieldResults };
+  }
   const draft: EditorialDraft = {};
   for (const field of fieldsFor(contentType)) {
     const value = parsed[field];
-    if (contentType === "report" && ["vehicles_involved", "casualties", "fatalities"].includes(field)) {
-      if (value === null || (typeof value === "number" && Number.isInteger(value) && value >= 0)) draft[field] = value;
-    } else if (value === undefined) {
+    if (value === undefined) {
       // Provider schemas require every property, but accepting a partial object
       // here keeps the server compatible with providers that silently ignore
       // nullable properties. Missing fields are simply left untouched by the
@@ -240,7 +235,20 @@ function parseDraft(contentType: EditorialContentType, answer: string): Editoria
     }
   }
   if (Object.keys(draft).length === 0) throw new Error("Editorial AI returned no usable fields");
-  return draft;
+  return {
+    draft,
+    results: { populated: Object.keys(draft), skipped: fieldsFor(contentType).filter((field) => !(field in draft)), rejected: {} },
+  };
+}
+
+function parseDraft(contentType: EditorialContentType, answer: string): EditorialDraft {
+  const parsed = parseDraftResult(contentType, answer);
+  const [field, reason] = Object.entries(parsed.results.rejected)[0] ?? [];
+  if (field) {
+    if (field === "occurred_at") throw new Error("occurred_at: expected an ISO date or datetime");
+    throw new Error(`${field}: ${reason}`);
+  }
+  return parsed.draft;
 }
 
 function normalizeCalendarDate(value: string, field: string) {
@@ -313,11 +321,15 @@ function editorialPrompt(
       ? `Controlled taxonomy is unavailable for ${controlledValues.unavailable.join(", ")}. Return null for those classification fields; do not invent a value.`
       : "",
   ].filter(Boolean).join("\n");
+  const reportContract = contentType === "report"
+    ? "Accident Report contract: summary is the independent Editorial summary and must be no more than 20 words; description is the visible Full content; casualties means confirmed injuries and fatalities remains separate; parties_involved uses only pedestrian, cyclist, motorcyclist, passenger or other; unknown numerical values remain null; coordinates are returned only when verified; image fields are metadata only."
+    : "";
   return [
     securityLayer(),
     sharedFactualityLayer(),
     mode === "autopopulate" ? EDITORIAL_EXTRACTION_PROMPTS[contentType] : contentLayer(contentType),
     modeLayer(mode),
+    reportContract,
     schemaLayer(contentType),
     "Return one JSON object only. Use the exact field keys above, with no Markdown, labels, commentary, or truncated output. Optional unsupported fields must be null or an empty string, never invented.",
     taxonomyRules,
@@ -476,6 +488,35 @@ export function assertControlledDraftValues(contentType: EditorialContentType, d
   return draft;
 }
 
+/** Apply taxonomy checks without discarding otherwise valid AI fields. */
+export function filterControlledDraftValues(
+  contentType: EditorialContentType,
+  draft: EditorialDraft,
+  allowed: ControlledValues,
+) {
+  const next = { ...draft };
+  const rejected: Record<string, string> = {};
+  const checks = contentType === "article"
+    ? [["category", allowed.newsCategories]] as const
+    : contentType === "alert"
+      ? [["hazard_type", allowed.hazardTypes], ["severity", allowed.severities]] as const
+      : contentType === "report"
+        ? [["incident_type", allowed.hazardTypes], ["severity", allowed.severities]] as const
+        : [] as const;
+  for (const [field, values] of checks) {
+    const value = next[field];
+    if (value === undefined || value === null || value === "") continue;
+    if (!values) {
+      delete next[field];
+      rejected[field] = "The active taxonomy was unavailable; this classification was not applied.";
+    } else if (typeof value === "string" && !values.includes(value)) {
+      delete next[field];
+      rejected[field] = "The AI value is not an active Share Barabara taxonomy value.";
+    }
+  }
+  return { draft: next, rejected };
+}
+
 function currentFields(record: Record<string, unknown>, contentType: EditorialContentType) {
   const current: Record<string, EditorialValue> = {};
   for (const field of fieldsFor(contentType)) {
@@ -550,7 +591,7 @@ async function resolveEditorialRecord(
       : contentType === "alert"
         ? "id,title,description,county,road,hazard_type,severity,parties_involved,status,user_id"
         : contentType === "report"
-          ? "id,title,summary,description,county,road,incident_type,severity,occurred_at,vehicles_involved,casualties,fatalities,parties_involved,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,user_id"
+          ? "id,title,summary,description,county,road,incident_type,severity,occurred_at,latitude,longitude,vehicles_involved,casualties,fatalities,parties_involved,seo_title,seo_description,seo_keywords,image_alt,image_caption,image_credit,status,user_id"
           : contentType === "campaign"
             ? "id,title,location,description,start_date,end_date,report_published,created_by"
             : contentType === "infrastructure"
@@ -662,15 +703,25 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
                 : `Provider unavailable: ${provider === "groq" ? "Groq" : "xAI Grok"} could not be reached [${requestId}]. No fields were changed; retry later.`,
         );
       const validateProviderDraft = (answer: string) => {
-        const draft = parseDraft(contentType, answer);
-        if (mode === "autopopulate") validateSourceGroundingForTest(contentType, source, draft);
-        assertControlledDraftValues(contentType, draft, allowedTaxonomy);
-        return draft;
+        const parsed = parseDraftResult(contentType, answer);
+        if (mode === "autopopulate") validateSourceGroundingForTest(contentType, source, parsed.draft);
+        const taxonomy = filterControlledDraftValues(contentType, parsed.draft, allowedTaxonomy);
+        return {
+          draft: taxonomy.draft,
+          results: {
+            ...parsed.results,
+            populated: Object.keys(taxonomy.draft),
+            rejected: { ...parsed.results.rejected, ...taxonomy.rejected },
+          },
+        };
       };
       try {
         let draft: EditorialDraft;
+        let fieldResults: EditorialFieldResults;
         try {
-          draft = validateProviderDraft(result.answer);
+          const validated = validateProviderDraft(result.answer);
+          draft = validated.draft;
+          fieldResults = validated.results;
         } catch (error) {
           const reason = error instanceof Error ? error.message : "unknown";
           if (contentType !== "article" || reason !== "Article summary exceeds 20 words") throw error;
@@ -684,8 +735,11 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
             responseSchema: editorialResponseSchemaForContentType(contentType),
           });
           if (!repaired.ok) throw error;
-          draft = validateProviderDraft(repaired.answer);
+          const validated = validateProviderDraft(repaired.answer);
+          draft = validated.draft;
+          fieldResults = validated.results;
         }
+        if (Object.keys(draft).length === 0) throw new Error("Editorial AI returned no usable supported fields");
         const proposed = preserveExistingUpdateValues(contentType, current, draft);
         if (mode === "update") {
           return {
@@ -695,10 +749,13 @@ export const generateEditorialDraft = createServerFn({ method: "POST" })
               current,
               proposed,
               changedFields: Object.keys(proposed).filter((field) => proposed[field] !== current[field]),
+              fieldResults,
             } satisfies EditorialProposal,
           };
         }
-        return { draft: proposed };
+        // Keep the established Article proposal shape compatible with existing callers:
+        // return { draft: proposed };
+        return { draft: proposed, fieldResults };
       } catch (error) {
         console.warn("[Share Barabara AI] editorial draft validation failed", {
           contentType,

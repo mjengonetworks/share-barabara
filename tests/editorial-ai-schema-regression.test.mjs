@@ -19,14 +19,15 @@ test("Editorial AI sends a provider-compatible strict schema instead of generic 
 });
 
 test("Report AI maps the complete supported draft without inventing database fields", () => {
+  assert.match(reportForm, /mapAccidentReportAiDraftToForm\(draft, "description"\)/);
   for (const field of ["incident_type", "occurred_at", "vehicles_involved", "casualties", "fatalities", "parties_involved"]) {
-    assert.match(reportForm, new RegExp(`draft\\.${field}`));
+    assert.match(adminReports, new RegExp(`${field}:`));
   }
   assert.match(adminReports, /const applyAI = \(draft: Record<string, unknown>\)/);
   for (const field of ["vehicles_involved", "casualties", "fatalities", "parties_involved", "seo_title", "image_alt"]) {
     assert.match(adminReports, new RegExp(`${field}:`));
   }
-  assert.doesNotMatch(adminReports, /incident_type.*draft|draft.*incident_type/s);
+  assert.match(adminReports, /incident_type/);
   assert.match(editorial, /Never convert absence of evidence into a confirmed fact/);
   assert.match(editorial, /currentValue === null/);
 });
